@@ -12,7 +12,9 @@
     "test:ui": "vitest --ui",
     "makedoc": "npx typedoc --entryPointStrategy expand ./src --htmlLang jp --cleanOutputDir false",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\"",
+    "eslint:fix": "eslint --fix \"src/**/*.{ts,tsx}\""
   },
   "keywords": [
     "UTAU"
@@ -42,7 +44,8 @@
     "styled-components": "^6.1.14",
     "tsworld": "^0.0.5",
     "utauoto": "^0.5.0",
-    "utauwav": "^0.6.0"
+    "utauwav": "^0.6.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.24.6",
@@ -58,8 +61,18 @@
     "@storybook/test": "^8.5.6",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^3.0.5",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.8.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-unicorn": "^57.0.0",
     "jsdom": "^26.0.0",
     "storybook": "^8.5.6",
     "typedoc": "^0.25.13",

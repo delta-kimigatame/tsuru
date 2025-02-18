@@ -1,16 +1,16 @@
 import React from "react";
+// import { CookiesProvider } from "react-cookie";
 import { createRoot } from "react-dom/client";
 // import { App } from "./Component/App";
-import { CookiesProvider } from "react-cookie";
-import { ErrorBoundary } from "react-error-boundary";
+// import { ErrorBoundary } from "react-error-boundary";
 // import "./i18n/configs";
 // import { ErrorPaper } from "./Component/ErrorPaper";
 
-const root = createRoot(document.getElementById("root")!);
-root.render(
+const root = createRoot(document.querySelector("#root") as HTMLElement);
+root.render(<div></div>,
   // <ErrorBoundary FallbackComponent={ErrorPaper}>
-    <CookiesProvider>
-      {/* <App /> */}
-    </CookiesProvider>
+  // <CookiesProvider>
+  //   {/* <App /> */}
+  // </CookiesProvider>,
   // </ErrorBoundary>
 );
