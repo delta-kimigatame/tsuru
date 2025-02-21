@@ -1,3 +1,6 @@
+/**
+ * 音高名をNotenumに変換するためのテーブル
+ */
 export const TONE_MAP = {
   C: 0,
   "C#": 1,
@@ -28,6 +31,9 @@ export const TONE_MAP = {
   B: 11,
 };
 
+/**
+ * 音高名の一覧
+ */
 export const NOTENUM_MAP = [
   "C",
   "C#",
@@ -42,12 +48,23 @@ export const NOTENUM_MAP = [
   "A#",
   "B",
 ];
+
+/**
+ * 音高名を与えてNotenumを返す
+ * @param tone 音高名
+ * @returns notenum
+ */
 export const toneToNoteNum = (tone: string): number => {
   const toneValue = parseInt(tone.slice(-1));
   const toneName = tone.slice(0, -1);
   return TONE_MAP[toneName] + (toneValue + 1) * 12;
 };
 
+/**
+ * notenumを与えて音高名を返す
+ * @param notenum 
+ * @returns 音高名
+ */
 export const noteNumToTone = (notenum: number): string => {
   const toneValue = Math.floor(notenum / 12) - 1;
   const toneName = NOTENUM_MAP[notenum % 12];
