@@ -288,6 +288,9 @@ export class VoiceBank {
           asyncs.push(this.ExtractPrefixmaps(encoding));
           asyncs.push(this.ExtractOtoAll(encoding));
           Promise.all(asyncs).then(() => {
+            if(!Object.keys(this._prefixmaps).includes("")){
+              this._prefixmaps[""]=new PrefixMap()
+            }
             resolve();
           });
         });

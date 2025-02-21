@@ -38,7 +38,7 @@ describe("VoiceBank", () => {
     expect(vb.portrait).toBeUndefined();
     expect(vb.portraitOpacity).toBe(0.67);
     expect(vb.portraitHeight).toBe(800);
-    expect(vb.prefixmaps).toEqual({});
+    expect(vb.prefixmaps).toEqual({"":new PrefixMap()});
   });
 
   it("simple_character_all", async () => {
