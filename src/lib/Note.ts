@@ -113,8 +113,12 @@ export class Note {
 
   set lyric(value: string) {
     this._lyric = value;
-    if(this.next!==undefined && this.tempo!==undefined && this.length!==undefined){
-      this.next.AutoFitParam()
+    if (
+      this.next !== undefined &&
+      this.tempo !== undefined &&
+      this.length !== undefined
+    ) {
+      this.next.AutoFitParam();
     }
   }
 
@@ -491,6 +495,10 @@ export class Note {
     }
   }
 
+  /**
+   * ustにおけるNoteを扱う。
+   * 極力本家UTAUに沿った実装とするが、Voice Colorを活用するための拡張を行う。
+   */
   constructor() {}
 
   /**
