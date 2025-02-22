@@ -36,7 +36,7 @@ export class Ust {
    * プロジェクトを読み込む。
    * @param buf プロジェクトのバイナリデータ
    */
-  async Load(buf):Promise<void> {
+  async Load(buf): Promise<void> {
     let utfData: string;
     return new Promise(async (resolve) => {
       const data = await readTextFile(buf);
@@ -61,7 +61,7 @@ export class Ust {
    * ustのヘッダ部分を読み込む。PC上のパスに当たる内容はすべて無視する。
    * @param lines 1行毎に区切ったustヘッダ部分のデータ
    */
-  private LoadHeader(lines: Array<string>) {
+  private LoadHeader(lines: Array<string>): void {
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].startsWith("Tempo=")) {
         this.tempo = parseFloat(lines[i].replace("Tempo=", ""));
@@ -75,7 +75,7 @@ export class Ust {
    * ustのノート部分を読み込む。`@`から始まるエントリは無視する。
    * @param lines 1行毎に区切ったustノート部分のデータ
    */
-  private LoadNote(lines: Array<string>) {
+  private LoadNote(lines: Array<string>): void {
     this.notes = new Array<Note>();
     let note: Note | undefined;
     let nowTempo: number = this.tempo;
@@ -98,8 +98,8 @@ export class Ust {
         nowTempo = note.tempo;
         note.hasTempo = true;
       } else if (l.startsWith("PreUtterance=")) {
-        const pre = parseFloat(l.replace("PreUtterance=", ""))
-        if(!isNaN(pre)){
+        const pre = parseFloat(l.replace("PreUtterance=", ""));
+        if (!isNaN(pre)) {
           note.preutter = pre;
         }
       } else if (l.startsWith("VoiceOverlap=")) {

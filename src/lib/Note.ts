@@ -3,7 +3,7 @@
  * 極力本家UTAUに沿った実装とするが、Voice Colorを活用するための拡張を行う。
  */
 
-import { VoiceBank } from "./VoiceBanks/VoiceBank";
+import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 export class Note {
   /** 楽譜の先頭からみたnoteのindex */
@@ -248,9 +248,9 @@ export class Note {
    * 配列を与えてmode1ピッチを更新する
    * @param value
    */
-  SetPitches(value: Array<number>) {
+  SetPitches(value: Array<number>):void {
     this._pitches = value.map((v) =>
-      Math.max(Math.min(Math.floor(v), 2047), -2048)
+      Math.max(Math.min(Math.floor(v), 2047), -2048),
     );
   }
 
@@ -318,7 +318,7 @@ export class Note {
   /**
    * mode2ピッチの音高列
    */
-  SetPby(value: Array<number>) {
+  SetPby(value: Array<number>):void {
     this._pby = value.map((v) => Math.min(Math.max(v, -200), 200));
   }
 
@@ -339,7 +339,7 @@ export class Note {
   /**
    * mode2ピッチの間隔
    */
-  SetPbw(value: Array<number>) {
+  SetPbw(value: Array<number>):void {
     this._pbw = value.map((v) => Math.max(v, 0));
   }
 
@@ -364,7 +364,7 @@ export class Note {
   /**
    * mode2ピッチの補間方法
    */
-  SetPbm(value: Array<"" | "s" | "r" | "j">) {
+  SetPbm(value: Array<"" | "s" | "r" | "j">):void {
     this._pbm = value;
   }
 
@@ -395,7 +395,7 @@ export class Note {
   /**
    * エンベロープ。
    */
-  SetEnvelope(value: { point: Array<number>; value: Array<number> }) {
+  SetEnvelope(value: { point: Array<number>; value: Array<number> }):void {
     this._envelope = {
       point: value.point.map((v) => Math.max(v, 0)),
       value: value.value.map((v) => Math.min(Math.max(v, 0), 200)),
@@ -420,7 +420,7 @@ export class Note {
     phase: number;
     /** 0のとき波の中心が、-100のとき波の頂点が0に、100のとき波の底が0となるような割合 */
     height: number;
-  } {
+    } {
     return this._vibrato;
   }
 
@@ -428,7 +428,7 @@ export class Note {
    * ビブラートを`length,cycle,depth,fadeInTime,fadeOutTime,phase,height,amp`の文字列で与える。
    */
   set vibrato(value: string) {
-    const [length, cycle, depth, fadeInTime, fadeOutTime, phase, height, amp] =
+    const [length, cycle, depth, fadeInTime, fadeOutTime, phase, height] =
       value.split(",").map((v) => parseFloat(v));
     this._vibrato = {
       length: Math.min(Math.max(length, 0), 100),
@@ -516,7 +516,7 @@ export class Note {
     const record = vb.GetOtoRecord(
       this._lyric,
       this.notenum,
-      this.voiceColor ? this.voiceColor : ""
+      this.voiceColor ? this.voiceColor : "",
     );
     if (record === null) {
       this.otoPreutter = 0;
