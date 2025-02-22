@@ -16,6 +16,7 @@ export class Note {
   private _notenum: number;
   /** bpm */
   private _tempo: number;
+  hasTempo: boolean;
   /** 先行発声 */
   private _preutter: number;
   /** オーバーラップ */
