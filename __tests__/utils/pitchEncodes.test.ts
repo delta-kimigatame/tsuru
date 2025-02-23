@@ -3,7 +3,10 @@ import {
   encodeBase64,
   encodeRunLength,
   encodePitch,
-} from "../../src/utils/pitchEncode";
+  decodeBase64,
+  decodeRunLength,
+  decodePitch,
+} from "../../src/utils/pitch";
 
 describe("pitchEncode", () => {
   it("base64_single", () => {
@@ -55,5 +58,49 @@ describe("pitchEncode", () => {
     expect(encodePitch([0, 1, 2, 3])).toBe("AAABACAD");
     expect(encodePitch([0, 0, 0, 0])).toBe("AA#3#");
     expect(encodePitch([0, 0, 1, 2, 2, 2, 3])).toBe("AA#1#ABAC#2#AD");
+  });
+  it("decodeRunLength", () => {
+    expect(decodeRunLength("AA#3#")).toEqual(["AA", "AA", "AA", "AA"]);
+    expect(decodeRunLength("AAABACAD")).toEqual(["AA", "AB", "AC", "AD"]);
+    expect(decodeRunLength("AA#1#ABAC#2#AD")).toEqual([
+      "AA",
+      "AA",
+      "AB",
+      "AC",
+      "AC",
+      "AC",
+      "AD",
+    ]);
+  });
+  it("decodeBase64", () => {
+    expect(
+      decodeBase64([
+        "AA",
+        "AB",
+        "AZ",
+        "Aa",
+        "Ab",
+        "Az",
+        "A0",
+        "A1",
+        "A9",
+        "A+",
+        "A/",
+        "BA",
+      ])
+    ).toEqual([0, 1, 25, 26, 27, 51, 52, 53, 61, 62, 63, 64]);
+  });
+  it("decodeBase64Negative", () => {
+    expect(
+      decodeBase64(
+        encodeBase64([-1, -25, -26, -27, -51, -52, -53, -61, -62, -63, -64])
+      )
+    ).toEqual([-1, -25, -26, -27, -51, -52, -53, -61, -62, -63, -64]);
+  });
+
+  it("decodePitch", () => {
+    expect(decodePitch("AA#1#ABAC#2#AD")).toEqual([0, 0, 1, 2, 2, 2, 3]);
+    expect(decodePitch("AAABACAD")).toEqual([0, 1, 2, 3]);
+    expect(decodePitch("AA#3#")).toEqual([0, 0, 0, 0]);
   });
 });
