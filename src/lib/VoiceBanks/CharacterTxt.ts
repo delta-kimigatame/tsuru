@@ -55,7 +55,7 @@ export class CharacterTxt {
       throw new Error("txtかnameのどちらかが必要です");
     }
     if (values.txt) {
-      values = this.ParseTxt(values.txt);
+      values = this.parseTxt(values.txt);
     }
     this._name = values.name;
     if (values.image) {
@@ -80,7 +80,7 @@ export class CharacterTxt {
    * @param txt character.txt
    * @returns character.txtから読み取られたパラメーター
    */
-  private ParseTxt(txt: string): CharacterTxtValue {
+  private parseTxt(txt: string): CharacterTxtValue {
     /** character.txtを1行毎に格納したArray */
     const lines: Array<string> = txt.replace(/\r/g, "").split("\n");
     const values: CharacterTxtValue = { name: "" };
@@ -114,7 +114,7 @@ export class CharacterTxt {
     return values;
   }
 
-  OutputTxt(): string {
+  outputTxt(): string {
     const txt =
       "name=" +
       this._name +

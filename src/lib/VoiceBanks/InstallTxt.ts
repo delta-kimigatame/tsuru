@@ -41,7 +41,7 @@ export class InstallTxt {
       throw new Error("txtかfolderのどちらかが必要です");
     }
     if (values.txt) {
-      values = this.ParseTxt(values.txt);
+      values = this.parseTxt(values.txt);
     }
     this._folder = values.folder;
     if (values.contentsDir) {
@@ -52,7 +52,7 @@ export class InstallTxt {
     }
   }
 
-  private ParseTxt(txt: string): InstallTxtValue {
+  private parseTxt(txt: string): InstallTxtValue {
     /** install.txtを1行毎に格納したArray */
     const lines: Array<string> = txt.replace(/\r/g, "").split("\n");
     const values: InstallTxtValue = { folder: "" };
@@ -69,7 +69,7 @@ export class InstallTxt {
     return values;
   }
 
-  OutputTxt(): string {
+  outputTxt(): string {
     const txt =
       "type=voiceset\r\n" +
       "folder=" +

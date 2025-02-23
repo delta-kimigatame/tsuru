@@ -37,7 +37,7 @@ export class Frq {
    */
   constructor(data: FrqRequire) {
     if (data.buf !== undefined) {
-      this.LoadBinary(data.buf);
+      this.loadBinary(data.buf);
     } else if (data.frq === undefined) {
       throw new Error("bufもしくはfrqのどちらかが必要です。");
     } else if (data.amp !== undefined) {
@@ -60,7 +60,7 @@ export class Frq {
       this._amp = new Array<number>();
       for (let i = 0; i < this._frq.length; i++) {
         this._amp.push(
-          this.GetAmp(
+          this.getAmp(
             data.data.slice(this.perSamples * i, this.perSamples * (i + 1)),
           ),
         );
@@ -74,7 +74,7 @@ export class Frq {
    * バイナリデータからfrqを読み込みます
    * @param data frqのバイナリデータ
    */
-  private LoadBinary(data: ArrayBuffer): void {
+  private loadBinary(data: ArrayBuffer): void {
     const td = new TextDecoder();
     const dv = new DataView(data);
     if (data.byteLength < 56) {
@@ -100,7 +100,7 @@ export class Frq {
    * @param data perSamples分の波形データ
    * @returns 波形データの絶対値の平均値
    */
-  private GetAmp(data: Float64Array): number {
+  private getAmp(data: Float64Array): number {
     let temp: number = 0;
     for (let i = 0; i < data.length; i++) {
       temp += Math.abs(data[i]);
@@ -111,7 +111,7 @@ export class Frq {
   /**
    * this.frq_のデータを使って平均周波数を求めます。ただし0の点は無視します。
    */
-  CalcAverageFrq(): void {
+  calcAverageFrq(): void {
     let count: number = 0;
     let sum: number = 0;
     for (let i = 0; i < this._frq.length; i++) {
@@ -127,7 +127,7 @@ export class Frq {
    * Frqファイルを出力する。
    * @returns frqファイルのバイナリ
    */
-  Output(): ArrayBuffer {
+  output(): ArrayBuffer {
     const header = new ArrayBuffer(40);
     const dvHeader = new DataView(header);
     dvHeader.setUint8(0, "F".charCodeAt(0));

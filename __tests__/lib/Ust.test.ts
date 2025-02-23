@@ -49,7 +49,7 @@ describe("Ust", () => {
     const u = new Ust();
     expect(u.tempo).toBe(120);
     expect(u.flags).toBeUndefined();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.tempo).toBe(150);
     expect(u.flags).toBe("B50");
     expect(u.notes.length).toBe(2);
@@ -76,7 +76,7 @@ describe("Ust", () => {
     const u = new Ust();
     expect(u.tempo).toBe(120);
     expect(u.flags).toBeUndefined();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.tempo).toBe(150);
     expect(u.flags).toBe("B50");
     expect(u.notes.length).toBe(2);
@@ -96,7 +96,7 @@ describe("Ust", () => {
       { type: "text/plane;charset=utf-8" }
     );
     const u = new Ust();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.notes.length).toBe(1);
     expect(u.notes[0].index).toBe(0);
     expect(u.notes[0].length).toBe(1920);
@@ -108,35 +108,35 @@ describe("Ust", () => {
   });
   it("fully_note", async () => {
     const ustLines = makeHeader("utf-8").concat([
-        "[#0000]",
-        "Length=1920",
-        "Lyric=あ",
-        "NoteNum=60",
-        "Tempo=120",
-        "PreUtterance=1",
-        "@preuttr=2",
-        "VoiceOverlap=3",
-        "@overlap=4",
-        "StartPoint=5",
-        "@stpoint=6",
-        "@filename=filepath",
-        "@alias=あ_C4",
-        "Velocity=150",
-        "Intensity=80",
-        "Modulation=30",
-        "PitchBend=0,1,2,3",
-        "PBStart=-10.0",
-        "PBS=-5;3",
-        "PBY=1,2,3",
-        "PBW=10,20,30,40",
-        "PBM=,s,r,j,",
-        "Flags=g-5",
-        "VBR=1,2,3,4,5,6,7,8",
-        "Envelope=9,10,11,12,13,14,15,%,16,17,18",
-        "Label=aa",
-        "$direct=True",
-        "$region=1番",
-        "$region_end=イントロ",
+      "[#0000]",
+      "Length=1920",
+      "Lyric=あ",
+      "NoteNum=60",
+      "Tempo=120",
+      "PreUtterance=1",
+      "@preuttr=2",
+      "VoiceOverlap=3",
+      "@overlap=4",
+      "StartPoint=5",
+      "@stpoint=6",
+      "@filename=filepath",
+      "@alias=あ_C4",
+      "Velocity=150",
+      "Intensity=80",
+      "Modulation=30",
+      "PitchBend=0,1,2,3",
+      "PBStart=-10.0",
+      "PBS=-5;3",
+      "PBY=1,2,3",
+      "PBW=10,20,30,40",
+      "PBM=,s,r,j,",
+      "Flags=g-5",
+      "VBR=1,2,3,4,5,6,7,8",
+      "Envelope=9,10,11,12,13,14,15,%,16,17,18",
+      "Label=aa",
+      "$direct=True",
+      "$region=1番",
+      "$region_end=イントロ",
     ]);
     const ustBuf = new File(
       [iconv.encode(ustLines.join("\r\n"), "utf-8")],
@@ -144,7 +144,7 @@ describe("Ust", () => {
       { type: "text/plane;charset=utf-8" }
     );
     const u = new Ust();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.notes.length).toBe(1);
     expect(u.notes[0].index).toBe(0);
     expect(u.notes[0].length).toBe(1920);
@@ -158,15 +158,26 @@ describe("Ust", () => {
     expect(u.notes[0].velocity).toBe(150);
     expect(u.notes[0].intensity).toBe(80);
     expect(u.notes[0].modulation).toBe(30);
-    expect(u.notes[0].pitches).toEqual([0,1,2,3]);
+    expect(u.notes[0].pitches).toEqual([0, 1, 2, 3]);
     expect(u.notes[0].pbStart).toBe(-10);
-    expect(u.notes[0].pbs).toEqual({time:-5,height:3});
-    expect(u.notes[0].pby).toEqual([1,2,3]);
-    expect(u.notes[0].pbw).toEqual([10,20,30,40]);
-    expect(u.notes[0].pbm).toEqual(["","s","r","j",""]);
+    expect(u.notes[0].pbs).toEqual({ time: -5, height: 3 });
+    expect(u.notes[0].pby).toEqual([1, 2, 3]);
+    expect(u.notes[0].pbw).toEqual([10, 20, 30, 40]);
+    expect(u.notes[0].pbm).toEqual(["", "s", "r", "j", ""]);
     expect(u.notes[0].flags).toBe("g-5");
-    expect(u.notes[0].vibrato).toEqual({length:1,cycle:64,depth:5,fadeInTime:4,fadeOutTime:5,phase:6,height:7});
-    expect(u.notes[0].envelope).toEqual({point:[9,10,11,16,17],value:[12,13,14,15,18]});
+    expect(u.notes[0].vibrato).toEqual({
+      length: 1,
+      cycle: 64,
+      depth: 5,
+      fadeInTime: 4,
+      fadeOutTime: 5,
+      phase: 6,
+      height: 7,
+    });
+    expect(u.notes[0].envelope).toEqual({
+      point: [9, 10, 11, 16, 17],
+      value: [12, 13, 14, 15, 18],
+    });
     expect(u.notes[0].label).toBe("aa");
     expect(u.notes[0].direct).toBeTruthy();
     expect(u.notes[0].region).toBe("1番");
@@ -197,7 +208,7 @@ describe("Ust", () => {
       { type: "text/plane;charset=utf-8" }
     );
     const u = new Ust();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.notes.length).toBe(3);
     expect(u.notes[0].tempo).toBe(150);
     expect(u.notes[0].hasTempo).toBeFalsy();
@@ -231,7 +242,7 @@ describe("Ust", () => {
       { type: "text/plane;charset=utf-8" }
     );
     const u = new Ust();
-    await u.Load(ustBuf);
+    await u.load(ustBuf);
     expect(u.notes.length).toBe(3);
     expect(u.notes[0].prev).toBeUndefined();
     expect(u.notes[0].next.index).toBe(1);

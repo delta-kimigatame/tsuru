@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { PrefixMap } from "../../../src/lib/VoiceBanks/PrefixMap";
 
-import { toneToNoteNum, noteNumToTone } from "../../../src/utils/Notenum";
+import { noteNumToTone, toneToNoteNum } from "../../../src/utils/Notenum";
 
 describe("prefix.map", () => {
   it("empty_init", () => {
     const map = new PrefixMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const valueFromNotenum = map.GetValue(i);
+      const valueFromNotenum = map.getValue(i);
       expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
       expect(valueFromNotenum.prefix).toBe("");
       expect(valueFromNotenum.suffix).toBe("");
-      const valueFromToneName = map.GetValue(noteNumToTone(i));
+      const valueFromToneName = map.getValue(noteNumToTone(i));
       expect(valueFromToneName.tone).toBe(noteNumToTone(i));
       expect(valueFromToneName.prefix).toBe("");
       expect(valueFromToneName.suffix).toBe("");
@@ -19,10 +19,10 @@ describe("prefix.map", () => {
   });
   it("change_value", () => {
     const map = new PrefixMap();
-    map.SetValue({ tone: "B7", prefix: "pre", suffix: "" });
-    map.SetValue({ tone: "A#7", prefix: "", suffix: "su" });
+    map.setValue({ tone: "B7", prefix: "pre", suffix: "" });
+    map.setValue({ tone: "A#7", prefix: "", suffix: "su" });
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const valueFromNotenum = map.GetValue(i);
+      const valueFromNotenum = map.getValue(i);
       expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
       if (i === toneToNoteNum("B7")) {
         expect(valueFromNotenum.prefix).toBe("pre");
@@ -39,11 +39,11 @@ describe("prefix.map", () => {
 
   it("change_range_value", () => {
     const map = new PrefixMap();
-    map.SetRangeValues("C7-B7", "pre", "");
-    map.SetRangeValues("C6-B6", "", "su");
-    map.SetRangeValues("C5-B5", "testp", "tests");
+    map.setRangeValues("C7-B7", "pre", "");
+    map.setRangeValues("C6-B6", "", "su");
+    map.setRangeValues("C5-B5", "testp", "tests");
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const valueFromNotenum = map.GetValue(i);
+      const valueFromNotenum = map.getValue(i);
       expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
       if (i >= toneToNoteNum("C7")) {
         expect(valueFromNotenum.prefix).toBe("pre");
@@ -63,16 +63,16 @@ describe("prefix.map", () => {
 
   it("output_empty", () => {
     const map = new PrefixMap();
-    const output = map.OutputMap();
+    const output = map.outputMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       expect(output).toContain(noteNumToTone(i) + "\t\t");
     }
   });
   it("output_setValue", () => {
     const map = new PrefixMap();
-    map.SetValue({ tone: "B7", prefix: "pre", suffix: "" });
-    map.SetValue({ tone: "A#7", prefix: "", suffix: "su" });
-    const output = map.OutputMap();
+    map.setValue({ tone: "B7", prefix: "pre", suffix: "" });
+    map.setValue({ tone: "A#7", prefix: "", suffix: "su" });
+    const output = map.outputMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       if (i === toneToNoteNum("B7")) {
         expect(output).toContain(noteNumToTone(i) + "\tpre\t");
@@ -85,10 +85,10 @@ describe("prefix.map", () => {
   });
   it("output_setRangeValues", () => {
     const map = new PrefixMap();
-    map.SetRangeValues("C7-B7", "pre", "");
-    map.SetRangeValues("C6-B6", "", "su");
-    map.SetRangeValues("C5-B5", "testp", "tests");
-    const output = map.OutputMap();
+    map.setRangeValues("C7-B7", "pre", "");
+    map.setRangeValues("C6-B6", "", "su");
+    map.setRangeValues("C5-B5", "testp", "tests");
+    const output = map.outputMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       if (i >= toneToNoteNum("C7")) {
         expect(output).toContain(noteNumToTone(i) + "\tpre\t");
@@ -103,8 +103,8 @@ describe("prefix.map", () => {
   });
   it("output_setRangeSingle", () => {
     const map = new PrefixMap();
-    map.SetRangeValues("B7", "pre", "");
-    const output = map.OutputMap();
+    map.setRangeValues("B7", "pre", "");
+    const output = map.outputMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       if (i >= toneToNoteNum("B7")) {
         expect(output).toContain(noteNumToTone(i) + "\tpre\t");
@@ -115,14 +115,14 @@ describe("prefix.map", () => {
   });
   it("load_empty_file", () => {
     const map = new PrefixMap();
-    const output = map.OutputMap();
+    const output = map.outputMap();
     const map2 = new PrefixMap(output);
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const valueFromNotenum = map2.GetValue(i);
+      const valueFromNotenum = map2.getValue(i);
       expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
       expect(valueFromNotenum.prefix).toBe("");
       expect(valueFromNotenum.suffix).toBe("");
-      const valueFromToneName = map2.GetValue(noteNumToTone(i));
+      const valueFromToneName = map2.getValue(noteNumToTone(i));
       expect(valueFromToneName.tone).toBe(noteNumToTone(i));
       expect(valueFromToneName.prefix).toBe("");
       expect(valueFromToneName.suffix).toBe("");
@@ -130,13 +130,13 @@ describe("prefix.map", () => {
   });
   it("load_file", () => {
     const map = new PrefixMap();
-    map.SetRangeValues("C7-B7", "pre", "");
-    map.SetRangeValues("C6-B6", "", "su");
-    map.SetRangeValues("C5-B5", "testp", "tests");
-    const output = map.OutputMap();
+    map.setRangeValues("C7-B7", "pre", "");
+    map.setRangeValues("C6-B6", "", "su");
+    map.setRangeValues("C5-B5", "testp", "tests");
+    const output = map.outputMap();
     const map2 = new PrefixMap(output);
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const valueFromNotenum = map2.GetValue(i);
+      const valueFromNotenum = map2.getValue(i);
       expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
       if (i >= toneToNoteNum("C7")) {
         expect(valueFromNotenum.prefix).toBe("pre");
@@ -156,7 +156,7 @@ describe("prefix.map", () => {
   it("output_empty_for_OU", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
-    const output = map.OutputSubbanks();
+    const output = map.outputSubbanks();
     expect(output[0].color).toBe("test");
     expect(output[0].prefix).toBe("");
     expect(output[0].suffix).toBe("");
@@ -165,10 +165,10 @@ describe("prefix.map", () => {
   it("output_range_for_OU", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
-    map.SetRangeValues("C7-B7", "pre", "");
-    map.SetRangeValues("C6-B6", "", "su");
-    map.SetRangeValues("C5-B5", "testp", "tests");
-    const output = map.OutputSubbanks();
+    map.setRangeValues("C7-B7", "pre", "");
+    map.setRangeValues("C6-B6", "", "su");
+    map.setRangeValues("C5-B5", "testp", "tests");
+    const output = map.outputSubbanks();
     expect(output[0].color).toBe("test");
     expect(output[0].prefix).toBe("");
     expect(output[0].suffix).toBe("");
@@ -189,8 +189,8 @@ describe("prefix.map", () => {
   it("output_range_for_OU_same_prefix_last", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
-    map.SetRangeValues("C6-B6", "", "su");
-    const output = map.OutputSubbanks();
+    map.setRangeValues("C6-B6", "", "su");
+    const output = map.outputSubbanks();
     expect(output[0].color).toBe("test");
     expect(output[0].prefix).toBe("");
     expect(output[0].suffix).toBe("");
@@ -204,9 +204,9 @@ describe("prefix.map", () => {
   it("output_range_for_OU_same_prefix_last", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
-    map.SetRangeValues("C4-B4", "", "su");
-    map.SetRangeValues("C6-B6", "", "su");
-    const output = map.OutputSubbanks();
+    map.setRangeValues("C4-B4", "", "su");
+    map.setRangeValues("C6-B6", "", "su");
+    const output = map.outputSubbanks();
     expect(output[0].color).toBe("test");
     expect(output[0].prefix).toBe("");
     expect(output[0].suffix).toBe("");

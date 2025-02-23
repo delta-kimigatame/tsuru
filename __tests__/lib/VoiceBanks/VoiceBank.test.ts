@@ -1,18 +1,17 @@
-import JSZip from "jszip";
 import * as iconv from "iconv-lite";
 import yaml from "js-yaml";
+import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { VoiceBank } from "../../../src/lib/VoiceBanks/VoiceBank";
 import { CharacterTxt } from "../../../src/lib/VoiceBanks/CharacterTxt";
 import { PrefixMap } from "../../../src/lib/VoiceBanks/PrefixMap";
-import { Oto } from "utauoto";
+import { VoiceBank } from "../../../src/lib/VoiceBanks/VoiceBank";
 
 describe("VoiceBank", () => {
   it("not_found_character.txt", async () => {
     const z = new JSZip();
     const vb = new VoiceBank(z.files);
     await expect(async () => {
-      await vb.Initialize();
+      await vb.initialize();
     }).rejects.toThrow("character.txt not found.");
   });
 
@@ -20,13 +19,13 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
     z.file("root/character.txt", c_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.name).toBe("あ");
     expect(vb.image).toBeUndefined();
     expect(vb.sample).toBeUndefined();
@@ -38,7 +37,7 @@ describe("VoiceBank", () => {
     expect(vb.portrait).toBeUndefined();
     expect(vb.portraitOpacity).toBe(0.67);
     expect(vb.portraitHeight).toBe(800);
-    expect(vb.prefixmaps).toEqual({"":new PrefixMap()});
+    expect(vb.prefixmaps).toEqual({ "": new PrefixMap() });
   });
 
   it("simple_character_all", async () => {
@@ -52,7 +51,7 @@ describe("VoiceBank", () => {
       version: "f",
     });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -62,7 +61,7 @@ describe("VoiceBank", () => {
     const sampleBuf = new Uint8Array([0x02]).buffer;
     z.file("root/c.wav", sampleBuf);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.name).toBe("a");
     expect(vb.image).toEqual(iconBuf);
     expect(vb.sample).toEqual(sampleBuf);
@@ -75,7 +74,7 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -87,7 +86,7 @@ describe("VoiceBank", () => {
     z.file("root/character.txt", c_output);
     z.file("root/readme.txt", r_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.readme).toBe("test");
   });
 
@@ -95,7 +94,7 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -130,26 +129,26 @@ describe("VoiceBank", () => {
     const portraitBuf = new Uint8Array([0x03]).buffer;
     z.file("root/g.png", portraitBuf);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.voice).toBe("hoge");
     expect(vb.portrait).toEqual(portraitBuf);
     expect(vb.portraitOpacity).toBe(0.5);
     expect(vb.portraitHeight).toBe(300);
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
-    expect(vb.prefixmaps[""].GetValue("B4").suffix).toBe("_");
+    expect(vb.prefixmaps[""].getValue("B4").suffix).toBe("_");
     expect(Object.keys(vb.prefixmaps).includes("a")).toBeTruthy();
-    expect(vb.prefixmaps["a"].GetValue("B4").suffix).toBe("_A");
-    expect(vb.prefixmaps["a"].GetValue("C5").suffix).toBe("");
-    expect(vb.prefixmaps["a"].GetValue("C6").suffix).toBe("_A");
+    expect(vb.prefixmaps["a"].getValue("B4").suffix).toBe("_A");
+    expect(vb.prefixmaps["a"].getValue("C5").suffix).toBe("");
+    expect(vb.prefixmaps["a"].getValue("C6").suffix).toBe("_A");
     expect(Object.keys(vb.prefixmaps).includes("b")).toBeTruthy();
-    expect(vb.prefixmaps["b"].GetValue("B4").suffix).toBe("_B");
+    expect(vb.prefixmaps["b"].getValue("B4").suffix).toBe("_B");
   });
 
   it("yaml_portraitHeightEqual0", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -178,7 +177,7 @@ describe("VoiceBank", () => {
     const portraitBuf = new Uint8Array([0x03]).buffer;
     z.file("root/g.png", portraitBuf);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.voice).toBe("hoge");
     expect(vb.portrait).toEqual(portraitBuf);
     expect(vb.portraitOpacity).toBe(0.5);
@@ -189,37 +188,37 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
     const p = new PrefixMap();
-    p.SetRangeValues("C5-B7", "", "p");
+    p.setRangeValues("C5-B7", "", "p");
     const p_output = new File(
-      [iconv.encode(p.OutputMap(), "Windows-31j")],
+      [iconv.encode(p.outputMap(), "Windows-31j")],
       "prefix.map",
       { type: "text/plane;charset=shift-jis" }
     );
     z.file("root/character.txt", c_output);
     z.file("root/prefix.map", p_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
-    expect(vb.prefixmaps[""].GetValue("C5").suffix).toBe("p");
+    expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("p");
   });
 
   it("prefixmapWithYaml", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
     const p = new PrefixMap();
-    p.SetRangeValues("C5-B7", "", "p");
+    p.setRangeValues("C5-B7", "", "p");
     const p_output = new File(
-      [iconv.encode(p.OutputMap(), "Windows-31j")],
+      [iconv.encode(p.outputMap(), "Windows-31j")],
       "prefix.map",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -253,22 +252,22 @@ describe("VoiceBank", () => {
     );
     z.file("root/character.yaml", y_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
-    expect(vb.prefixmaps[""].GetValue("C5").suffix).toBe("p");
+    expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("p");
     expect(Object.keys(vb.prefixmaps).includes("a")).toBeTruthy();
-    expect(vb.prefixmaps["a"].GetValue("B4").suffix).toBe("_A");
-    expect(vb.prefixmaps["a"].GetValue("C5").suffix).toBe("");
-    expect(vb.prefixmaps["a"].GetValue("C6").suffix).toBe("_A");
+    expect(vb.prefixmaps["a"].getValue("B4").suffix).toBe("_A");
+    expect(vb.prefixmaps["a"].getValue("C5").suffix).toBe("");
+    expect(vb.prefixmaps["a"].getValue("C6").suffix).toBe("_A");
     expect(Object.keys(vb.prefixmaps).includes("b")).toBeTruthy();
-    expect(vb.prefixmaps["b"].GetValue("B4").suffix).toBe("_B");
+    expect(vb.prefixmaps["b"].getValue("B4").suffix).toBe("_B");
   });
 
   it("oto", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -292,17 +291,17 @@ describe("VoiceBank", () => {
     z.file("root/oto.ini", o_output2);
     z.file("root/test/oto.ini", o_output3);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
+    await vb.initialize();
     expect(vb.oto.GetRecordFromAlias("あ")).toBeNull();
     expect(vb.oto.GetRecordFromAlias("い")?.dirpath).toBe("");
     expect(vb.oto.GetRecordFromAlias("う")?.dirpath).toBe("test");
   });
 
-  it("GetOtoRecord", async () => {
+  it("getOtoRecord", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -346,20 +345,20 @@ describe("VoiceBank", () => {
     z.file("root/character.txt", c_output);
     z.file("root/oto.ini", o_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
-    expect(vb.GetOtoRecord("あ", 60, "").offset).toBe(6);
-    expect(vb.GetOtoRecord("?あ", 60, "").offset).toBe(1);
-    expect(vb.GetOtoRecord("あ", 72, "a").offset).toBe(1);
-    expect(vb.GetOtoRecord("あ", 60, "a").offset).toBe(11);
-    expect(vb.GetOtoRecord("あ_A", 60, "").offset).toBe(11);
-    expect(vb.GetOtoRecord("あ_B", 60, "")).toBeNull();
+    await vb.initialize();
+    expect(vb.getOtoRecord("あ", 60, "").offset).toBe(6);
+    expect(vb.getOtoRecord("?あ", 60, "").offset).toBe(1);
+    expect(vb.getOtoRecord("あ", 72, "a").offset).toBe(1);
+    expect(vb.getOtoRecord("あ", 60, "a").offset).toBe(11);
+    expect(vb.getOtoRecord("あ_A", 60, "").offset).toBe(11);
+    expect(vb.getOtoRecord("あ_B", 60, "")).toBeNull();
   });
 
   it("GetWav", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -372,11 +371,11 @@ describe("VoiceBank", () => {
     ]).buffer;
     z.file("root/あ.wav", wavBuf);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
-    const wav = await vb.GetWave("あ.wav");
+    await vb.initialize();
+    const wav = await vb.getWave("あ.wav");
     expect(wav.data).toEqual([0, 1, -1, 3]);
     await expect(async () => {
-      await vb.GetWave("い.wav");
+      await vb.getWave("い.wav");
     }).rejects.toThrow("root/い.wav not found.");
   });
 
@@ -384,7 +383,7 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "Windows-31j")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
       { type: "text/plane;charset=shift-jis" }
     );
@@ -394,15 +393,15 @@ describe("VoiceBank", () => {
       0x25, 0xf0, 0x46, 0xd7, 0x59, 0xde, 0x5d, 0x40, 0x44, 0xac, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ]).buffer;
     z.file("root/あ_wav.frq", feqBuf);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize();
-    const frq = await vb.GetFrq("あ.wav");
+    await vb.initialize();
+    const frq = await vb.getFrq("あ.wav");
     expect(frq.frqAverage).toBeCloseTo(119.47423345496698);
     await expect(async () => {
-      await vb.GetFrq("い.wav");
+      await vb.getFrq("い.wav");
     }).rejects.toThrow("root/い_wav.frq not found.");
   });
 
@@ -410,7 +409,7 @@ describe("VoiceBank", () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
-      [iconv.encode(new CharacterTxt(c).OutputTxt(), "utf-8")],
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "utf-8")],
       "character.txt",
       { type: "text/plane;charset=utf-8" }
     );
@@ -420,18 +419,18 @@ describe("VoiceBank", () => {
     });
     z.file("root/readme.txt", r_output);
     const p = new PrefixMap();
-    p.SetRangeValues("C5-B7", "", "試");
+    p.setRangeValues("C5-B7", "", "試");
     const p_output = new File(
-      [iconv.encode(p.OutputMap(), "utf-8")],
+      [iconv.encode(p.outputMap(), "utf-8")],
       "prefix.map",
       { type: "text/plane;charset=utf-8" }
     );
     z.file("root/prefix.map", p_output);
     const vb = new VoiceBank(z.files);
-    await vb.Initialize("UTF8");
+    await vb.initialize("UTF8");
     expect(vb.name).toBe("あ");
     expect(vb.readme).toBe("い");
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
-    expect(vb.prefixmaps[""].GetValue("C5").suffix).toBe("試");
+    expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("試");
   });
 });

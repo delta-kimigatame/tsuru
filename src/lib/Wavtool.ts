@@ -18,7 +18,7 @@ export class Wavtool {
     return this._data;
   }
 
-  Append(request: AppendRequest): void {
+  append(request: AppendRequest): void {
     const stpFrames = (renderingConfig.frameRate * request.stp) / 1000;
     const lengthFrames = (renderingConfig.frameRate * request.length) / 1000;
     const overlapFrames = (renderingConfig.frameRate * request.overlap) / 1000;
@@ -26,9 +26,9 @@ export class Wavtool {
       stpFrames,
       stpFrames + lengthFrames,
     );
-    const frameEnvelope = this.GetEnvelope(request.length, request.envelope);
-    const applyedData = this.ApplyEnvelope(inputData, frameEnvelope);
-    this.Concat(overlapFrames, applyedData);
+    const frameEnvelope = this.getEnvelope(request.length, request.envelope);
+    const applyedData = this.applyEnvelope(inputData, frameEnvelope);
+    this.concat(overlapFrames, applyedData);
   }
 
   /**
@@ -37,7 +37,7 @@ export class Wavtool {
    * @param envelope point(ms)はp1,p2,p5,p3,p4の順にソートする。
    * @returns
    */
-  GetEnvelope(
+  getEnvelope(
     length: number,
     envelope: { point: Array<number>; value: Array<number> },
   ): { framePoint: Array<number>; value: Array<number> } {
@@ -92,7 +92,7 @@ export class Wavtool {
    * @param envelope GetEnvelopeの戻り値の形のエンベロープ
    * @returns エンベロープ適用済みの波形
    */
-  ApplyEnvelope(
+  applyEnvelope(
     inputData: Array<number>,
     envelope: { framePoint: Array<number>; value: Array<number> },
   ): Array<number> {
@@ -119,17 +119,21 @@ export class Wavtool {
    * @param overlapFrames オーバーラップするフレーム数
    * @param inputData 入力データ
    */
-  Concat(overlapFrames: number, inputData: Array<number>): void {
+  concat(overlapFrames: number, inputData: Array<number>): void {
     const checkedOverlapFrames =
       overlapFrames > inputData.length ? inputData.length : overlapFrames;
     if (checkedOverlapFrames > this._data.length) {
-      const fillArray = new Array(checkedOverlapFrames - this._data.length).fill(0);
+      const fillArray = new Array(
+        checkedOverlapFrames - this._data.length,
+      ).fill(0);
       this._data = fillArray.concat(this._data);
     }
     const overlapValue =
       checkedOverlapFrames === 0
         ? []
-        : this._data.slice(-1 * checkedOverlapFrames).map((v, i) => v + inputData[i]);
+        : this._data
+          .slice(-1 * checkedOverlapFrames)
+          .map((v, i) => v + inputData[i]);
     this._data =
       checkedOverlapFrames === 0
         ? this._data.concat(inputData.slice(checkedOverlapFrames))
@@ -142,7 +146,7 @@ export class Wavtool {
    * ここまでのappendの結果を踏まえてwavを出力する。
    * @returns wavデータ
    */
-  Output(): ArrayBuffer {
+  output(): ArrayBuffer {
     const wp = new WaveProcessing();
     const wav: Wave = GenerateWave(
       renderingConfig.frameRate,

@@ -209,9 +209,9 @@ export class VoiceBank {
    * @param color ボイスカラー
    * @returns prefix.mapを反映した指定エイリアスの原音設定データ。それがなければprefix.mapを無視した原音設定データ
    */
-  GetOtoRecord(alias: string, notenum: number, color: string = ""): OtoRecord {
+  getOtoRecord(alias: string, notenum: number, color: string = ""): OtoRecord {
     const c = Object.keys(this._prefixmaps).includes(color) ? color : "";
-    const p = this._prefixmaps[c].GetValue(notenum);
+    const p = this._prefixmaps[c].getValue(notenum);
     if (alias.startsWith("?")) {
       return this._oto.GetRecordFromAlias(alias.slice(1));
     }
@@ -229,13 +229,11 @@ export class VoiceBank {
    * @returns　wavデータ
    * @throws wavが存在しない場合。
    */
-  async GetWave(filename: string): Promise<Wave> {
+  async getWave(filename: string): Promise<Wave> {
     return new Promise(async (resolve, reject) => {
       const root = this._root !== undefined ? this._root + "/" : "";
       if (Object.keys(this._zip).includes(root + filename)) {
-        const buf = await extractFileFromZip(
-          this._zip[root + filename],
-        );
+        const buf = await extractFileFromZip(this._zip[root + filename]);
         resolve(new Wave(buf));
       } else {
         reject(`${root + filename} not found.`);
@@ -249,17 +247,15 @@ export class VoiceBank {
    * @returns frqデータ
    * @throws frqが存在しない場合。
    */
-  async GetFrq(wavFilename: string): Promise<Frq> {
+  async getFrq(wavFilename: string): Promise<Frq> {
     return new Promise(async (resolve, reject) => {
       const root = this._root !== undefined ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
-      if (Object.keys(this._zip).includes(root +  frqFilename)) {
-        const buf = await extractFileFromZip(
-          this._zip[root +  frqFilename],
-        );
+      if (Object.keys(this._zip).includes(root + frqFilename)) {
+        const buf = await extractFileFromZip(this._zip[root + frqFilename]);
         resolve(new Frq({ buf: buf }));
       } else {
-        reject(`${root +  frqFilename} not found.`);
+        reject(`${root + frqFilename} not found.`);
       }
     });
   }
@@ -269,7 +265,7 @@ export class VoiceBank {
    * @param encoding default shift-jis、character.txt,prefix.map,oto.ini,readme.txtをお読み込む際の文字コード
    * @throws character.txtが存在しない場合。
    */
-  async Initialize(encoding: string = "SJIS"): Promise<void> {
+  async initialize(encoding: string = "SJIS"): Promise<void> {
     const characterTxtPath = this._filenames.find((f) =>
       f.endsWith("character.txt"),
     );
@@ -278,17 +274,17 @@ export class VoiceBank {
     }
     return new Promise(async (resolve) => {
       this._root = characterTxtPath.split("/").slice(0, -1).join("/");
-      this.ExtractCharacterTxt(characterTxtPath, encoding).then(async (c) => {
+      this.extractCharacterTxt(characterTxtPath, encoding).then(async (c) => {
         this._character = c;
         const asyncs = new Array<Promise<void>>();
-        this.ExtractCharacterYaml().then(async () => {
-          this.SubbanksToPrefixmaps();
-          asyncs.push(this.ExtractReadme(encoding));
-          asyncs.push(this.ExtractIcon());
-          asyncs.push(this.ExtractSample());
-          asyncs.push(this.ExtractPortrait());
-          asyncs.push(this.ExtractPrefixmaps(encoding));
-          asyncs.push(this.ExtractOtoAll(encoding));
+        this.extractCharacterYaml().then(async () => {
+          this.subbanksToPrefixmaps();
+          asyncs.push(this.extractReadme(encoding));
+          asyncs.push(this.extractIcon());
+          asyncs.push(this.extractSample());
+          asyncs.push(this.extractPortrait());
+          asyncs.push(this.extractPrefixmaps(encoding));
+          asyncs.push(this.extractOtoAll(encoding));
           Promise.all(asyncs).then(() => {
             if (!Object.keys(this._prefixmaps).includes("")) {
               this._prefixmaps[""] = new PrefixMap();
@@ -305,7 +301,7 @@ export class VoiceBank {
    * @param path zipファイル内におけるcharacter.txtのパス。事前にファイルの存在を確認していること
    * @param encoding character.txtを読み込む際の文字コード
    */
-  async ExtractCharacterTxt(path: string, encoding): Promise<CharacterTxt> {
+  async extractCharacterTxt(path: string, encoding): Promise<CharacterTxt> {
     return new Promise(async (resolve) => {
       const characterBuf = await extractFileFromZip(this._zip[path]);
       const character = await readTextFile(characterBuf, encoding);
@@ -316,7 +312,7 @@ export class VoiceBank {
   /**
    * character.txtにおいてimageで定義されているファイルがzip内にあれば、this._iconを更新する。
    */
-  async ExtractIcon(): Promise<void> {
+  async extractIcon(): Promise<void> {
     return new Promise(async (resolve) => {
       if (
         this._character.image !== undefined &&
@@ -332,7 +328,7 @@ export class VoiceBank {
   /**
    * character.txtにおいてsampleで定義されているファイルがzip内にあれば、this._sampleを更新する。
    */
-  async ExtractSample(): Promise<void> {
+  async extractSample(): Promise<void> {
     return new Promise(async (resolve) => {
       if (
         this._character.sample !== undefined &&
@@ -349,7 +345,7 @@ export class VoiceBank {
    * 音源ルートにreadme.txtがあれば、this._readmeを更新する。
    * @param encoding readme.txtを読み込む際の文字コード
    */
-  async ExtractReadme(encoding): Promise<void> {
+  async extractReadme(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/readme.txt")) {
         const readmeBuf = await extractFileFromZip(
@@ -363,7 +359,7 @@ export class VoiceBank {
   /**
    * 音源ルートにcharacter.yamlがあれば、this._characterYamlを更新する。
    */
-  async ExtractCharacterYaml(): Promise<void> {
+  async extractCharacterYaml(): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/character.yaml")) {
         const yamlBuf = await extractFileFromZip(
@@ -377,7 +373,7 @@ export class VoiceBank {
   /**
    * character.yamlにおいてportraitで定義されているファイルがzip内にあれば、this._portraitを更新する。
    */
-  async ExtractPortrait(): Promise<void> {
+  async extractPortrait(): Promise<void> {
     if (this._characterYaml === undefined) {
       return;
     }
@@ -399,7 +395,7 @@ export class VoiceBank {
    * 音源ルートにprefix.mapがあれば、this._prefixmapsを更新する。
    * @param encoding prefix.mapを読み込む際の文字コード
    */
-  async ExtractPrefixmaps(encoding): Promise<void> {
+  async extractPrefixmaps(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/prefix.map")) {
         const prefixmapBuf = await extractFileFromZip(
@@ -417,14 +413,14 @@ export class VoiceBank {
    * rootフォルダ以下にあるすべてのoto.iniを読み込み、this._otoを更新する
    * @param encoding oto.ini読み込み時の文字コード
    */
-  async ExtractOtoAll(encoding): Promise<void> {
+  async extractOtoAll(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       const otoPaths = this._filenames
         .filter((f) => f.endsWith("oto.ini"))
         .filter((f) => f.startsWith(this._root));
       const asyncs = new Array();
       otoPaths.forEach(async (p) => {
-        asyncs.push(this.ExtractOto(p, encoding));
+        asyncs.push(this.extractOto(p, encoding));
       });
       Promise.all(asyncs).then(() => {
         resolve();
@@ -437,7 +433,7 @@ export class VoiceBank {
    * @param path oto.iniのパス
    * @param encoding oto.ini読み込み時の文字コード
    */
-  async ExtractOto(path: string, encoding: string): Promise<void> {
+  async extractOto(path: string, encoding: string): Promise<void> {
     const reg = new RegExp("^" + this._root);
     return new Promise(async (resolve) => {
       const dirPath = path
@@ -457,7 +453,7 @@ export class VoiceBank {
   /**
    * character.yamlにsubbanksが含まれていれば、this._prefixmapを更新する
    */
-  SubbanksToPrefixmaps(): void {
+  subbanksToPrefixmaps(): void {
     if (this._characterYaml === undefined) {
       return;
     }
@@ -469,7 +465,7 @@ export class VoiceBank {
         this._prefixmaps[s.color] = new PrefixMap();
       }
       s.tone_ranges.forEach((r) => {
-        this._prefixmaps[s.color].SetRangeValues(r, s.prefix, s.suffix);
+        this._prefixmaps[s.color].setRangeValues(r, s.prefix, s.suffix);
       });
     });
   }

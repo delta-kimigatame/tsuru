@@ -25,7 +25,7 @@ export class Resamp {
     this.vb = vb;
   }
 
-  async Initialize(): Promise<void> {
+  async initialize(): Promise<void> {
     return new Promise(async (resolve) => {
       this.world = new World();
       await this.world.Initialize();
@@ -35,12 +35,12 @@ export class Resamp {
 
   async resamp(request: ResampRequest): Promise<Array<number>> {
     return new Promise(async (resolve) => {
-      const nData = await this.GetWaveData(
+      const nData = await this.getWaveData(
         request.inputWav,
         request.offsetMs,
         request.cutoffMs,
       );
-      const frqData = await this.GetFrqData(
+      const frqData = await this.getFrqData(
         request.inputWav,
         request.offsetMs,
         (nData.length / renderingConfig.frameRate) * 1000,
@@ -60,7 +60,7 @@ export class Resamp {
         renderingConfig.frameRate,
         0.85,
       );
-      const stretchParams = this.Stretch(
+      const stretchParams = this.stretch(
         frqData.frq,
         sp.spectral,
         ap,
@@ -69,13 +69,13 @@ export class Resamp {
         request.fixedMs,
         request.velocity,
       );
-      const shiftF0 = this.PitchShift(
+      const shiftF0 = this.pitchShift(
         stretchParams.f0,
         frqData.frqAverage,
         request.targetTone,
         request.modulation,
       );
-      const applyPitchF0 = this.ApplyPitch(
+      const applyPitchF0 = this.applyPitch(
         shiftF0,
         stretchParams.timeAxis,
         request.pitches,
@@ -87,9 +87,9 @@ export class Resamp {
         stretchParams.ap,
         sp.fft_size,
         renderingConfig.frameRate,
-        renderingConfig.worldPeriod*1000,
+        renderingConfig.worldPeriod * 1000,
       );
-      const outputData = this.AdjustVolume(
+      const outputData = this.adjustVolume(
         Array.from(synthedData),
         request.intensity,
       );
@@ -104,13 +104,13 @@ export class Resamp {
    * @param cutoffMs 原音設定の右ブランク
    * @returns
    */
-  async GetWaveData(
+  async getWaveData(
     inputWav: string,
     offsetMs: number,
     cutoffMs: number,
   ): Promise<Array<number>> {
     return new Promise(async (resolve) => {
-      const wavData = await this.vb.GetWave(inputWav);
+      const wavData = await this.vb.getWave(inputWav);
       const offsetFrame = Math.floor(
         (renderingConfig.frameRate * offsetMs) / 1000,
       );
@@ -132,7 +132,7 @@ export class Resamp {
    * @param wavMs 読み込んだwavの長さ
    * @returns
    */
-  async GetFrqData(
+  async getFrqData(
     inputWav: string,
     offsetMs: number,
     wavMs: number,
@@ -142,20 +142,20 @@ export class Resamp {
     timeAxis: Array<number>;
     frqAverage: number;
   }> {
-    const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs/1000);
+    const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs / 1000);
     return new Promise(async (resolve) => {
-      const frqData = await this.vb.GetFrq(inputWav);
+      const frqData = await this.vb.getFrq(inputWav);
       const frqTimeAxis = makeTimeAxis(
         (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
         0,
-        wavMs/1000,
+        wavMs / 1000,
       );
       const offsetFrame = Math.floor(
-        (renderingConfig.frameRate * offsetMs)  / frqData.perSamples/1000,
+        (renderingConfig.frameRate * offsetMs) / frqData.perSamples / 1000,
       );
       const cutoffFrame =
         Math.ceil(
-          (renderingConfig.frameRate * wavMs)  / frqData.perSamples/1000,
+          (renderingConfig.frameRate * wavMs) / frqData.perSamples / 1000,
         ) + 1;
       const frq = interp1d(
         Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
@@ -186,7 +186,7 @@ export class Resamp {
    * @param velocity 子音速度
    * @returns
    */
-  Stretch(
+  stretch(
     f0: Array<number>,
     sp: Array<Float64Array>,
     ap: Array<Float64Array>,
@@ -201,13 +201,17 @@ export class Resamp {
     amp: Array<number>;
     timeAxis: Array<number>;
   } {
-    const targetFrames = Math.ceil(targetMs / renderingConfig.worldPeriod/1000);
-    const inputFixedFrames = Math.floor(fixedMs / renderingConfig.worldPeriod/1000);
+    const targetFrames = Math.ceil(
+      targetMs / renderingConfig.worldPeriod / 1000,
+    );
+    const inputFixedFrames = Math.floor(
+      fixedMs / renderingConfig.worldPeriod / 1000,
+    );
     const velocityRate = 2 ** ((100 - velocity) / 100);
     const fixedFrames = Math.floor(inputFixedFrames * velocityRate);
     const velocityPart =
       velocity !== 100
-        ? this.WorldStretch(
+        ? this.worldStretch(
           fixedFrames,
           f0.slice(0, inputFixedFrames),
           sp.slice(0, inputFixedFrames),
@@ -220,7 +224,7 @@ export class Resamp {
           ap: ap.slice(0, inputFixedFrames),
           amp: amp.slice(0, inputFixedFrames),
         };
-    const stretchPart = this.WorldStretch(
+    const stretchPart = this.worldStretch(
       targetFrames - fixedFrames,
       f0.slice(inputFixedFrames),
       sp.slice(inputFixedFrames),
@@ -249,7 +253,7 @@ export class Resamp {
    * @param ap 非周期性指標
    * @returns
    */
-  WorldStretch(
+  worldStretch(
     targetFrames: number,
     f0: Array<number>,
     sp: Array<Float64Array>,
@@ -319,7 +323,7 @@ export class Resamp {
    * @param modulation 入力データの反映率
    * @returns f0
    */
-  PitchShift(
+  pitchShift(
     f0: Array<number>,
     frqAverage: number,
     targetTone: string,
@@ -341,7 +345,7 @@ export class Resamp {
    * @param _tempo !で始まる、!を除去すればfloatに変換できるBPM文字列
    * @returns ピッチ適用後のf0
    */
-  ApplyPitch(
+  applyPitch(
     f0: Array<number>,
     timeAxis: Array<number>,
     pitch: string,
@@ -365,7 +369,7 @@ export class Resamp {
    * @param intensity 音量
    * @returns 音量を適用したwavデータ
    */
-  AdjustVolume(data: Array<number>, intensity: number): Array<number> {
+  adjustVolume(data: Array<number>, intensity: number): Array<number> {
     return data.map((v) => (v * intensity) / 100);
   }
 }

@@ -1,4 +1,4 @@
-import { toneToNoteNum, noteNumToTone } from "../../utils/Notenum";
+import { noteNumToTone, toneToNoteNum } from "../../utils/Notenum";
 /**
  * UTAU用のprefix.mapを扱う。
  * OpenUtauのcharacter.yaml用の出力機能を持つ
@@ -15,7 +15,7 @@ export class PrefixMap {
    * @param key Notenumか音高名
    * @returns
    */
-  GetValue(key: number | string): MapValue {
+  getValue(key: number | string): MapValue {
     if (typeof key === "number") {
       return this.values[107 - key];
     } else {
@@ -27,7 +27,7 @@ export class PrefixMap {
    * 値を更新する
    * @param newValue 更新後の値
    */
-  SetValue(newValue: MapValue): void {
+  setValue(newValue: MapValue): void {
     this.values[107 - toneToNoteNum(newValue.tone)] = newValue;
   }
   /**
@@ -36,18 +36,18 @@ export class PrefixMap {
    * @param newPrefix 新しいprefix
    * @param newSuffix 新しいsuffix
    */
-  SetRangeValues(range: string, newPrefix: string, newSuffix): void {
+  setRangeValues(range: string, newPrefix: string, newSuffix): void {
     if (range.includes("-")) {
       const [minTone, maxTone] = range.split("-");
       for (let i = toneToNoteNum(minTone); i <= toneToNoteNum(maxTone); i++) {
-        this.SetValue({
+        this.setValue({
           tone: noteNumToTone(i),
           prefix: newPrefix,
           suffix: newSuffix,
         });
       }
     } else {
-      this.SetValue({
+      this.setValue({
         tone: range,
         prefix: newPrefix,
         suffix: newSuffix,
@@ -65,12 +65,12 @@ export class PrefixMap {
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("\t")) {
           const [tone, prefix, suffix] = lines[i].split("\t");
-          this.SetValue({ tone: tone, prefix: prefix, suffix: suffix });
+          this.setValue({ tone: tone, prefix: prefix, suffix: suffix });
         }
       }
     } else {
       for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-        this.SetValue({ tone: noteNumToTone(i), prefix: "", suffix: "" });
+        this.setValue({ tone: noteNumToTone(i), prefix: "", suffix: "" });
       }
     }
   }
@@ -79,10 +79,10 @@ export class PrefixMap {
    * UTAU形式のprefix.mapを出力する。
    * @returns UTAU形式のprefix.map
    */
-  OutputMap(): string {
+  outputMap(): string {
     const lines = new Array<string>();
     for (let i = toneToNoteNum("B7"); i >= toneToNoteNum("C1"); i--) {
-      const map = this.GetValue(i);
+      const map = this.getValue(i);
       lines.push(map.tone + "\t" + map.prefix + "\t" + map.suffix);
     }
     return lines.join("\n");
@@ -92,14 +92,14 @@ export class PrefixMap {
    * OpenUtauのcharacter.yamlのSubBanks形式でprefix.mapを出力する。
    * @returns OpenUtauのcharacter.yamlのSubBanks形式
    */
-  OutputSubbanks(): Array<OpenUtauSubBanks> {
+  outputSubbanks(): Array<OpenUtauSubBanks> {
     const output = new Array<OpenUtauSubBanks>();
     let minTone = "C1";
     let maxTone = "B7";
     let prefix: string | undefined;
     let suffix: string | undefined;
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
-      const map = this.GetValue(i);
+      const map = this.getValue(i);
       if (prefix === undefined) {
         prefix = map.prefix;
         suffix = map.suffix;

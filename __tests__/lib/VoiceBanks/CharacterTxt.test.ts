@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CharacterTxt, CharacterTxtValue } from "../../../src/lib/VoiceBanks/CharacterTxt";
+import { CharacterTxt } from "../../../src/lib/VoiceBanks/CharacterTxt";
 
 describe("CharacterTxt", () => {
   it("throw error", () => {
@@ -56,7 +56,7 @@ describe("CharacterTxt", () => {
   });
   it("output_minimum", () => {
     const character = new CharacterTxt({ txt: "name:a" });
-    expect(character.OutputTxt()).toBe("name=a\r\n");
+    expect(character.outputTxt()).toBe("name=a\r\n");
   });
   it("output_all", () => {
     const character = new CharacterTxt({
@@ -67,6 +67,8 @@ describe("CharacterTxt", () => {
       web: "https://e.jp/",
       version: "f",
     });
-    expect(character.OutputTxt()).toBe("name=a\r\nimage=b.bmp\r\nsample=c.wav\r\nauthor=d\r\nweb=https://e.jp/\r\nversion=f\r\n");
+    expect(character.outputTxt()).toBe(
+      "name=a\r\nimage=b.bmp\r\nsample=c.wav\r\nauthor=d\r\nweb=https://e.jp/\r\nversion=f\r\n"
+    );
   });
 });

@@ -36,7 +36,7 @@ export class Ust {
    * プロジェクトを読み込む。
    * @param buf プロジェクトのバイナリデータ
    */
-  async Load(buf): Promise<void> {
+  async load(buf): Promise<void> {
     let utfData: string;
     return new Promise(async (resolve) => {
       const data = await readTextFile(buf);
@@ -47,8 +47,8 @@ export class Ust {
         .replace(/\r/g, "")
         .split("\n");
       const noteStart = lines.indexOf("[#0000]");
-      this.LoadHeader(lines.slice(0, noteStart));
-      this.LoadNote(lines.slice(noteStart));
+      this.loadHeader(lines.slice(0, noteStart));
+      this.loadNote(lines.slice(noteStart));
       for (let i = 1; i < this.notes.length; i++) {
         this.notes[i - 1].next = this.notes[i];
         this.notes[i].prev = this.notes[i - 1];
@@ -61,7 +61,7 @@ export class Ust {
    * ustのヘッダ部分を読み込む。PC上のパスに当たる内容はすべて無視する。
    * @param lines 1行毎に区切ったustヘッダ部分のデータ
    */
-  private LoadHeader(lines: Array<string>): void {
+  private loadHeader(lines: Array<string>): void {
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].startsWith("Tempo=")) {
         this.tempo = parseFloat(lines[i].replace("Tempo=", ""));
@@ -75,7 +75,7 @@ export class Ust {
    * ustのノート部分を読み込む。`@`から始まるエントリは無視する。
    * @param lines 1行毎に区切ったustノート部分のデータ
    */
-  private LoadNote(lines: Array<string>): void {
+  private loadNote(lines: Array<string>): void {
     this.notes = new Array<Note>();
     let note: Note | undefined;
     let nowTempo: number = this.tempo;

@@ -2,44 +2,44 @@ import { describe, expect, it } from "vitest";
 import { Wavtool } from "../../src/lib/Wavtool";
 
 describe("Wavtool", () => {
-  it("GetEnvelope_Rest", () => {
+  it("getEnvelope_Rest", () => {
     const tool = new Wavtool();
-    expect(tool.GetEnvelope(100, { point: [0, 0], value: [] })).toEqual({
+    expect(tool.getEnvelope(100, { point: [0, 0], value: [] })).toEqual({
       framePoint: [0, 0],
       value: [0, 0],
     });
   });
-  it("GetEnvelope_3point", () => {
+  it("getEnvelope_3point", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, { point: [0, 10, 50], value: [0, 100, 100] })
+      tool.getEnvelope(100, { point: [0, 10, 50], value: [0, 100, 100] })
     ).toEqual({
       framePoint: [0, 441, 2205, 4410],
       value: [0, 100, 100, 0],
     });
   });
-  it("GetEnvelope_3point_p1notequal0", () => {
+  it("getEnvelope_3point_p1notequal0", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, { point: [10, 10, 50], value: [50, 100, 100] })
+      tool.getEnvelope(100, { point: [10, 10, 50], value: [50, 100, 100] })
     ).toEqual({
       framePoint: [0, 441, 882, 2205, 4410],
       value: [0, 50, 100, 100, 0],
     });
   });
-  it("GetEnvelope_3point4value", () => {
+  it("getEnvelope_3point4value", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, { point: [0, 10, 50], value: [0, 100, 100, 100] })
+      tool.getEnvelope(100, { point: [0, 10, 50], value: [0, 100, 100, 100] })
     ).toEqual({
       framePoint: [0, 441, 2205, 4410],
       value: [0, 100, 100, 100],
     });
   });
-  it("GetEnvelope_4point", () => {
+  it("getEnvelope_4point", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, {
+      tool.getEnvelope(100, {
         point: [0, 10, 40, 10],
         value: [0, 100, 100, 100],
       })
@@ -48,10 +48,10 @@ describe("Wavtool", () => {
       value: [0, 100, 100, 100, 0],
     });
   });
-  it("GetEnvelope_4point_p4is0", () => {
+  it("getEnvelope_4point_p4is0", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, {
+      tool.getEnvelope(100, {
         point: [0, 10, 50, 0],
         value: [0, 100, 100, 100],
       })
@@ -60,10 +60,10 @@ describe("Wavtool", () => {
       value: [0, 100, 100, 100],
     });
   });
-  it("GetEnvelope_5point", () => {
+  it("getEnvelope_5point", () => {
     const tool = new Wavtool();
     expect(
-      tool.GetEnvelope(100, {
+      tool.getEnvelope(100, {
         point: [0, 10, 40, 10, 10],
         value: [0, 100, 100, 100, 50],
       })
@@ -73,28 +73,28 @@ describe("Wavtool", () => {
     });
   });
 
-  it("ApplyEnvelope_rest", () => {
+  it("applyEnvelope_rest", () => {
     const tool = new Wavtool();
     expect(
-      tool.ApplyEnvelope(new Array(4410).fill(100), {
+      tool.applyEnvelope(new Array(4410).fill(100), {
         framePoint: [0, 0],
         value: [0, 0],
       })
     ).toEqual(new Array(4410).fill(0));
   });
-  it("ApplyEnvelope_simple", () => {
+  it("applyEnvelope_simple", () => {
     const tool = new Wavtool();
     expect(
-      tool.ApplyEnvelope(new Array(10).fill(100), {
+      tool.applyEnvelope(new Array(10).fill(100), {
         framePoint: [0, 5, 10],
         value: [0, 100, 0],
       })
     ).toEqual([0, 20, 40, 60, 80, 100, 80, 60, 40, 20]);
   });
-  it("ApplyEnvelope_simple2", () => {
+  it("applyEnvelope_simple2", () => {
     const tool = new Wavtool();
     expect(
-      tool.ApplyEnvelope(new Array(20).fill(100), {
+      tool.applyEnvelope(new Array(20).fill(100), {
         framePoint: [0, 5, 10, 20],
         value: [0, 100, 90, 0],
       })
@@ -106,26 +106,26 @@ describe("Wavtool", () => {
 
   it("concat_start", () => {
     const tool = new Wavtool();
-    tool.Concat(0, new Array(10).fill(100));
+    tool.concat(0, new Array(10).fill(100));
     expect(tool.data).toEqual(new Array(10).fill(100));
   });
   it("concat_start_with_overlap", () => {
     const tool = new Wavtool();
-    tool.Concat(5, new Array(10).fill(100));
+    tool.concat(5, new Array(10).fill(100));
     expect(tool.data).toEqual(new Array(10).fill(100));
   });
   it("concat_no_overlap", () => {
     const tool = new Wavtool();
-    tool.Concat(0, new Array(10).fill(100));
-    tool.Concat(0, new Array(10).fill(50));
+    tool.concat(0, new Array(10).fill(100));
+    tool.concat(0, new Array(10).fill(50));
     expect(tool.data).toEqual(
       new Array(10).fill(100).concat(new Array(10).fill(50))
     );
   });
   it("concat_overlap", () => {
     const tool = new Wavtool();
-    tool.Concat(0, new Array(10).fill(100));
-    tool.Concat(5, new Array(10).fill(50));
+    tool.concat(0, new Array(10).fill(100));
+    tool.concat(5, new Array(10).fill(50));
     expect(tool.data).toEqual(
       new Array(5)
         .fill(100)
@@ -134,16 +134,16 @@ describe("Wavtool", () => {
   });
   it("concat_overlap_less", () => {
     const tool = new Wavtool();
-    tool.Concat(0, new Array(10).fill(100));
-    tool.Concat(20, new Array(20).fill(50));
+    tool.concat(0, new Array(10).fill(100));
+    tool.concat(20, new Array(20).fill(50));
     expect(tool.data).toEqual(
       new Array(10).fill(50).concat(new Array(10).fill(150))
     );
   });
   it("concat_overlap_less_and_over", () => {
     const tool = new Wavtool();
-    tool.Concat(0, new Array(10).fill(100));
-    tool.Concat(50, new Array(20).fill(50));
+    tool.concat(0, new Array(10).fill(100));
+    tool.concat(50, new Array(20).fill(50));
     expect(tool.data).toEqual(
       new Array(10).fill(50).concat(new Array(10).fill(150))
     );

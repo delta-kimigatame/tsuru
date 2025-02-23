@@ -12,8 +12,8 @@ export const interp1d = (
 ): Array<number> => {
   const newValues = new Array<number>();
   newTimeAxis.map((t) => {
-    const _index = timeAxis.findIndex((v) => v >= t);
-    const index = _index === -1 ? timeAxis.length - 1 : _index;
+    const indexTemp = timeAxis.findIndex((v) => v >= t);
+    const index = indexTemp === -1 ? timeAxis.length - 1 : indexTemp;
     const prevTime = index !== 0 ? timeAxis[index - 1] : 0;
     const range = timeAxis[index] - prevTime;
     const prevValue = index !== 0 ? values[index - 1] : 0;
