@@ -6,6 +6,7 @@ import {
   decodeBase64,
   decodeRunLength,
   decodePitch,
+  getFrqFromTone,
 } from "../../src/utils/pitch";
 
 describe("pitchEncode", () => {
@@ -102,5 +103,15 @@ describe("pitchEncode", () => {
     expect(decodePitch("AA#1#ABAC#2#AD")).toEqual([0, 0, 1, 2, 2, 2, 3]);
     expect(decodePitch("AAABACAD")).toEqual([0, 1, 2, 3]);
     expect(decodePitch("AA#3#")).toEqual([0, 0, 0, 0]);
+    expect(decodePitch("Sw#47#tQ#47#")).toEqual(new Array(48).fill(1200).concat(new Array(48).fill(-1200)));
+  });
+
+  it("getFrqFromTone", () => {
+    expect(getFrqFromTone("A4")).toBe(440);
+    expect(getFrqFromTone("A3")).toBe(220);
+    expect(getFrqFromTone("C4")).toBeCloseTo(261.626);
+    expect(getFrqFromTone("C#4")).toBeCloseTo(277.183);
+    expect(getFrqFromTone("D4")).toBeCloseTo(293.665);
+    expect(getFrqFromTone("D#4")).toBeCloseTo(311.127);
   });
 });
