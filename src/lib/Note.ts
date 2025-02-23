@@ -3,6 +3,7 @@
  * 極力本家UTAUに沿った実装とするが、Voice Colorを活用するための拡張を行う。
  */
 
+import type OtoRecord from "utauoto/dist/OtoRecord";
 import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 export class Note {
@@ -12,10 +13,13 @@ export class Note {
   private _length: number;
   /** 入力された歌詞 */
   private _lyric: string;
+  /** 入力されたエイリアスに基づいた原音設定データ */
+  private _oto: OtoRecord;
   /** 音高。C4が60、B7が107 */
   private _notenum: number;
   /** bpm */
   private _tempo: number;
+  /** tempoのパラメータをこのノートが持っているかを表す。 */
   hasTempo: boolean;
   /** 先行発声 */
   private _preutter: number;
@@ -114,6 +118,7 @@ export class Note {
 
   set lyric(value: string) {
     this._lyric = value;
+    this._oto = undefined;
     if (
       this.next !== undefined &&
       this.tempo !== undefined &&
@@ -248,7 +253,7 @@ export class Note {
    * 配列を与えてmode1ピッチを更新する
    * @param value
    */
-  SetPitches(value: Array<number>):void {
+  SetPitches(value: Array<number>): void {
     this._pitches = value.map((v) =>
       Math.max(Math.min(Math.floor(v), 2047), -2048),
     );
@@ -318,7 +323,7 @@ export class Note {
   /**
    * mode2ピッチの音高列
    */
-  SetPby(value: Array<number>):void {
+  SetPby(value: Array<number>): void {
     this._pby = value.map((v) => Math.min(Math.max(v, -200), 200));
   }
 
@@ -339,7 +344,7 @@ export class Note {
   /**
    * mode2ピッチの間隔
    */
-  SetPbw(value: Array<number>):void {
+  SetPbw(value: Array<number>): void {
     this._pbw = value.map((v) => Math.max(v, 0));
   }
 
@@ -364,7 +369,7 @@ export class Note {
   /**
    * mode2ピッチの補間方法
    */
-  SetPbm(value: Array<"" | "s" | "r" | "j">):void {
+  SetPbm(value: Array<"" | "s" | "r" | "j">): void {
     this._pbm = value;
   }
 
@@ -395,7 +400,7 @@ export class Note {
   /**
    * エンベロープ。
    */
-  SetEnvelope(value: { point: Array<number>; value: Array<number> }):void {
+  SetEnvelope(value: { point: Array<number>; value: Array<number> }): void {
     this._envelope = {
       point: value.point.map((v) => Math.max(v, 0)),
       value: value.value.map((v) => Math.min(Math.max(v, 0), 200)),
@@ -428,8 +433,9 @@ export class Note {
    * ビブラートを`length,cycle,depth,fadeInTime,fadeOutTime,phase,height,amp`の文字列で与える。
    */
   set vibrato(value: string) {
-    const [length, cycle, depth, fadeInTime, fadeOutTime, phase, height] =
-      value.split(",").map((v) => parseFloat(v));
+    const [length, cycle, depth, fadeInTime, fadeOutTime, phase, height] = value
+      .split(",")
+      .map((v) => parseFloat(v));
     this._vibrato = {
       length: Math.min(Math.max(length, 0), 100),
       cycle: Math.min(Math.max(cycle, 64), 512),
@@ -524,6 +530,7 @@ export class Note {
       this._atAlias = "R";
       this._atFilename = "";
     } else {
+      this._oto = record;
       this.otoPreutter = record.pre;
       this.otoOverlap = record.overlap;
       this._atAlias = record.alias;
