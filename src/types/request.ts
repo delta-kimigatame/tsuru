@@ -1,6 +1,8 @@
 export type ResampRequest = {
   /** 音源ルートから入力wavまでの相対パス */
   inputWav: string;
+  /** 音高 */
+  targetTone: string;
   /** 子音速度 */
   velocity: number;
   /** フラグ */

@@ -31,7 +31,7 @@ export const encodeBase64 = (values: Array<number>): Array<string> => {
   values.forEach((v) => {
     const tmp = v < 0 ? v + 4096 : v;
     results.push(
-      encodeBase64Core(Math.floor(tmp / 64)) + encodeBase64Core(tmp % 64)
+      encodeBase64Core(Math.floor(tmp / 64)) + encodeBase64Core(tmp % 64),
     );
   });
   return results;

@@ -8,7 +8,7 @@
 export const interp1d = (
   values: Array<number>,
   timeAxis: Array<number>,
-  newTimeAxis: Array<number>
+  newTimeAxis: Array<number>,
 ): Array<number> => {
   const newValues = new Array<number>();
   newTimeAxis.map((t) => {
@@ -32,12 +32,12 @@ export const interp1d = (
 export const interp1dArray = (
   values: Array<Array<number>>,
   timeAxis: Array<number>,
-  newTimeAxis: Array<number>
+  newTimeAxis: Array<number>,
 ): Array<Array<number>> => {
   const newValues = new Array<Array<number>>();
   newTimeAxis.map((t) => {
-    const _index = timeAxis.findIndex((v) => v >= t);
-    const index = _index === -1 ? timeAxis.length - 1 : _index;
+    const indexTemp = timeAxis.findIndex((v) => v >= t);
+    const index = indexTemp === -1 ? timeAxis.length - 1 : indexTemp;
     const prevTime = index !== 0 ? timeAxis[index - 1] : 0;
     const range = timeAxis[index] - prevTime;
     const rate = range !== 0 ? (t - prevTime) / range : 1;
@@ -58,7 +58,7 @@ export const interp1dArray = (
 export const makeTimeAxis = (
   range: number,
   min: number,
-  max: number
+  max: number,
 ): Array<number> => {
   const length = Math.ceil((max - min) / range) + 1;
   const timeAxis = [...Array(length)].map((v, i) => i * range + min);
