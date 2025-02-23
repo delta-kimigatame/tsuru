@@ -231,13 +231,14 @@ export class VoiceBank {
    */
   async GetWave(filename: string): Promise<Wave> {
     return new Promise(async (resolve, reject) => {
-      if (Object.keys(this._zip).includes(this._root + "/" + filename)) {
+      const root = this._root !== undefined ? this._root + "/" : "";
+      if (Object.keys(this._zip).includes(root + filename)) {
         const buf = await extractFileFromZip(
-          this._zip[this._root + "/" + filename],
+          this._zip[root + filename],
         );
         resolve(new Wave(buf));
       } else {
-        reject(`${this._root + "/" + filename} not found.`);
+        reject(`${root + filename} not found.`);
       }
     });
   }
@@ -250,14 +251,15 @@ export class VoiceBank {
    */
   async GetFrq(wavFilename: string): Promise<Frq> {
     return new Promise(async (resolve, reject) => {
+      const root = this._root !== undefined ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
-      if (Object.keys(this._zip).includes(this._root + "/" + frqFilename)) {
+      if (Object.keys(this._zip).includes(root +  frqFilename)) {
         const buf = await extractFileFromZip(
-          this._zip[this._root + "/" + frqFilename],
+          this._zip[root +  frqFilename],
         );
         resolve(new Frq({ buf: buf }));
       } else {
-        reject(`${this._root + "/" + frqFilename} not found.`);
+        reject(`${root +  frqFilename} not found.`);
       }
     });
   }
@@ -288,8 +290,8 @@ export class VoiceBank {
           asyncs.push(this.ExtractPrefixmaps(encoding));
           asyncs.push(this.ExtractOtoAll(encoding));
           Promise.all(asyncs).then(() => {
-            if(!Object.keys(this._prefixmaps).includes("")){
-              this._prefixmaps[""]=new PrefixMap();
+            if (!Object.keys(this._prefixmaps).includes("")) {
+              this._prefixmaps[""] = new PrefixMap();
             }
             resolve();
           });
