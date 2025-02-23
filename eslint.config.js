@@ -1,9 +1,10 @@
 import eslintPluginTs from "@typescript-eslint/eslint-plugin";
 import eslintParserTs from "@typescript-eslint/parser";
+import eslintConfigPrettier from "eslint-config-prettier";
+import eslintPluginImport from "eslint-plugin-import";
+import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginReact from "eslint-plugin-react";
 import eslintPluginReactHooks from "eslint-plugin-react-hooks";
-import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
-import eslintPluginImport from "eslint-plugin-import";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 
 export default [
@@ -19,6 +20,7 @@ export default [
         },
       },
     },
+    extends: [eslintConfigPrettier],
     plugins: {
       "@typescript-eslint": eslintPluginTs,
       react: eslintPluginReact,
