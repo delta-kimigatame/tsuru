@@ -4,6 +4,10 @@
  */
 
 import type OtoRecord from "utauoto/dist/OtoRecord";
+import type { AppendRequestBase, ResampRequest } from "../types/request";
+import { makeTimeAxis } from "../utils/interp";
+import { noteNumToTone } from "../utils/Notenum";
+import { encodePitch } from "../utils/pitch";
 import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 export class Note {
@@ -124,7 +128,7 @@ export class Note {
       this.tempo !== undefined &&
       this.length !== undefined
     ) {
-      this.next.AutoFitParam();
+      this.next.autoFitParam();
     }
   }
 
@@ -156,7 +160,7 @@ export class Note {
   /** 先行発声の入力値 */
   set preutter(value: number) {
     this._preutter = Math.max(value, 0);
-    this.AutoFitParam();
+    this.autoFitParam();
   }
   /** オーバーラップの入力値 */
   get overlap(): number {
@@ -166,7 +170,7 @@ export class Note {
   /** オーバーラップの入力値 */
   set overlap(value: number) {
     this._overlap = value;
-    this.AutoFitParam();
+    this.autoFitParam();
   }
 
   /** stpの入力値 */
@@ -177,7 +181,7 @@ export class Note {
   /** stpの入力値。正の数 */
   set stp(value: number) {
     this._stp = Math.max(value, 0);
-    this.AutoFitParam();
+    this.autoFitParam();
   }
 
   /** 自動調整や子音速度適用後の実際の先行発声 */
@@ -213,7 +217,7 @@ export class Note {
   /** 子音速度。0～200の整数 */
   set velocity(value: number) {
     this._velocity = Math.max(Math.min(Math.floor(value), 200), 0);
-    this.AutoFitParam();
+    this.autoFitParam();
   }
 
   /** 音量 */
@@ -253,7 +257,7 @@ export class Note {
    * 配列を与えてmode1ピッチを更新する
    * @param value
    */
-  SetPitches(value: Array<number>): void {
+  setPitches(value: Array<number>): void {
     this._pitches = value.map((v) =>
       Math.max(Math.min(Math.floor(v), 2047), -2048),
     );
@@ -323,7 +327,7 @@ export class Note {
   /**
    * mode2ピッチの音高列
    */
-  SetPby(value: Array<number>): void {
+  setPby(value: Array<number>): void {
     this._pby = value.map((v) => Math.min(Math.max(v, -200), 200));
   }
 
@@ -344,7 +348,7 @@ export class Note {
   /**
    * mode2ピッチの間隔
    */
-  SetPbw(value: Array<number>): void {
+  setPbw(value: Array<number>): void {
     this._pbw = value.map((v) => Math.max(v, 0));
   }
 
@@ -369,7 +373,7 @@ export class Note {
   /**
    * mode2ピッチの補間方法
    */
-  SetPbm(value: Array<"" | "s" | "r" | "j">): void {
+  setPbm(value: Array<"" | "s" | "r" | "j">): void {
     this._pbm = value;
   }
 
@@ -400,7 +404,7 @@ export class Note {
   /**
    * エンベロープ。
    */
-  SetEnvelope(value: { point: Array<number>; value: Array<number> }): void {
+  setEnvelope(value: { point: Array<number>; value: Array<number> }): void {
     this._envelope = {
       point: value.point.map((v) => Math.max(v, 0)),
       value: value.value.map((v) => Math.min(Math.max(v, 0), 200)),
@@ -513,13 +517,13 @@ export class Note {
    * @param vb UTAU音源
    * @throws lyricもしくはnotenumが初期化されていない場合
    */
-  ApplyOto(vb: VoiceBank): void {
+  applyOto(vb: VoiceBank): void {
     if (this._lyric === undefined) {
       throw new Error("lyric is not initial.");
     } else if (this._notenum === undefined) {
       throw new Error("notenum is not initial.");
     }
-    const record = vb.GetOtoRecord(
+    const record = vb.getOtoRecord(
       this._lyric,
       this.notenum,
       this.voiceColor ? this.voiceColor : "",
@@ -537,14 +541,14 @@ export class Note {
       this._atFilename =
         record.dirpath + (record.dirpath !== "" ? "/" : "") + record.filename;
     }
-    this.AutoFitParam();
+    this.autoFitParam();
   }
 
   /**
    * pre,ove,stp,velocity,prev.length,prev.tempoを勘案して、atpre,atove,atstpを更新します。
    * @throws prev.length,prev.lyric,prev.tempoのいずれかが未定義の場合
    */
-  AutoFitParam(): void {
+  autoFitParam(): void {
     const rate = this.velocityRate;
     if (this.prev === undefined) {
       this._atPreutter =
@@ -584,5 +588,338 @@ export class Note {
       this._atOverlap = realOverlap;
       this._atStp = realStp;
     }
+  }
+
+  /**
+   * wavtoolが出力する際のノートの長さ
+   */
+  get outputMs(): number {
+    if (this.next === undefined || this.next.lyric === "R") {
+      return this.msLength + (this.atPreutter ? this.atPreutter : 0);
+    } else {
+      return (
+        this.msLength +
+        (this.atPreutter ? this.atPreutter : 0) -
+        (this.next.atPreutter ? this.next.atPreutter : 0) +
+        (this.next.atOverlap ? this.next.atOverlap : 0)
+      );
+    }
+  }
+  /**
+   * resamplerが出力するノートの長さ
+   */
+  get targetLength(): number {
+    return (
+      (Math.round((this.outputMs + (this.atStp ? this.atStp : 0)) / 50) + 1) *
+      50
+    );
+  }
+
+  /**
+   * ピッチ間隔。5tick分の長さ(s)
+   */
+  get pitchSpan(): number {
+    return (60 / this.tempo / 480) * 5;
+  }
+
+  getRenderPitch(): Array<number> {
+    const offset = this.atPreutter + this.atStp;
+    const timeAxis = makeTimeAxis(this.pitchSpan, 0, this.targetLength / 1000);
+    const basePitches = this.getBasePitch(timeAxis);
+    const prevInterpPitch =
+      this.prev !== undefined && this.prev.lyric !== "R"
+        ? this.getInterpPitch(this.prev, timeAxis, offset - this.prev.msLength)
+        : new Array(timeAxis.length).fill(0);
+    const prevVbrPitch =
+      this.prev !== undefined && this.prev.lyric !== "R"
+        ? this.getVibratoPitches(
+          this.prev,
+          timeAxis,
+          offset - this.prev.msLength,
+        )
+        : new Array(timeAxis.length).fill(0);
+    const interpPitch = this.getInterpPitch(this, timeAxis, offset);
+    const vbrPitch = this.getVibratoPitches(this, timeAxis, offset);
+    const nextInterpPitch =
+      this.next !== undefined && this.next.lyric !== "R"
+        ? this.getInterpPitch(this.next, timeAxis, offset + this.msLength)
+        : new Array(timeAxis.length).fill(0);
+    return basePitches.map(
+      (v, i) =>
+        v +
+        prevInterpPitch[i] +
+        prevVbrPitch[i] +
+        interpPitch[i] +
+        vbrPitch[i] +
+        nextInterpPitch[i],
+    );
+  }
+
+  /**
+   * 前後のノートのnotenumの差に基づいた基準ピッチを返す
+   * @param timeAxis ピッチ列の時間
+   * @returns
+   */
+  getBasePitch(timeAxis: Array<number>): Array<number> {
+    const basePitches = new Array(timeAxis.length).fill(0);
+    const offset = this.atPreutter + this.atStp;
+    let start: number = 0;
+    let end: number = 0;
+    /**
+     * 1つ前のノートの音高に基づいた基準ピッチの補正
+     * 1つ前のノートの音高によって影響される範囲は、this.prev.pbs.time ～ this.pbs.timeの間
+     */
+    if (this.prev !== undefined && this.prev.lyric !== "R") {
+      const prevOffset = offset - this.prev.msLength;
+      const prevPbs = this.prev.pbs ? this.prev.pbs.time : 0;
+      const pbs = this.pbs ? this.pbs.time : 0;
+      if (prevPbs + prevOffset < 0) {
+        start = 0;
+      } else {
+        start = timeAxis.findIndex((v) => v >= (prevPbs + prevOffset) / 1000);
+      }
+      if (timeAxis[0] <= (pbs + offset) / 1000) {
+        end = timeAxis.findIndex((v) => v >= (pbs + offset) / 1000) - 1;
+      } else {
+        end = 0;
+      }
+      if (start < end) {
+        for (let i = start; i < end; i++) {
+          basePitches[i] = (this.prev.notenum - this.notenum) * 100;
+        }
+      }
+    }
+    /**
+     * 1つ後のノートの音高に基づいた基準ピッチの補正
+     * 1つ後のノートの音高によって影響される範囲は、this.next.pbs.timeより後
+     */
+    if (this.next !== undefined && this.next.lyric !== "R") {
+      const nextOffset = offset + this.msLength;
+      if (timeAxis.slice(-1)[0] >= (this.next.pbs.time + nextOffset) / 1000) {
+        start = timeAxis.findIndex(
+          (v) => v >= (this.next.pbs.time + nextOffset) / 1000,
+        );
+        for (let i = start; i < basePitches.length; i++) {
+          basePitches[i] = (this.next.notenum - this.notenum) * 100;
+        }
+      }
+    }
+    return basePitches;
+  }
+
+  /**
+   * pbs,pby,pbw,pbmを解釈しinterpPitchを行うための諸元を得る
+   * @param offset resamplerが出力するwavの頭からnoteの頭までの時間(ms)
+   * @returns xが時間軸(ms)、yが音高(cent)、modeが補間方法
+   */
+  getPitchInterpBase(
+    note: Note,
+    offset: number,
+  ): {
+    x: Array<number>;
+    y: Array<number>;
+    mode: Array<"" | "s" | "r" | "j">;
+  } {
+    const x = [note.pbs.time + offset];
+    note.pbw.forEach((v, i) => {
+      x.push(x[i] + v);
+    });
+    const y = note.pby.map((v) => v * 10);
+    if (note.prev !== undefined && note.prev.lyric !== "R") {
+      y.unshift((note.prev.notenum - note.notenum) * 100);
+    } else {
+      y.unshift(note.pbs.height * 10);
+    }
+    const mode = note.pbm;
+    while (mode.length < x.length - 1) {
+      mode.push("");
+    }
+    return { x: x, y: y, mode: mode };
+  }
+
+  /**
+   * pbs,pby,pbw,pbmを解釈して`timeAxis`に沿ったピッチ列を返す
+   * @param timeAxis
+   * @param offset
+   * @returns
+   */
+  getInterpPitch(
+    note: Note,
+    timeAxis: Array<number>,
+    offset: number,
+  ): Array<number> {
+    const result = new Array(timeAxis.length).fill(0);
+    if (
+      note.pbs === undefined ||
+      note.pby === undefined ||
+      note.pbw === undefined ||
+      note.pbm === undefined
+    ) {
+      return result;
+    }
+    const { x, y, mode } = note.getPitchInterpBase(note, offset);
+    x.forEach((t, i) => {
+      if (i === 0) {
+        return;
+      }
+      if (timeAxis.slice(-1)[0] < t / 1000) {
+        return;
+      }
+      const start = timeAxis.findIndex((v) => v >= x[i - 1] / 1000);
+      const end = timeAxis.findIndex((v) => v >= t / 1000);
+      const cycle = (t - x[i - 1]) / 1000;
+      const height = y[i] - y[i - 1];
+      if (end < start) {
+        return;
+      }
+      for (let j = start; j <= end; j++) {
+        const phase = timeAxis[j] - x[i - 1] / 1000;
+        if (mode[i - 1] === "") {
+          result[j] =
+            ((Math.cos((Math.PI / cycle) * phase - Math.PI) + 1) * height) / 2 +
+            y[i - 1];
+        } else if (mode[i - 1] === "s") {
+          result[j] = (height / cycle) * phase + y[i - 1];
+        } else if (mode[i - 1] === "r") {
+          result[j] =
+            Math.sin((Math.PI / cycle / 2) * phase) * height + y[i - 1];
+        } else if (mode[i - 1] === "j") {
+          result[j] =
+            (-Math.cos((Math.PI / cycle / 2) * phase) + 1) * height + y[i - 1];
+        }
+      }
+    });
+    return result;
+  }
+
+  getVibratoPitches(
+    note: Note,
+    timeAxis: Array<number>,
+    offset: number,
+  ): Array<number> {
+    const result = new Array(timeAxis.length).fill(0);
+    if (note.vibrato === undefined) {
+      return result;
+    }
+    const startMs =
+      offset + (note.msLength * (100 - note.vibrato.length)) / 100;
+    const endMs = offset + note.msLength;
+    const start = timeAxis.findIndex((v) => v >= startMs / 1000);
+    const end =
+      timeAxis[0] < endMs ? timeAxis.findIndex((v) => v >= endMs / 1000) : 0;
+    if (start >= end) {
+      return result;
+    }
+    const vibratoFrames = end - start;
+    const fadeIn = Math.floor((vibratoFrames * note.vibrato.fadeInTime) / 100);
+    const fadeOut = Math.floor(
+      (vibratoFrames * note.vibrato.fadeOutTime) / 100,
+    );
+    const phaseOffset = (2 * Math.PI * note.vibrato.phase) / 100;
+    for (let i = start; i < end; i++) {
+      const depth = this.getVibratoDepth(
+        note.vibrato.depth,
+        i,
+        start,
+        end,
+        fadeIn,
+        fadeOut,
+      );
+      const phase = timeAxis[i] - startMs / 1000;
+      result[i] = Math.round(
+        (Math.sin(
+          ((2 * Math.PI) / (note.vibrato.cycle / 1000)) * phase + phaseOffset,
+        ) +
+          note.vibrato.height / 100) *
+          depth,
+      );
+    }
+    return result;
+  }
+
+  /**
+   * フレーム情報を与えてビブラートのフェードを適用したdepthを取得する
+   * @param depth ビブラートの深さ
+   * @param i note全体での現在の参照フレーム
+   * @param start ビブラート開始フレーム
+   * @param end ビブラート終了フレーム
+   * @param fadeIn フェードインフレーム数
+   * @param fadeOut フェードアウトフレーム数
+   * @returns フェードを適用したdepth
+   */
+  getVibratoDepth(
+    depth: number,
+    i: number,
+    start: number,
+    end: number,
+    fadeIn: number,
+    fadeOut: number,
+  ): number {
+    return i <= start + fadeIn && fadeIn !== 0
+      ? (depth * (i - start)) / fadeIn
+      : i >= end - fadeOut && fadeOut !== 0
+        ? depth * (1 - (i - end + fadeOut) / fadeOut)
+        : depth;
+  }
+
+  /**
+   * ノートを解釈し、エンジンに渡すための値を取得する
+   * @param vb UTAU音源
+   * @param flags プロジェクトのフラグ設定
+   * @returns エンジンに渡すための値
+   */
+  getRequestParam(
+    vb: VoiceBank,
+    flags: string,
+  ): {
+    resamp: ResampRequest | undefined;
+    append: AppendRequestBase;
+  } {
+    if (this._oto === undefined) {
+      this.applyOto(vb);
+    } else {
+      this.autoFitParam();
+    }
+    const params = { resamp: undefined, append: undefined };
+    if (this._oto !== undefined && !this.direct) {
+      params["resamp"] = {
+        inputWav: this._oto.dirpath + "/" + this._oto.filename,
+        targetTone: noteNumToTone(this.notenum),
+        velocity: this.velocity ? this.velocity : 100,
+        flags: this.flags ? this.flags : flags,
+        offsetMs: this._oto.offset,
+        targetMs: this.targetLength,
+        fixedMs: this._oto.velocity,
+        cutoffMs: this._oto.blank,
+        intensity: this._intensity ? this._intensity : 100,
+        modulation: this._modulation ? this._modulation : 0,
+        tempo: `!${this.tempo.toFixed(2)}`,
+        pitches: encodePitch(this.getRenderPitch()),
+      } as ResampRequest;
+    }
+    if (this._oto !== undefined && this.direct) {
+      params["append"] = {
+        inputWav: this._oto.dirpath + "/" + this._oto.filename,
+        stp: this.atStp + this._oto.offset,
+        length: this.outputMs,
+        envelope: this.envelope,
+        overlap: this.atOverlap,
+      } as AppendRequestBase;
+    } else if (this._oto !== undefined) {
+      params["append"] = {
+        stp: this.atStp,
+        length: this.outputMs,
+        envelope: this.envelope,
+        overlap: this.atOverlap,
+      } as AppendRequestBase;
+    } else {
+      params["append"] = {
+        stp: 0,
+        length: this.outputMs,
+        envelope: { point: [0, 0], value: [] },
+        overlap: 0,
+      } as AppendRequestBase;
+    }
+    return params;
   }
 }

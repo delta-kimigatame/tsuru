@@ -15,6 +15,7 @@ describe("Resamp", () => {
     const zip = new JSZip();
     const td = new TextDecoder("shift-jis");
     await zip.loadAsync(buffer, {
+      // @ts-expect-error 型の方がおかしい
       decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
     });
     vb = new VoiceBank(zip.files);

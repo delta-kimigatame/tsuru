@@ -25,9 +25,9 @@ export type ResampRequest = {
   pitches: string;
 };
 
-export type AppendRequest = {
-  /** 入力するwav波形データ */
-  inputData: Array<number>;
+export type AppendRequestBase = {
+  /** 音源ルートから入力wavまでの相対パス */
+  inputWav?: string;
   /** stp値(ms) */
   stp: number;
   /** 出力長(ms) */
@@ -37,3 +37,8 @@ export type AppendRequest = {
   /** オーバーラップ値 */
   overlap: number;
 };
+
+export type AppendRequest = {
+  /** 入力するwav波形データ */
+  inputData: Array<number>;
+} & AppendRequestBase;
