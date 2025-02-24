@@ -19,6 +19,7 @@ describe("Resamp", () => {
       decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
     });
     vb = new VoiceBank(zip.files);
+    await vb.initialize();
     resamp = new Resamp(vb);
     await resamp.initialize();
   });

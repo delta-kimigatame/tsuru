@@ -623,7 +623,8 @@ export class Note {
   }
 
   getRenderPitch(): Array<number> {
-    const offset = this.atPreutter + this.atStp;
+    const offset =
+      (this.atPreutter ? this.atPreutter : 0) + (this.atStp ? this.atStp : 0);
     const timeAxis = makeTimeAxis(this.pitchSpan, 0, this.targetLength / 1000);
     const basePitches = this.getBasePitch(timeAxis);
     const prevInterpPitch =
@@ -662,7 +663,8 @@ export class Note {
    */
   getBasePitch(timeAxis: Array<number>): Array<number> {
     const basePitches = new Array(timeAxis.length).fill(0);
-    const offset = this.atPreutter + this.atStp;
+    const offset =
+      (this.atPreutter ? this.atPreutter : 0) + (this.atStp ? this.atStp : 0);
     let start: number = 0;
     let end: number = 0;
     /**
@@ -769,7 +771,7 @@ export class Note {
       const end = timeAxis.findIndex((v) => v >= t / 1000);
       const cycle = (t - x[i - 1]) / 1000;
       const height = y[i] - y[i - 1];
-      if (end < start) {
+      if (end <= start) {
         return;
       }
       for (let j = start; j <= end; j++) {
