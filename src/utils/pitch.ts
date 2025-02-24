@@ -93,7 +93,7 @@ export const getFrqFromTone = (tone: string): number => {
  */
 export const decodeRunLength = (value: string): Array<string> => {
   const output = [];
-  const reg = /^(..)#?(\d*)#?/;
+  const reg = /^(..)#(\d*)#/;
   let match: RegExpExecArray | null;
 
   while (value.length !== 0) {

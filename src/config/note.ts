@@ -1,4 +1,4 @@
-import { defaultParam } from "../types/note";
+import type { defaultParam } from "../types/note";
 
 export const defaultNote: defaultParam = {
   /** 子音速度 */

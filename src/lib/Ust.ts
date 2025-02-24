@@ -4,7 +4,10 @@
  */
 
 import { readTextFile } from "../services/readTextFile";
+import type { defaultParam } from "../types/note";
+import type { AppendRequestBase, ResampRequest } from "../types/request";
 import { Note } from "./Note";
+import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 export class Ust {
   /**プロジェクトのbpm */
@@ -140,5 +143,25 @@ export class Ust {
         note.regionEnd = l.replace("$region_end=", "");
       }
     });
+  }
+
+  /**
+   * ust内の全てのノートについて、歌唱用パラメータを出力する
+   * @param vb 歌唱する音源
+   * @param defaultValue ノートに値が設定されていないときに参照する初期値
+   * @returns 歌唱用パラメータ
+   */
+  getRequestParam(
+    vb: VoiceBank,
+    defaultValue: defaultParam,
+  ): Array<{
+    resamp: ResampRequest | undefined;
+    append: AppendRequestBase;
+  }> {
+    this.notes.forEach((n) => n.applyOto(vb));
+    const params = this.notes.map((n) =>
+      n.getRequestParam(vb, this.flags, defaultValue),
+    );
+    return params;
   }
 }

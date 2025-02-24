@@ -355,9 +355,9 @@ export class Resamp {
     const tempo: number = parseFloat(_tempo.replace("!", ""));
     const utauPeriod = (60 / tempo / 480) * 5 * 1000;
     const utauTimeAxis = makeTimeAxis(
-      utauPeriod,
+      utauPeriod / 1000,
       0,
-      utauPeriod * decodedPitch.length,
+      (utauPeriod * decodedPitch.length) / 1000,
     );
     const interpPitch = interp1d(decodedPitch, utauTimeAxis, timeAxis);
     return f0.map((f, i) => f * 2 ** (interpPitch[i] / 1200));

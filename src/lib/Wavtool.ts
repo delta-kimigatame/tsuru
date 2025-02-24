@@ -62,8 +62,8 @@ export class Wavtool {
       sortedPoint.push(length - envelope.point[2]);
       sortedPoint.push(length);
     }
-    const framePoint = sortedPoint.map(
-      (p) => (renderingConfig.frameRate * p) / 1000,
+    const framePoint = sortedPoint.map((p) =>
+      Math.floor((renderingConfig.frameRate * p) / 1000),
     );
     const sortedValue = [];
     if (envelope.value.length >= 3) {

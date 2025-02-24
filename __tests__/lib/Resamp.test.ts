@@ -353,31 +353,31 @@ describe("Resamp", () => {
     const p = resamp.pitchShift(new Array(100).fill(440), 440, "A4", 0);
     expect(
       resamp
-        .applyPitch(p, makeTimeAxis(5, 0, 500), "AA#96#", "!120")
+        .applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "AA#96#", "!120")
         .map((v) => Math.round(v))
     ).toEqual(new Array(100).fill(440));
     expect(
-      resamp.applyPitch(p, makeTimeAxis(5, 0, 500), "AB#96#", "!120")
+      resamp.applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "AB#96#", "!120")
     ).toEqual(new Array(100).fill(440 * 2 ** (1 / 1200)));
     expect(
       resamp
-        .applyPitch(p, makeTimeAxis(5, 0, 500), "Sw#96#", "!120")
+        .applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "Sw#96#", "!120")
         .map((v) => Math.round(v))
     ).toEqual(new Array(100).fill(880));
     expect(
       resamp
-        .applyPitch(p, makeTimeAxis(5, 0, 500), "tQ#96#", "!120")
+        .applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "tQ#96#", "!120")
         .map((v) => Math.round(v))
     ).toEqual(new Array(100).fill(220));
     expect(
-      resamp.applyPitch(p, makeTimeAxis(5, 0, 500), "AB#96#", "120")
+      resamp.applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "AB#96#", "120")
     ).toEqual(new Array(100).fill(440 * 2 ** (1 / 1200)));
     expect(
-      resamp.applyPitch(p, makeTimeAxis(5, 0, 500), "AB#48#", "!60")
+      resamp.applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "AB#48#", "!60")
     ).toEqual(new Array(100).fill(440 * 2 ** (1 / 1200)));
     expect(
       resamp
-        .applyPitch(p, makeTimeAxis(5, 0, 500), "Sw#193#", "!240")
+        .applyPitch(p, makeTimeAxis(5 / 1000, 0, 0.5), "Sw#193#", "!240")
         .map((v) => Math.round(v))
     ).toEqual(new Array(100).fill(880));
   });

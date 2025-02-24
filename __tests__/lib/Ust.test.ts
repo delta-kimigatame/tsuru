@@ -1,6 +1,14 @@
+import fs from "fs";
 import * as iconv from "iconv-lite";
-import { describe, expect, it } from "vitest";
+import JSZip from "jszip";
+import { beforeAll, describe, expect, it } from "vitest";
+import { defaultNote } from "../../src/config/note";
+import { renderingConfig } from "../../src/config/rendering";
+import { Resamp } from "../../src/lib/Resamp";
 import { Ust } from "../../src/lib/Ust";
+import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
+import { Wavtool } from "../../src/lib/Wavtool";
+import { ResampRequest } from "../../src/types/request";
 
 const makeHeader = (encode: string): Array<string> => {
   const headerLines = [
@@ -251,4 +259,108 @@ describe("Ust", () => {
     expect(u.notes[2].prev.index).toBe(1);
     expect(u.notes[2].next).toBeUndefined();
   });
+});
+
+describe("usedTestUst", () => {
+  let vb: VoiceBank;
+  let ustBuf: ArrayBuffer;
+  beforeAll(async () => {
+    const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
+    const zip = new JSZip();
+    const td = new TextDecoder("shift-jis");
+    await zip.loadAsync(buffer, {
+      // @ts-expect-error 型の方がおかしい
+      decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
+    });
+    vb = new VoiceBank(zip.files);
+    await vb.initialize();
+    ustBuf = fs.readFileSync("./__tests__/__fixtures__/testustCV.ust");
+  });
+
+  it("load", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    expect(u.notes.length).toBe(9);
+    expect(u.tempo).toBeCloseTo(120);
+    /** 0個目のノート */
+    expect(u.notes[0].lyric).toBe("R");
+    expect(u.notes[0].length).toBe(480);
+    expect(u.notes[0].notenum).toBe(48);
+    expect(u.notes[0].tempo).toBe(120);
+    /** 1個目のノート */
+    expect(u.notes[1].lyric).toBe("か");
+    expect(u.notes[1].length).toBe(480);
+    expect(u.notes[1].notenum).toBe(48);
+    expect(u.notes[1].tempo).toBe(120);
+    expect(u.notes[1].intensity).toBe(100);
+    expect(u.notes[1].modulation).toBe(0);
+    expect(u.notes[1].pbs.time).toBe(-45);
+    expect(u.notes[1].pbw).toEqual([60]);
+    expect(u.notes[1].pby).toEqual([0]);
+    expect(u.notes[1].pbm).toEqual(["", ""]);
+    expect(u.notes[1].envelope).toEqual({
+      point: [5, 0, 0, 80],
+      value: [100, 100, 100, 100],
+    });
+    /** 7個目のノート */
+    expect(u.notes[7].lyric).toBe("が");
+    expect(u.notes[7].length).toBe(480);
+    expect(u.notes[7].notenum).toBe(48);
+    expect(u.notes[7].tempo).toBe(120);
+    expect(u.notes[7].intensity).toBe(100);
+    expect(u.notes[7].modulation).toBe(0);
+    expect(u.notes[7].pbs.time).toBe(-45);
+    expect(u.notes[7].pbw).toEqual([60]);
+    expect(u.notes[7].pby).toEqual([0]);
+    expect(u.notes[7].pbm).toEqual(["", ""]);
+    expect(u.notes[7].envelope).toEqual({
+      point: [5, 0, 0, 35],
+      value: [100, 100, 100, 100],
+    });
+    expect(u.notes[7].vibrato).toEqual({
+      length: 70,
+      cycle: 180,
+      depth: 65,
+      fadeInTime: 20,
+      fadeOutTime: 20,
+      phase: 50,
+      height: 0,
+    });
+  });
+  it("getRenderParams", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    const params = u.getRequestParam(vb, defaultNote);
+    expect(params.length).toBe(9);
+    expect(params[0].resamp).toBeUndefined();
+    expect(params[8].resamp).toBeUndefined();
+    expect(params[0].append.stp).toBe(0);
+    expect(params[0].append.length).toBe(431);
+    expect(params[0].append.envelope).toEqual({ point: [0, 0], value: [] });
+    expect(params[0].append.overlap).toBe(0);
+    params.slice(1, 7).forEach((p) => expect(p.resamp).not.toBeUndefined());
+  });
+
+  it("synthTest", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    const params = u.getRequestParam(vb, defaultNote);
+    const resamp = new Resamp(vb);
+    resamp.initialize();
+    const wavtool = new Wavtool();
+    const wav0 = new Array(
+      Math.ceil((params[0].append.length / 1000) * renderingConfig.frameRate)
+    ).fill(0);
+    wavtool.append({ inputData: wav0, ...params[0].append });
+    for (let i = 1; i <= 7; i++) {
+      const wav1 = await resamp.resamp(params[i].resamp as ResampRequest);
+      wavtool.append({ inputData: wav1, ...params[i].append });
+    }
+    const wav8 = new Array(
+      Math.ceil((params[8].append.length / 1000) * renderingConfig.frameRate)
+    ).fill(0);
+    wavtool.append({ inputData: wav8, ...params[8].append });
+    const w = wavtool.output();
+    fs.writeFileSync("./__tests__/test_result/synthTest.wav", new DataView(w));
+  }, 20000);
 });
