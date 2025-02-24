@@ -2,6 +2,7 @@ import fs from "fs";
 import * as iconv from "iconv-lite";
 import JSZip from "jszip";
 import { beforeAll, describe, expect, it } from "vitest";
+import { defaultNote } from "../../src/config/note";
 import { Note } from "../../src/lib/Note";
 import { CharacterTxt } from "../../src/lib/VoiceBanks/CharacterTxt";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
@@ -1092,7 +1093,7 @@ describe("getRequestParam", () => {
     n.lyric = "R";
     n.tempo = 120;
     n.notenum = 60;
-    const param = n.getRequestParam(vb, "");
+    const param = n.getRequestParam(vb, "", defaultNote);
     expect(param.resamp).toBeUndefined();
     expect(param.append.length).toBe(500);
     expect(param.append.stp).toBe(0);
@@ -1110,7 +1111,7 @@ describe("getRequestParam", () => {
     n.direct = true;
     n.envelope = "0,5,35,0,100,100,0";
     n.stp = 10;
-    const param = n.getRequestParam(vb, "");
+    const param = n.getRequestParam(vb, "", defaultNote);
     expect(param.resamp).toBeUndefined();
     expect(param.append.inputWav).toBe("denoise/01_あかきくけこ.wav");
     expect(param.append.length).toBe(500);
@@ -1126,9 +1127,8 @@ describe("getRequestParam", () => {
     n.lyric = "あ";
     n.tempo = 120;
     n.notenum = 60;
-    n.envelope = "0,5,35,0,100,100,0";
     n.stp = 10;
-    const param = n.getRequestParam(vb, "");
+    const param = n.getRequestParam(vb, "", defaultNote);
     const resamp = param.resamp as ResampRequest;
     expect(resamp.inputWav).toBe("denoise/01_あかきくけこ.wav");
     expect(resamp.targetTone).toBe("C4");

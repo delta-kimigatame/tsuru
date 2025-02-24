@@ -4,6 +4,7 @@
  */
 
 import type OtoRecord from "utauoto/dist/OtoRecord";
+import { defaultParam } from "../types/note";
 import type { AppendRequestBase, ResampRequest } from "../types/request";
 import { makeTimeAxis } from "../utils/interp";
 import { noteNumToTone } from "../utils/Notenum";
@@ -259,7 +260,7 @@ export class Note {
    */
   setPitches(value: Array<number>): void {
     this._pitches = value.map((v) =>
-      Math.max(Math.min(Math.floor(v), 2047), -2048),
+      Math.max(Math.min(Math.floor(v), 2047), -2048)
     );
   }
 
@@ -429,7 +430,7 @@ export class Note {
     phase: number;
     /** 0のとき波の中心が、-100のとき波の頂点が0に、100のとき波の底が0となるような割合 */
     height: number;
-    } {
+  } {
     return this._vibrato;
   }
 
@@ -526,7 +527,7 @@ export class Note {
     const record = vb.getOtoRecord(
       this._lyric,
       this.notenum,
-      this.voiceColor ? this.voiceColor : "",
+      this.voiceColor ? this.voiceColor : ""
     );
     if (record === null) {
       this.otoPreutter = 0;
@@ -634,10 +635,10 @@ export class Note {
     const prevVbrPitch =
       this.prev !== undefined && this.prev.lyric !== "R"
         ? this.getVibratoPitches(
-          this.prev,
-          timeAxis,
-          offset - this.prev.msLength,
-        )
+            this.prev,
+            timeAxis,
+            offset - this.prev.msLength
+          )
         : new Array(timeAxis.length).fill(0);
     const interpPitch = this.getInterpPitch(this, timeAxis, offset);
     const vbrPitch = this.getVibratoPitches(this, timeAxis, offset);
@@ -652,7 +653,7 @@ export class Note {
         prevVbrPitch[i] +
         interpPitch[i] +
         vbrPitch[i] +
-        nextInterpPitch[i],
+        nextInterpPitch[i]
     );
   }
 
@@ -699,7 +700,7 @@ export class Note {
       const nextOffset = offset + this.msLength;
       if (timeAxis.slice(-1)[0] >= (this.next.pbs.time + nextOffset) / 1000) {
         start = timeAxis.findIndex(
-          (v) => v >= (this.next.pbs.time + nextOffset) / 1000,
+          (v) => v >= (this.next.pbs.time + nextOffset) / 1000
         );
         for (let i = start; i < basePitches.length; i++) {
           basePitches[i] = (this.next.notenum - this.notenum) * 100;
@@ -716,7 +717,7 @@ export class Note {
    */
   getPitchInterpBase(
     note: Note,
-    offset: number,
+    offset: number
   ): {
     x: Array<number>;
     y: Array<number>;
@@ -748,7 +749,7 @@ export class Note {
   getInterpPitch(
     note: Note,
     timeAxis: Array<number>,
-    offset: number,
+    offset: number
   ): Array<number> {
     const result = new Array(timeAxis.length).fill(0);
     if (
@@ -797,7 +798,7 @@ export class Note {
   getVibratoPitches(
     note: Note,
     timeAxis: Array<number>,
-    offset: number,
+    offset: number
   ): Array<number> {
     const result = new Array(timeAxis.length).fill(0);
     if (note.vibrato === undefined) {
@@ -815,7 +816,7 @@ export class Note {
     const vibratoFrames = end - start;
     const fadeIn = Math.floor((vibratoFrames * note.vibrato.fadeInTime) / 100);
     const fadeOut = Math.floor(
-      (vibratoFrames * note.vibrato.fadeOutTime) / 100,
+      (vibratoFrames * note.vibrato.fadeOutTime) / 100
     );
     const phaseOffset = (2 * Math.PI * note.vibrato.phase) / 100;
     for (let i = start; i < end; i++) {
@@ -825,15 +826,15 @@ export class Note {
         start,
         end,
         fadeIn,
-        fadeOut,
+        fadeOut
       );
       const phase = timeAxis[i] - startMs / 1000;
       result[i] = Math.round(
         (Math.sin(
-          ((2 * Math.PI) / (note.vibrato.cycle / 1000)) * phase + phaseOffset,
+          ((2 * Math.PI) / (note.vibrato.cycle / 1000)) * phase + phaseOffset
         ) +
           note.vibrato.height / 100) *
-          depth,
+          depth
       );
     }
     return result;
@@ -855,13 +856,13 @@ export class Note {
     start: number,
     end: number,
     fadeIn: number,
-    fadeOut: number,
+    fadeOut: number
   ): number {
     return i <= start + fadeIn && fadeIn !== 0
       ? (depth * (i - start)) / fadeIn
       : i >= end - fadeOut && fadeOut !== 0
-        ? depth * (1 - (i - end + fadeOut) / fadeOut)
-        : depth;
+      ? depth * (1 - (i - end + fadeOut) / fadeOut)
+      : depth;
   }
 
   /**
@@ -873,6 +874,7 @@ export class Note {
   getRequestParam(
     vb: VoiceBank,
     flags: string,
+    defaultValue: defaultParam
   ): {
     resamp: ResampRequest | undefined;
     append: AppendRequestBase;
@@ -887,14 +889,16 @@ export class Note {
       params["resamp"] = {
         inputWav: this._oto.dirpath + "/" + this._oto.filename,
         targetTone: noteNumToTone(this.notenum),
-        velocity: this.velocity ? this.velocity : 100,
+        velocity: this.velocity ? this.velocity : defaultValue.velocity,
         flags: this.flags ? this.flags : flags,
         offsetMs: this._oto.offset,
         targetMs: this.targetLength,
         fixedMs: this._oto.velocity,
         cutoffMs: this._oto.blank,
-        intensity: this._intensity ? this._intensity : 100,
-        modulation: this._modulation ? this._modulation : 0,
+        intensity: this._intensity ? this._intensity : defaultValue.intensity,
+        modulation: this._modulation
+          ? this._modulation
+          : defaultValue.modulation,
         tempo: `!${this.tempo.toFixed(2)}`,
         pitches: encodePitch(this.getRenderPitch()),
       } as ResampRequest;
@@ -904,14 +908,14 @@ export class Note {
         inputWav: this._oto.dirpath + "/" + this._oto.filename,
         stp: this.atStp + this._oto.offset,
         length: this.outputMs,
-        envelope: this.envelope,
+        envelope: this.envelope ? this.envelope : defaultValue.envelope,
         overlap: this.atOverlap,
       } as AppendRequestBase;
     } else if (this._oto !== undefined) {
       params["append"] = {
         stp: this.atStp,
         length: this.outputMs,
-        envelope: this.envelope,
+        envelope: this.envelope ? this.envelope : defaultValue.envelope,
         overlap: this.atOverlap,
       } as AppendRequestBase;
     } else {
