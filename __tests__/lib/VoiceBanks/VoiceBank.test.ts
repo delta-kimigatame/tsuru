@@ -397,7 +397,9 @@ describe("VoiceBank", () => {
     ]).buffer;
     z.file("root/あ_wav.frq", feqBuf);
     const vb = new VoiceBank(z.files);
+    expect(vb.initialized).toBeFalsy();
     await vb.initialize();
+    expect(vb.initialized).toBeTruthy();
     const frq = await vb.getFrq("あ.wav");
     expect(frq.frqAverage).toBeCloseTo(119.47423345496698);
     await expect(async () => {
@@ -427,7 +429,9 @@ describe("VoiceBank", () => {
     );
     z.file("root/prefix.map", p_output);
     const vb = new VoiceBank(z.files);
+    expect(vb.initialized).toBeFalsy();
     await vb.initialize("UTF8");
+    expect(vb.initialized).toBeTruthy();
     expect(vb.name).toBe("あ");
     expect(vb.readme).toBe("い");
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
