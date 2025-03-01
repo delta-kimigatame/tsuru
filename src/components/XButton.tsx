@@ -25,7 +25,6 @@ const StyledXButton = styled(Button)<XButtonProps>(({ theme }) => ({
  * XButton - SNSシェアボタン
  *
  * 必ずXIconをstartIconとして表示し、hrefとtarget="_blank"を設定します。
- * そのため、シェアボタンとして適切に機能します。
  */
 const XButton: React.FC<XButtonProps> = ({
   href,
