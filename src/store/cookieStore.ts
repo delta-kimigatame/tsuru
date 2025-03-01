@@ -14,7 +14,7 @@ import { defaultParam } from "../types/note";
  * 各項目はcookieから取得したデフォルト値を初期値として保持し、
  * アプリ内での設定変更を反映するために利用されます。
  */
-interface CookieState {
+interface CookieStore {
   /**
    * 表示モードの設定。`light`（ライトモード）、`dark`（ダークモード）、または`system`（システム設定による選択）のいずれか。
    */
@@ -104,7 +104,7 @@ interface CookieState {
  * このストアは、表示モード、言語、カラーテーマ、ノート設定の変更を追跡し、
  * 各コンポーネントで必要に応じて状態を更新します。
  */
-export const useCookieStore = create<CookieState>((set) => {
+export const useCookieStore = create<CookieStore>((set) => {
   return {
     mode: cookieDefaults.mode,
     language: cookieDefaults.language,
