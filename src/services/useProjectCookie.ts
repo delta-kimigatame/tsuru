@@ -21,7 +21,7 @@ export const useProjectCookie = () => {
    * モード（`light`, `dark`, `system`）を取得します。
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.mode` を返します。
    */
-  const mode = getStringCookie(COOKIE_KEYS.mode, cookieDefaults.mode);
+  const mode = getStringCookie(COOKIE_KEYS.mode, cookieDefaults.mode) as Mode;
   /**
    * 言語（`ja`, `en` など）を取得します。
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.language` を返します。
@@ -29,7 +29,7 @@ export const useProjectCookie = () => {
   const language = getStringCookie(
     COOKIE_KEYS.language,
     cookieDefaults.language
-  );
+  ) as Language;
   /**
    * カラーテーマを取得します。
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.colorTheme` を返します。
@@ -37,7 +37,7 @@ export const useProjectCookie = () => {
   const colorTheme = getStringCookie(
     COOKIE_KEYS.colorTheme,
     cookieDefaults.colorTheme
-  );
+  ) as ColorTheme;
   /**
    * ノートのデフォルト設定をオブジェクトとして取得します。
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.defaultNote` を返します。
@@ -45,7 +45,7 @@ export const useProjectCookie = () => {
   const defaultNote = getObjectCookie(
     COOKIE_KEYS.defaultNote,
     cookieDefaults.defaultNote
-  );
+  ) as defaultParam;
 
   /**
    * モードをクッキーに保存します。
