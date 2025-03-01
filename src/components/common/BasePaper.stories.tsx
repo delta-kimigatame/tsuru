@@ -1,7 +1,7 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
-import { getDesignTokens } from "../config/theme";
+import { getDesignTokens } from "../../config/theme";
 import { BasePaper, BasePaperProps } from "./BasePaper";
 
 export default {
