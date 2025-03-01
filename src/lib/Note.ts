@@ -953,17 +953,22 @@ export class Note {
     copiedNote._velocity = this._velocity;
     copiedNote._intensity = this._intensity;
     copiedNote._modulation = this._modulation;
-    copiedNote._pitches = [...this._pitches];
+    copiedNote._pitches =
+      this._pitches !== undefined ? [...this._pitches] : undefined;
     copiedNote.pbStart = this.pbStart;
-    copiedNote._pbs = { ...this._pbs };
-    copiedNote._pby = [...this._pby];
-    copiedNote._pbw = [...this._pbw];
-    copiedNote._pbm = [...this._pbm];
-    copiedNote._envelope = {
-      point: [...this._envelope.point],
-      value: [...this._envelope.value],
-    };
-    copiedNote._vibrato = { ...this._vibrato };
+    copiedNote._pbs = this.pbs !== undefined ? { ...this._pbs } : undefined;
+    copiedNote._pby = this.pby !== undefined ? [...this._pby] : undefined;
+    copiedNote._pbw = this.pbw !== undefined ? [...this._pbw] : undefined;
+    copiedNote._pbm = this.pbm !== undefined ? [...this._pbm] : undefined;
+    copiedNote._envelope =
+      this.envelope !== undefined
+        ? {
+            point: [...this._envelope.point],
+            value: [...this._envelope.value],
+          }
+        : undefined;
+    copiedNote._vibrato =
+      this.vibrato !== undefined ? { ...this._vibrato } : undefined;
     copiedNote.label = this.label;
     copiedNote.direct = this.direct;
     copiedNote.region = this.region;
