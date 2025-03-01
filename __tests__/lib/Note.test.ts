@@ -1148,4 +1148,52 @@ describe("getRequestParam", () => {
     expect(param.append.envelope.value.length).toBe(4);
     expect(param.append.overlap).toBe(-0.91);
   });
+
+  it("deepcopy", () => {
+    const original = new Note();
+    original.index = 0;
+    original.length = 1920;
+    original.lyric = "あ";
+    original.notenum = 60;
+    original.tempo = 120;
+    original.hasTempo = true;
+    original.preutter = 1;
+    original.overlap = 3;
+    original.stp = 5;
+    original.velocity = 150;
+    original.intensity = 80;
+    original.modulation = 30;
+    original.setPitches([0, 1, 2, 3]);
+    original.pbStart = -10;
+    original.pbs = "-5,3";
+    original.pby = "1, 2, 3";
+    original.pbw = "10, 20, 30, 40";
+    original.pbm = ",s,r,j,";
+    original.flags = "g-5";
+    original.vibrato = "1,2,3,4,5,6,7,8";
+    original.envelope = "9,10,11,12,13,14,15,%,16,17,18";
+    original.label = "aa";
+    original.direct = true;
+    original.region = "1番";
+    original.regionEnd = "イントロ";
+
+    // 参照コピーすべきオブジェクト
+    const prev = new Note();
+    const next = new Note();
+    original.prev = prev;
+    original.next = next;
+
+    // deepCopy 実行
+    const copy = original.deepCopy();
+
+    // **1. 全プロパティが正しくコピーされているか**
+    expect(copy).toEqual(original);
+
+    // **2. コピー元とコピー後のオブジェクトは別インスタンス**
+    expect(copy).not.toBe(original);
+
+    // **3. 参照コピーされるべきオブジェクトは同じインスタンス**
+    expect(copy.prev).toBe(prev);
+    expect(copy.next).toBe(next);
+  });
 });
