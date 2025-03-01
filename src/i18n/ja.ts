@@ -12,7 +12,11 @@ export const translationJa = {
       "ログは自動では送信されません。必要に応じて開発者に送付してください。",
   },
   top: {
-    description: "GakuyaはUTAU音源のためのパッケージングツールです。",
+    catchphrase: "さあ!UTAおう!",
+    descriptions: [
+      "UTAletはUTAU音源を用いたブラウザベースの歌声合成ツールです。",
+      "日本語の単独音と連続音が想定されています。",
+    ],
     selectZipButtonText: "利用規約に同意して、UTAU音源のzipファイルを選択",
     rule: "利用規約",
     ruleDescription: "声の権利者から許諾を得た音源のみご利用できます。",
@@ -23,9 +27,13 @@ export const translationJa = {
       このGoogleアナリティクスはデータの収集のためにCookieを使用しています。
       このデータは匿名で収集されており、個人を特定するものではありません。`,
     privacyCookie:
-      "当サイトでは、表示方法をカスタマイズするためにcookieを使用します。",
+      "ユーザー体験を向上させるため、表示方法や操作方法のカスタマイズを行うためにCookieを使用します。これらのデータは収集されず、サイト内での利便性向上のみに使用されます。",
+    privacyOffline:
+      "本サービスは完全オフラインでも動作し、サーバーとの通信は一切行いません。",
+    privacyWorker:
+      "本サイトで使用されるワーカーは、プライバシーに関わるデータを収集しません。",
     history: "更新履歴",
-    changelog: ["2025/02/17 ファイル一覧タブの追加", "2025/02/13 初版公開"],
+    changelog: ["2025/03/** 初版公開"],
   },
   editor: {
     file_check: {

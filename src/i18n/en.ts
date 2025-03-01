@@ -12,7 +12,11 @@ export const translationEn = {
       "Logs are not sent automatically, so please send them to the developer if necessary.",
   },
   top: {
-    description: "Gakuya is packaging tool for UTAU VoiceBanks",
+    catchphrase: "Let's UTA! Let's go!",
+    descriptions: [
+      "UTAlet is a browser-based voice synthesis tool using UTAU voicebanks.",
+      "It is designed to work with both CV (Consonant-Vowel) and VCV (Vowel-Consonant-Vowel) voicebanks.",
+    ],
     selectZipButtonText:
       "Agree to the terms of use and Select the UTAU VoiceBanks zip file",
     rule: "Terms of service",
@@ -21,13 +25,15 @@ export const translationEn = {
     ruleDescription2:
       "If you wish to use someone else's voice, you must obtain their explicit permission.",
     privacy: "Privacy Policy",
-    privacyAnalytics: `This website uses Google\'s access analysis tool "Google Analytics." 
-      Google Analytics uses cookies to collect data.
-       This data is collected anonymously and does not identify individuals.`,
+    privacyAnalytics: `We use Google Analytics to analyze visitor behavior on our site. The data collected through Google Analytics is anonymous and does not identify individual users.`,
     privacyCookie:
-      "We use cookies on our site to customize how you experience our site.",
+      "Cookies are used to customize the display and user interaction for improving user experience. These cookies do not collect personal data and are only used to enhance the site's usability.",
+    privacyOffline:
+      "This service is designed to work fully offline and does not engage in any communication with external servers.",
+    privacyWorker:
+      "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
-    changelog: ["2025/02/17 Add File List Tab", "2025/02/13 Release"],
+    changelog: ["2025/03/** Release"],
   },
   editor: {
     file_check: {
