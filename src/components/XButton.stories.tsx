@@ -1,4 +1,3 @@
-import XIcon from "@mui/icons-material/X";
 import { ButtonProps } from "@mui/material";
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
@@ -15,7 +14,5 @@ const Template: StoryFn<ButtonProps> = (args) => <XButton {...args} />;
 export const Default = Template.bind({});
 Default.args = {
   children: "共有",
-  startIcon: <XIcon />,
   href: "https://twitter.com/intent/tweet",
-  target: "_blank",
 };
