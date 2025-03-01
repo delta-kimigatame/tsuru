@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { BasePaper, BasePaperProps } from "./BasePaper";
 
 export default {
-  title: "Components/BasePaper",
+  title: "Components/Common/BasePaper",
   component: BasePaper,
   argTypes: {},
 } as Meta;
