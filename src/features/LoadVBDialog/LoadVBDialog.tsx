@@ -12,6 +12,10 @@ import { FileList } from "../../components/LoadVBDialog/FileList";
 import { VoiceBank } from "../../lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
+import {
+  EncodingOption,
+  getTextDecoderEncoding,
+} from "../../utils/EncodingMapping";
 import { EncodingSelect } from "./EncodingSelect";
 
 export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
@@ -23,7 +27,9 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
     [key: string]: JSZip.JSZipObject;
   } | null>(null);
   /** zipのファイル名を解釈するための文字コード */
-  const [encoding, setEncoding] = React.useState<string>("Shift-Jis");
+  const [encoding, setEncoding] = React.useState<EncodingOption>(
+    EncodingOption.SHIFT_JIS
+  );
   /** snackbarの操作 */
   const snackBarStore = useSnackBarStore();
 
@@ -33,9 +39,10 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
    * @param file 読み込んだファイル
    * @param encoding 文字コード
    */
-  const loadZip = async (file: File, encoding: string) => {
+  const loadZip = async (file: File, encoding: EncodingOption) => {
     const zip = new JSZip();
-    const td = new TextDecoder(encoding);
+
+    const td = new TextDecoder(getTextDecoderEncoding(encoding));
     zip
       .loadAsync(file, {
         decodeFileName: (fileNameBinary: Uint8Array) =>

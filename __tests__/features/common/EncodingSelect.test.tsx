@@ -7,8 +7,9 @@ import { getDesignTokens } from "../../../src/config/theme";
 import {
   EncodingSelect,
   EncodingSelectProps,
-} from "../../../src/features/LoadVBDialog/EncodingSelect";
+} from "../../../src/features/common/EncodingSelect";
 import i18n from "../../../src/i18n/configs";
+import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
 i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
@@ -41,7 +42,7 @@ describe("EncodingSelect", () => {
     await userEvent.click(combobox);
     const optionUTF8 = await screen.findByRole("option", { name: "UTF-8" });
     await user.click(optionUTF8);
-    expect(setValue).toHaveBeenCalledWith("utf-8");
+    expect(setValue).toHaveBeenCalledWith(EncodingOption.UTF8);
   });
   it("文字コードを変更した際の動作_shift-jis", async () => {
     renderComponent();
@@ -51,6 +52,6 @@ describe("EncodingSelect", () => {
     await userEvent.click(combobox);
     const optionUTF8 = await screen.findByRole("option", { name: "Shift-JIS" });
     await user.click(optionUTF8);
-    expect(setValue).toHaveBeenCalledWith("Shift-Jis");
+    expect(setValue).toHaveBeenCalledWith(EncodingOption.SHIFT_JIS);
   });
 });

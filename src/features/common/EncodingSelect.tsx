@@ -5,6 +5,7 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { useTranslation } from "react-i18next";
+import { EncodingOption } from "../../utils/EncodingMapping";
 
 /**
  * LoadVBDialog内において、zipを解凍する際の文字コードを選択するためのセレクトボックス。
@@ -20,7 +21,7 @@ export const EncodingSelect: React.FC<EncodingSelectProps> = (props) => {
    * @param e
    */
   const handleChange = (e: SelectChangeEvent) => {
-    props.setValue(e.target.value);
+    props.setValue(e.target.value as EncodingOption);
   };
   return (
     <FormControl fullWidth sx={{ m: 1 }}>
@@ -34,8 +35,8 @@ export const EncodingSelect: React.FC<EncodingSelectProps> = (props) => {
         disabled={props.disabled}
         data-testid="encoding-select"
       >
-        <MenuItem value={"utf-8"}>UTF-8</MenuItem>
-        <MenuItem value={"Shift-Jis"}>Shift-JIS</MenuItem>
+        <MenuItem value={EncodingOption.UTF8}>UTF-8</MenuItem>
+        <MenuItem value={EncodingOption.SHIFT_JIS}>Shift-JIS</MenuItem>
       </Select>
     </FormControl>
   );
@@ -45,11 +46,11 @@ export interface EncodingSelectProps {
   /**
    * 現在選択されている文字コード。textdecoderが引数としてとれる形の文字コード
    */
-  value: string;
+  value: EncodingOption;
   /**
    * 文字コードの状態を更新するためのコールバック
    */
-  setValue: React.Dispatch<React.SetStateAction<string>>;
+  setValue: React.Dispatch<React.SetStateAction<EncodingOption>>;
   /**
    * 操作可否を指定する。zipの再読み込み中は操作不可にする。
    */

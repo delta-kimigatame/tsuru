@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { EncodingSelect, EncodingSelectProps } from "./EncodingSelect";
 
 export default {
-  title: "Features/LoadVBDialog/EncodingSelect",
+  title: "Features/Common/EncodingSelect",
   component: EncodingSelect,
   argTypes: {},
 } as Meta;
