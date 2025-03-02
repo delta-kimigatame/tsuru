@@ -3,22 +3,8 @@ import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
 import { getDesignTokens } from "../../config/theme";
 import i18n from "../../i18n/configs";
+import { base64ToArrayBuffer } from "../../storybook/utils";
 import { LoadVBDialog, LoadVBDialogProps } from "./LoadVBDialog";
-
-/**
- * Base64文字列をArrayBufferに変換する関数
- * @param base64 - base64エンコードされた文字列
- * @returns ArrayBuffer
- */
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
 
 export default {
   title: "Features/LoadVBDialog/LoadVBDialog",
