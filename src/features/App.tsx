@@ -8,6 +8,7 @@ import { useInitializeApp } from "../hooks/useInitializeApp";
 import { useThemeMode } from "../hooks/useThemeMode";
 import i18n from "../i18n/configs";
 import { useCookieStore } from "../store/cookieStore";
+import { SnackBar } from "./common/SnackBar";
 
 export const App: React.FC = () => {
   useInitializeApp();
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
       <CssBaseline />
       <BasePaper title="aaa">表示テスト用仮の文字列</BasePaper>
       <Footer />
+      <SnackBar />
     </ThemeProvider>
   );
 };
