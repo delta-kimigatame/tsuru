@@ -1,4 +1,4 @@
-import { LinearProgress } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
@@ -13,14 +13,16 @@ export const FileList: React.FC<FileListProps> = (props) => {
       {props.processing ? (
         <LinearProgress />
       ) : (
-        <Typography variant="body2">
-          {props.files.map((f) => (
-            <>
-              {f}
-              <Divider />
-            </>
-          ))}
-        </Typography>
+        <Box sx={{ m: 1 }}>
+          <Typography variant="body2">
+            {props.files.map((f) => (
+              <>
+                {f}
+                <Divider />
+              </>
+            ))}
+          </Typography>
+        </Box>
       )}
     </>
   );
