@@ -412,3 +412,34 @@ describe("Resamp", () => {
     fs.writeFileSync("./__tests__/test_result/output.wav", new DataView(buf));
   });
 });
+
+describe("profilingResamp", () => {
+  it("profilingResamp", async () => {
+    const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
+    const zip = new JSZip();
+    const td = new TextDecoder("shift-jis");
+    await zip.loadAsync(buffer, {
+      // @ts-expect-error 型の方がおかしい
+      decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
+    });
+    const vb = new VoiceBank(zip.files);
+    await vb.initialize();
+    const resamp = new Resamp(vb);
+    await resamp.initialize();
+    const w = await resamp.resamp({
+      inputWav: "denoise/01_あかきくけこ.wav",
+      targetTone: "A3",
+      velocity: 100,
+      flags: "",
+      offsetMs: 1538.32,
+      targetMs: 600,
+      fixedMs: 20,
+      cutoffMs: -200,
+      intensity: 100,
+      modulation: 0,
+      tempo: "!120",
+      pitches: "AA#97#",
+    });
+    expect(w.length).toBe(26240);
+  });
+});

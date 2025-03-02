@@ -35,31 +35,40 @@ export class Resamp {
 
   async resamp(request: ResampRequest): Promise<Array<number>> {
     return new Promise(async (resolve) => {
+      console.log(`スタート:${Date.now()}`);
       const nData = await this.getWaveData(
         request.inputWav,
         request.offsetMs,
-        request.cutoffMs,
+        request.cutoffMs
       );
+      console.log(`wav読込:${Date.now()}`);
       const frqData = await this.getFrqData(
         request.inputWav,
         request.offsetMs,
-        (nData.length / renderingConfig.frameRate) * 1000,
+        (nData.length / renderingConfig.frameRate) * 1000
       );
+      console.log(`frq読込:${Date.now()}`);
 
       const sp = this.world.CheapTrick(
         Float64Array.from(nData),
         Float64Array.from(frqData.frq),
         Float64Array.from(frqData.timeAxis),
-        renderingConfig.frameRate,
+        renderingConfig.frameRate
       );
+      console.log(`sp解析:${Date.now()}`);
       const ap = this.world.D4C(
         Float64Array.from(nData),
         Float64Array.from(frqData.frq),
         Float64Array.from(frqData.timeAxis),
         sp.fft_size,
         renderingConfig.frameRate,
-        0.85,
+        0.85
       );
+      // const ap = sp.spectral.map((v) =>
+      //   Float64Array.from(new Array(v.length).fill(0))
+      // );
+
+      console.log(`ap解析:${Date.now()}`);
       const stretchParams = this.stretch(
         frqData.frq,
         sp.spectral,
@@ -67,32 +76,37 @@ export class Resamp {
         frqData.amp,
         request.targetMs,
         request.fixedMs,
-        request.velocity,
+        request.velocity
       );
+      console.log(`パラメータ伸縮:${Date.now()}`);
       const shiftF0 = this.pitchShift(
         stretchParams.f0,
         frqData.frqAverage,
         request.targetTone,
-        request.modulation,
+        request.modulation
       );
+      console.log(`音高適用:${Date.now()}`);
       const applyPitchF0 = this.applyPitch(
         shiftF0,
         stretchParams.timeAxis,
         request.pitches,
-        request.tempo,
+        request.tempo
       );
+      console.log(`ピッチ適用:${Date.now()}`);
       const synthedData = this.world.Synthesis(
         Float64Array.from(applyPitchF0),
         stretchParams.sp,
         stretchParams.ap,
         sp.fft_size,
         renderingConfig.frameRate,
-        renderingConfig.worldPeriod * 1000,
+        renderingConfig.worldPeriod * 1000
       );
+      console.log(`合成:${Date.now()}`);
       const outputData = this.adjustVolume(
         Array.from(synthedData),
-        request.intensity,
+        request.intensity
       );
+      console.log(`音量適用:${Date.now()}`);
       resolve(outputData);
     });
   }
@@ -107,19 +121,19 @@ export class Resamp {
   async getWaveData(
     inputWav: string,
     offsetMs: number,
-    cutoffMs: number,
+    cutoffMs: number
   ): Promise<Array<number>> {
     return new Promise(async (resolve) => {
       const wavData = await this.vb.getWave(inputWav);
       const offsetFrame = Math.floor(
-        (renderingConfig.frameRate * offsetMs) / 1000,
+        (renderingConfig.frameRate * offsetMs) / 1000
       );
       const cutoff =
         cutoffMs < 0
           ? offsetMs - cutoffMs
           : (wavData.data.length / wavData.sampleRate) * 1000 - cutoffMs;
       const cutoffFrame = Math.floor(
-        (renderingConfig.frameRate * cutoff) / 1000,
+        (renderingConfig.frameRate * cutoff) / 1000
       );
       resolve(wavData.LogicalNormalize(1).slice(offsetFrame, cutoffFrame));
     });
@@ -135,7 +149,7 @@ export class Resamp {
   async getFrqData(
     inputWav: string,
     offsetMs: number,
-    wavMs: number,
+    wavMs: number
   ): Promise<{
     frq: Array<number>;
     amp: Array<number>;
@@ -148,24 +162,24 @@ export class Resamp {
       const frqTimeAxis = makeTimeAxis(
         (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
         0,
-        wavMs / 1000,
+        wavMs / 1000
       );
       const offsetFrame = Math.floor(
-        (renderingConfig.frameRate * offsetMs) / frqData.perSamples / 1000,
+        (renderingConfig.frameRate * offsetMs) / frqData.perSamples / 1000
       );
       const cutoffFrame =
         Math.ceil(
-          (renderingConfig.frameRate * wavMs) / frqData.perSamples / 1000,
+          (renderingConfig.frameRate * wavMs) / frqData.perSamples / 1000
         ) + 1;
       const frq = interp1d(
         Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
         frqTimeAxis,
-        timeAxis,
+        timeAxis
       );
       const amp = interp1d(
         Array.from(frqData.amp).slice(offsetFrame, offsetFrame + cutoffFrame),
         frqTimeAxis,
-        timeAxis,
+        timeAxis
       );
       resolve({
         frq: frq,
@@ -193,7 +207,7 @@ export class Resamp {
     amp: Array<number>,
     targetMs: number,
     fixedMs: number,
-    velocity: number,
+    velocity: number
   ): {
     f0: Array<number>;
     sp: Array<Float64Array>;
@@ -202,39 +216,39 @@ export class Resamp {
     timeAxis: Array<number>;
   } {
     const targetFrames = Math.ceil(
-      targetMs / renderingConfig.worldPeriod / 1000,
+      targetMs / renderingConfig.worldPeriod / 1000
     );
     const inputFixedFrames = Math.floor(
-      fixedMs / renderingConfig.worldPeriod / 1000,
+      fixedMs / renderingConfig.worldPeriod / 1000
     );
     const velocityRate = 2 ** ((100 - velocity) / 100);
     const fixedFrames = Math.floor(inputFixedFrames * velocityRate);
     const velocityPart =
       velocity !== 100
         ? this.worldStretch(
-          fixedFrames,
-          f0.slice(0, inputFixedFrames),
-          sp.slice(0, inputFixedFrames),
-          ap.slice(0, inputFixedFrames),
-          amp.slice(0, inputFixedFrames),
-        )
+            fixedFrames,
+            f0.slice(0, inputFixedFrames),
+            sp.slice(0, inputFixedFrames),
+            ap.slice(0, inputFixedFrames),
+            amp.slice(0, inputFixedFrames)
+          )
         : {
-          f0: f0.slice(0, inputFixedFrames),
-          sp: sp.slice(0, inputFixedFrames),
-          ap: ap.slice(0, inputFixedFrames),
-          amp: amp.slice(0, inputFixedFrames),
-        };
+            f0: f0.slice(0, inputFixedFrames),
+            sp: sp.slice(0, inputFixedFrames),
+            ap: ap.slice(0, inputFixedFrames),
+            amp: amp.slice(0, inputFixedFrames),
+          };
     const stretchPart = this.worldStretch(
       targetFrames - fixedFrames,
       f0.slice(inputFixedFrames),
       sp.slice(inputFixedFrames),
       ap.slice(inputFixedFrames),
-      amp.slice(inputFixedFrames),
+      amp.slice(inputFixedFrames)
     );
     const timeAxis = makeTimeAxis(
       renderingConfig.worldPeriod,
       0,
-      renderingConfig.worldPeriod * targetFrames,
+      renderingConfig.worldPeriod * targetFrames
     );
     return {
       f0: velocityPart.f0.concat(stretchPart.f0),
@@ -258,7 +272,7 @@ export class Resamp {
     f0: Array<number>,
     sp: Array<Float64Array>,
     ap: Array<Float64Array>,
-    amp: Array<number>,
+    amp: Array<number>
   ): {
     f0: Array<number>;
     sp: Array<Float64Array>;
@@ -327,7 +341,7 @@ export class Resamp {
     f0: Array<number>,
     frqAverage: number,
     targetTone: string,
-    modulation: number,
+    modulation: number
   ): Array<number> {
     const targetFrq = getFrqFromTone(targetTone);
     if (modulation === 0) {
@@ -349,7 +363,7 @@ export class Resamp {
     f0: Array<number>,
     timeAxis: Array<number>,
     pitch: string,
-    _tempo: string,
+    _tempo: string
   ): Array<number> {
     const decodedPitch = decodePitch(pitch);
     const tempo: number = parseFloat(_tempo.replace("!", ""));
@@ -357,7 +371,7 @@ export class Resamp {
     const utauTimeAxis = makeTimeAxis(
       utauPeriod / 1000,
       0,
-      (utauPeriod * decodedPitch.length) / 1000,
+      (utauPeriod * decodedPitch.length) / 1000
     );
     const interpPitch = interp1d(decodedPitch, utauTimeAxis, timeAxis);
     return f0.map((f, i) => f * 2 ** (interpPitch[i] / 1200));

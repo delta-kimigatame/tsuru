@@ -340,27 +340,48 @@ describe("usedTestUst", () => {
     expect(params[0].append.overlap).toBe(0);
     params.slice(1, 7).forEach((p) => expect(p.resamp).not.toBeUndefined());
   });
+});
 
+describe("stnth", () => {
   it("synthTest", async () => {
+    console.log(`スタート:${Date.now()}`);
+    const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
+    const zip = new JSZip();
+    const td = new TextDecoder("shift-jis");
+    await zip.loadAsync(buffer, {
+      // @ts-expect-error 型の方がおかしい
+      decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
+    });
+    const vb = new VoiceBank(zip.files);
+    await vb.initialize();
+    console.log(`音源読込完了:${Date.now()}`);
+    const ustBuf = fs.readFileSync("./__tests__/__fixtures__/testustCV.ust");
     const u = new Ust();
     await u.load(ustBuf);
+    console.log(`ust読込完了:${Date.now()}`);
     const params = u.getRequestParam(vb, defaultNote);
+    console.log(`パラメータ生成:${Date.now()}`);
     const resamp = new Resamp(vb);
-    resamp.initialize();
+    await resamp.initialize();
+    console.log(`エンジン初期化完了:${Date.now()}`);
     const wavtool = new Wavtool();
     const wav0 = new Array(
       Math.ceil((params[0].append.length / 1000) * renderingConfig.frameRate)
     ).fill(0);
     wavtool.append({ inputData: wav0, ...params[0].append });
+    console.log(`休符追加:${Date.now()}`);
     for (let i = 1; i <= 7; i++) {
       const wav1 = await resamp.resamp(params[i].resamp as ResampRequest);
       wavtool.append({ inputData: wav1, ...params[i].append });
+      console.log(`ノート${i}個目:${Date.now()}`);
     }
     const wav8 = new Array(
       Math.ceil((params[8].append.length / 1000) * renderingConfig.frameRate)
     ).fill(0);
     wavtool.append({ inputData: wav8, ...params[8].append });
+    console.log(`休符追加:${Date.now()}`);
     const w = wavtool.output();
     fs.writeFileSync("./__tests__/test_result/synthTest.wav", new DataView(w));
+    console.log(`wav保存:${Date.now()}`);
   }, 20000);
 });
