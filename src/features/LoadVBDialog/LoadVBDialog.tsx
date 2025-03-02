@@ -16,7 +16,7 @@ import {
   EncodingOption,
   getTextDecoderEncoding,
 } from "../../utils/EncodingMapping";
-import { EncodingSelect } from "./EncodingSelect";
+import { EncodingSelect } from "../common/EncodingSelect";
 
 export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
   const { t } = useTranslation();
