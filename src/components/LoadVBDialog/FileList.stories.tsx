@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { FileList, FileListProps } from "./FileList";
 
 export default {
-  title: "Components/LoadVBDialog/FileList",
+  title: "LoadVBDialog/FileList",
   component: FileList,
   argTypes: {},
 } as Meta;

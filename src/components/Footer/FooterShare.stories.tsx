@@ -5,7 +5,7 @@ import FooterShare from "./FooterShare";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Components/Footer/FooterShare",
+  title: "Footer/FooterShare",
   component: FooterShare,
   argTypes: {},
 } as Meta;

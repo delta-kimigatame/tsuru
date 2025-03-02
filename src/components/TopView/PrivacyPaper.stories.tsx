@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { PrivacyPaper } from "./PrivacyPaper";
 
 export default {
-  title: "Components/TopView/PrivacyPaper",
+  title: "TopView/PrivacyPaper",
   component: PrivacyPaper,
   argTypes: {},
 } as Meta;

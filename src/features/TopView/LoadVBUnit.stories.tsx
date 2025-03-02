@@ -8,7 +8,7 @@ import { base64ToArrayBuffer } from "../../storybook/utils";
 import { LoadVBUnit } from "./LoadVBUnit";
 
 export default {
-  title: "Features/TopView/LoadVBUnit",
+  title: "TopView/LoadVBUnit",
   component: LoadVBUnit,
   argTypes: {},
 } as Meta;

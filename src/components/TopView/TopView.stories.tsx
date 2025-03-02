@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { TopView } from "./TopView";
 
 export default {
-  title: "Components/TopView/TopView",
+  title: "TopView/TopView",
   component: TopView,
   argTypes: {},
 } as Meta;

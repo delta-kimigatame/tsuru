@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { EncodingSelect, EncodingSelectProps } from "./EncodingSelect";
 
 export default {
-  title: "Features/Common/EncodingSelect",
+  title: "Common/EncodingSelect",
   component: EncodingSelect,
   argTypes: {},
 } as Meta;

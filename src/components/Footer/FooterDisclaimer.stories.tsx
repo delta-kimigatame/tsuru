@@ -5,7 +5,7 @@ import FooterDisclaimer from "./FooterDisclaimer";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Components/Footer/FooterDisclaimer",
+  title: "Footer/FooterDisclaimer",
   component: FooterDisclaimer,
   argTypes: {},
 } as Meta;

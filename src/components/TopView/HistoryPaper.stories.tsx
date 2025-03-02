@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { HistoryPaper } from "./HistoryPaper";
 
 export default {
-  title: "Components/TopView/HistoryPaper",
+  title: "TopView/HistoryPaper",
   component: HistoryPaper,
   argTypes: {},
 } as Meta;

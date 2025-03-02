@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { DescriptionPaper } from "./DescriptionPaper";
 
 export default {
-  title: "Components/TopView/DescriptionPaper",
+  title: "TopView/DescriptionPaper",
   component: DescriptionPaper,
   argTypes: {},
 } as Meta;

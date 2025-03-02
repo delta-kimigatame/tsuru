@@ -5,7 +5,7 @@ import FooterLinks from "./FooterLinks";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Components/Footer/FooterLinks",
+  title: "Footer/FooterLinks",
   component: FooterLinks,
   argTypes: {},
 } as Meta;

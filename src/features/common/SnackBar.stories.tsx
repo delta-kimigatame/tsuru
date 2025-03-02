@@ -4,7 +4,7 @@ import { useSnackBarStore } from "../../store/snackBarStore";
 import { SnackBar } from "./SnackBar";
 
 export default {
-  title: "Features/Common/SnackBar",
+  title: "Common/SnackBar",
   component: SnackBar,
 } as Meta<typeof SnackBar>;
 

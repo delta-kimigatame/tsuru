@@ -4,7 +4,7 @@ import React from "react";
 import { XButton } from "./XButton";
 
 export default {
-  title: "Components/Common/XButton",
+  title: "Common/XButton",
   component: XButton,
   argTypes: {},
 } as Meta;

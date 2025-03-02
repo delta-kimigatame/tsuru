@@ -5,7 +5,7 @@ import { Footer } from "./Footer";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Components/Footer/Footer",
+  title: "Footer/Footer",
   component: Footer,
   parameters: {
     viewport: {

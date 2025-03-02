@@ -7,7 +7,7 @@ import { base64ToArrayBuffer } from "../../storybook/utils";
 import { LoadVBDialog, LoadVBDialogProps } from "./LoadVBDialog";
 
 export default {
-  title: "Features/LoadVBDialog/LoadVBDialog",
+  title: "LoadVBDialog/LoadVBDialog",
   component: LoadVBDialog,
   argTypes: {},
 } as Meta;

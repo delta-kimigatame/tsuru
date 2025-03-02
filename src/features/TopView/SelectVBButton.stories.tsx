@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { SelectVBButton, SelectVBButtonProps } from "./SelectVbButton";
 
 export default {
-  title: "Features/TopView/SelectVBButton",
+  title: "TopView/SelectVBButton",
   component: SelectVBButton,
   argTypes: {},
 } as Meta;

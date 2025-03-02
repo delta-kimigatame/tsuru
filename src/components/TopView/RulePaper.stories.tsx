@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { RulePaper } from "./RulePaper";
 
 export default {
-  title: "Components/TopView/RulePaper",
+  title: "TopView/RulePaper",
   component: RulePaper,
   argTypes: {},
 } as Meta;
