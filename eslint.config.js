@@ -1,5 +1,6 @@
 import eslintPluginTs from "@typescript-eslint/eslint-plugin";
 import eslintParserTs from "@typescript-eslint/parser";
+import prettierConfig from "eslint-config-prettier";
 import eslintPluginImport from "eslint-plugin-import";
 import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginReact from "eslint-plugin-react";
@@ -7,6 +8,8 @@ import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 
 export default [
+  // prettier の設定を先に読み込み
+  prettierConfig,
   {
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
