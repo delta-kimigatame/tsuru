@@ -1,6 +1,11 @@
 import * as React from "react";
+import { LoadVBDialog } from "../LoadVBDialog/LoadVBDialog";
 import { SelectVBButton } from "./SelectVbButton";
 
+/**
+ * 音源を選択し読み込む一連の処理をまとめたコンポーネント。
+ * topView上に表示され、多くのユーザーが最初に操作するボタンとなる。
+ */
 export const LoadVBUnit: React.FC = () => {
   /** 読込中判定 */
   const [processing, setProcessing] = React.useState<boolean>(false);
@@ -16,7 +21,13 @@ export const LoadVBUnit: React.FC = () => {
         setDialogOpen={setDialogOpen}
         setReadFile={setReadFile}
       />
-      {/* TODO LoadVBDialogを作成後追加する */}
+      <LoadVBDialog
+        dialogOpen={dialogOpen}
+        readFile={readFile}
+        setProcessing={setProcessing}
+        setDialogOpen={setDialogOpen}
+        setReadFile={setReadFile}
+      />
     </>
   );
 };

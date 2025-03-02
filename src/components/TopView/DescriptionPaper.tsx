@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-import { Button } from "@mui/material";
+import { LoadVBUnit } from "../../features/TopView/LoadVBUnit";
 import { BasePaper } from "../common/BasePaper";
 
 /**
@@ -27,10 +27,7 @@ export const DescriptionPaper: React.FC = () => {
           ))}
         </Typography>
         <br />
-        {/* selectVBDialogButtonが作成されるまでの間の仮の要素 */}
-        <Button fullWidth variant="contained" color="primary">
-          {t("top.selectZipButtonText")}
-        </Button>
+        <LoadVBUnit />
       </Box>
     </BasePaper>
   );
