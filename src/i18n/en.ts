@@ -36,6 +36,13 @@ export const translationEn = {
     history: "Release Note",
     changelog: ["2025/03/** Release"],
   },
+  loadVBDialog: {
+    title: "Read Zip",
+    encodeCheck: "Check the encoding",
+    encoding: "character code",
+    submit: "OK",
+    error: "Load Error.This file is not UTAU VoiceBank.",
+  },
   editor: {
     file_check: {
       title: "File Check",

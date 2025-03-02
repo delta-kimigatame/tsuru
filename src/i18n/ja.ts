@@ -37,6 +37,13 @@ export const translationJa = {
     history: "更新履歴",
     changelog: ["2025/03/** 初版公開"],
   },
+  loadVBDialog: {
+    title: "ZIP読込",
+    encodeCheck: "文字化け確認",
+    encoding: "文字コード",
+    submit: "OK",
+    error: "読込失敗しました。このファイルはUTAU音源ではありません。",
+  },
   editor: {
     file_check: {
       title: "ファイルの確認",
