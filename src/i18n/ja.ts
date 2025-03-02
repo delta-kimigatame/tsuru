@@ -44,6 +44,16 @@ export const translationJa = {
     submit: "OK",
     error: "読込失敗しました。このファイルはUTAU音源ではありません。",
   },
+  infoVBDialog: {
+    characterInfo: {
+      name: "音源名",
+      author: "管理者",
+      web: "webサイト",
+      version: "バージョン情報",
+      voice: "音声提供者",
+      otoCounts: "エイリアスの数",
+    },
+  },
   editor: {
     file_check: {
       title: "ファイルの確認",
