@@ -437,4 +437,61 @@ describe("VoiceBank", () => {
     expect(Object.keys(vb.prefixmaps).includes("")).toBeTruthy();
     expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("試");
   });
+
+  it("zipプロパティがroot以下のファイルのみを返すことを確認する:rootが未定義", () => {
+    const z = new JSZip();
+    const c = new CharacterTxt({ name: "あ" });
+    const c_output = new File(
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
+      "character.txt",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    const dummyFile = new File([], "test.txt", {
+      type: "text/plane;charset=utf-8",
+    });
+    z.file("root/あ_wav.frq", dummyFile);
+    z.file("root/あ.wav", dummyFile);
+    z.file("root/readme.txt", dummyFile);
+    z.file("root/character.txt", c_output);
+    z.file("install.txt", dummyFile);
+    const vb = new VoiceBank(z.files);
+    const zipProp = vb.zip;
+    const expectedKeys = [
+      "root/あ_wav.frq",
+      "root/あ.wav",
+      "root/readme.txt",
+      "root/character.txt",
+      "root/",
+      "install.txt",
+    ];
+    expect(Object.keys(zipProp).sort()).toEqual(expectedKeys.sort());
+  });
+  it("zipプロパティがroot以下のファイルのみを返すことを確認する:rootが定義済み", async () => {
+    const z = new JSZip();
+    const c = new CharacterTxt({ name: "あ" });
+    const c_output = new File(
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
+      "character.txt",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    const dummyFile = new File([], "test.txt", {
+      type: "text/plane;charset=utf-8",
+    });
+    z.file("root/あ_wav.frq", dummyFile);
+    z.file("root/あ.wav", dummyFile);
+    z.file("root/readme.txt", dummyFile);
+    z.file("root/character.txt", c_output);
+    z.file("install.txt", dummyFile);
+    const vb = new VoiceBank(z.files);
+    await vb.initialize();
+    const zipProp = vb.zip;
+    const expectedKeys = [
+      "あ_wav.frq",
+      "あ.wav",
+      "readme.txt",
+      "character.txt",
+      "",
+    ];
+    expect(Object.keys(zipProp).sort()).toEqual(expectedKeys.sort());
+  });
 });

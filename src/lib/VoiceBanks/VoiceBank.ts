@@ -213,6 +213,22 @@ export class VoiceBank {
   }
 
   /**
+   * zipデータ
+   */
+  get zip(): { [filename: string]: JSZip.JSZipObject } {
+    const root = this._root !== undefined ? this._root + "/" : "";
+    return Object.fromEntries(
+      Object.entries(this._zip)
+        .filter(([key, value]) => key.startsWith(root))
+        .map(([key, value]) => [key.replace(root, ""), value])
+    );
+  }
+
+  get root(): string {
+    return this._root;
+  }
+
+  /**
    * colorとnotenumを使ってprefix.mapからprefixとsuffixを参照し、aliasを活用してoto.iniから該当のデータを返す。
    * @param alias ノートに指定されたエイリアス。?で始まる場合prefix.mapを無視する。
    * @param notenum ノートの音高
@@ -277,7 +293,7 @@ export class VoiceBank {
    */
   async initialize(encoding: string = "SJIS"): Promise<void> {
     const characterTxtPath = this._filenames.find((f) =>
-      f.endsWith("character.txt"),
+      f.endsWith("character.txt")
     );
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
@@ -330,7 +346,7 @@ export class VoiceBank {
         this._filenames.includes(this._root + "/" + this._character.image)
       ) {
         this._icon = await extractFileFromZip(
-          this._zip[this._root + "/" + this._character.image],
+          this._zip[this._root + "/" + this._character.image]
         );
       }
       resolve();
@@ -346,7 +362,7 @@ export class VoiceBank {
         this._filenames.includes(this._root + "/" + this._character.sample)
       ) {
         this._sample = await extractFileFromZip(
-          this._zip[this._root + "/" + this._character.sample],
+          this._zip[this._root + "/" + this._character.sample]
         );
       }
       resolve();
@@ -360,7 +376,7 @@ export class VoiceBank {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/readme.txt")) {
         const readmeBuf = await extractFileFromZip(
-          this._zip[this._root + "/readme.txt"],
+          this._zip[this._root + "/readme.txt"]
         );
         this._readme = await readTextFile(readmeBuf, encoding);
       }
@@ -374,7 +390,7 @@ export class VoiceBank {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/character.yaml")) {
         const yamlBuf = await extractFileFromZip(
-          this._zip[this._root + "/character.yaml"],
+          this._zip[this._root + "/character.yaml"]
         );
         this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
       }
@@ -392,11 +408,11 @@ export class VoiceBank {
       if (
         this._characterYaml.portrait !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._characterYaml.portrait,
+          this._root + "/" + this._characterYaml.portrait
         )
       ) {
         this._portrait = await extractFileFromZip(
-          this._zip[this._root + "/" + this._characterYaml.portrait],
+          this._zip[this._root + "/" + this._characterYaml.portrait]
         );
       }
       resolve();
@@ -410,10 +426,10 @@ export class VoiceBank {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/prefix.map")) {
         const prefixmapBuf = await extractFileFromZip(
-          this._zip[this._root + "/prefix.map"],
+          this._zip[this._root + "/prefix.map"]
         );
         this._prefixmaps[""] = new PrefixMap(
-          await readTextFile(prefixmapBuf, encoding),
+          await readTextFile(prefixmapBuf, encoding)
         );
       }
       resolve();
