@@ -53,6 +53,13 @@ export const translationJa = {
       voice: "音声提供者",
       otoCounts: "エイリアスの数",
     },
+    TextTabs: {
+      notFound: "音源フォルダ内にテキストファイルが見つかりませんでした",
+    },
+    TextTabContent: {
+      error: "テキストファイルの読み込みに失敗しました。",
+    },
+    agreeButton: "全規約に同意",
   },
   editor: {
     file_check: {

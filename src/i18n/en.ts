@@ -43,6 +43,23 @@ export const translationEn = {
     submit: "OK",
     error: "Load Error.This file is not UTAU VoiceBank.",
   },
+  infoVBDialog: {
+    characterInfo: {
+      name: "VB Name",
+      author: "author",
+      web: "web site",
+      version: "version info",
+      voice: "voicer",
+      otoCounts: "oto aliases count",
+    },
+    TextTabs: {
+      notFound: "*.txt is not found.",
+    },
+    TextTabContent: {
+      error: "can't read txtfile.",
+    },
+    agreeButton: "Agree to All",
+  },
   editor: {
     file_check: {
       title: "File Check",
