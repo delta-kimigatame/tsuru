@@ -43,7 +43,7 @@
     "react-i18next": "^15.4.0",
     "styled-components": "^6.1.14",
     "tsworld": "^0.0.5",
-    "utauoto": "^0.6.2",
+    "utauoto": "^0.6.3",
     "utauwav": "^0.6.0",
     "zustand": "^5.0.3"
   },
