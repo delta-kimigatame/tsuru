@@ -28,9 +28,13 @@ export const HeaderMenuItemBase: React.FC<HeadermenuItemBaseProps> = (
 
 export interface HeadermenuItemBaseProps {
   /** メニューをクリックした際の操作を行うコールバック */
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => void;
   /** メニューに表示するアイコン。 */
   icon: React.ReactElement | string;
   /** メニューのテキスト */
   text: string;
+}
+
+export interface HeaderMenuItemProps {
+  onMenuClose: () => void;
 }
