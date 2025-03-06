@@ -1,5 +1,6 @@
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
+import i18n from "../../i18n/configs";
 import { LanguageMenu, LanguageMenuProps } from "./LanguageMenu";
 
 export default {
@@ -8,6 +9,7 @@ export default {
   argTypes: {},
 } as Meta;
 
+i18n.changeLanguage("ja");
 // ダミーアンカー要素を作成し、ref を使って取得する方法
 const Template: StoryFn<LanguageMenuProps> = (args) => {
   // useRef でアンカー用の div を参照する
