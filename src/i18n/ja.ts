@@ -3,6 +3,11 @@ export const translationJa = {
     ja: "日本語",
     en: "英語",
   },
+  theme: {
+    system: "端末設定にあわせる",
+    light: "ライトモード",
+    dark: "ダークモード",
+  },
   menu: {
     toDarkMode: "ダークモードにする",
     toLightMode: "ライトモードにする",
