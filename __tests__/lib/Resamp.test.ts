@@ -411,6 +411,54 @@ describe("Resamp", () => {
     const buf = wav.Output();
     fs.writeFileSync("./__tests__/test_result/output.wav", new DataView(buf));
   });
+
+  it("resampWorker", async () => {
+    /**
+     * vbをworkerに渡さないためにresampWorkerを作ったので実際はresamp.getWaveDataは使えないが、resampWorkerの確認のためにここは妥協
+     */
+    const iWav = await resamp.getWaveData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      -200
+    );
+    /**
+     * vbをworkerに渡さないためにresampWorkerを作ったので実際はresamp.getFrqDataは使えないが、resampWorkerの確認のためにここは妥協
+     */
+    const frq = await resamp.getFrqData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      (iWav.length / 44100) * 1000
+    );
+    const oWav = resamp.resampWorker({
+      inputWav: "denoise/01_あかきくけこ.wav",
+      targetTone: "A3",
+      velocity: 100,
+      flags: "",
+      offsetMs: 1538.32,
+      targetMs: 600,
+      fixedMs: 20,
+      cutoffMs: -200,
+      intensity: 100,
+      modulation: 0,
+      tempo: "!120",
+      pitches: "AA#97#",
+      inputWavData: Float64Array.from(iWav),
+      frqData: Float64Array.from(frq.frq),
+      ampData: Float64Array.from(frq.amp),
+      frqAverage: frq.frqAverage,
+    });
+    const wp = new WaveProcessing();
+    const wav = GenerateWave(
+      44100,
+      16,
+      wp.InverseLogicalNormalize(Array.from(oWav), 16)
+    );
+    const buf = wav.Output();
+    fs.writeFileSync(
+      "./__tests__/test_result/outputWorkerApi.wav",
+      new DataView(buf)
+    );
+  });
 });
 
 describe("profilingResamp", () => {

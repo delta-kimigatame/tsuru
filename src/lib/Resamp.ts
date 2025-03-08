@@ -1,6 +1,6 @@
 import { World } from "tsworld";
 import { renderingConfig } from "../config/rendering";
-import type { ResampRequest } from "../types/request";
+import type { ResampRequest, ResampWorkerRequest } from "../types/request";
 import { interp1d, makeTimeAxis } from "../utils/interp";
 import { decodePitch, getFrqFromTone } from "../utils/pitch";
 import type { VoiceBank } from "./VoiceBanks/VoiceBank";
@@ -21,7 +21,7 @@ export class Resamp {
    * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
    * @param vb 合成するUTAU音源
    */
-  constructor(vb: VoiceBank) {
+  constructor(vb: VoiceBank = null) {
     this.vb = vb;
   }
 
@@ -41,13 +41,13 @@ export class Resamp {
         request.offsetMs,
         request.cutoffMs
       );
-      console.log(`wav読込:${Date.now()}`);
+      console.log(`wav読込:${Date.now()}`); // プロファイリングの結果：wav読込は17ms
       const frqData = await this.getFrqData(
         request.inputWav,
         request.offsetMs,
         (nData.length / renderingConfig.frameRate) * 1000
       );
-      console.log(`frq読込:${Date.now()}`);
+      console.log(`frq読込:${Date.now()}`); // プロファイリングの結果：frq読込は5ms
 
       const sp = this.world.CheapTrick(
         Float64Array.from(nData),
@@ -55,7 +55,7 @@ export class Resamp {
         Float64Array.from(frqData.timeAxis),
         renderingConfig.frameRate
       );
-      console.log(`sp解析:${Date.now()}`);
+      console.log(`sp解析:${Date.now()}`); // プロファイリングの結果：sp解析は52ms
       const ap = this.world.D4C(
         Float64Array.from(nData),
         Float64Array.from(frqData.frq),
@@ -64,11 +64,8 @@ export class Resamp {
         renderingConfig.frameRate,
         0.85
       );
-      // const ap = sp.spectral.map((v) =>
-      //   Float64Array.from(new Array(v.length).fill(0))
-      // );
 
-      console.log(`ap解析:${Date.now()}`);
+      console.log(`ap解析:${Date.now()}`); // プロファイリングの結果：ap解析は451ms
       const stretchParams = this.stretch(
         frqData.frq,
         sp.spectral,
@@ -78,21 +75,21 @@ export class Resamp {
         request.fixedMs,
         request.velocity
       );
-      console.log(`パラメータ伸縮:${Date.now()}`);
+      console.log(`パラメータ伸縮:${Date.now()}`); // プロファイリングの結果：パラメータ伸縮は0ms
       const shiftF0 = this.pitchShift(
         stretchParams.f0,
         frqData.frqAverage,
         request.targetTone,
         request.modulation
       );
-      console.log(`音高適用:${Date.now()}`);
+      console.log(`音高適用:${Date.now()}`); // プロファイリングの結果：音高適用は0ms
       const applyPitchF0 = this.applyPitch(
         shiftF0,
         stretchParams.timeAxis,
         request.pitches,
         request.tempo
       );
-      console.log(`ピッチ適用:${Date.now()}`);
+      console.log(`ピッチ適用:${Date.now()}`); // プロファイリングの結果：ピッチ適用は0ms
       const synthedData = this.world.Synthesis(
         Float64Array.from(applyPitchF0),
         stretchParams.sp,
@@ -101,14 +98,73 @@ export class Resamp {
         renderingConfig.frameRate,
         renderingConfig.worldPeriod * 1000
       );
-      console.log(`合成:${Date.now()}`);
+      console.log(`合成:${Date.now()}`); // プロファイリングの結果：合成は254ms
       const outputData = this.adjustVolume(
         Array.from(synthedData),
         request.intensity
       );
-      console.log(`音量適用:${Date.now()}`);
+      console.log(`音量適用:${Date.now()}`); // プロファイリングの結果：音量適用は3ms
       resolve(outputData);
     });
+  }
+
+  resampWorker(request: ResampWorkerRequest): Float64Array {
+    const timeAxis = Float64Array.from(
+      makeTimeAxis(
+        renderingConfig.worldPeriod,
+        0,
+        request.inputWavData.length / renderingConfig.frameRate
+      )
+    );
+    const sp = this.world.CheapTrick(
+      request.inputWavData,
+      request.frqData,
+      timeAxis,
+      renderingConfig.frameRate
+    );
+    const ap = this.world.D4C(
+      request.inputWavData,
+      request.frqData,
+      timeAxis,
+      sp.fft_size,
+      renderingConfig.frameRate,
+      0.85
+    );
+
+    const stretchParams = this.stretch(
+      Array.from(request.frqData),
+      sp.spectral,
+      ap,
+      Array.from(request.ampData),
+      request.targetMs,
+      request.fixedMs,
+      request.velocity
+    );
+    const shiftF0 = this.pitchShift(
+      stretchParams.f0,
+      request.frqAverage,
+      request.targetTone,
+      request.modulation
+    );
+    const applyPitchF0 = this.applyPitch(
+      shiftF0,
+      stretchParams.timeAxis,
+      request.pitches,
+      request.tempo
+    );
+    const synthedData = this.world.Synthesis(
+      Float64Array.from(applyPitchF0),
+      stretchParams.sp,
+      stretchParams.ap,
+      sp.fft_size,
+      renderingConfig.frameRate,
+      renderingConfig.worldPeriod * 1000
+    );
+    const outputData = this.adjustVolume(
+      Array.from(synthedData),
+      request.intensity
+    );
+    return Float64Array.from(outputData);
   }
 
   /**
@@ -373,6 +429,13 @@ export class Resamp {
       0,
       (utauPeriod * decodedPitch.length) / 1000
     );
+    // utauTimeAxis の長さに足りない場合、末尾に0を補完
+    if (decodedPitch.length < utauTimeAxis.length) {
+      const padding = new Array(utauTimeAxis.length - decodedPitch.length).fill(
+        0
+      );
+      decodedPitch.push(...padding);
+    }
     const interpPitch = interp1d(decodedPitch, utauTimeAxis, timeAxis);
     return f0.map((f, i) => f * 2 ** (interpPitch[i] / 1200));
   }

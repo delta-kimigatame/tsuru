@@ -25,6 +25,17 @@ export type ResampRequest = {
   pitches: string;
 };
 
+export type ResampWorkerRequest = {
+  /** 入力wavデータ */
+  inputWavData: Float64Array;
+  /** 入力wavの基準周波数データ */
+  frqData: Float64Array;
+  /** 入力wavの音量列データ */
+  ampData: Float64Array;
+  /** 平均周波数 */
+  frqAverage: number;
+} & ResampRequest;
+
 export type AppendRequestBase = {
   /** 音源ルートから入力wavまでの相対パス */
   inputWav?: string;
