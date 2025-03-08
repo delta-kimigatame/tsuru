@@ -1,4 +1,7 @@
 export const translationJa = {
+  header: {
+    clickInfo: "音源が未選択です。音源を選択して始めよう!",
+  },
   language: {
     ja: "日本語",
     en: "英語",
