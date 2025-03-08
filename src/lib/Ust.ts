@@ -154,13 +154,19 @@ export class Ust {
   getRequestParam(
     vb: VoiceBank,
     defaultValue: defaultParam,
+    selectNotes?: Array<number>
   ): Array<{
     resamp: ResampRequest | undefined;
     append: AppendRequestBase;
   }> {
     this.notes.forEach((n) => n.applyOto(vb));
-    const params = this.notes.map((n) =>
-      n.getRequestParam(vb, this.flags, defaultValue),
+
+    const targetNotes =
+      selectNotes && selectNotes.length > 0
+        ? selectNotes.map((idx) => this.notes[idx])
+        : this.notes;
+    const params = targetNotes.map((n) =>
+      n.getRequestParam(vb, this.flags, defaultValue)
     );
     return params;
   }

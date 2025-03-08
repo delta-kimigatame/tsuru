@@ -340,6 +340,18 @@ describe("usedTestUst", () => {
     expect(params[0].append.overlap).toBe(0);
     params.slice(1, 7).forEach((p) => expect(p.resamp).not.toBeUndefined());
   });
+  it("getRenderParamsSelected", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    const params = u.getRequestParam(vb, defaultNote, [0, 1]);
+    expect(params.length).toBe(2);
+    expect(params[0].resamp).toBeUndefined();
+    expect(params[0].append.stp).toBe(0);
+    expect(params[0].append.length).toBe(431);
+    expect(params[0].append.envelope).toEqual({ point: [0, 0], value: [] });
+    expect(params[0].append.overlap).toBe(0);
+    params.slice(1).forEach((p) => expect(p.resamp).not.toBeUndefined());
+  });
 });
 
 describe("stnth", () => {
