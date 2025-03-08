@@ -2,11 +2,13 @@ import fs from "fs";
 import JSZip from "jszip";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Note } from "../../src/lib/Note";
+import { Ust } from "../../src/lib/Ust";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../src/store/musicProjectStore";
 
 describe("musicProjectStore", () => {
   let vb: VoiceBank;
+  let u: Ust;
 
   beforeAll(async () => {
     // VoiceBankを読み込む準備
@@ -18,6 +20,8 @@ describe("musicProjectStore", () => {
     });
     vb = new VoiceBank(zip.files);
     await vb.initialize();
+    const ustBuf = fs.readFileSync("./__tests__/__fixtures__/testustCV.ust");
+    u = new Ust();
   });
   beforeEach(() => {
     useMusicProjectStore.setState({
@@ -29,10 +33,18 @@ describe("musicProjectStore", () => {
   });
   it("defaultValue", () => {
     const store = useMusicProjectStore.getState();
+    expect(store.ust).toBeNull();
     expect(store.vb).toBeNull();
     expect(store.ustTempo).toBe(120);
     expect(store.ustFlags).toBe("");
     expect(store.notes).toEqual([]);
+  });
+  it("setUst", () => {
+    const { setUst } = useMusicProjectStore.getState();
+    setUst(u);
+
+    const store = useMusicProjectStore.getState();
+    expect(store.ust).toBe(u);
   });
   it("setVb", () => {
     const { setVb } = useMusicProjectStore.getState();

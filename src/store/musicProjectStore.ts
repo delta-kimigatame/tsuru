@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Note } from "../lib/Note";
+import { Ust } from "../lib/Ust";
 import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
 
 /**
@@ -9,6 +10,10 @@ import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
  * 各項目はブラウザ上でアップロードされたファイルから読み込まれ、エディタ操作により更新される。
  */
 interface MusicProjectStore {
+  /**
+   * 楽譜データ全体
+   */
+  ust: Ust | null;
   /**
    * 音声ライブラリ（UTAUのVoiceBank）
    * null の場合は未選択
@@ -30,6 +35,12 @@ interface MusicProjectStore {
    * 楽譜内のノートリスト
    */
   notes: Note[];
+
+  /**
+   * 楽譜を設定する
+   * @param ust Ust のインスタンス
+   */
+  setUst: (ust: Ust) => void;
 
   /**
    * 音声ライブラリを設定する
@@ -68,11 +79,12 @@ interface MusicProjectStore {
  * MusicProjectStore の Zustand ストア
  */
 export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
+  ust: null,
   vb: null,
   ustTempo: 120,
   ustFlags: "",
   notes: [],
-
+  setUst: (ust) => set({ ust }),
   setVb: (vb) => set({ vb }),
 
   setUstTempo: (tempo) => set({ ustTempo: tempo }),
