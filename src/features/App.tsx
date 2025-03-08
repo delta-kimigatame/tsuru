@@ -1,8 +1,9 @@
 import { CssBaseline } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import * as React from "react";
-import { BasePaper } from "../components/common/BasePaper";
 import { Footer } from "../components/Footer/Footer";
+import { Header } from "../components/Header/Header";
+import { TopView } from "../components/TopView/TopView";
 import { getDesignTokens } from "../config/theme";
 import { useInitializeApp } from "../hooks/useInitializeApp";
 import { useThemeMode } from "../hooks/useThemeMode";
@@ -24,7 +25,11 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BasePaper title="aaa">表示テスト用仮の文字列</BasePaper>
+      <Header />
+      {/* 本来はvbがloadされたあとTopViewとFooterは非表示となり、代わりにEditorViewを表示する。
+       * 現時点ではEditorViewが未実装のため、このままにしておく。
+       */}
+      <TopView />
       <Footer />
       <SnackBar />
     </ThemeProvider>
