@@ -130,7 +130,6 @@ export class Resamp {
       renderingConfig.frameRate,
       0.85
     );
-
     const stretchParams = this.stretch(
       Array.from(request.frqData),
       sp.spectral,
@@ -295,7 +294,7 @@ export class Resamp {
             amp: amp.slice(0, inputFixedFrames),
           };
     const stretchPart = this.worldStretch(
-      targetFrames - fixedFrames,
+      Math.max(targetFrames - fixedFrames, 0),
       f0.slice(inputFixedFrames),
       sp.slice(inputFixedFrames),
       ap.slice(inputFixedFrames),
