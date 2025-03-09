@@ -94,3 +94,5 @@ export class UndoManager {
     return this._redoStack.slice(-1)[0].summary;
   }
 }
+
+export const undoManager = new UndoManager();
