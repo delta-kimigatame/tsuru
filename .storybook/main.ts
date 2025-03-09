@@ -12,5 +12,7 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
+  // Storybook専用の静的アセットフォルダを指定
+  staticDirs: ["../storybookPublic"],
 };
 export default config;

@@ -15,3 +15,15 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   }
   return bytes.buffer;
 };
+/**
+ * 指定したファイル名の静的データを読み込み、ArrayBufferを返す
+ * @param filename 読み込むファイル名（例: "standardVCV.zip"）
+ * @returns ファイルのArrayBuffer
+ */
+export const loadVB = async (filename: string): Promise<ArrayBuffer> => {
+  const response = await fetch(`/${filename}`);
+  if (!response.ok) {
+    throw new Error(`Failed to load ${filename}: ${response.statusText}`);
+  }
+  return response.arrayBuffer();
+};
