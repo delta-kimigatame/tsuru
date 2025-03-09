@@ -109,7 +109,7 @@ export class ResampWorkerService {
     // "init-started" メッセージを受信した場合にログを出力するリスナーを追加
     this.worker.addEventListener("message", (event: MessageEvent) => {
       if (event.data && event.data.type === "debug") {
-        console.log(event);
+        console.log(event.data.data);
       }
     });
     // ready 状態を管理する Promise を作成
