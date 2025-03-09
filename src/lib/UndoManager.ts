@@ -1,16 +1,21 @@
 /**
  * UndoやRedo時の動作のためのコールバック
  */
-type Callback<T = any> = (args: T) => void;
+type Callback<Targs = any, TReturn = any> = (args: Targs) => TReturn;
 
 /**
  * undo/redoのコマンドオブジェクトの型定義
  */
-export interface UndoRedoCommand<TUndo = any, TRedo = any> {
+export interface UndoRedoCommand<
+  TUndo = any,
+  TRedo = any,
+  TUndoReturn = any,
+  TRedoReturn = any
+> {
   /**
    * Undo用のコールバック
    */
-  undo: Callback<TUndo>;
+  undo: Callback<TUndo, TUndoReturn>;
   /**
    * Undo用の引数
    */
@@ -18,7 +23,7 @@ export interface UndoRedoCommand<TUndo = any, TRedo = any> {
   /**
    * redo用のコールバック
    */
-  redo: Callback<TRedo>;
+  redo: Callback<TRedo, TRedoReturn>;
   /**
    * redo用の引数
    */
@@ -36,12 +41,12 @@ export class UndoManager {
   /**
    * undo用のスタック。新たに実行されたコマンドが随時蓄積される。
    */
-  private _undoStack: Array<UndoRedoCommand<any, any>>;
+  private _undoStack: Array<UndoRedoCommand<any, any, any, any>>;
   /**
    * redo用のスタック。undoを実行された際にコマンドが蓄積され、
    * undo後redo以外の動作が行われた際に初期化される。
    */
-  private _redoStack: Array<UndoRedoCommand<any, any>>;
+  private _redoStack: Array<UndoRedoCommand<any, any, any, any>>;
   constructor() {
     this._undoStack = [];
     this._redoStack = [];
@@ -59,21 +64,21 @@ export class UndoManager {
   /**
    * undoを実行し、実行したコマンドをredoスタックに追加する。
    */
-  undo = (): void => {
+  undo = () => {
     if (this._undoStack.length === 0) return;
     const command = this._undoStack.pop();
-    command.undo(command.undoArgs);
     this._redoStack.push(command);
+    return command.undo(command.undoArgs);
   };
 
   /**
    * redoを実行し、実行したコマンドをundoスタックに追加する。
    */
-  redo = (): void => {
+  redo = () => {
     if (this._redoStack.length === 0) return;
     const command = this._redoStack.pop();
-    command.redo(command.redoArgs);
     this._undoStack.push(command);
+    return command.redo(command.redoArgs);
   };
 
   /**
@@ -92,6 +97,14 @@ export class UndoManager {
   get redoSummary(): string | undefined {
     if (this._redoStack.length === 0) return undefined;
     return this._redoStack.slice(-1)[0].summary;
+  }
+
+  /**
+   * スタックを初期化する。
+   */
+  clear(): void {
+    this._undoStack = [];
+    this._redoStack = [];
   }
 }
 
