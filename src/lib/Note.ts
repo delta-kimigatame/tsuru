@@ -437,7 +437,11 @@ export class Note {
   /**
    * ビブラートを`length,cycle,depth,fadeInTime,fadeOutTime,phase,height,amp`の文字列で与える。
    */
-  set vibrato(value: string) {
+  set vibrato(value: string | undefined) {
+    if (value === undefined) {
+      this._vibrato = undefined;
+      return;
+    }
     const [length, cycle, depth, fadeInTime, fadeOutTime, phase, height] = value
       .split(",")
       .map((v) => parseFloat(v));
