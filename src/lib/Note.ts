@@ -405,7 +405,13 @@ export class Note {
   /**
    * エンベロープ。
    */
-  setEnvelope(value: { point: Array<number>; value: Array<number> }): void {
+  setEnvelope(
+    value: { point: Array<number>; value: Array<number> } | undefined
+  ): void {
+    if (value === undefined) {
+      this._envelope = undefined;
+      return;
+    }
     this._envelope = {
       point: value.point.map((v) => Math.max(v, 0)),
       value: value.value.map((v) => Math.min(Math.max(v, 0), 200)),
