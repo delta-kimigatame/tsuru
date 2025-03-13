@@ -1,3 +1,4 @@
+import { PaperGroup, UIProp } from "../types/batchProcess";
 import { Note } from "./Note";
 import { undoManager, UndoRedoCommand } from "./UndoManager";
 
@@ -77,4 +78,15 @@ export abstract class BaseBatchProcess<TOptions = any> {
   log = (message: string): void => {
     /** TODO グローバルなロギングシステムができたら処理を追加する。 */
   };
+
+  /**
+   * UI要素を自動構成するためのパラメータ
+   * UIが不要な場合は空配列とする
+   */
+  ui: Array<UIProp | PaperGroup> = [];
+
+  /**
+   * optionsの初期値。UIにおいて状態管理をするために定義する必要がある。
+   */
+  initialOptions: TOptions;
 }

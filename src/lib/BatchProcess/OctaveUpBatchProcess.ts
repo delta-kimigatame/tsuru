@@ -13,5 +13,5 @@ export class OctaveUpBatchProcess extends BaseBatchProcess<void> {
     return newNotes;
   }
 
-  /** TODO 将来仕様が固まればUI関係の要素(もしくはnoUIオプション)を追加する */
+  /** UIは不要 */
 }

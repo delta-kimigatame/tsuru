@@ -1,4 +1,5 @@
 import { defaultNote } from "../../config/note";
+import { PaperGroup } from "../../types/batchProcess";
 import { BaseBatchProcess } from "../BaseBatchProcess";
 import { Note } from "../Note";
 
@@ -96,7 +97,7 @@ export interface PreprocessingBatchProcessOptions {
 }
 
 export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBatchProcessOptions> {
-  title = "batchprocess.preprocessing";
+  title = "batchprocess.preprocessing.title";
   summary = "おまかせ下処理";
   public override process(
     notes: Note[],
@@ -347,5 +348,255 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       /** いずれにも該当しなければ値の初期化 */
       n.vibrato = undefined;
     }
+  };
+
+  ui = [
+    {
+      titleKey: "batchprocess.preprocessing.lyric.title",
+      items: [
+        {
+          key: "PreprocessingLyric",
+          labelKey: "batchprocess.preprocessing.lyric.lyric",
+          inputType: "switch",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoLyricMode",
+          labelKey: "batchprocess.preprocessing.lyric.mode",
+          inputType: "select",
+          options: lyricModeOptions,
+          displayOptionKey: "batchprocess.preprocessing.lyric.modeOptions",
+          defaultValue: "VCV",
+        },
+        {
+          key: "PreprocessingLyricReplace",
+          labelKey: "batchprocess.preprocessing.lyric.replace",
+          inputType: "checkbox",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingLyricUseHeading",
+          labelKey: "batchprocess.preprocessing.lyric.useHeading",
+          inputType: "checkbox",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoLyricVowelConnect",
+          labelKey: "batchprocess.preprocessing.lyric.vowelConnect",
+          inputType: "select",
+          options: vowelConnectOptions,
+          displayOptionKey:
+            "batchprocess.preprocessing.lyric.vowelConnectOptions",
+          defaultValue: "*",
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.pitch.title",
+      items: [
+        {
+          key: "PreprocessingPitch",
+          labelKey: "batchprocess.preprocessing.pitch.pitch",
+          inputType: "switch",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoPitchSpeed",
+          labelKey: "batchprocess.preprocessing.pitch.speed",
+          inputType: "select",
+          options: [60, 80, 100, 130, 160],
+          displayOptionKey: "batchprocess.preprocessing.pitch.speedOptions",
+          defaultValue: 60,
+        },
+        {
+          key: "PreprocessingVibratoPitchTiming",
+          labelKey: "batchprocess.preprocessing.pitch.timing",
+          inputType: "select",
+          options: [60, 45, 30, 15, 0],
+          displayOptionKey: "batchprocess.preprocessing.pitch.timingOptions",
+          defaultValue: 45,
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.vibrato.title",
+      items: [
+        {
+          key: "PreprocessingVibrato",
+          labelKey: "batchprocess.preprocessing.vibrato.vibrato",
+          inputType: "switch",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoDefault",
+          labelKey: "batchprocess.preprocessing.vibrato.default",
+          inputType: "checkbox",
+          defaultValue: false,
+        },
+        {
+          key: "PreprocessingVibratoDefaultThreshold",
+          labelKey: "batchprocess.preprocessing.vibrato.defaultThreshold",
+          inputType: "select",
+          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          displayOptionKey:
+            "batchprocess.preprocessing.vibrato.thresholdOptions",
+          defaultValue: 720,
+        },
+        {
+          key: "PreprocessingVibratoLong",
+          labelKey: "batchprocess.preprocessing.vibrato.long",
+          inputType: "checkbox",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoLongThreshold",
+          labelKey: "batchprocess.preprocessing.vibrato.longThreshold",
+          inputType: "select",
+          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          displayOptionKey:
+            "batchprocess.preprocessing.vibrato.thresholdOptions",
+          defaultValue: 960,
+        },
+        {
+          key: "PreprocessingVibratoEnding",
+          labelKey: "batchprocess.preprocessing.vibrato.ending",
+          inputType: "checkbox",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingVibratoEndingThreshold",
+          labelKey: "batchprocess.preprocessing.vibrato.endingThreshold",
+          inputType: "select",
+          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          displayOptionKey:
+            "batchprocess.preprocessing.vibrato.thresholdOptions",
+          defaultValue: 960,
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.envelope.title",
+      items: [
+        {
+          key: "PreprocessingEnvelope",
+          labelKey: "batchprocess.preprocessing.envelope.envelope",
+          inputType: "switch",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingEnvelopeType",
+          labelKey: "batchprocess.preprocessing.envelope.type",
+          inputType: "select",
+          options: envelopeTypeOptions,
+          displayOptionKey: "batchprocess.preprocessing.envelope.option",
+          defaultValue: "vcvCrossFade",
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.velocity.title",
+      items: [
+        {
+          key: "PreprocessingVelocity",
+          labelKey: "batchprocess.preprocessing.velocity.velocity",
+          inputType: "switch",
+          defaultValue: false,
+        },
+        {
+          key: "PreprocessingVelocityValue",
+          labelKey: "batchprocess.preprocessing.velocity.value",
+          inputType: "slider",
+          min: 0,
+          max: 200,
+          step: 1,
+          defaultValue: 100,
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.intensity.title",
+      items: [
+        {
+          key: "PreprocessingIntensity",
+          labelKey: "batchprocess.preprocessing.intensity.intensity",
+          inputType: "switch",
+          defaultValue: false,
+        },
+        {
+          key: "PreprocessingIntensityValue",
+          labelKey: "batchprocess.preprocessing.intensity.value",
+          inputType: "slider",
+          min: 0,
+          max: 200,
+          step: 1,
+          defaultValue: 100,
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.modulation.title",
+      items: [
+        {
+          key: "PreprocessingModulation",
+          labelKey: "batchprocess.preprocessing.modulation.modulation",
+          inputType: "switch",
+          defaultValue: true,
+        },
+        {
+          key: "PreprocessingModulationValue",
+          labelKey: "batchprocess.preprocessing.modulation.value",
+          inputType: "slider",
+          min: -100,
+          max: 100,
+          step: 1,
+          defaultValue: 0,
+        },
+      ],
+    } as PaperGroup,
+    {
+      titleKey: "batchprocess.preprocessing.flags.title",
+      items: [
+        {
+          key: "PreprocessingFlags",
+          labelKey: "batchprocess.preprocessing.flags.flags",
+          inputType: "switch",
+          defaultValue: false,
+        },
+        {
+          key: "PreprocessingFlagsValue",
+          labelKey: "batchprocess.preprocessing.flags.value",
+          inputType: "textbox-string",
+          defaultValue: "",
+        },
+      ],
+    } as PaperGroup,
+  ];
+
+  initialOptions: PreprocessingBatchProcessOptions = {
+    lyric: true,
+    lyricOptions: {
+      mode: "VCV",
+      vowelConnect: "*",
+      useHeadingCV: true,
+      replace: true,
+    },
+    pitch: true,
+    pitchOptions: { timing: 45, speed: 60 },
+    vibrato: true,
+    vibratoOptions: {
+      default: { isProcess: false, threshold: 720 },
+      long: { isProcess: true, threshold: 960 },
+      ending: { isProcess: true, threshold: 960 },
+    },
+    envelope: true,
+    envelopeType: "vcvCrossFade",
+    velocity: false,
+    velocityValue: 100,
+    intensity: false,
+    intensityValue: 100,
+    modulation: true,
+    modulationValue: 0,
+    flags: false,
+    flagsValue: "",
   };
 }

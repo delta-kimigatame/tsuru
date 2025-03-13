@@ -1,3 +1,4 @@
+import { CheckboxUIProp } from "../../types/batchProcess";
 import { BaseBatchProcess } from "../BaseBatchProcess";
 import { Note } from "../Note";
 
@@ -24,7 +25,7 @@ export interface ResetEditBatchProcessOptions {
  * 選択したノートをベタ打ちに戻します
  */
 export class ResetEditBatchProcess extends BaseBatchProcess<ResetEditBatchProcessOptions> {
-  title = "batchprocess.resetEdit";
+  title = "batchprocess.resetEdit.title";
   summary = "調声リセット";
   public override process(
     notes: Note[],
@@ -111,9 +112,64 @@ export class ResetEditBatchProcess extends BaseBatchProcess<ResetEditBatchProces
     return newNotes;
   }
 
-  /**
-   * TODO 将来仕様が固まればUI関係の要素を追加する
-   *
-   * 各オプション項目に対応する8つのチェックボックス、それぞれに説明用ラベル(i18nの参照)
-   * */
+  ui = [
+    {
+      key: "ResetEditInfo",
+      labelKey: "batchprocess.resetEdit.info",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditPitch",
+      labelKey: "batchprocess.resetEdit.pitch",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditIntensity",
+      labelKey: "batchprocess.resetEdit.intensity",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditFlags",
+      labelKey: "batchprocess.resetEdit.flags",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditVelocity",
+      labelKey: "batchprocess.resetEdit.velocity",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditEnvelope",
+      labelKey: "batchprocess.resetEdit.envelope",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditVibrato",
+      labelKey: "batchprocess.resetEdit.vibrato",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+    {
+      key: "ResetEditModulation",
+      labelKey: "batchprocess.resetEdit.modulation",
+      inputType: "checkbox",
+      defaultValue: true,
+    } as CheckboxUIProp,
+  ];
+  initialOptions: ResetEditBatchProcessOptions = {
+    info: true,
+    pitch: true,
+    intensity: true,
+    flags: true,
+    velocity: true,
+    envelope: true,
+    vibrato: true,
+    modulation: true,
+  };
 }
