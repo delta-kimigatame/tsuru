@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { SwitchUIProp } from "../../types/batchProcess";
 
 /**
- * BatchProcessにおけるUI自動生成で使用するチェックボックス
+ * BatchProcessにおけるUI自動生成で使用するスイッチ
  */
 export const BatchProcessSwitch: React.FC<BatchProcessSwitchProps> = ({
   config,
