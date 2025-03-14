@@ -355,13 +355,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.lyric.title",
       items: [
         {
-          key: "PreprocessingLyric",
+          key: "lyric",
           labelKey: "batchprocess.preprocessing.lyric.lyric",
           inputType: "switch",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoLyricMode",
+          key: "lyricOptions.mode",
           labelKey: "batchprocess.preprocessing.lyric.mode",
           inputType: "select",
           options: lyricModeOptions,
@@ -369,19 +369,19 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: "VCV",
         },
         {
-          key: "PreprocessingLyricReplace",
+          key: "lyricOptions.replace",
           labelKey: "batchprocess.preprocessing.lyric.replace",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "PreprocessingLyricUseHeading",
-          labelKey: "batchprocess.preprocessing.lyric.useHeading",
+          key: "lyricOptions.useHeading",
+          labelKey: "batchprocess.preprocessing.lyric.useHeadingCV",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoLyricVowelConnect",
+          key: "lyricOptions.vowelConnect",
           labelKey: "batchprocess.preprocessing.lyric.vowelConnect",
           inputType: "select",
           options: vowelConnectOptions,
@@ -395,13 +395,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.pitch.title",
       items: [
         {
-          key: "PreprocessingPitch",
+          key: "pitch",
           labelKey: "batchprocess.preprocessing.pitch.pitch",
           inputType: "switch",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoPitchSpeed",
+          key: "pitchOptions.speed",
           labelKey: "batchprocess.preprocessing.pitch.speed",
           inputType: "select",
           options: [60, 80, 100, 130, 160],
@@ -409,7 +409,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: 60,
         },
         {
-          key: "PreprocessingVibratoPitchTiming",
+          key: "pitchOptions.timing",
           labelKey: "batchprocess.preprocessing.pitch.timing",
           inputType: "select",
           options: [60, 45, 30, 15, 0],
@@ -422,19 +422,19 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.vibrato.title",
       items: [
         {
-          key: "PreprocessingVibrato",
+          key: "vibrato",
           labelKey: "batchprocess.preprocessing.vibrato.vibrato",
           inputType: "switch",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoDefault",
+          key: "vibrato.default.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.default",
           inputType: "checkbox",
           defaultValue: false,
         },
         {
-          key: "PreprocessingVibratoDefaultThreshold",
+          key: "vibrato.default.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.defaultThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
@@ -443,13 +443,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: 720,
         },
         {
-          key: "PreprocessingVibratoLong",
+          key: "vibrato.long.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.long",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoLongThreshold",
+          key: "vibrato.long.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.longThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
@@ -458,13 +458,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: 960,
         },
         {
-          key: "PreprocessingVibratoEnding",
+          key: "vibrato.ending.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.ending",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "PreprocessingVibratoEndingThreshold",
+          key: "vibrato.ending.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.endingThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
@@ -478,13 +478,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.envelope.title",
       items: [
         {
-          key: "PreprocessingEnvelope",
+          key: "envelope",
           labelKey: "batchprocess.preprocessing.envelope.envelope",
           inputType: "switch",
           defaultValue: true,
         },
         {
-          key: "PreprocessingEnvelopeType",
+          key: "envelopeType",
           labelKey: "batchprocess.preprocessing.envelope.type",
           inputType: "select",
           options: envelopeTypeOptions,
@@ -497,13 +497,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.velocity.title",
       items: [
         {
-          key: "PreprocessingVelocity",
+          key: "velocity",
           labelKey: "batchprocess.preprocessing.velocity.velocity",
           inputType: "switch",
           defaultValue: false,
         },
         {
-          key: "PreprocessingVelocityValue",
+          key: "velocityValue",
           labelKey: "batchprocess.preprocessing.velocity.value",
           inputType: "slider",
           min: 0,
@@ -517,13 +517,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.intensity.title",
       items: [
         {
-          key: "PreprocessingIntensity",
+          key: "intensity",
           labelKey: "batchprocess.preprocessing.intensity.intensity",
           inputType: "switch",
           defaultValue: false,
         },
         {
-          key: "PreprocessingIntensityValue",
+          key: "intensityValue",
           labelKey: "batchprocess.preprocessing.intensity.value",
           inputType: "slider",
           min: 0,
@@ -537,13 +537,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.modulation.title",
       items: [
         {
-          key: "PreprocessingModulation",
+          key: "modulation",
           labelKey: "batchprocess.preprocessing.modulation.modulation",
           inputType: "switch",
           defaultValue: true,
         },
         {
-          key: "PreprocessingModulationValue",
+          key: "modulationValue",
           labelKey: "batchprocess.preprocessing.modulation.value",
           inputType: "slider",
           min: -100,
@@ -557,13 +557,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       titleKey: "batchprocess.preprocessing.flags.title",
       items: [
         {
-          key: "PreprocessingFlags",
+          key: "flags",
           labelKey: "batchprocess.preprocessing.flags.flags",
           inputType: "switch",
           defaultValue: false,
         },
         {
-          key: "PreprocessingFlagsValue",
+          key: "flagsValue",
           labelKey: "batchprocess.preprocessing.flags.value",
           inputType: "textbox-string",
           defaultValue: "",

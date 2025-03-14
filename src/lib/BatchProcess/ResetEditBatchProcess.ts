@@ -114,49 +114,49 @@ export class ResetEditBatchProcess extends BaseBatchProcess<ResetEditBatchProces
 
   ui = [
     {
-      key: "ResetEditInfo",
+      key: "info",
       labelKey: "batchprocess.resetEdit.info",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditPitch",
+      key: "pitch",
       labelKey: "batchprocess.resetEdit.pitch",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditIntensity",
+      key: "intensity",
       labelKey: "batchprocess.resetEdit.intensity",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditFlags",
+      key: "flags",
       labelKey: "batchprocess.resetEdit.flags",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditVelocity",
+      key: "velocity",
       labelKey: "batchprocess.resetEdit.velocity",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditEnvelope",
+      key: "envelope",
       labelKey: "batchprocess.resetEdit.envelope",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditVibrato",
+      key: "vibrato",
       labelKey: "batchprocess.resetEdit.vibrato",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
-      key: "ResetEditModulation",
+      key: "modulation",
       labelKey: "batchprocess.resetEdit.modulation",
       inputType: "checkbox",
       defaultValue: true,
