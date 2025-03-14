@@ -79,7 +79,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
     <>
       {props.batchprocess.ui.map((ui) =>
         "items" in ui ? (
-          <BasePaper title={ui.titleKey}>
+          <BasePaper title={t(ui.titleKey)}>
             {ui.items.map((item) => (
               <DynamicBatchProcessInput
                 config={item}

@@ -437,7 +437,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           key: "vibratoOptions.default.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.defaultThreshold",
           inputType: "select",
-          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          options: [480, 720, 960, 1440, 1960], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
           displayOptionKey:
             "batchprocess.preprocessing.vibrato.thresholdOptions",
           defaultValue: 720,
@@ -452,7 +452,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           key: "vibratoOptions.long.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.longThreshold",
           inputType: "select",
-          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          options: [480, 720, 960, 1440, 1960], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
           displayOptionKey:
             "batchprocess.preprocessing.vibrato.thresholdOptions",
           defaultValue: 960,
@@ -467,7 +467,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           key: "vibratoOptions.ending.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.endingThreshold",
           inputType: "select",
-          options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
+          options: [480, 720, 960, 1440, 1960], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
           displayOptionKey:
             "batchprocess.preprocessing.vibrato.thresholdOptions",
           defaultValue: 960,

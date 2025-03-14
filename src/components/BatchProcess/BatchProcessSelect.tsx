@@ -14,7 +14,9 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
   const { t } = useTranslation();
   return (
     <FormControl fullWidth sx={{ m: 1 }}>
-      <InputLabel>{t(config.labelKey)}</InputLabel>
+      <InputLabel>
+        {t(config.labelKey, { returnObjects: true }) as Array<string>}
+      </InputLabel>
       <Select
         label={t(config.labelKey)}
         variant="filled"
@@ -34,7 +36,15 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
         }}
       >
         {config.options.map((o, i) => (
-          <MenuItem value={o}>{config.displayOptionKey[i]}</MenuItem>
+          <MenuItem value={o}>
+            {
+              (
+                t(config.displayOptionKey, {
+                  returnObjects: true,
+                }) as Array<string>
+              )[i]
+            }
+          </MenuItem>
         ))}
       </Select>
     </FormControl>
