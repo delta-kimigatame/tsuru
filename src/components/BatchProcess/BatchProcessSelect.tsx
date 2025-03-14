@@ -19,9 +19,18 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
         label={t(config.labelKey)}
         variant="filled"
         defaultValue={config.defaultValue}
-        value={value}
+        value={
+          typeof config.defaultValue === "number" && value !== undefined
+            ? value.toString()
+            : value
+        }
         onChange={(e) => {
-          onChange(config.key, e.target.value);
+          onChange(
+            config.key,
+            typeof config.defaultValue === "number"
+              ? Number(e.target.value)
+              : e.target.value
+          );
         }}
       >
         {config.options.map((o, i) => (
@@ -34,6 +43,6 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
 
 export interface BatchProcessSelectProps {
   config: SelectUIProp;
-  value: string;
-  onChange: (key: string, value: string) => void;
+  value: string | number;
+  onChange: (key: string, value: string | number) => void;
 }
