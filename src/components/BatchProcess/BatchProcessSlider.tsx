@@ -23,6 +23,7 @@ export const BatchProcessSlider: React.FC<BatchProcessSliderProps> = ({
         {t(config.labelKey)}
       </Typography>
       <Slider
+        aria-label={t(config.labelKey)}
         value={value}
         step={config.step}
         min={config.min}
