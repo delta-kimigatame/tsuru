@@ -68,7 +68,7 @@ describe("musicProjectStore", () => {
     expect(store.ustFlags).toBe("some_flags");
   });
 
-  it("setNotes", () => {
+  it("setNoteProperty", () => {
     const { setNoteProperty } = useMusicProjectStore.getState();
     const n = new Note();
     n.length = 480;
@@ -80,5 +80,34 @@ describe("musicProjectStore", () => {
     setNoteProperty(0, "lyric", "い");
     const updatedStore = useMusicProjectStore.getState();
     expect(updatedStore.notes[0].lyric).toBe("い");
+  });
+
+  it("setNote", () => {
+    const { setNote } = useMusicProjectStore.getState();
+    const n = new Note();
+    n.length = 480;
+    n.index = 0;
+    n.lyric = "あ";
+    const n2 = new Note();
+    n2.length = 480;
+    n2.index = 1;
+    n2.lyric = "あ";
+    const newNote = new Note();
+    newNote.length = 240;
+    newNote.index = 0;
+    newNote.lyric = "い";
+    const initialStore = useMusicProjectStore.getState();
+    initialStore.notes.push(n);
+    initialStore.notes.push(n2);
+    expect(initialStore.notes[0].lyric).toBe("あ");
+    expect(initialStore.notes[0].length).toBe(480);
+    expect(initialStore.notes[1].lyric).toBe("あ");
+    expect(initialStore.notes[1].length).toBe(480);
+    setNote(0, newNote);
+    const updatedStore = useMusicProjectStore.getState();
+    expect(updatedStore.notes[0].lyric).toBe("い");
+    expect(updatedStore.notes[0].length).toBe(240);
+    expect(updatedStore.notes[1].lyric).toBe("あ");
+    expect(updatedStore.notes[1].length).toBe(480);
   });
 });
