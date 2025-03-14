@@ -13,25 +13,22 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
-      <FormControl fullWidth sx={{ m: 1 }}>
-        <InputLabel>{t(config.labelKey)}</InputLabel>
-        <Select
-          label={t(config.labelKey)}
-          variant="filled"
-          defaultValue={config.defaultValue}
-          value={value}
-          onChange={(e) => {
-            onChange(config.key, e.target.value);
-          }}
-        >
-          {config.options.map((o, i) => (
-            <MenuItem value={o}>{config.displayOptionKey[i]}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <br />
-    </>
+    <FormControl fullWidth sx={{ m: 1 }}>
+      <InputLabel>{t(config.labelKey)}</InputLabel>
+      <Select
+        label={t(config.labelKey)}
+        variant="filled"
+        defaultValue={config.defaultValue}
+        value={value}
+        onChange={(e) => {
+          onChange(config.key, e.target.value);
+        }}
+      >
+        {config.options.map((o, i) => (
+          <MenuItem value={o}>{config.displayOptionKey[i]}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 };
 

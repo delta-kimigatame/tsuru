@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import React from "react";
@@ -14,18 +15,20 @@ export const BatchProcessSwitch: React.FC<BatchProcessSwitchProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            onChange(config.key, e.target.checked);
-          }}
-          inputProps={{ "aria-label": "controlled" }}
-        />
-      }
-      label={t(config.labelKey)}
-    />
+    <Box sx={{ mx: 1 }}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={value}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              onChange(config.key, e.target.checked);
+            }}
+            inputProps={{ "aria-label": "controlled" }}
+          />
+        }
+        label={t(config.labelKey)}
+      />
+    </Box>
   );
 };
 

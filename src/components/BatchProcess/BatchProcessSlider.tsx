@@ -32,6 +32,7 @@ export const BatchProcessSlider: React.FC<BatchProcessSliderProps> = ({
           onChange(config.key, newValue as number);
         }}
         marks={marks}
+        sx={{ mx: 1 }}
       />
     </Box>
   );

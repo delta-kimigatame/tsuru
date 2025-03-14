@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import React from "react";
@@ -14,7 +15,7 @@ export const BatchProcessCheckBox: React.FC<BatchProcessCheckBoxProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
+    <Box sx={{ mx: 1 }}>
       <FormControlLabel
         control={
           <Checkbox
@@ -26,8 +27,7 @@ export const BatchProcessCheckBox: React.FC<BatchProcessCheckBoxProps> = ({
         }
         label={t(config.labelKey)}
       />
-      <br />
-    </>
+    </Box>
   );
 };
 
