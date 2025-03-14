@@ -428,13 +428,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: true,
         },
         {
-          key: "vibrato.default.isProcess",
+          key: "vibratoOptions.default.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.default",
           inputType: "checkbox",
           defaultValue: false,
         },
         {
-          key: "vibrato.default.threshold",
+          key: "vibratoOptions.default.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.defaultThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
@@ -443,13 +443,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: 720,
         },
         {
-          key: "vibrato.long.isProcess",
+          key: "vibratoOptions.long.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.long",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "vibrato.long.threshold",
+          key: "vibratoOptions.long.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.longThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
@@ -458,13 +458,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: 960,
         },
         {
-          key: "vibrato.ending.isProcess",
+          key: "vibratoOptions.ending.isProcess",
           labelKey: "batchprocess.preprocessing.vibrato.ending",
           inputType: "checkbox",
           defaultValue: true,
         },
         {
-          key: "vibrato.ending.threshold",
+          key: "vibratoOptions.ending.threshold",
           labelKey: "batchprocess.preprocessing.vibrato.endingThreshold",
           inputType: "select",
           options: [480, 720, 960, 1200, 1440], //四分音符、付点四分音符、二分音符、付点二分音符、全音符
