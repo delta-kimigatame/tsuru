@@ -14,17 +14,20 @@ export const BatchProcessCheckBox: React.FC<BatchProcessCheckBoxProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            onChange(config.key, e.target.checked);
-          }}
-        />
-      }
-      label={t(config.labelKey)}
-    />
+    <>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={value}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              onChange(config.key, e.target.checked);
+            }}
+          />
+        }
+        label={t(config.labelKey)}
+      />
+      <br />
+    </>
   );
 };
 

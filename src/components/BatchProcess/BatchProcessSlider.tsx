@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Slider from "@mui/material/Slider";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +18,7 @@ export const BatchProcessSlider: React.FC<BatchProcessSliderProps> = ({
     { value: config.max, label: config.max.toString() },
   ];
   return (
-    <>
+    <Box sx={{ m: 1 }}>
       <Typography variant="subtitle1" gutterBottom>
         {t(config.labelKey)}
       </Typography>
@@ -33,7 +33,7 @@ export const BatchProcessSlider: React.FC<BatchProcessSliderProps> = ({
         }}
         marks={marks}
       />
-    </>
+    </Box>
   );
 };
 
