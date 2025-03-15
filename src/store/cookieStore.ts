@@ -38,6 +38,10 @@ interface CookieStore {
    * ピアノロールにおけるheight方向の拡大率
    */
   verticalZoom: number;
+  /**
+   * ピアノロールにおけるwidth方向の拡大率
+   */
+  horizontalZoom: number;
 
   /**
    * 表示モードを更新する関数。モードを変更するために使用されます。
@@ -72,6 +76,12 @@ interface CookieStore {
    * @param verticalZoom ピアノロールのheight方向の拡大率
    */
   setVerticalZoom: (verticalZoom: number) => void;
+  /**
+   * ピアノロールのwidth方向の拡大率を変更します。
+   *
+   * @param horizontalZoom ピアノロールのwidth方向の拡大率
+   */
+  setHorizontalZoom: (horizontalZoom: number) => void;
 
   /**
    * cookieに表示モードを保存する関数。
@@ -106,6 +116,12 @@ interface CookieStore {
    * @param verticalZoom ピアノロールのheight方向の拡大率
    */
   setVerticalZoomInCookie: (veticalZoom: number) => void;
+  /**
+   * cookieにピアノロールのwidth方向の拡大率を保存する関数
+   *
+   * @param horizontalZoom ピアノロールのwidth方向の拡大率
+   */
+  setHorizontalZoomInCookie: (horizontalZoom: number) => void;
 
   /**
    * 初期化フラグ。状態が初期化されているかどうかを示します。
@@ -127,6 +143,7 @@ export const useCookieStore = create<CookieStore>((set) => {
     colorTheme: cookieDefaults.colorTheme,
     defaultNote: cookieDefaults.defaultNote,
     verticalZoom: cookieDefaults.verticalZoom,
+    horizontalZoom: cookieDefaults.horizontalZoom,
     // 状態更新関数
     setMode: (newMode) =>
       set((state) => {
@@ -159,12 +176,20 @@ export const useCookieStore = create<CookieStore>((set) => {
       });
     },
 
+    setHorizontalZoom: (horizontalZoom) => {
+      set((state) => {
+        state.setHorizontalZoomInCookie(horizontalZoom);
+        return { horizontalZoom: horizontalZoom };
+      });
+    },
+
     // 初期状態ではダミー関数を設定
     setModeInCookie: () => {},
     setLanguageInCookie: () => {},
     setColorThemeInCookie: () => {},
     setDefaultNoteInCookie: () => {},
     setVerticalZoomInCookie: () => {},
+    setHorizontalZoomInCookie: () => {},
     isInitialized: false,
   };
 });
@@ -180,11 +205,13 @@ export const useInitializeCookieStore = () => {
       colorTheme: projectCookie.colorTheme,
       defaultNote: projectCookie.defaultNote,
       verticalZoom: projectCookie.verticalZoom,
+      horizontalZoom: projectCookie.horizontalZoom,
       setModeInCookie: projectCookie.setMode,
       setLanguageInCookie: projectCookie.setLanguage,
       setColorThemeInCookie: projectCookie.setColorTheme,
       setDefaultNoteInCookie: projectCookie.setDefaultNote,
       setVerticalZoomInCookie: projectCookie.setVerticalZoom,
+      setHorizontalZoomInCookie: projectCookie.setHorizontalZoom,
       isInitialized: true,
     });
   }, [projectCookie]);

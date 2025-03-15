@@ -41,6 +41,15 @@ const TestProjectCookieVerticalZoom: React.FC = () => {
     </div>
   );
 };
+const TestProjectCookieHorizontalZoom: React.FC = () => {
+  const { horizontalZoom, setHorizontalZoom } = useProjectCookie();
+  return (
+    <div>
+      <p>HorizontalZoom: {horizontalZoom}</p>
+      <button onClick={() => setHorizontalZoom(2)}>Set HorizontalZoom</button>
+    </div>
+  );
+};
 
 const TestProjectCookieDefaultNote: React.FC = () => {
   const { defaultNote, setDefaultNote } = useProjectCookie();
@@ -249,5 +258,32 @@ describe("useProjectCookie", () => {
     const button = screen.getByRole("button");
     await fireEvent.click(button);
     expect(screen.getByText("VerticalZoom: 2")).toBeInTheDocument();
+  });
+  it("defaultHorizontalZoom", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieHorizontalZoom />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("HorizontalZoom: 1")).toBeInTheDocument();
+  });
+  it("hasHorizontalZoom", () => {
+    document.cookie = "horizontalZoom=0.8; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieHorizontalZoom />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("HorizontalZoom: 0.8")).toBeInTheDocument();
+  });
+  it("changeHorizontalZoom", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieHorizontalZoom />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("HorizontalZoom: 2")).toBeInTheDocument();
   });
 });
