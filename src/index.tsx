@@ -1,16 +1,21 @@
 import React from "react";
 import { CookiesProvider } from "react-cookie";
 import { createRoot } from "react-dom/client";
+import { ErrorBoundary } from "react-error-boundary";
 import { App } from "./features/App";
-// import { ErrorBoundary } from "react-error-boundary";
-// import "./i18n/configs";
-// import { ErrorPaper } from "./Component/ErrorPaper";
+import { ErrorPaper } from "./features/Logging/ErrorPaper";
+import "./i18n/configs";
 
-const root = createRoot(document.querySelector("#root") as HTMLElement);
+const root = createRoot(document.getElementById("root")!);
+
 root.render(
-  // <ErrorBoundary FallbackComponent={ErrorPaper}>
-  <CookiesProvider>
-    <App />
-  </CookiesProvider>
-  // </ErrorBoundary>
+  <ErrorBoundary
+    fallbackRender={({ error, resetErrorBoundary }) => (
+      <ErrorPaper error={error} resetErrorBoundary={resetErrorBoundary} />
+    )}
+  >
+    <CookiesProvider>
+      <App />
+    </CookiesProvider>
+  </ErrorBoundary>
 );
