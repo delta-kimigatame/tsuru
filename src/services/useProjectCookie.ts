@@ -50,6 +50,17 @@ export const useProjectCookie = () => {
   ) as defaultParam;
 
   /**
+   * ピアノロールのheight方向の拡大率を取得します。
+   * クッキーが存在しない場合は、デフォルトで `cookieDefaults.verticalZoom` を返します。
+   */
+  const verticalZoom = parseFloat(
+    getStringCookie(
+      COOKIE_KEYS.verticalZoom,
+      cookieDefaults.verticalZoom.toString()
+    )
+  );
+
+  /**
    * モードをクッキーに保存します。
    * @param newMode 更新するモード（`light`, `dark`, `system`）
    */
@@ -73,6 +84,14 @@ export const useProjectCookie = () => {
   const setDefaultNote = (newDefaultNote: defaultParam) =>
     setObjectCookie(COOKIE_KEYS.defaultNote, newDefaultNote);
 
+  /**
+   * ピアノロールのheight方向の拡大率をcookieに保存します。
+   * @param newVerticalZoom 更新する拡大率
+   */
+  const setVerticalZoom = (newVerticalZoom: number) => {
+    setStringCookie(COOKIE_KEYS.verticalZoom, newVerticalZoom.toString());
+  };
+
   LOG.debug(
     `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote}`,
     "useProjectCookie"
@@ -82,9 +101,11 @@ export const useProjectCookie = () => {
     language,
     colorTheme,
     defaultNote,
+    verticalZoom,
     setMode,
     setLanguage,
     setColorTheme,
     setDefaultNote,
+    setVerticalZoom,
   };
 };

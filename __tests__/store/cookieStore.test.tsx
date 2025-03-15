@@ -18,10 +18,12 @@ const TestComponent = () => {
     language,
     colorTheme,
     defaultNote,
+    verticalZoom,
     setMode,
     setLanguage,
     setColorTheme,
     setDefaultNote,
+    setVerticalZoom,
   } = useCookieStore();
   const [cookies] = useCookies();
 
@@ -31,6 +33,7 @@ const TestComponent = () => {
       <p data-testid="language">{language}</p>
       <p data-testid="colorTheme">{colorTheme}</p>
       <p data-testid="defaultNote">{JSON.stringify(defaultNote)}</p>
+      <p data-testid="verticalZoom">{verticalZoom.toString()}</p>
       <button onClick={() => setMode("dark")}>Set Mode Dark</button>
       <button onClick={() => setLanguage("en")}>Set Language EN</button>
       <button onClick={() => setColorTheme("red")}>Set Color Theme Red</button>
@@ -46,6 +49,7 @@ const TestComponent = () => {
       >
         Set Default Note
       </button>
+      <button onClick={() => setVerticalZoom(2)}>Set Vertical Zoom 2</button>
     </div>
   );
 };
@@ -59,16 +63,23 @@ describe("cookieStore", () => {
       language: cookieDefaults.language,
       colorTheme: cookieDefaults.colorTheme,
       defaultNote: cookieDefaults.defaultNote,
+      verticalZoom: cookieDefaults.verticalZoom,
       setModeInCookie: () => {},
       setLanguageInCookie: () => {},
       setColorThemeInCookie: () => {},
       setDefaultNoteInCookie: () => {},
+      setVerticalZoomInCookie: () => {},
       isInitialized: false,
     });
   });
 
   afterEach(() => {
-    document.cookie = "";
+    document.cookie.split(";").forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      document.cookie =
+        name + "=;expires=" + new Date(0).toUTCString() + ";path=/";
+    });
   });
 
   it("zustandDefault", () => {
@@ -88,6 +99,9 @@ describe("cookieStore", () => {
     expect(screen.getByTestId("defaultNote")).toHaveTextContent(
       JSON.stringify(cookieDefaults.defaultNote)
     );
+    expect(screen.getByTestId("verticalZoom")).toHaveTextContent(
+      cookieDefaults.verticalZoom.toString()
+    );
   });
 
   it("zustandLoadCookie", async () => {
@@ -101,6 +115,7 @@ describe("cookieStore", () => {
       modulation: 50,
       envelope: { point: [1, 2], value: [3, 4] },
     })}`;
+    document.cookie = `${COOKIE_KEYS.verticalZoom}=0.8`;
 
     render(
       <CookiesProvider>
@@ -120,10 +135,13 @@ describe("cookieStore", () => {
           envelope: { point: [1, 2], value: [3, 4] },
         })
       );
+      expect(screen.getByTestId("verticalZoom")).toHaveTextContent("0.8");
     });
   });
 
   it("zustandChangeValue", () => {
+    document.cookie = "";
+    console.log(document.cookie);
     render(
       <CookiesProvider>
         <TestComponent />
@@ -134,6 +152,7 @@ describe("cookieStore", () => {
     fireEvent.click(screen.getByText("Set Language EN"));
     fireEvent.click(screen.getByText("Set Color Theme Red"));
     fireEvent.click(screen.getByText("Set Default Note"));
+    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
 
     expect(screen.getByTestId("mode")).toHaveTextContent("dark");
     expect(screen.getByTestId("language")).toHaveTextContent("en");
@@ -146,6 +165,7 @@ describe("cookieStore", () => {
         envelope: { point: [0, 2], value: [1, 3] },
       })
     );
+    expect(screen.getByTestId("verticalZoom")).toHaveTextContent("2");
   });
 
   it("changeCookieWhenChangeValue", async () => {
@@ -159,6 +179,7 @@ describe("cookieStore", () => {
     fireEvent.click(screen.getByText("Set Language EN"));
     fireEvent.click(screen.getByText("Set Color Theme Red"));
     fireEvent.click(screen.getByText("Set Default Note"));
+    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
 
     await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.mode}=dark`);
@@ -174,6 +195,7 @@ describe("cookieStore", () => {
           })
         )}`
       );
+      expect(document.cookie).toContain(`${COOKIE_KEYS.verticalZoom}=2`);
     });
   });
 });

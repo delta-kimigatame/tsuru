@@ -9,6 +9,7 @@ export const COOKIE_KEYS = {
   language: "language",
   colorTheme: "colorTheme",
   defaultNote: "defaultNote",
+  verticalZoom: "verticalZoom",
 } as const;
 
 export type CookieKey = keyof typeof COOKIE_KEYS;
@@ -36,9 +37,14 @@ export const cookieDefaults: {
    * ノートのデフォルト設定
    */
   defaultNote: defaultParam;
+  /**
+   * ピアノロールにおけるheight方向の拡大率
+   */
+  verticalZoom: number;
 } = {
   mode: "system",
   language: "ja",
   colorTheme: "default",
   defaultNote: defaultNote,
+  verticalZoom: 1,
 };

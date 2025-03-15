@@ -34,6 +34,10 @@ interface CookieStore {
    * ノートのデフォルト設定。音符の強弱やエフェクトなど、音符に関連するパラメータが含まれます。
    */
   defaultNote: defaultParam;
+  /**
+   * ピアノロールにおけるheight方向の拡大率
+   */
+  verticalZoom: number;
 
   /**
    * 表示モードを更新する関数。モードを変更するために使用されます。
@@ -62,6 +66,12 @@ interface CookieStore {
    * @param defaultNote 新しいノート設定。
    */
   setDefaultNote: (defaultNote: defaultParam) => void;
+  /**
+   * ピアノロールのheight方向の拡大率を変更します。
+   *
+   * @param verticalZoom ピアノロールのheight方向の拡大率
+   */
+  setVerticalZoom: (verticalZoom: number) => void;
 
   /**
    * cookieに表示モードを保存する関数。
@@ -90,6 +100,12 @@ interface CookieStore {
    * @param defaultNote 新しいノート設定。
    */
   setDefaultNoteInCookie: (defaultNote: defaultParam) => void;
+  /**
+   * cookieにピアノロールのheight方向の拡大率を保存する関数
+   *
+   * @param verticalZoom ピアノロールのheight方向の拡大率
+   */
+  setVerticalZoomInCookie: (veticalZoom: number) => void;
 
   /**
    * 初期化フラグ。状態が初期化されているかどうかを示します。
@@ -110,6 +126,7 @@ export const useCookieStore = create<CookieStore>((set) => {
     language: cookieDefaults.language,
     colorTheme: cookieDefaults.colorTheme,
     defaultNote: cookieDefaults.defaultNote,
+    verticalZoom: cookieDefaults.verticalZoom,
     // 状態更新関数
     setMode: (newMode) =>
       set((state) => {
@@ -135,11 +152,19 @@ export const useCookieStore = create<CookieStore>((set) => {
         return { defaultNote: newDefaultNote };
       }),
 
+    setVerticalZoom: (verticalZoom) => {
+      set((state) => {
+        state.setVerticalZoomInCookie(verticalZoom);
+        return { verticalZoom: verticalZoom };
+      });
+    },
+
     // 初期状態ではダミー関数を設定
     setModeInCookie: () => {},
     setLanguageInCookie: () => {},
     setColorThemeInCookie: () => {},
     setDefaultNoteInCookie: () => {},
+    setVerticalZoomInCookie: () => {},
     isInitialized: false,
   };
 });
@@ -154,10 +179,12 @@ export const useInitializeCookieStore = () => {
       language: projectCookie.language,
       colorTheme: projectCookie.colorTheme,
       defaultNote: projectCookie.defaultNote,
+      verticalZoom: projectCookie.verticalZoom,
       setModeInCookie: projectCookie.setMode,
       setLanguageInCookie: projectCookie.setLanguage,
       setColorThemeInCookie: projectCookie.setColorTheme,
       setDefaultNoteInCookie: projectCookie.setDefaultNote,
+      setVerticalZoomInCookie: projectCookie.setVerticalZoom,
       isInitialized: true,
     });
   }, [projectCookie]);

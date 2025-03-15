@@ -32,6 +32,15 @@ const TestProjectCookieColorTheme: React.FC = () => {
     </div>
   );
 };
+const TestProjectCookieVerticalZoom: React.FC = () => {
+  const { verticalZoom, setVerticalZoom } = useProjectCookie();
+  return (
+    <div>
+      <p>VerticalZoom: {verticalZoom}</p>
+      <button onClick={() => setVerticalZoom(2)}>Set VerticalZoom</button>
+    </div>
+  );
+};
 
 const TestProjectCookieDefaultNote: React.FC = () => {
   const { defaultNote, setDefaultNote } = useProjectCookie();
@@ -213,5 +222,32 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("Modulation: 60")).toBeInTheDocument();
     expect(screen.getByText("Envelope Points: 0, 2")).toBeInTheDocument();
     expect(screen.getByText("Envelope Values: 0, 2")).toBeInTheDocument();
+  });
+  it("defaultVerticalZoom", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieVerticalZoom />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("VerticalZoom: 1")).toBeInTheDocument();
+  });
+  it("hasVerticalZoom", () => {
+    document.cookie = "verticalZoom=0.8; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieVerticalZoom />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("VerticalZoom: 0.8")).toBeInTheDocument();
+  });
+  it("changeVerticalZoom", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieVerticalZoom />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("VerticalZoom: 2")).toBeInTheDocument();
   });
 });
