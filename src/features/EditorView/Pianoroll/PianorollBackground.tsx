@@ -1,9 +1,9 @@
 import React from "react";
-import { COLOR_PALLET } from "../../config/pallet";
-import { PIANOROLL_CONFIG } from "../../config/pianoroll";
-import { useThemeMode } from "../../hooks/useThemeMode";
-import { LOG } from "../../lib/Logging";
-import { useCookieStore } from "../../store/cookieStore";
+import { COLOR_PALLET } from "../../../config/pallet";
+import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { useThemeMode } from "../../../hooks/useThemeMode";
+import { LOG } from "../../../lib/Logging";
+import { useCookieStore } from "../../../store/cookieStore";
 
 /**
  * ピアノロールの背景部分
@@ -29,7 +29,7 @@ export const PianorollBackground: React.FC = () => {
       "PianorollBackground"
     );
     const pallet = COLOR_PALLET[colorTheme][mode];
-    const key_height = PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom;
+    const keyHeight = PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom;
     ctx.clearRect(
       0,
       0,
@@ -42,9 +42,9 @@ export const PianorollBackground: React.FC = () => {
         : pallet.whiteKey;
       ctx.fillRect(
         0,
-        i * key_height,
+        i * keyHeight,
         PIANOROLL_CONFIG.INITIAL_CANVAS_WIDTH,
-        key_height
+        keyHeight
       );
       ctx.strokeStyle = pallet.horizontalSeparator;
       ctx.lineWidth =
@@ -52,8 +52,8 @@ export const PianorollBackground: React.FC = () => {
           ? PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE
           : PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH;
       ctx.beginPath();
-      ctx.moveTo(0, i * key_height);
-      ctx.lineTo(PIANOROLL_CONFIG.INITIAL_CANVAS_WIDTH, i * key_height);
+      ctx.moveTo(0, i * keyHeight);
+      ctx.lineTo(PIANOROLL_CONFIG.INITIAL_CANVAS_WIDTH, i * keyHeight);
       ctx.stroke();
     }
     LOG.info("ピアノロール背景の描画完了", "PianorollBackground");

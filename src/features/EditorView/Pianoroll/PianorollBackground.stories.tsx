@@ -1,6 +1,6 @@
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
-import { useCookieStore } from "../../store/cookieStore";
+import { useCookieStore } from "../../../store/cookieStore";
 import { PianorollBackground } from "./PianorollBackground";
 
 export default {
