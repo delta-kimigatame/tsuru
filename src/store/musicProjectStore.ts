@@ -78,9 +78,14 @@ interface MusicProjectStore {
    * 指定したノートを更新する
    * @param index 更新するノートのインデックス
    * @param value 設定するノート
-   * @returns
    */
   setNote: (index: number, value: Note) => void;
+
+  /**
+   * ノート列を渡し全てのノートを更新する
+   * @param newNotes 新しいノート列
+   */
+  setNotes: (newNotes: Array<Note>) => void;
 }
 
 /**
@@ -118,5 +123,10 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       const updatedNotes = [...state.notes];
       updatedNotes[index] = value;
       return { notes: updatedNotes };
+    }),
+
+  setNotes: (newNotes) =>
+    set({
+      notes: newNotes,
     }),
 }));

@@ -110,4 +110,40 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[1].lyric).toBe("あ");
     expect(updatedStore.notes[1].length).toBe(480);
   });
+
+  it("setNotes", () => {
+    const { setNotes } = useMusicProjectStore.getState();
+    const n = new Note();
+    n.length = 480;
+    n.index = 0;
+    n.lyric = "あ";
+    const n2 = new Note();
+    n2.length = 480;
+    n2.index = 1;
+    n2.lyric = "あ";
+    const newNote = new Note();
+    newNote.length = 240;
+    newNote.index = 0;
+    newNote.lyric = "い";
+    const notes = new Array<Note>();
+    notes.push(n);
+    notes.push(n2);
+    const newNotes = new Array<Note>();
+    newNotes.push(newNote);
+    newNotes.push(n2);
+    /** setNotesが初期化に使えることの確認 */
+    setNotes(notes);
+    const updatedStore = useMusicProjectStore.getState();
+    expect(updatedStore.notes[0].lyric).toBe("あ");
+    expect(updatedStore.notes[0].length).toBe(480);
+    expect(updatedStore.notes[1].lyric).toBe("あ");
+    expect(updatedStore.notes[1].length).toBe(480);
+    /** setNotesが更新に使えることの確認 */
+    setNotes(newNotes);
+    const updatedStore2 = useMusicProjectStore.getState();
+    expect(updatedStore2.notes[0].lyric).toBe("い");
+    expect(updatedStore2.notes[0].length).toBe(240);
+    expect(updatedStore2.notes[1].lyric).toBe("あ");
+    expect(updatedStore2.notes[1].length).toBe(480);
+  });
 });
