@@ -24,6 +24,12 @@ class Logging {
       typeof value === "object" ? JSON.stringify(value) : value.toString();
     const entry = `${new Date().toISOString()}\t${source}\t${level}\t${message}`;
     this.datas.push(entry);
+    if (
+      window.location.hostname === "localhost" ||
+      /^(?:\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname)
+    ) {
+      console.log(entry);
+    }
   }
 
   /**
