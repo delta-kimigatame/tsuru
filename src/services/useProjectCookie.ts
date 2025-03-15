@@ -1,4 +1,5 @@
 import { COOKIE_KEYS, cookieDefaults } from "../config/cookie";
+import { LOG } from "../lib/Logging";
 import { ColorTheme } from "../types/colorTheme";
 import { Language } from "../types/language";
 import { Mode } from "../types/mode";
@@ -15,6 +16,7 @@ import { useCookie } from "./useCookie";
  * @returns プロジェクト固有の設定（`mode`, `language`, `colorTheme`, `defaultNote`）と、それらを更新するための関数。
  */
 export const useProjectCookie = () => {
+  LOG.info("cookieの取得", "useProjectCookie");
   const { getStringCookie, setStringCookie, getObjectCookie, setObjectCookie } =
     useCookie();
   /**
@@ -71,6 +73,10 @@ export const useProjectCookie = () => {
   const setDefaultNote = (newDefaultNote: defaultParam) =>
     setObjectCookie(COOKIE_KEYS.defaultNote, newDefaultNote);
 
+  LOG.debug(
+    `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote}`,
+    "useProjectCookie"
+  );
   return {
     mode,
     language,

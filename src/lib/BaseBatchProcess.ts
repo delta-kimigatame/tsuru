@@ -1,4 +1,5 @@
 import { PaperGroup, UIProp } from "../types/batchProcess";
+import { LOG, LogLevel } from "./Logging";
 import { Note } from "./Note";
 import { undoManager, UndoRedoCommand } from "./UndoManager";
 
@@ -36,6 +37,7 @@ export abstract class BaseBatchProcess<TOptions = any> {
   public process(notes: Note[], options?: TOptions): Note[] {
     if (notes.length === 0) return [];
     const oldNotes = notes.map((n) => n.deepCopy());
+    this.log(`${this.summary}、options:${options}`, LogLevel.INFO);
     const newNotes = this._process(notes, options);
     undoManager.register({
       undo: this.undo,
@@ -74,9 +76,25 @@ export abstract class BaseBatchProcess<TOptions = any> {
   /**
    * ログ出力します。
    * @param message ログに保存する文字列
+   * @param level ログレベル
    */
-  log = (message: string): void => {
-    /** TODO グローバルなロギングシステムができたら処理を追加する。 */
+  log = (message: string, level: LogLevel): void => {
+    switch (level) {
+      case LogLevel.DEBUG:
+        LOG.debug(message, this.title);
+        break;
+      case LogLevel.INFO:
+        LOG.info(message, this.title);
+        break;
+      case LogLevel.WARN:
+        LOG.warn(message, this.title);
+        break;
+      case LogLevel.ERROR:
+        LOG.error(message, this.title);
+        break;
+      default:
+        break;
+    }
   };
 
   /**

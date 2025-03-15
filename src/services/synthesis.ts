@@ -1,5 +1,6 @@
 import { renderingConfig } from "../config/rendering";
 import { resampWorkersCount } from "../config/workers";
+import { LOG } from "../lib/Logging";
 import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
 import { Wavtool } from "../lib/Wavtool";
 import { useCookieStore } from "../store/cookieStore";
@@ -27,7 +28,9 @@ export class SynthesisWorker {
    * クラス初期化時にworker poolも初期化しておく
    */
   constructor() {
+    LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
     this.workersPool = new ResampWorkerPool(resampWorkersCount);
+    LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
     this.wavtool = new Wavtool();
   }
 
@@ -40,11 +43,19 @@ export class SynthesisWorker {
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
+    LOG.info("音声合成開始", "synthesis,SynthesisWorker");
     this.resampResults = requestParams.map((p) => this.resamp(p, vb));
     await this.append(requestParams);
+    LOG.info("音声合成終了", "synthesis,SynthesisWorker");
     /** 16bit/44100HzのWaveオブジェクトのbuffer */
-    const wavBuf = this.wavtool.output();
-    return wavBuf;
+    try {
+      LOG.info("wavに変換", "synthesis,SynthesisWorker");
+      const wavBuf = this.wavtool.output();
+      return wavBuf;
+    } catch (error) {
+      LOG.error("wav変換に失敗しました", "synthesis,SynthesisWorker");
+      throw error;
+    }
   };
 
   /**
@@ -66,8 +77,13 @@ export class SynthesisWorker {
       const requireLength = Math.ceil(
         (param.append.length / 1000) * renderingConfig.frameRate
       );
+      LOG.debug(`休符。長さ:${requireLength}`, "synthesis,SynthesisWorker");
       return new Float64Array(requireLength);
     } else {
+      LOG.debug(
+        `workerpoolにセット。request:${param.resamp}`,
+        "synthesis,SynthesisWorker"
+      );
       return this.workersPool.runResamp(param.resamp, vb);
     }
   };
@@ -89,11 +105,17 @@ export class SynthesisWorker {
     if (index >= this.resampResults.length) {
       return;
     }
+    let res: Float64Array;
     try {
       // 現在のノートのresamp結果を待つ
-      const res = await this.resampResults[index];
-      // 結果をwavtoolに追加
-      console.log(`${index}`);
+      res = await this.resampResults[index];
+    } catch (error) {
+      const errMsg = `resampResultsでエラー発生(index:${index}): ${error}`;
+      LOG.error(errMsg, "synthesis,SynthesisWorker");
+      throw new Error(errMsg);
+    }
+    try {
+      LOG.debug(`wavtoolで結合。${index}`, "synthesis,SynthesisWorker");
       this.wavtool.append({
         inputData: Array.from(res),
         ...params[index].append,
@@ -101,7 +123,9 @@ export class SynthesisWorker {
       // 次のタスクを処理する
       await this.append(params, index + 1);
     } catch (error) {
-      return Promise.reject(error);
+      const errMsg = `append処理でエラー発生(index:${index}): ${error}`;
+      LOG.error(errMsg, "synthesis,SynthesisWorker");
+      throw new Error(errMsg);
     }
   };
 }

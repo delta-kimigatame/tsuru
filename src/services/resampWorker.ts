@@ -9,6 +9,7 @@
  */
 
 import { renderingConfig } from "../config/rendering";
+import { LOG } from "../lib/Logging";
 import type { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
 import type { ResampRequest, ResampWorkerRequest } from "../types/request";
 import { interp1d, makeTimeAxis } from "../utils/interp";
@@ -30,14 +31,22 @@ export const getWaveData = async (
   cutoffMs: number,
   vb: VoiceBank
 ): Promise<number[]> => {
-  const wavData = await vb.getWave(inputWav);
-  const offsetFrame = Math.floor((renderingConfig.frameRate * offsetMs) / 1000);
-  const cutoff =
-    cutoffMs < 0
-      ? offsetMs - cutoffMs
-      : (wavData.data.length / wavData.sampleRate) * 1000 - cutoffMs;
-  const cutoffFrame = Math.floor((renderingConfig.frameRate * cutoff) / 1000);
-  return wavData.LogicalNormalize(1).slice(offsetFrame, cutoffFrame);
+  LOG.info(`wavデータの読込:${inputWav}`, "resampWorker.getWaveData");
+  try {
+    const wavData = await vb.getWave(inputWav);
+    const offsetFrame = Math.floor(
+      (renderingConfig.frameRate * offsetMs) / 1000
+    );
+    const cutoff =
+      cutoffMs < 0
+        ? offsetMs - cutoffMs
+        : (wavData.data.length / wavData.sampleRate) * 1000 - cutoffMs;
+    const cutoffFrame = Math.floor((renderingConfig.frameRate * cutoff) / 1000);
+    return wavData.LogicalNormalize(1).slice(offsetFrame, cutoffFrame);
+  } catch (err) {
+    LOG.error(`wavデータの読込に失敗:${inputWav}`, "resampWorker.getWaveData");
+    throw err; //wavが読込できないのはUTAUとして致命傷でありどうにもできないので上位にエラーで返す
+  }
 };
 
 /**
@@ -59,36 +68,47 @@ export const getFrqData = async (
   timeAxis: number[];
   frqAverage: number;
 }> => {
-  const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs / 1000);
-  const frqData = await vb.getFrq(inputWav);
-  const frqTimeAxis = makeTimeAxis(
-    (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
-    0,
-    wavMs / 1000
-  );
-  const offsetFrame = Math.floor(
-    (renderingConfig.frameRate * offsetMs) / (frqData.perSamples * 1000)
-  );
-  const cutoffFrame =
-    Math.ceil(
-      (renderingConfig.frameRate * wavMs) / (frqData.perSamples * 1000)
-    ) + 1;
-  const frq = interp1d(
-    Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
-    frqTimeAxis,
-    timeAxis
-  );
-  const amp = interp1d(
-    Array.from(frqData.amp).slice(offsetFrame, offsetFrame + cutoffFrame),
-    frqTimeAxis,
-    timeAxis
-  );
-  return {
-    frq: frq,
-    amp: amp,
-    timeAxis: timeAxis,
-    frqAverage: frqData.frqAverage,
-  };
+  /** TODO frqファイルが存在しないとき、frqを生成できるようにする */
+  LOG.info(`frqデータの読込:${inputWav}`, "resampWorker.getFrqData");
+  try {
+    const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs / 1000);
+    const frqData = await vb.getFrq(inputWav);
+    const frqTimeAxis = makeTimeAxis(
+      (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
+      0,
+      wavMs / 1000
+    );
+    const offsetFrame = Math.floor(
+      (renderingConfig.frameRate * offsetMs) / (frqData.perSamples * 1000)
+    );
+    const cutoffFrame =
+      Math.ceil(
+        (renderingConfig.frameRate * wavMs) / (frqData.perSamples * 1000)
+      ) + 1;
+    LOG.debug(
+      `offsetFrame:${offsetFrame},cutoffFrame:${cutoffFrame}`,
+      "resampWorker.getFrqData"
+    );
+    const frq = interp1d(
+      Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
+      frqTimeAxis,
+      timeAxis
+    );
+    const amp = interp1d(
+      Array.from(frqData.amp).slice(offsetFrame, offsetFrame + cutoffFrame),
+      frqTimeAxis,
+      timeAxis
+    );
+    return {
+      frq: frq,
+      amp: amp,
+      timeAxis: timeAxis,
+      frqAverage: frqData.frqAverage,
+    };
+  } catch (err) {
+    LOG.error(`frqデータの読込に失敗:${inputWav}`, "resampWorker.getFrqData");
+    throw err; //frqは原理的にアプリ内で生成可能であるが、現時点でそのような実装はないため、読込失敗は致命的
+  }
 };
 
 /**
@@ -101,7 +121,7 @@ export class ResampWorkerService {
   private readyPromise: Promise<void>;
 
   constructor() {
-    // Worker をモジュールとしてロード
+    LOG.info("resamp workerのロード開始", "resampWorker.ResampWorkerService");
     this.worker = new Worker(new URL("../worker/resamp.ts", import.meta.url), {
       type: "module",
     });
@@ -109,13 +129,17 @@ export class ResampWorkerService {
     // "init-started" メッセージを受信した場合にログを出力するリスナーを追加
     this.worker.addEventListener("message", (event: MessageEvent) => {
       if (event.data && event.data.type === "debug") {
-        console.log(event.data.data);
+        LOG.debug(
+          `resamp workerからのデバッグメッセージ:${event.data.data}`,
+          "resampWorker.ResampWorkerService"
+        );
       }
     });
     // ready 状態を管理する Promise を作成
     this.readyPromise = new Promise((resolve) => {
       const handler = (event: MessageEvent) => {
         if (event.data && event.data.type === "ready") {
+          LOG.info("resamp workerのロード完了", "resampWorker.Worker");
           this.isReady = true;
           this.worker.removeEventListener("message", handler);
           resolve();
@@ -147,20 +171,40 @@ export class ResampWorkerService {
   ): Promise<Float64Array> {
     // Worker の初期化が完了していることを保証
     await this.waitUntilReady();
+    LOG.info(`wav生成request準備`, "resampWorker.ResampWorkerService");
 
+    let waveData: number[];
     // getWaveData と getFrqData を呼び出してデータを取得
-    const waveData = await getWaveData(
-      request.inputWav,
-      request.offsetMs,
-      request.cutoffMs,
-      vb
+    try {
+      waveData = await getWaveData(
+        request.inputWav,
+        request.offsetMs,
+        request.cutoffMs,
+        vb
+      );
+    } catch (err) {
+      throw err;
+    }
+    LOG.debug(
+      `取得したwav長:${waveData.length}`,
+      "resampWorker.ResampWorkerService"
     );
-    const frqDataObj = await getFrqData(
-      request.inputWav,
-      request.offsetMs,
-      (waveData.length / renderingConfig.frameRate) * 1000,
-      vb
-    );
+    let frqDataObj: {
+      frq: number[];
+      amp: number[];
+      timeAxis: number[];
+      frqAverage: number;
+    };
+    try {
+      frqDataObj = await getFrqData(
+        request.inputWav,
+        request.offsetMs,
+        (waveData.length / renderingConfig.frameRate) * 1000,
+        vb
+      );
+    } catch (err) {
+      throw err;
+    }
 
     // ResampWorkerRequest を作成
     const workerRequest: ResampWorkerRequest = {
@@ -193,6 +237,17 @@ export class ResampWorkerService {
       (data) => data.id === requestId
     );
 
+    LOG.debug(
+      `workerにwav生成リクエスト送信:${{
+        ...request,
+        inputWavData: waveData.length,
+        frqData: frqDataObj.frq.length,
+        ampData: frqDataObj.amp.length,
+        frqAverage: frqDataObj.frqAverage,
+      }}、requestId:${requestId}`,
+      "resampWorker.ResampWorkerService"
+    );
+
     // Worker にメッセージを送信
     // Float64Array の buffer は Transferable として渡せる
     this.worker.postMessage({ id: requestId, request: workerRequest }, [
@@ -204,8 +259,16 @@ export class ResampWorkerService {
     // Worker からのレスポンスを待ち、結果を返す
     const response = await responsePromise;
     if (response.error) {
+      LOG.error(
+        `requestId:${requestId}、${response.error}`,
+        "resampWorker.Worker"
+      );
       throw new Error(response.error);
     }
+    LOG.info(
+      `wav生成完了。requestId:${requestId}`,
+      "resampWorker.ResampWorkerService"
+    );
     // 返された結果は Float64Array として受け取る
     return response.result as Float64Array;
   }
