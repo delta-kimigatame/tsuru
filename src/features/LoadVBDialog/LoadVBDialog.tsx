@@ -9,6 +9,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import JSZip from "jszip";
 import { FileList } from "../../components/LoadVBDialog/FileList";
+import { LOG } from "../../lib/Logging";
 import { VoiceBank } from "../../lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
@@ -49,6 +50,10 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
           td.decode(fileNameBinary),
       })
       .then((z) => {
+        LOG.info(
+          `encoding:${encoding}に基づきzipファイルのロード完了`,
+          "LoadVBDialog"
+        );
         setProcessing(false);
         setZipFiles(z.files);
       });
@@ -58,6 +63,7 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
    * あわせてファイル読み込みを中止する
    */
   const handleClose = () => {
+    LOG.info("音源読込ダイアログを閉じる", "LoadVBDialog");
     props.setDialogOpen(false);
     props.setProcessing(false);
   };
@@ -70,15 +76,19 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
    * いずれの場合もダイアログを閉じる。
    */
   const handleButtonClick = () => {
+    LOG.debug("click", "LoadVBDialog");
+    LOG.info("zipをvoicebankとしてinitialize", "LoadVBDialog");
     const vb = new VoiceBank(zipFiles);
     setProcessing(true);
     vb.initialize()
       .then(() => {
+        LOG.info("zipをvoicebankとしてinitialize完了", "LoadVBDialog");
         setVb(vb);
         props.setDialogOpen(false);
         props.setProcessing(false);
       })
       .catch((e) => {
+        LOG.error("zipをvoicebankとしてinitialize失敗", "LoadVBDialog");
         snackBarStore.setSeverity("error");
         snackBarStore.setValue(t("loadVBDialog.error"));
         snackBarStore.setOpen(true);
@@ -89,9 +99,15 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
 
   /** ファイルや文字コードが変更された際の処理 */
   React.useEffect(() => {
+    LOG.debug("ファイル更新もしくはエンコード変更検知", "LoadVBDialog");
     if (props.readFile === null) {
+      LOG.debug("ファイルはnull、ダイアログを閉じる", "LoadVBDialog");
       props.setDialogOpen(false);
     } else {
+      LOG.info(
+        `encoding:${encoding}に基づきzipファイルのロード`,
+        "LoadVBDialog"
+      );
       setProcessing(true);
       loadZip(props.readFile, encoding);
     }

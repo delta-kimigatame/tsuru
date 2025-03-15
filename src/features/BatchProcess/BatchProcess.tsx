@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { DynamicBatchProcessInput } from "../../components/BatchProcess/DynamicBatchProcessInput";
 import { BasePaper } from "../../components/common/BasePaper";
 import { BaseBatchProcess } from "../../lib/BaseBatchProcess";
+import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 
 type NestedKeyOf<ObjectType extends object> = {
@@ -48,6 +49,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
    */
   const handleFieldChange = useCallback(
     (key: NestedKeyOf<FormState>, value: any) => {
+      LOG.info(`formの値の更新。key:${key}、value:${value}`, `BatchProcess`);
       dispatch({ type: "UPDATE_FIELD", key, value });
     },
     []
@@ -57,18 +59,28 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
    * 実行ボタンを押した際の処理
    */
   const handleButtonClick = () => {
+    LOG.debug(`click`, `BatchProcess`);
     const targetNotes =
       props.selectedNotesIndex.length > 0
         ? props.selectedNotesIndex.map((idx) => notes[idx])
         : notes;
+    LOG.info(
+      `selectedIndex:${props.selectedNotesIndex}、selectedNotes:${props.selectedNotesIndex.length}、target:${targetNotes.length}`,
+      `BatchProcess`
+    );
+    /** 処理自体の実行とオプションはprocess側でロギング */
+    LOG.info("バッチ処理の実行", "BatchProcess");
     const resultNotes = props.batchprocess.process(targetNotes, formState);
+    LOG.info("バッチ処理の実行完了", "BatchProcess");
     if (props.selectedNotesIndex.length > 0) {
       // 選択されたノートのみ更新
+      LOG.info("選択されたノートの更新", "BatchProcess");
       props.selectedNotesIndex.forEach((idx, i) => {
         setNote(idx, resultNotes[i]);
       });
     } else {
       // 全ノート更新の場合、全てのインデックスに対して更新
+      LOG.info("全てのノートの更新", "BatchProcess");
       notes.forEach((_, idx) => {
         setNote(idx, resultNotes[idx]);
       });

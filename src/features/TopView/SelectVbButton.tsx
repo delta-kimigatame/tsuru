@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button, CircularProgress, Typography } from "@mui/material";
+import { LOG } from "../../lib/Logging";
 
 /**
  * このアプリケーションにおける最初のUTAU音源読込処理を実行するためのボタンです。
@@ -21,10 +22,12 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
    * 隠し要素であるinputのクリックイベントを発火する。
    */
   const handleButtonClick = () => {
+    LOG.debug("click", "SelectVBButton");
     /** 実行状況の初期化 */
     props.setProcessing(false);
     props.setReadFile(null);
     /** ファイル読み込みの発火 */
+    LOG.info("音源zipファイルの選択", "SelectVBButton");
     inputRef.current.click();
   };
 
@@ -36,10 +39,17 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
    * @param e
    */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    if (e.target.files.length === 0) return;
+    if (!e.target.files || e.target.files.length === 0) {
+      LOG.warn(
+        "音源zipの選択がキャンセルされたか失敗しました",
+        "SelectVBButton"
+      );
+      return;
+    }
     props.setProcessing(true);
+    LOG.info(`音源zipの選択:${e.target.files[0].name}`, "SelectVBButton");
     props.setReadFile(e.target.files[0]);
+    LOG.info(`音源読込ダイアログの表示`, "SelectVBButton");
     props.setDialogOpen(true);
   };
 

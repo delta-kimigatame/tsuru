@@ -5,6 +5,7 @@ import Tabs from "@mui/material/Tabs";
 import JSZip from "jszip";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { LOG } from "../../lib/Logging";
 import { EncodingOption } from "../../utils/EncodingMapping";
 import { TextTabContent } from "./TextTabContent";
 
@@ -24,7 +25,11 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
    * zipファイルが渡されたとき、txtファイルのリストを返す。
    */
   const textFileList = React.useMemo(() => {
-    if (!props.zipFiles) return undefined;
+    LOG.debug("zipファイルの更新検知", "TextTabs");
+    if (!props.zipFiles) {
+      LOG.debug("zipファイルはnull", "TextTabs");
+      return undefined;
+    }
     const fileList = Object.keys(props.zipFiles);
     /** character.txt,install.txt,readme.txt以外のtxtファイルの相対パス */
     const filterFileList = fileList.filter((f) => filterRule(f));
@@ -32,11 +37,16 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
     if (fileList.includes("readme.txt")) {
       filterFileList.unshift("readme.txt");
     }
+    LOG.info(
+      `zip内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
+      "TextTabs"
+    );
     return filterFileList;
   }, [props.zipFiles]);
 
   /** タブを変更する操作 */
   const handleChange = (e: React.SyntheticEvent, newValue: number) => {
+    LOG.debug(`タブの変更。${newValue}`, "TextTabs");
     setValue(newValue);
   };
   return (

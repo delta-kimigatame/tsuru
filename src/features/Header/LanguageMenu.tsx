@@ -2,6 +2,7 @@ import { Menu } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { HeaderMenuItemBase } from "../../components/Header/HeaderMenuItemBase";
+import { LOG } from "../../lib/Logging";
 import { useCookieStore } from "../../store/cookieStore";
 import { Language, languages } from "../../types/language";
 
@@ -15,10 +16,11 @@ export const LanguageMenu: React.FC<LanguageMenuProps> = (props) => {
   const { setLanguage } = useCookieStore.getState();
 
   const handleClick = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
-    console.log(e.currentTarget.innerHTML);
+    LOG.debug("click", "LanguageMenu");
     const value = e.currentTarget
       .querySelector(".MuiAvatar-root")
       ?.textContent?.trim() as Language;
+    LOG.info(`言語設定の更新:${value}`, "LanguageMenu");
     setLanguage(value);
     props.onMenuClose();
   };

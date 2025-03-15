@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { setting } from "../../config/siteConfig";
+import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { InfoVBDialog } from "../InfoVBDialog/InfoVBDialog";
@@ -24,7 +25,11 @@ export const HeaderLogo: React.FC = () => {
   const { vb } = useMusicProjectStore();
   /** character.txtから読み込んだアイコン画像をdataurlに変換したもの */
   const imgUrl: string = React.useMemo(() => {
-    if (vb === null) return undefined;
+    LOG.debug("vb更新検知", "HeaderLogo");
+    if (vb === null) {
+      LOG.debug("vbはnull", "HeaderLogo");
+      return undefined;
+    }
     return vb.image === undefined
       ? undefined
       : URL.createObjectURL(new Blob([vb.image], { type: "image/bmp" }));
@@ -35,9 +40,12 @@ export const HeaderLogo: React.FC = () => {
    * 音源がロード済みであればInfoVBDialogを開く。
    */
   const handleClick = () => {
+    LOG.debug("click", "HeaderLogo");
     if (vb !== null) {
+      LOG.info("vbInfoDialogを開く", "HeaderLogo");
       setOpen(true);
     } else {
+      LOG.info("音源がロードされていません", "HeaderLogo");
       snackBarStore.setSeverity("info");
       snackBarStore.setValue(t("header.clickInfo")); //defaultの表示：音源が未選択です。音源を選択して始めよう!
       snackBarStore.setOpen(true);

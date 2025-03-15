@@ -4,6 +4,7 @@ import {
   HeaderMenuItemBase,
   HeaderMenuItemProps,
 } from "../../../components/Header/HeaderMenuItemBase";
+import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { LanguageMenu } from "../LanguageMenu";
 
@@ -18,6 +19,8 @@ export const HeaderMenuLanguage: React.FC<HeaderMenuItemProps> = (props) => {
   const { language } = useCookieStore.getState();
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
   const handleClick = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
+    LOG.debug("click", "HeaderMenuLanguage");
+    LOG.info("言語メニューの表示", "HeaderMenuLanguage");
     setAnchor(e.currentTarget);
   };
 
@@ -26,6 +29,7 @@ export const HeaderMenuLanguage: React.FC<HeaderMenuItemProps> = (props) => {
    * 言語メニューとヘッダーメニューの両方を閉じる
    */
   const handleMenuClose = () => {
+    LOG.info("言語メニューを閉じる", "HeaderMenuLanguage");
     setAnchor(null);
     props.onMenuClose();
   };

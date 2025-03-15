@@ -1,6 +1,7 @@
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { IconButton } from "@mui/material";
 import * as React from "react";
+import { LOG } from "../../lib/Logging";
 
 /**
  * infoVBDialog内に表示されるサンプル音声を再生するためのアイコンボタン
@@ -16,7 +17,15 @@ export const SampleWavButton: React.FC<SampleWavButtonProps> = (props) => {
    * @returns
    */
   const handleClick = () => {
-    if (audioRef === null) return;
+    LOG.debug("click", "SampleWavButton");
+    if (audioRef === null) {
+      LOG.warn(
+        "audioRef === nullのときdisabledのはずなのにクリックを検出した",
+        "SampleWavButton"
+      );
+      return;
+    }
+    LOG.info("サンプル音声の再生", "SampleWavButton");
     audioRef.current.play();
   };
   return (

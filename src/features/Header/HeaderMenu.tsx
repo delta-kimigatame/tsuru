@@ -1,6 +1,7 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton, Menu } from "@mui/material";
 import React from "react";
+import { LOG } from "../../lib/Logging";
 import { HeaderMenuLanguage } from "./Menu/HeaderMenuLanguage";
 import { HeaderMenuTheme } from "./Menu/HeaderMenuTheme";
 
@@ -13,12 +14,15 @@ export const HeaderMenu: React.FC = () => {
    * @param e
    */
   const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    LOG.debug("click", "HeaderMenu");
+    LOG.info("ヘッダメニューを開く", "HeaderMenu");
     setAnchor(e.currentTarget);
   };
   /**
    * メニューを閉じる動作
    */
   const handleClose = () => {
+    LOG.info("ヘッダメニューを閉じる", "HeaderMenu");
     setAnchor(null);
   };
   return (

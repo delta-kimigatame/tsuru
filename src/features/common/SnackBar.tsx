@@ -1,5 +1,6 @@
 import { Alert, Snackbar } from "@mui/material";
 import React from "react";
+import { LOG } from "../../lib/Logging";
 import { useSnackBarStore } from "../../store/snackBarStore";
 
 /**
@@ -13,6 +14,7 @@ export const SnackBar: React.FC = () => {
    * snackbarが閉じられる祭、globalな値を初期値に戻す
    */
   const handleClose = () => {
+    LOG.debug("close", "SnackBar");
     setOpen(false);
     setValue("");
     setSeverity("info");

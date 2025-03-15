@@ -2,6 +2,7 @@ import { Box, LinearProgress, Typography } from "@mui/material";
 import JSZip from "jszip";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { LOG } from "../../lib/Logging";
 import { extractFileFromZip } from "../../services/extractFileFromZip";
 import { readTextFile } from "../../services/readTextFile";
 import { useSnackBarStore } from "../../store/snackBarStore";
@@ -28,8 +29,10 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
    * 与えられるテキストファイルもしくは文字コードが変更された際の処理
    */
   React.useEffect(() => {
+    LOG.debug("ファイル内容もしくはエンコードの変更検知", "TextTabContent");
     let isCancelled = false;
     if (!props.textFile) {
+      LOG.debug("ファイルはnull", "TextTabContent");
       setLines([]);
       return;
     }
@@ -37,6 +40,10 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
      * テキストファイルを読み込むための非同期処理
      */
     const fetchLines = async () => {
+      LOG.info(
+        `音源zipからテキストファイル読み込み。${props.textFile}`,
+        "TextTabContent"
+      );
       try {
         const buf = await extractFileFromZip(props.textFile);
         const text = await readTextFile(
@@ -45,10 +52,18 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
         );
         const newLines = text.replace(/\r\n/g, "\n").split("\n");
         if (!isCancelled) {
+          LOG.info(
+            `音源zipからテキストファイル読み込み完了。${props.textFile}`,
+            "TextTabContent"
+          );
           setLines(newLines);
         }
       } catch {
         if (!isCancelled) {
+          LOG.warn(
+            `音源zipからテキストファイル読み込み失敗。${props.textFile}`,
+            "TextTabContent"
+          );
           setLines([]);
           snackBarStore.setSeverity("error");
           snackBarStore.setValue(t("infoVBDialog.TextTabContent.error"));
@@ -61,6 +76,7 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
      * componentがアンマウントされた際の処理
      */
     return () => {
+      LOG.debug("unmount", "TextTabContent");
       isCancelled = true;
     };
   }, [props.textFile, props.encoding]);

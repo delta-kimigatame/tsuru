@@ -7,6 +7,7 @@ import {
   HeaderMenuItemBase,
   HeaderMenuItemProps,
 } from "../../../components/Header/HeaderMenuItemBase";
+import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { ThemeMenu } from "../ThemeMenu";
 /**
@@ -20,6 +21,8 @@ export const HeaderMenuTheme: React.FC<HeaderMenuItemProps> = (props) => {
   const { mode } = useCookieStore.getState();
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
   const handleClick = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
+    LOG.debug("click", "HeaderMenuTheme");
+    LOG.info("モードメニューの表示", "HeaderMenuTheme");
     setAnchor(e.currentTarget);
   };
 
@@ -28,6 +31,7 @@ export const HeaderMenuTheme: React.FC<HeaderMenuItemProps> = (props) => {
    * テーマメニューとヘッダーメニューの両方を閉じる
    */
   const handleMenuClose = () => {
+    LOG.info("モードメニューを閉じる", "HeaderMenuTheme");
     setAnchor(null);
     props.onMenuClose();
   };

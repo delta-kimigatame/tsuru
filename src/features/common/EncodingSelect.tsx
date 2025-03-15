@@ -5,6 +5,7 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { useTranslation } from "react-i18next";
+import { LOG } from "../../lib/Logging";
 import { EncodingOption } from "../../utils/EncodingMapping";
 
 /**
@@ -21,6 +22,8 @@ export const EncodingSelect: React.FC<EncodingSelectProps> = (props) => {
    * @param e
    */
   const handleChange = (e: SelectChangeEvent) => {
+    LOG.debug("change", "EncodingSelect");
+    LOG.info(`エンコードの変更：${e.target.value}`, "EncodingSelect");
     props.setValue(e.target.value as EncodingOption);
   };
   return (

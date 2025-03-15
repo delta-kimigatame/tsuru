@@ -5,6 +5,7 @@ import { Menu } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { HeaderMenuItemBase } from "../../components/Header/HeaderMenuItemBase";
+import { LOG } from "../../lib/Logging";
 import { useCookieStore } from "../../store/cookieStore";
 import { Mode } from "../../types/mode";
 
@@ -17,7 +18,9 @@ export const ThemeMenu: React.FC<ThemeMenuProps> = (props) => {
    * @param value "light"か"dark"か"system"
    */
   const handleClick = (value: Mode) => {
+    LOG.debug("click", "ThemeMenu");
     setMode(value);
+    LOG.info(`modeの変更:${value}`, "ThemeMenu");
     props.onMenuClose();
   };
   return (

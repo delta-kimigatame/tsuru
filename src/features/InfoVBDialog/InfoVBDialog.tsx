@@ -6,6 +6,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { CharacterInfo } from "../../components/InfoVBDialog/CharacterInfo";
+import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { EncodingOption } from "../../utils/EncodingMapping";
 import { EncodingSelect } from "../common/EncodingSelect";
@@ -29,7 +30,15 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
    * 非null更新の場合利用規約の同意状況を初期化し、dialogを開く。
    * */
   React.useEffect(() => {
-    if (vb === null) return;
+    LOG.debug("vb更新検知", "InfoVBDialog");
+    if (vb === null) {
+      LOG.debug("vbはnull", "InfoVBDialog");
+      return;
+    }
+    LOG.info(
+      "新しいvbに変更されたため、利用規約への同意状況を初期化しダイアログを開きます。",
+      "InfoVBDialog"
+    );
     setAgreed(false);
     props.setOpen(true);
   }, [vb]);
@@ -38,13 +47,19 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
    * 指定した文字コードでUTAUの設定ファイルを読み直す
    */
   const ReInitializeVb = async () => {
-    if (vb === null) return;
+    if (vb === null) {
+      LOG.debug("vbはnull", "InfoVBDialog");
+      return;
+    }
+    LOG.info(`${encoding}に基づきVBを再度initialize`, "InfoVBDialog");
     await vb.initialize(encoding);
+    LOG.info(`${encoding}に基づきVBをinitialize完了`, "InfoVBDialog");
     setProgress(false);
   };
 
   /** 文字コードが変更された際の処理 */
   React.useEffect(() => {
+    LOG.debug("文字コードの変更検知", "InfoVBDialog");
     setProgress(true);
     ReInitializeVb();
   }, [encoding]);
@@ -53,6 +68,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
    * ダイアログを閉じる処理
    */
   const handleClose = () => {
+    LOG.info("音源情報ダイアログを閉じる", "InfoVBDialog");
     props.setOpen(false);
   };
 
@@ -60,7 +76,9 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
    * 利用規約に同意ボタンを押した際の動作
    */
   const handleButtonClick = () => {
+    LOG.info("音源利用規約に同意しました", "InfoVBDialog");
     setAgreed(true);
+    LOG.info("音源情報ダイアログを閉じる", "InfoVBDialog");
     props.setOpen(false);
   };
 
