@@ -93,7 +93,7 @@ export const useProjectCookie = () => {
   };
 
   LOG.debug(
-    `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote}`,
+    `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote},verticalZoom:${verticalZoom}`,
     "useProjectCookie"
   );
   return {
