@@ -74,6 +74,7 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
               fontSize={PIANOROLL_CONFIG.LYRIC_FONT_SIZE}
               pointerEvents="none"
               dominantBaseline="middle"
+              style={{ userSelect: "none", pointerEvents: "none" }}
             >
               {n.lyric}
             </text>

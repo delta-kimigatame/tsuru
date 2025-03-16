@@ -49,6 +49,7 @@ export const PianorollTonemap: React.FC = () => {
             fontSize={PIANOROLL_CONFIG.LYRIC_FONT_SIZE}
             pointerEvents="none"
             dominantBaseline="middle"
+            style={{ userSelect: "none", pointerEvents: "none" }}
           >
             {noteNumToTone(107 - i)}
           </text>
