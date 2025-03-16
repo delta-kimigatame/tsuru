@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import React from "react";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { LOG } from "../../../lib/Logging";
@@ -6,6 +7,7 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
 import { PianorollPitch } from "./PianorollPitch";
+import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollVibrato } from "./PianorollVibrato";
 
 export const Pianoroll: React.FC = () => {
@@ -38,40 +40,65 @@ export const Pianoroll: React.FC = () => {
   }, [notesLeft]);
 
   return (
-    <>
-      <svg
-        width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
-        height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
-        style={{
-          display: "block",
-          position: "relative",
-        }}
-      >
-        <g id="background">
-          <PianorollBackground totalLength={totalLength} />
-        </g>
-        <g id="notes">
-          <PianorollNotes
-            selectedNotesIndex={[]}
-            totalLength={totalLength}
-            notesLeft={notesLeft}
-          />
-        </g>
-        <g id="pitch">
-          <PianorollPitch
-            selectedNotesIndex={[]}
-            totalLength={totalLength}
-            notesLeft={notesLeft}
-          />
-        </g>
-        <g id="vibrato">
-          <PianorollVibrato
-            selectedNotesIndex={[]}
-            totalLength={totalLength}
-            notesLeft={notesLeft}
-          />
-        </g>
-      </svg>
-    </>
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+        overflowX: "hidden",
+        overflowY: "auto",
+        m: 0,
+        p: 0,
+      }}
+    >
+      <Box sx={{ display: "block", width: PIANOROLL_CONFIG.TONEMAP_WIDTH }}>
+        <svg
+          width={PIANOROLL_CONFIG.TONEMAP_WIDTH}
+          height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
+          style={{
+            display: "block",
+            position: "relative",
+          }}
+        >
+          <PianorollTonemap />
+        </svg>
+      </Box>
+      <Box sx={{ display: "block", overflowX: "scroll" }}>
+        <svg
+          width={
+            totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+          }
+          height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
+          style={{
+            display: "block",
+            position: "relative",
+          }}
+        >
+          <g id="background">
+            <PianorollBackground totalLength={totalLength} />
+          </g>
+          <g id="notes">
+            <PianorollNotes
+              selectedNotesIndex={[]}
+              totalLength={totalLength}
+              notesLeft={notesLeft}
+            />
+          </g>
+          <g id="pitch">
+            <PianorollPitch
+              selectedNotesIndex={[]}
+              totalLength={totalLength}
+              notesLeft={notesLeft}
+            />
+          </g>
+          <g id="vibrato">
+            <PianorollVibrato
+              selectedNotesIndex={[]}
+              totalLength={totalLength}
+              notesLeft={notesLeft}
+            />
+          </g>
+        </svg>
+      </Box>
+    </Box>
   );
 };

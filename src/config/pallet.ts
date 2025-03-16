@@ -24,6 +24,10 @@ interface Pallet {
   lyric: string;
   /** ピッチ */
   pitch: string;
+  /** ピアノロールの白鍵部分の色 */
+  tonemapWhiteKey: string;
+  /** ピアノロールの黒鍵部分の色 */
+  tonemapBlackKey: string;
 }
 
 interface ColorPallet {
@@ -49,6 +53,8 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       noteBorder: "#000000",
       lyric: "#000000",
       pitch: "#FF0000",
+      tonemapWhiteKey: "#F0F0F0",
+      tonemapBlackKey: "#FFC0FF",
     },
     dark: {
       whiteKey: "#000000",
@@ -62,6 +68,8 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       noteBorder: "#FFFFFF",
       lyric: "#FFFFFF",
       pitch: "#FF0000",
+      tonemapWhiteKey: "#606060",
+      tonemapBlackKey: "#906090",
     },
   },
 };

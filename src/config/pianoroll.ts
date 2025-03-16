@@ -23,11 +23,13 @@ export const PIANOROLL_CONFIG = {
   // CSSで拡大する前1ピクセル当たりの長さ
   LENGTH_PER_PIXEL: 1,
   // ノート描画時のX軸方向への引き延ばし倍率。375pixelの画面に1小節(length=1920)が収まる
-  NOTES_WIDTH_RATE: 375 / 1920,
+  NOTES_WIDTH_RATE: (375 - 50) / 1920,
   // ノートの枠線の幅
   NOTES_BORDER_WIDTH: 1,
   // 歌詞の文字サイズ
   LYRIC_FONT_SIZE: 14,
   // 歌詞の左パディング
   LYRIC_PADDING_LEFT: 4,
+  // 音高名を表示する部分
+  TONEMAP_WIDTH: 50,
 };
