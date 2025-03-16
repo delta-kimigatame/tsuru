@@ -146,6 +146,7 @@ export const getPathD = (
   const pbm = n.pbm ?? [];
   const pby = n.pby ?? [];
   pby.slice(0, n.pbw.length - 1);
+  pbm.slice(0, n.pbw.length);
   while (pbm.length < n.pbw.length) {
     pbm.push("");
   }
