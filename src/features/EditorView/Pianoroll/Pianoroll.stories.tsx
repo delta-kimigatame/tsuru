@@ -1,8 +1,11 @@
 import { Meta, StoryFn } from "@storybook/react";
+import JSZip from "jszip";
 import React from "react";
 import { Note } from "../../../lib/Note";
+import { VoiceBank } from "../../../lib/VoiceBanks/VoiceBank";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { loadVB } from "../../../storybook/utils";
 import { last } from "../../../utils/array";
 import { Pianoroll } from "./Pianoroll";
 
@@ -91,4 +94,25 @@ Zoom.play = async () => {
   store.setHorizontalZoom(0.5);
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
+};
+
+export const Portrait = Template.bind({});
+Portrait.play = async () => {
+  const store = useCookieStore.getState();
+  const projectStore = useMusicProjectStore.getState();
+  store.setMode("light");
+  store.setColorTheme("default");
+  store.setVerticalZoom(1);
+  store.setHorizontalZoom(1);
+  const newNotes = createNotes(107 - 24 + 1);
+  projectStore.setNotes(newNotes);
+  const td = new TextDecoder("Shift-JIS");
+  const buffer = await loadVB("minimumCV.zip");
+  const zip = new JSZip();
+  await zip.loadAsync(buffer, {
+    decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
+  });
+  const loadedVb = new VoiceBank(zip.files);
+  await loadedVb.initialize();
+  projectStore.setVb(loadedVb);
 };

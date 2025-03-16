@@ -12,9 +12,16 @@ import { PianorollVibrato } from "./PianorollVibrato";
 
 export const Pianoroll: React.FC = () => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes } = useMusicProjectStore();
+  const { notes, vb } = useMusicProjectStore();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const c4Center = notenumToPoint(60, verticalZoom);
+  const portraitUrl: string = React.useMemo(() => {
+    LOG.debug("vbの更新検知", "Pianoroll");
+    if (vb === null) return undefined;
+    return vb.portrait === undefined
+      ? undefined
+      : URL.createObjectURL(new Blob([vb.portrait], { type: "image/png" }));
+  }, [vb]);
   /**
    * 各ノートのx座標描画位置を予め求めておく
    */
@@ -70,7 +77,7 @@ export const Pianoroll: React.FC = () => {
           <PianorollTonemap />
         </svg>
       </Box>
-      <Box sx={{ display: "block", overflowX: "scroll" }}>
+      <Box sx={{ display: "block", overflowX: "scroll", position: "relative" }}>
         <svg
           width={
             totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
@@ -107,6 +114,23 @@ export const Pianoroll: React.FC = () => {
           </g>
         </svg>
       </Box>
+      {portraitUrl !== undefined && (
+        <img
+          src={portraitUrl}
+          style={{
+            maxHeight: vb.portraitHeight,
+            objectFit: "contain",
+            position: "fixed",
+            bottom: 0,
+            right: 0,
+            zIndex: 10,
+            maxWidth: "50%",
+            pointerEvents: "none",
+            userSelect: "none",
+            opacity: vb.portraitOpacity,
+          }}
+        />
+      )}
     </Box>
   );
 };
