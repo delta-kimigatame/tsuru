@@ -22,6 +22,8 @@ interface Pallet {
   noteBorder: string;
   /** 歌詞の文字色 */
   lyric: string;
+  /** ピッチ */
+  pitch: string;
 }
 
 interface ColorPallet {
@@ -46,6 +48,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       selectedNote: "#F090F0",
       noteBorder: "#000000",
       lyric: "#000000",
+      pitch: "#FF0000",
     },
     dark: {
       whiteKey: "#000000",
@@ -58,6 +61,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       selectedNote: "#F090F0",
       noteBorder: "#FFFFFF",
       lyric: "#FFFFFF",
+      pitch: "#FF0000",
     },
   },
 };
