@@ -56,6 +56,14 @@ export const PianorollBackground: React.FC = () => {
       ctx.lineTo(PIANOROLL_CONFIG.INITIAL_CANVAS_WIDTH, i * keyHeight);
       ctx.stroke();
     }
+    ctx.lineWidth = PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE;
+    ctx.beginPath();
+    ctx.moveTo(0, PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom);
+    ctx.lineTo(
+      PIANOROLL_CONFIG.INITIAL_CANVAS_WIDTH,
+      PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom
+    );
+    ctx.stroke();
     LOG.info("ピアノロール背景の描画完了", "PianorollBackground");
     // 音高毎に1pixelの区切り線を引いたほうがいいかもしれない。storybookを見ながら調整する
   }, [mode, colorTheme, verticalZoom]);
@@ -68,6 +76,7 @@ export const PianorollBackground: React.FC = () => {
         position: "absolute",
         top: 0,
         left: 0,
+        zIndex: 0,
         width: "100%",
         height: PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom,
       }}
