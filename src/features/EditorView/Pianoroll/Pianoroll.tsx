@@ -6,20 +6,22 @@ import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
-import { PianorollPitch } from "./PianorollPitch";
+import { notenumToPoint, PianorollPitch } from "./PianorollPitch";
 import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollVibrato } from "./PianorollVibrato";
 
 export const Pianoroll: React.FC = () => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const c4Center = notenumToPoint(60, verticalZoom);
   /**
    * 各ノートのx座標描画位置を予め求めておく
    */
   const notesLeft = React.useMemo(() => {
-    LOG.debug("notesの更新検知", "PianorollVibrato");
+    LOG.debug("notesの更新検知", "Pianoroll");
     if (notes.length === 0) return [];
-    LOG.debug("notesLeftの再計算", "PianorollVibrato");
+    LOG.debug("notesLeftの再計算", "Pianoroll");
     const lefts = new Array<number>();
     let totalLength = 0;
     for (let i = 0; i < notes.length; i++) {
@@ -33,22 +35,28 @@ export const Pianoroll: React.FC = () => {
    * svg幅を計算するためにノート長の合計を求める
    */
   const totalLength = React.useMemo(() => {
-    LOG.debug("notesLeftの更新検知", "PianorollVibrato");
+    LOG.debug("notesLeftの更新検知", "Pianoroll");
     if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "PianorollVibrato");
+    LOG.debug("totalLengthの再計算", "Pianoroll");
     return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
   }, [notesLeft]);
 
+  React.useEffect(() => {
+    LOG.debug(`コンポーネントマウント、c4Center:${c4Center}`, "Pianoroll");
+    window.scrollTo(0, c4Center - window.innerHeight / 2);
+  }, [c4Center]);
   return (
     <Box
       sx={{
         display: "flex",
         width: "100%",
+        height: PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom + 40,
         overflowX: "hidden",
         overflowY: "auto",
         m: 0,
         p: 0,
       }}
+      ref={containerRef}
     >
       <Box sx={{ display: "block", width: PIANOROLL_CONFIG.TONEMAP_WIDTH }}>
         <svg
