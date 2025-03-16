@@ -4,27 +4,15 @@ import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useThemeMode } from "../../../hooks/useThemeMode";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
-import { useMusicProjectStore } from "../../../store/musicProjectStore";
 
 /**
  * ピアノロールの背景部分
  */
-export const PianorollBackground: React.FC = () => {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
+  totalLength,
+}) => {
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes } = useMusicProjectStore();
   const mode = useThemeMode();
-  /**
-   * svg幅を計算するためにノート長の合計を求める
-   *
-   * これは結局各canvasで必要になるので、後で親要素を作ったらpropsに変更する
-   * */
-  const totalLength = React.useMemo(() => {
-    LOG.debug("notesの更新検知", "PianorollNotes");
-    if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "PianorollNotes");
-    return notes.reduce((total, current) => total + current.length, 0);
-  }, [notes]);
 
   /**
    * notesの実際の拍子数に最も近い4の倍数
@@ -112,3 +100,7 @@ export const PianorollBackground: React.FC = () => {
     </svg>
   );
 };
+
+export interface PianorollBackgroundProps {
+  totalLength: number;
+}

@@ -2,7 +2,6 @@ import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useThemeMode } from "../../../hooks/useThemeMode";
-import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 
@@ -14,32 +13,13 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
   const mode = useThemeMode();
-  /** 各ノートのx座標描画位置を予め求めておく */
-  const notesLeft = React.useMemo(() => {
-    LOG.debug("notesの更新検知", "PianorollNotes");
-    if (notes.length === 0) return [];
-    LOG.debug("notesLeftの再計算", "PianorollNotes");
-    const lefts = new Array<number>();
-    let totalLength = 0;
-    for (let i = 0; i < notes.length; i++) {
-      lefts.push(totalLength);
-      totalLength += notes[i].length;
-    }
-    return lefts;
-  }, [notes]);
-
-  /** svg幅を計算するためにノート長の合計を求める */
-  const totalLength = React.useMemo(() => {
-    LOG.debug("notesLeftの更新検知", "PianorollNotes");
-    if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "PianorollNotes");
-    return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
-  }, [notesLeft]);
 
   return (
     <>
       <svg
-        width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
+        width={
+          props.totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+        }
         height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
         style={{
           pointerEvents: "none",
@@ -55,7 +35,7 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
             <rect
               key={i}
               x={
-                notesLeft[i] *
+                props.notesLeft[i] *
                 PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
                 horizontalZoom
               }
@@ -80,7 +60,7 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
             />
             <text
               x={
-                notesLeft[i] *
+                props.notesLeft[i] *
                   PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
                   horizontalZoom +
                 PIANOROLL_CONFIG.LYRIC_PADDING_LEFT
@@ -106,4 +86,6 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
 
 export interface PianorollNotesProps {
   selectedNotesIndex: Array<number>;
+  notesLeft: Array<number>;
+  totalLength: number;
 }

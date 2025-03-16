@@ -9,39 +9,19 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { makeTimeAxis } from "../../../utils/interp";
 import { deciToneToPoint, msToPoint, notenumToPoint } from "./PianorollPitch";
 
-export const PianorollVibrato: React.FC = () => {
+export const PianorollVibrato: React.FC<PianorollVibratoProps> = (props) => {
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
   const mode = useThemeMode();
+
   /**
-   * 各ノートのx座標描画位置を予め求めておく
-   *
-   * TODO 親コンポーネントで実行しpropsとしてもらうようにする
+   * UTAUのビブラート値を使ってボリライン描画用のpointsを取得する
+   * @param n 対象ノート
+   * @param leftOffset 対象ノートsvgのx軸上の開始位置
+   * @param verticalZoom svgの垂直方向の拡大率
+   * @param horizontalZoom svgの水平方向の拡大率
+   * @returns ポリラインに渡す値。`x1,y1 x2,y2 x3,y3...`と言った形式で与えられる。
    */
-  const notesLeft = React.useMemo(() => {
-    LOG.debug("notesの更新検知", "PianorollVibrato");
-    if (notes.length === 0) return [];
-    LOG.debug("notesLeftの再計算", "PianorollVibrato");
-    const lefts = new Array<number>();
-    let totalLength = 0;
-    for (let i = 0; i < notes.length; i++) {
-      lefts.push(totalLength);
-      totalLength += notes[i].length;
-    }
-    return lefts;
-  }, [notes]);
-
-  /** svg幅を計算するためにノート長の合計を求める
-   *
-   * TODO 親コンポーネントで実行しpropsとしてもらうようにする
-   */
-  const totalLength = React.useMemo(() => {
-    LOG.debug("notesLeftの更新検知", "PianorollVibrato");
-    if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "PianorollVibrato");
-    return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
-  }, [notesLeft]);
-
   const vibratoToPoliline = (
     n: Note,
     leftOffset: number,
@@ -92,14 +72,15 @@ export const PianorollVibrato: React.FC = () => {
       }
       points.push(`${leftOffset + xAxis[i]},${topOffset + v}`);
     });
-    console.log(points.join(" "));
     return points.join(" ");
   };
 
   return (
     <>
       <svg
-        width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
+        width={
+          props.totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+        }
         height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
         style={{
           pointerEvents: "none",
@@ -112,27 +93,30 @@ export const PianorollVibrato: React.FC = () => {
       >
         {notes.map((n, i) => (
           <>
-            {
-              /** pbsが存在しないノートはピッチの描画無し */
-              n.lyric !== "R" && n.vibrato !== undefined && (
-                <polyline
-                  key={i}
-                  points={vibratoToPoliline(
-                    n,
-                    notesLeft[i] *
-                      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
-                      horizontalZoom,
-                    verticalZoom,
-                    horizontalZoom
-                  )}
-                  stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
-                  fill="none"
-                />
-              )
-            }
+            {n.lyric !== "R" && n.vibrato !== undefined && (
+              <polyline
+                key={i}
+                points={vibratoToPoliline(
+                  n,
+                  props.notesLeft[i] *
+                    PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+                    horizontalZoom,
+                  verticalZoom,
+                  horizontalZoom
+                )}
+                stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
+                fill="none"
+              />
+            )}
           </>
         ))}
       </svg>
     </>
   );
 };
+
+export interface PianorollVibratoProps {
+  selectedNotesIndex: Array<number>;
+  notesLeft: Array<number>;
+  totalLength: number;
+}

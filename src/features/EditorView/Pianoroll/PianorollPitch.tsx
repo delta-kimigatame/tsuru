@@ -8,43 +8,17 @@ import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { last } from "../../../utils/array";
 
-export const PianorollPitch: React.FC = () => {
+export const PianorollPitch: React.FC<PianorollPitchProps> = (props) => {
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
   const mode = useThemeMode();
-  /**
-   * 各ノートのx座標描画位置を予め求めておく
-   *
-   * TODO 親コンポーネントで実行しpropsとしてもらうようにする
-   */
-  const notesLeft = React.useMemo(() => {
-    LOG.debug("notesの更新検知", "PianorollPitch");
-    if (notes.length === 0) return [];
-    LOG.debug("notesLeftの再計算", "PianorollPitch");
-    const lefts = new Array<number>();
-    let totalLength = 0;
-    for (let i = 0; i < notes.length; i++) {
-      lefts.push(totalLength);
-      totalLength += notes[i].length;
-    }
-    return lefts;
-  }, [notes]);
-
-  /** svg幅を計算するためにノート長の合計を求める
-   *
-   * TODO 親コンポーネントで実行しpropsとしてもらうようにする
-   */
-  const totalLength = React.useMemo(() => {
-    LOG.debug("notesLeftの更新検知", "PianorollPitch");
-    if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "PianorollPitch");
-    return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
-  }, [notesLeft]);
 
   return (
     <>
       <svg
-        width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
+        width={
+          props.totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+        }
         height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
         style={{
           pointerEvents: "none",
@@ -65,7 +39,7 @@ export const PianorollPitch: React.FC = () => {
                   d={getPathD(
                     n,
                     i,
-                    notesLeft[i] *
+                    props.notesLeft[i] *
                       PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
                       horizontalZoom,
                     verticalZoom,
@@ -82,6 +56,11 @@ export const PianorollPitch: React.FC = () => {
     </>
   );
 };
+export interface PianorollPitchProps {
+  selectedNotesIndex: Array<number>;
+  notesLeft: Array<number>;
+  totalLength: number;
+}
 
 /**
  * ピッチのポルタメント(ms)を座標に変換する。
