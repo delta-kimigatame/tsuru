@@ -1,3 +1,4 @@
+import { Link } from "@mui/material";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import React from "react";
@@ -20,6 +21,10 @@ const FooterShare: React.FC<{ matches: boolean }> = ({ matches }) => {
       }}
     >
       <Typography variant="body2">
+        icon/logo/imgae:浅岬透(
+        <Link href="mailto:ngsg.ngs@gmail.com">ngsg.ngs@gmail.com</Link>)
+        <br />
+        <br />
         きみがため
         <br />
         <br />

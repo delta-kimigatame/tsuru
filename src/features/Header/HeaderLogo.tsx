@@ -56,7 +56,7 @@ export const HeaderLogo: React.FC = () => {
     <>
       <Box sx={{ display: "flex", flexWrap: "nowrap", alignItems: "center" }}>
         <Avatar
-          sx={{ width: 24, height: 24, mx: 1 }}
+          sx={{ width: 40, height: 40, mx: 1 }}
           variant="square"
           src={vb === null ? "./static/logo192.png" : imgUrl}
           alt={vb === null ? "logo" : vb.name}
