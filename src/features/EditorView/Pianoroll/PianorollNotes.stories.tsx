@@ -20,33 +20,12 @@ const Template: StoryFn<PianorollNotesProps> = (args) => (
         position: "relative",
         width: "100%",
         height: PIANOROLL_CONFIG.TOTAL_HEIGHT + 100,
-        overflowX: "hidden",
-        overflowY: "hidden",
+        overflowX: "scroll",
+        overflowY: "auto",
       }}
     >
-      {/* 背景：画面幅に固定、スクロールしない */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          pointerEvents: "none", // 背景は操作対象外
-          zIndex: 0,
-        }}
-      >
-        <PianorollBackground />
-      </Box>
-      <Box
-        sx={{
-          position: "relative",
-          overflowX: "scroll",
-          height: PIANOROLL_CONFIG.TOTAL_HEIGHT + 100,
-          zIndex: 1,
-        }}
-      >
-        <PianorollNotes {...args} />
-      </Box>
+      <PianorollBackground />
+      <PianorollNotes {...args} />
     </Box>
   </>
 );

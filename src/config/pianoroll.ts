@@ -14,6 +14,10 @@ export const PIANOROLL_CONFIG = {
   HORIZONTAL_SEPARATOR_WIDTH: 0.2,
   // ピアノロールの横線の幅(1オクターブ毎)
   HORIZONTAL_SEPARATOR_WIDTH_OCTAVE: 1,
+  // ピアノロールの縦線の幅(1拍毎)
+  VERTICAL_SEPARATOR_WIDTH: 0.2,
+  // ピアノロールの縦線の幅(1小節毎)
+  VERTICAL_SEPARATOR_WIDTH_MEASURE: 0.5,
   // canvas要素1つあたりの最大横幅
   CANVAS_MAX_WIDTH: 4096,
   // CSSで拡大する前1ピクセル当たりの長さ

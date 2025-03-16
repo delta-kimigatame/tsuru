@@ -8,6 +8,8 @@ interface Pallet {
   blackKey: string;
   /** ピアノロールの音高毎のセパレータの色 */
   horizontalSeparator: string;
+  /** ピアノロールの拍子毎のセパレータの色 */
+  verticalSeparator: string;
   /** 休符ノートの色 */
   restNote: string;
   /** 休符ノートの色(選択時) */
@@ -36,6 +38,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
     light: {
       whiteKey: "#FFFFFF",
       blackKey: "#F0F0F0",
+      verticalSeparator: "#000090",
       horizontalSeparator: "#000000",
       restNote: "#D0D0D0",
       selectedRestNote: "#A0A0A0",
@@ -47,6 +50,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
     dark: {
       whiteKey: "#000000",
       blackKey: "#606060",
+      verticalSeparator: "#C0C0FF",
       horizontalSeparator: "#FFFFFF",
       restNote: "#909090",
       selectedRestNote: "#C0C0C0",
