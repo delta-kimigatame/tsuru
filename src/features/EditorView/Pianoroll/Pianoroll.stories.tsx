@@ -2,10 +2,12 @@ import { Meta, StoryFn } from "@storybook/react";
 import JSZip from "jszip";
 import React from "react";
 import { Note } from "../../../lib/Note";
+import { Ust } from "../../../lib/Ust";
 import { VoiceBank } from "../../../lib/VoiceBanks/VoiceBank";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
-import { loadVB } from "../../../storybook/utils";
+import { modernVCVUst } from "../../../storybook/sampledata";
+import { base64ToArrayBuffer, loadVB } from "../../../storybook/utils";
 import { last } from "../../../utils/array";
 import { Pianoroll } from "./Pianoroll";
 
@@ -115,4 +117,18 @@ Portrait.play = async () => {
   const loadedVb = new VoiceBank(zip.files);
   await loadedVb.initialize();
   projectStore.setVb(loadedVb);
+};
+
+export const RealUst = Template.bind({});
+RealUst.play = async () => {
+  const store = useCookieStore.getState();
+  const projectStore = useMusicProjectStore.getState();
+  store.setMode("light");
+  store.setColorTheme("default");
+  store.setVerticalZoom(1);
+  store.setHorizontalZoom(1);
+  const u = new Ust();
+  await u.load(base64ToArrayBuffer(modernVCVUst));
+  projectStore.setUst(u);
+  projectStore.setNotes(u.notes);
 };
