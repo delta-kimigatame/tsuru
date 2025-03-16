@@ -22,4 +22,8 @@ export const PIANOROLL_CONFIG = {
   NOTES_WIDTH_RATE: 375 / 1920,
   // ノートの枠線の幅
   NOTES_BORDER_WIDTH: 1,
+  // 歌詞の文字サイズ
+  LYRIC_FONT_SIZE: 14,
+  // 歌詞の左パディング
+  LYRIC_PADDING_LEFT: 4,
 };
