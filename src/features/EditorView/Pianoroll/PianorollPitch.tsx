@@ -135,7 +135,7 @@ export const getPathD = (
     return "";
   } else if (
     n.pbw.length >= 2 &&
-    (n.pby === undefined || n.pby.length !== n.pbw.length - 1)
+    (n.pby === undefined || n.pby.length < n.pbw.length - 1)
   ) {
     LOG.warn(
       `ポルタメント関連パラメータが不整合。pbwの設定とpbyの設定が合わない。note.index:${index}`,
@@ -145,6 +145,7 @@ export const getPathD = (
   }
   const pbm = n.pbm ?? [];
   const pby = n.pby ?? [];
+  pby.slice(0, n.pbw.length - 1);
   while (pbm.length < n.pbw.length) {
     pbm.push("");
   }
