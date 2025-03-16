@@ -2,9 +2,22 @@
  * 仕様策定中。EditorViewの開発にあわせて拡張していく
  */
 interface Pallet {
+  /** ピアノロールの白鍵部分の色 */
   whiteKey: string;
+  /** ピアノロールの黒鍵部分の色 */
   blackKey: string;
+  /** ピアノロールの音高毎のセパレータの色 */
   horizontalSeparator: string;
+  /** 休符ノートの色 */
+  restNote: string;
+  /** 休符ノートの色(選択時) */
+  selectedRestNote: string;
+  /** ノートの色 */
+  note: string;
+  /** ノートの色(選択時) */
+  selectedNote: string;
+  /** ノートの枠線の色 */
+  noteBorder: string;
 }
 
 interface ColorPallet {
@@ -22,11 +35,21 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       whiteKey: "#FFFFFF",
       blackKey: "#F0F0F0",
       horizontalSeparator: "#000000",
+      restNote: "#D0D0D0",
+      selectedRestNote: "#A0A0A0",
+      note: "#F0D0F0",
+      selectedNote: "#F090F0",
+      noteBorder: "#000000",
     },
     dark: {
       whiteKey: "#000000",
       blackKey: "#606060",
       horizontalSeparator: "#FFFFFF",
+      restNote: "#909090",
+      selectedRestNote: "#C0C0C0",
+      note: "#906090",
+      selectedNote: "#F090F0",
+      noteBorder: "#FFFFFF",
     },
   },
 };
