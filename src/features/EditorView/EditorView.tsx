@@ -8,7 +8,7 @@ export const EditorView: React.FC = () => {
       <Pianoroll />
       <br />
       <br />
-      <FooterMenu />
+      <FooterMenu selectedNotesIndex={[]} />
     </>
   );
 };

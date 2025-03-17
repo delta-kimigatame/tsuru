@@ -77,14 +77,23 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
       LOG.info("選択されたノートの更新", "BatchProcess");
       props.selectedNotesIndex.forEach((idx, i) => {
         setNote(idx, resultNotes[i]);
+        if (idx !== 0) {
+          resultNotes[i].prev = notes[idx - 1];
+          notes[idx - 1].next = resultNotes[i];
+        }
       });
     } else {
       // 全ノート更新の場合、全てのインデックスに対して更新
       LOG.info("全てのノートの更新", "BatchProcess");
       notes.forEach((_, idx) => {
+        if (idx !== 0) {
+          resultNotes[idx].prev = resultNotes[idx - 1];
+          resultNotes[idx - 1].next = resultNotes[idx];
+        }
         setNote(idx, resultNotes[idx]);
       });
     }
+    if (props.handleClose !== undefined) props.handleClose();
   };
 
   return (
@@ -123,4 +132,5 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
 export interface BatchProcessProps {
   batchprocess: BaseBatchProcess;
   selectedNotesIndex: number[];
+  handleClose?: () => void;
 }

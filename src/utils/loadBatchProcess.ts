@@ -5,7 +5,7 @@ const modules = import.meta.glob("../lib/BatchProcess/*.ts");
 
 // 各モジュールを読み込み、エクスポートされたクラス一覧を取得する関数の例
 export async function loadBatchProcessClasses(): Promise<
-  Array<{ title: string; cls: BaseBatchProcess }>
+  Array<{ title: string; cls: new () => BaseBatchProcess }>
 > {
   const classes: Array<{ title: string; cls: any }> = [];
   for (const path in modules) {

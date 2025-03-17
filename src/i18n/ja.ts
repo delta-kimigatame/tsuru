@@ -69,7 +69,21 @@ export const translationJa = {
     },
     agreeButton: "全規約に同意",
   },
-  editor: {},
+  editor: {
+    footer: {
+      project: "ust読込",
+      zoom: "拡大縮小",
+      batchprocess: "一括処理",
+      play: "再生",
+      wav: "wav保存",
+      ustLoadError:
+        "ustファイルの読み込みに失敗しました。ファイルを確認してください。",
+      verticalZoomIn: "拡大(縦)",
+      verticalZoomOut: "縮小(縦)",
+      horizontalZoomIn: "拡大(横)",
+      horizontalZoomOut: "縮小(横)",
+    },
+  },
   batchprocess: {
     octaveUp: "1オクターブ上げる",
     octaveDown: "1オクターブ下げる",
