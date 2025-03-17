@@ -1,6 +1,7 @@
 import { defaultNote } from "../../config/note";
 import { PaperGroup } from "../../types/batchProcess";
 import { BaseBatchProcess } from "../BaseBatchProcess";
+import { LogLevel } from "../Logging";
 import { Note } from "../Note";
 
 const lyricModeOptions = ["CV", "VCV"] as const;
@@ -12,7 +13,7 @@ type VowelConnectOptions = (typeof vowelConnectOptions)[number];
 const envelopeTypeOptions = ["vcvCrossFade", "allCrossFade", "reset"] as const;
 export type EnvelopeTypeOptions = (typeof envelopeTypeOptions)[number];
 
-const reg = /^([^ ]*)(?:[-aiuron*] )([ぁ-んァ-ヶ]+)([^ ]*)$/;
+const reg = /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
 const VCVCheck = /[-aiuron] ([ぁ-んァ-ヶ]+)/;
 const vowelA =
   /[あかさたなはまやらわがざだばぱぁゃゎアカサタナハマヤラワガザダバパァャヮ]$/;
@@ -200,6 +201,10 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
      * マッチしない場合は日本語音源として想定されるlyricではないため変換の対象外とする。
      */
     const match = reg.exec(n.lyric);
+    this.log(
+      `lyric:${n.lyric},length:${n.lyric.length},${match}`,
+      LogLevel.DEBUG
+    );
     if (!match) {
       /** マッチしない場合何もしない */
     } else if (options.mode === "CV") {
@@ -255,7 +260,8 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       } else {
         /** ここには来ないことを期待しているが念のため例外処理として実装 */
         this.log(
-          `開発者の意図しない例外。lyric:${n.lyric}、prevLyric:${prevLyric}`
+          `開発者の意図しない例外。lyric:${n.lyric}、prevLyric:${prevLyric}`,
+          LogLevel.WARN
         );
         n.lyric = `- ${match[2]}`;
       }
@@ -412,9 +418,9 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           key: "pitchOptions.timing",
           labelKey: "batchprocess.preprocessing.pitch.timing",
           inputType: "select",
-          options: [60, 45, 30, 15, 0],
+          options: [-60, -45, -30, -15, 0],
           displayOptionKey: "batchprocess.preprocessing.pitch.timingOptions",
-          defaultValue: 45,
+          defaultValue: -45,
         },
       ],
     } as PaperGroup,
@@ -581,7 +587,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       replace: true,
     },
     pitch: true,
-    pitchOptions: { timing: 45, speed: 60 },
+    pitchOptions: { timing: -45, speed: 60 },
     vibrato: true,
     vibratoOptions: {
       default: { isProcess: false, threshold: 720 },
