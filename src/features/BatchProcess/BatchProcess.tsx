@@ -9,6 +9,7 @@ import { BasePaper } from "../../components/common/BasePaper";
 import { BaseBatchProcess } from "../../lib/BaseBatchProcess";
 import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
+import { executeBatchProcess } from "../../utils/batchProcess";
 
 type NestedKeyOf<ObjectType extends object> = {
   [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
@@ -17,7 +18,7 @@ type NestedKeyOf<ObjectType extends object> = {
 }[keyof ObjectType & (string | number)];
 
 export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
-  const { notes, setNote } = useMusicProjectStore();
+  const { notes, setNote, vb } = useMusicProjectStore();
   const { t } = useTranslation();
   type FormState = typeof props.batchprocess.initialOptions;
   type Action = {
@@ -60,39 +61,14 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
    */
   const handleButtonClick = () => {
     LOG.debug(`click`, `BatchProcess`);
-    const targetNotes =
-      props.selectedNotesIndex.length > 0
-        ? props.selectedNotesIndex.map((idx) => notes[idx])
-        : notes;
-    LOG.info(
-      `selectedIndex:${props.selectedNotesIndex}、selectedNotes:${props.selectedNotesIndex.length}、target:${targetNotes.length}`,
-      `BatchProcess`
+    executeBatchProcess<FormState>(
+      props.selectedNotesIndex,
+      notes,
+      setNote,
+      vb,
+      props.batchprocess.process,
+      formState
     );
-    /** 処理自体の実行とオプションはprocess側でロギング */
-    LOG.info("バッチ処理の実行", "BatchProcess");
-    const resultNotes = props.batchprocess.process(targetNotes, formState);
-    LOG.info("バッチ処理の実行完了", "BatchProcess");
-    if (props.selectedNotesIndex.length > 0) {
-      // 選択されたノートのみ更新
-      LOG.info("選択されたノートの更新", "BatchProcess");
-      props.selectedNotesIndex.forEach((idx, i) => {
-        setNote(idx, resultNotes[i]);
-        if (idx !== 0) {
-          resultNotes[i].prev = notes[idx - 1];
-          notes[idx - 1].next = resultNotes[i];
-        }
-      });
-    } else {
-      // 全ノート更新の場合、全てのインデックスに対して更新
-      LOG.info("全てのノートの更新", "BatchProcess");
-      notes.forEach((_, idx) => {
-        if (idx !== 0) {
-          resultNotes[idx].prev = resultNotes[idx - 1];
-          resultNotes[idx - 1].next = resultNotes[idx];
-        }
-        setNote(idx, resultNotes[idx]);
-      });
-    }
     if (props.handleClose !== undefined) props.handleClose();
   };
 

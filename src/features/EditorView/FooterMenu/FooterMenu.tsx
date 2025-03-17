@@ -11,6 +11,7 @@ import { LOG } from "../../../lib/Logging";
 import { Ust } from "../../../lib/Ust";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
+import { executeBatchProcess } from "../../../utils/batchProcess";
 import { loadBatchProcessClasses } from "../../../utils/loadBatchProcess";
 import { BatchProcessDialog } from "../../BatchProcess/BatchProcessDialog";
 import { FooterBatchProcessMenu } from "./FooterBatchProcessMenu";
@@ -159,39 +160,14 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     const bp = new batchProcesses[index].cls();
     setBatchProcessProgress(true);
     if (bp.ui.length === 0) {
-      const targetNotes =
-        props.selectedNotesIndex.length > 0
-          ? props.selectedNotesIndex.map((idx) => notes[idx])
-          : notes;
-      LOG.info(
-        `selectedIndex:${props.selectedNotesIndex}、selectedNotes:${props.selectedNotesIndex.length}、target:${targetNotes.length}`,
-        "FooterMenu"
+      executeBatchProcess<void>(
+        props.selectedNotesIndex,
+        notes,
+        setNote,
+        vb,
+        bp.process,
+        undefined
       );
-      /** 処理自体の実行とオプションはprocess側でロギング */
-      LOG.info("バッチ処理の実行", "FooterMenu");
-      const resultNotes = bp.process(targetNotes);
-      LOG.info("バッチ処理の実行完了", "FooterMenu");
-      if (props.selectedNotesIndex.length > 0) {
-        // 選択されたノートのみ更新
-        LOG.info("選択されたノートの更新", "FooterMenu");
-        props.selectedNotesIndex.forEach((idx, i) => {
-          setNote(idx, resultNotes[i]);
-          if (idx !== 0) {
-            resultNotes[i].prev = notes[idx - 1];
-            notes[idx - 1].next = resultNotes[i];
-          }
-        });
-      } else {
-        // 全ノート更新の場合、全てのインデックスに対して更新
-        LOG.info("全てのノートの更新", "FooterMenu");
-        notes.forEach((_, idx) => {
-          if (idx !== 0) {
-            resultNotes[idx].prev = resultNotes[idx - 1];
-            resultNotes[idx - 1].next = resultNotes[idx];
-          }
-          setNote(idx, resultNotes[idx]);
-        });
-      }
       setBatchProcessProgress(false);
     } else {
       LOG.info(`バッチ処理ダイアログの起動。bp:${bp.title}`, "FooterMenu");
