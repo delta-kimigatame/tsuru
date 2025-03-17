@@ -9,12 +9,15 @@ import { useInitializeApp } from "../hooks/useInitializeApp";
 import { useThemeMode } from "../hooks/useThemeMode";
 import i18n from "../i18n/configs";
 import { useCookieStore } from "../store/cookieStore";
+import { useMusicProjectStore } from "../store/musicProjectStore";
 import { SnackBar } from "./common/SnackBar";
+import { EditorView } from "./EditorView/EditorView";
 
 export const App: React.FC = () => {
   useInitializeApp();
   const mode_ = useThemeMode();
   const { language } = useCookieStore();
+  const { vb } = useMusicProjectStore();
   const theme = React.useMemo(
     () => createTheme(getDesignTokens(mode_)),
     [mode_]
@@ -26,11 +29,14 @@ export const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Header />
-      {/* 本来はvbがloadされたあとTopViewとFooterは非表示となり、代わりにEditorViewを表示する。
-       * 現時点ではEditorViewが未実装のため、このままにしておく。
-       */}
-      <TopView />
-      <Footer />
+      {vb !== null ? (
+        <EditorView />
+      ) : (
+        <>
+          <TopView />
+          <Footer />
+        </>
+      )}
       <SnackBar />
     </ThemeProvider>
   );

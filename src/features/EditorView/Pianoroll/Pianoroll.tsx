@@ -121,7 +121,7 @@ export const Pianoroll: React.FC = () => {
             maxHeight: vb.portraitHeight,
             objectFit: "contain",
             position: "fixed",
-            bottom: 0,
+            bottom: 72,
             right: 0,
             zIndex: 10,
             maxWidth: "50%",

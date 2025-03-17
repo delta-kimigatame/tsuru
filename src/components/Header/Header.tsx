@@ -9,7 +9,7 @@ import { HeaderMenu } from "../../features/Header/HeaderMenu";
  */
 export const Header: React.FC = () => {
   return (
-    <AppBar position="relative">
+    <AppBar position="fixed">
       <Toolbar sx={{ justifyContent: "space-between", minHeight: "40" }}>
         <HeaderLogo />
         <HeaderMenu />
