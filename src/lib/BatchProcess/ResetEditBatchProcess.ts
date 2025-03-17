@@ -50,6 +50,7 @@ export class ResetEditBatchProcess extends BaseBatchProcess<ResetEditBatchProces
       newNote.length = n.length;
       newNote.tempo = n.tempo;
       newNote.hasTempo = n.hasTempo;
+      newNote.notenum = n.notenum;
       if (!options.info) {
         /** 合成結果に直接影響しないメモ的パラメータのコピー */
         if (n.label !== undefined) {
