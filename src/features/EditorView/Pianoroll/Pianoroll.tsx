@@ -118,7 +118,7 @@ export const Pianoroll: React.FC = () => {
         <img
           src={portraitUrl}
           style={{
-            maxHeight: vb.portraitHeight,
+            maxHeight: `min(50%,${vb.portraitHeight}px)`,
             objectFit: "contain",
             position: "fixed",
             bottom: 72,
