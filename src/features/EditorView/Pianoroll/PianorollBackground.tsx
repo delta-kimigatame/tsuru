@@ -15,18 +15,22 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
   const mode = useThemeMode();
 
   /**
-   * notesの実際の拍子数に最も近い4の倍数
+   * notesの実際の拍子数に最も近い4の倍数+8
    *
    * 実際の拍子数 = totalLength/480
    */
   const beatsCount = React.useMemo(() => {
     LOG.debug("totalLengthの更新検知", "PianorollNotes");
-    return Math.ceil(totalLength / 480 / 4) * 4;
+    return (Math.ceil(totalLength / 480 / 4) + 2) * 4;
   }, [totalLength]);
 
   return (
     <svg
-      width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
+      width={
+        (totalLength + 480 * 8) *
+        PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+        horizontalZoom
+      }
       height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
       style={{
         pointerEvents: "none",
@@ -53,7 +57,9 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
           <line
             x1={0}
             x2={
-              totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+              (totalLength + 480 * 8) *
+              PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+              horizontalZoom
             }
             y1={i * PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}
             y2={i * PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}

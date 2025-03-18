@@ -1,6 +1,9 @@
 import { Box } from "@mui/material";
 import React from "react";
+import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
+import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
@@ -22,6 +25,8 @@ export const Pianoroll: React.FC = () => {
       ? undefined
       : URL.createObjectURL(new Blob([vb.portrait], { type: "image/png" }));
   }, [vb]);
+  const vertcalMenu = useVerticalFooterMenu();
+  const windowSize = useWindowSize();
   /**
    * 各ノートのx座標描画位置を予め求めておく
    */
@@ -80,7 +85,9 @@ export const Pianoroll: React.FC = () => {
       <Box sx={{ display: "block", overflowX: "scroll", position: "relative" }}>
         <svg
           width={
-            totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+            (totalLength + 480 * 8) *
+            PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+            horizontalZoom
           }
           height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
           style={{
@@ -121,8 +128,8 @@ export const Pianoroll: React.FC = () => {
             maxHeight: `min(50%,${vb.portraitHeight}px)`,
             objectFit: "contain",
             position: "fixed",
-            bottom: 72,
-            right: 0,
+            bottom: vertcalMenu ? 0 : EDITOR_CONFIG.FOOTER_MENU_SIZE,
+            right: vertcalMenu ? EDITOR_CONFIG.FOOTER_MENU_SIZE : 0,
             zIndex: 10,
             maxWidth: "50%",
             pointerEvents: "none",

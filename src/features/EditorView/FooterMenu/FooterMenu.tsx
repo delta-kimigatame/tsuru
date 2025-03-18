@@ -3,10 +3,13 @@ import DownloadIcon from "@mui/icons-material/Download";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import { CircularProgress, Tab, Tabs } from "@mui/material";
+import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { EDITOR_CONFIG } from "../../../config/editor";
 import { useMenu } from "../../../hooks/useMenu";
+import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
+import { useWindowSize } from "../../../hooks/useWindowSize";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
 import { Ust } from "../../../lib/Ust";
@@ -48,6 +51,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     handleBatchProcessMenuOpen,
     handleBatchProcessMenuClose,
   ] = useMenu("FooterMenu.BatchProcessMenu");
+  const windowSize = useWindowSize();
+  const menuVertical = useVerticalFooterMenu();
+  const theme = useTheme();
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント`, "FooterMenu");
@@ -56,6 +62,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       setBatchProcesses(results);
     });
   }, []);
+
   /**
    * inputのファイルを変更した際の動作
    * nullやファイル数が0の場合何もせず終了する。
@@ -156,16 +163,20 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         data-testid="file-input"
       ></input>
       <Tabs
+        orientation={menuVertical ? "vertical" : "horizontal"}
         variant="scrollable"
         scrollButtons={true}
         sx={{
           display: "flex",
           position: "fixed",
           bottom: 0,
-          left: 0,
-          width: "100%",
+          right: 0,
+          width: menuVertical ? undefined : "100%",
+          height: menuVertical
+            ? windowSize.height - EDITOR_CONFIG.HEADER_HEIGHT
+            : undefined,
           zIndex: 20,
-          backgroundColor: "Background",
+          backgroundColor: theme.palette.background.default,
         }}
         value={0}
       >
@@ -173,41 +184,41 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           icon={ustLoadProgress ? <CircularProgress /> : <LibraryMusicIcon />}
           label={t("editor.footer.project")}
           onClick={handleProjectTabClick}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={ustLoadProgress && batchProcessProgress}
+          disabled={ustLoadProgress || batchProcessProgress}
         />
         <Tab
           icon={<ZoomInIcon />}
           label={t("editor.footer.zoom")}
           onClick={handleZoomMenuOpen}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 && batchProcessProgress}
+          disabled={notes.length === 0 || batchProcessProgress}
         />
         <Tab
           icon={batchProcessProgress ? <CircularProgress /> : <AutorenewIcon />}
           label={t("editor.footer.batchprocess")}
           onClick={handleBatchProcessMenuOpen}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 && batchProcessProgress}
+          disabled={notes.length === 0 || batchProcessProgress}
         />
         <Tab
           icon={<PlayArrowIcon />}
           label={t("editor.footer.play")}
           onClick={undefined}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 && batchProcessProgress}
+          disabled={notes.length === 0 || batchProcessProgress}
         />
         <Tab
           icon={<DownloadIcon />}
           label={t("editor.footer.wav")}
           onClick={undefined}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 && batchProcessProgress}
+          disabled={notes.length === 0 || batchProcessProgress}
         />
       </Tabs>
       <FooterZoomMenu
