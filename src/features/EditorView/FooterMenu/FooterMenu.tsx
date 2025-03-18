@@ -6,6 +6,7 @@ import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useMenu } from "../../../hooks/useMenu";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
 import { Ust } from "../../../lib/Ust";
@@ -39,10 +40,14 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     React.useState<BaseBatchProcess | null>(null);
   const [batchProcessProgress, setBatchProcessProgress] =
     React.useState<boolean>(false);
-  const [zoomMenuAnchor, setZoomMenuAnchor] =
-    React.useState<HTMLElement | null>(null);
-  const [batchProcessMenuAnchor, setBatchProcessMenuAnchor] =
-    React.useState<HTMLElement | null>(null);
+  const [zoomMenuAnchor, handleZoomMenuOpen, handleZoomMenuClose] = useMenu(
+    "FooterMenu.ZoomMenu"
+  );
+  const [
+    batchProcessMenuAnchor,
+    handleBatchProcessMenuOpen,
+    handleBatchProcessMenuClose,
+  ] = useMenu("FooterMenu.BatchProcessMenu");
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント`, "FooterMenu");
@@ -116,43 +121,6 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   };
 
   /**
-   * zoomタブをクリックした際の動作。
-   * zoomメニューを開く
-   * @param e
-   */
-  const handleZoomTabClick = (e) => {
-    LOG.debug("click ZoomTab", "FooterMenu");
-    LOG.info("zoomメニューを開く", "FooterMenu");
-    setZoomMenuAnchor(e.currentTarget);
-  };
-
-  /**
-   * zoomメニューを閉じる動作
-   */
-  const handleZoomMenuClose = () => {
-    LOG.info("zoomメニューを閉じる", "FooterMenu");
-    setZoomMenuAnchor(null);
-  };
-
-  /**
-   * BatchProcessタブをクリックした際の動作。
-   * BatchProcessメニューを開く
-   * @param e
-   */
-  const handleBatchProcessTabClick = (e) => {
-    LOG.debug("click BatchProcessTab", "FooterMenu");
-    LOG.info("BatchProcessメニューを開く", "FooterMenu");
-    setBatchProcessMenuAnchor(e.currentTarget);
-  };
-  /**
-   * BatchProcessメニューを閉じる動作
-   */
-  const handleBatchProcessMenuClose = () => {
-    LOG.info("BatchProcessメニューを閉じる", "FooterMenu");
-    setBatchProcessMenuAnchor(null);
-  };
-
-  /**
    * バッチプロセスを実行するか引数編集用のUIを開く
    * @param index バッチプロセスのインデックス
    */
@@ -212,7 +180,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         <Tab
           icon={<ZoomInIcon />}
           label={t("editor.footer.zoom")}
-          onClick={handleZoomTabClick}
+          onClick={handleZoomMenuOpen}
           sx={{ flex: 1 }}
           value={0}
           disabled={notes.length === 0 && batchProcessProgress}
@@ -220,7 +188,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         <Tab
           icon={batchProcessProgress ? <CircularProgress /> : <AutorenewIcon />}
           label={t("editor.footer.batchprocess")}
-          onClick={handleBatchProcessTabClick}
+          onClick={handleBatchProcessMenuOpen}
           sx={{ flex: 1 }}
           value={0}
           disabled={notes.length === 0 && batchProcessProgress}
