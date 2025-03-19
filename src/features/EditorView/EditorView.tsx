@@ -62,7 +62,7 @@ export const EditorView: React.FC = () => {
       setWavUrl(wavUrl_);
       return wavUrl_;
     } catch (e) {
-      LOG.error(`合成処理の失敗。${e.message}`, "EditorView");
+      LOG.error(`合成処理の失敗。${e.message}\n${e.stack}`, "EditorView");
       snackBarStore.setSeverity("error");
       snackBarStore.setValue(t("editor.synthesisError"));
       snackBarStore.setOpen(true);

@@ -238,13 +238,13 @@ export class ResampWorkerService {
     );
 
     LOG.debug(
-      `workerにwav生成リクエスト送信:${{
+      `workerにwav生成リクエスト送信:${JSON.stringify({
         ...request,
         inputWavData: waveData.length,
         frqData: frqDataObj.frq.length,
         ampData: frqDataObj.amp.length,
         frqAverage: frqDataObj.frqAverage,
-      }}、requestId:${requestId}`,
+      })}、requestId:${requestId}`,
       "resampWorker.ResampWorkerService"
     );
 
