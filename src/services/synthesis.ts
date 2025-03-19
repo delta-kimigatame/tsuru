@@ -45,6 +45,7 @@ export class SynthesisWorker {
     setSynthesisCount: (number) => void = (value) => {}
   ): Promise<ArrayBuffer> => {
     this.wavtool = new Wavtool();
+    this.workersPool.clearTasks();
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
@@ -110,6 +111,12 @@ export class SynthesisWorker {
           .then((result) => {
             resampCache.set(index, key, result);
             return result;
+          })
+          .catch((error) => {
+            if (error.message !== "Canceled") {
+              throw error;
+            }
+            return new Float64Array(0);
           });
         return promise;
       }

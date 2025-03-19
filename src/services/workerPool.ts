@@ -117,4 +117,14 @@ export class ResampWorkerPool {
       }
     }
   }
+
+  /**
+   * 不要になったタスクをキャンセルする
+   */
+  clearTasks(): void {
+    this.taskQueue.forEach((task) => {
+      task.deferred.reject(new Error("Canceled"));
+    });
+    this.taskQueue = [];
+  }
 }
