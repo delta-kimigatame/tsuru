@@ -1,6 +1,7 @@
 import { renderingConfig } from "../config/rendering";
 import { resampWorkersCount } from "../config/workers";
 import { LOG } from "../lib/Logging";
+import { resampCache } from "../lib/ResampCache";
 import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
 import { Wavtool } from "../lib/Wavtool";
 import { useCookieStore } from "../store/cookieStore";
@@ -47,8 +48,12 @@ export class SynthesisWorker {
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
+    const targetIndexes =
+      selectNotes.length !== 0 ? selectNotes : ust.notes.map((n) => n.index);
     LOG.info("音声合成開始", "synthesis,SynthesisWorker");
-    this.resampResults = requestParams.map((p) => this.resamp(p, vb));
+    this.resampResults = requestParams.map((p, i) =>
+      this.resamp(p, vb, targetIndexes[i])
+    );
     await this.append(requestParams, 0, setSynthesisCount);
     LOG.info("音声合成終了", "synthesis,SynthesisWorker");
     /** 16bit/44100HzのWaveオブジェクトのbuffer */
@@ -67,6 +72,7 @@ export class SynthesisWorker {
    * 休符の場合0埋めで即解決し、音符の場合はresampWorkerに処理を渡して、完了次第解決する
    * @param param 合成パラメータ
    * @param vb 合成に使う音声ライブラリ
+   * @param index 合成するノートのインデックス。キャッシュに使用
    * @returns 休符の場合0埋めで即解決し、音符の場合はresampWorkerの処理結果
    */
   resamp = async (
@@ -74,7 +80,8 @@ export class SynthesisWorker {
       resamp: ResampRequest | undefined;
       append: AppendRequestBase;
     },
-    vb: VoiceBank
+    vb: VoiceBank,
+    index: number
   ): Promise<Float64Array> => {
     if (param.resamp === undefined) {
       /** 休符の場合0埋めで返す */
@@ -84,11 +91,28 @@ export class SynthesisWorker {
       LOG.debug(`休符。長さ:${requireLength}`, "synthesis,SynthesisWorker");
       return new Float64Array(requireLength);
     } else {
-      LOG.debug(
-        `workerpoolにセット。request:${param.resamp}`,
-        "synthesis,SynthesisWorker"
-      );
-      return this.workersPool.runResamp(param.resamp, vb);
+      const key = resampCache.createKey(param.resamp);
+      if (resampCache.checkKey(index, key)) {
+        LOG.debug(
+          `キャッシュヒット。index:${index},request:${JSON.stringify(
+            param.resamp
+          )}`,
+          "synthesis,SynthesisWorker"
+        );
+        return resampCache.get(index, key);
+      } else {
+        LOG.debug(
+          `workerpoolにセット。request:${JSON.stringify(param.resamp)}`,
+          "synthesis,SynthesisWorker"
+        );
+        const promise = this.workersPool
+          .runResamp(param.resamp, vb)
+          .then((result) => {
+            resampCache.set(index, key, result);
+            return result;
+          });
+        return promise;
+      }
     }
   };
 
