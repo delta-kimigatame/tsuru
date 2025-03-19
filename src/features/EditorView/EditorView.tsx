@@ -39,6 +39,10 @@ export const EditorView: React.FC = () => {
    * 再生処理待ちの状態
    */
   const [playReady, setPlayReady] = React.useState<boolean>(false);
+  /**
+   * 再生中の状態
+   */
+  const [playing, setPlaying] = React.useState<boolean>(false);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -147,6 +151,7 @@ export const EditorView: React.FC = () => {
       return;
     }
     if (wavUrl !== undefined) {
+      setPlaying(true);
       audioRef.current.play();
     } else {
       setPlayReady(true);
@@ -155,11 +160,19 @@ export const EditorView: React.FC = () => {
     }
   };
 
+  const handlePlayStop = () => {
+    LOG.debug("再生終了", "EditorView");
+    setPlaying(false);
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+  };
+
   React.useEffect(() => {
     LOG.debug("wavUrlかplayReadyの更新を検知", "EditorView");
     if (wavUrl !== undefined && playReady) {
       LOG.info("再生開始", "EditorView");
       setPlayReady(false);
+      setPlaying(true);
       audioRef.current.play();
     }
   }, [wavUrl, playReady]);
@@ -174,10 +187,17 @@ export const EditorView: React.FC = () => {
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
         synthesisProgress={synthesisProgress}
+        playing={playing}
+        handlePlayStop={handlePlayStop}
       />
       {wavUrl !== undefined && (
         <>
-          <audio src={wavUrl} ref={audioRef} data-testid="audio"></audio>
+          <audio
+            src={wavUrl}
+            ref={audioRef}
+            data-testid="audio"
+            onEnded={handlePlayStop}
+          ></audio>
         </>
       )}
     </>

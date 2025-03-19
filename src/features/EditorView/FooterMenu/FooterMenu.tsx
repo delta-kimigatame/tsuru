@@ -2,6 +2,7 @@ import AutorenewIcon from "@mui/icons-material/Autorenew";
 import DownloadIcon from "@mui/icons-material/Download";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
 import React from "react";
@@ -212,7 +213,13 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         />
         <Tab
           icon={
-            props.synthesisProgress ? <CircularProgress /> : <PlayArrowIcon />
+            props.synthesisProgress ? (
+              <CircularProgress />
+            ) : props.playing ? (
+              <StopIcon />
+            ) : (
+              <PlayArrowIcon />
+            )
           }
           label={
             props.synthesisProgress
@@ -223,7 +230,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
                 }`
               : t("editor.footer.play")
           }
-          onClick={props.handlePlay}
+          onClick={() => {
+            props.playing ? props.handlePlayStop() : props.handlePlay();
+          }}
           sx={{ flex: 1, p: 0 }}
           value={0}
           disabled={
@@ -287,4 +296,8 @@ export interface FooterMenuProps {
   synthesisProgress: boolean;
   /** 生成処理の進捗状況をいくつめのノートまで進んだか */
   synthesisCount: number;
+  /** 再生中の状況 */
+  playing: boolean;
+  /** 再生を終了するためのコールバック */
+  handlePlayStop: () => void;
 }
