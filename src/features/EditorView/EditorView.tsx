@@ -1,7 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LOG } from "../../lib/Logging";
+import { resampCache } from "../../lib/ResampCache";
 import { SynthesisWorker } from "../../services/synthesis";
+import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
@@ -9,7 +11,8 @@ import { Pianoroll } from "./Pianoroll/Pianoroll";
 
 export const EditorView: React.FC = () => {
   const { t } = useTranslation();
-  const { vb, notes } = useMusicProjectStore();
+  const { vb, notes, ustFlags } = useMusicProjectStore();
+  const { defaultNote } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   /**
    * ノートのインデックス一覧
@@ -44,6 +47,45 @@ export const EditorView: React.FC = () => {
     LOG.debug("生成済みwavのクリア", "EditorView");
     setWavUrl(undefined);
   }, [vb, notes]);
+
+  React.useEffect(() => {
+    LOG.debug("vbの更新を検知。全てのキャッシュクリア", "EditorView");
+    resampCache.clear();
+    makeCache();
+  }, [vb]);
+
+  React.useEffect(() => {
+    LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
+    makeCache();
+  }, [notes, ustFlags, defaultNote]);
+
+  /**
+   * バックグラウンドでキャッシュを生成する
+   */
+  const makeCache = () => {
+    if (vb === null) return;
+    notes.forEach((n) => {
+      const request = n.getRequestParam(vb, ustFlags, defaultNote);
+      if (request.resamp === undefined) return;
+      const key = resampCache.createKey(request.resamp);
+      if (!resampCache.checkKey(n.index, key)) {
+        LOG.debug(
+          `キャッシュ生成のために、既存のタスクのキャンセル。index:${n.index}`,
+          "EditorView"
+        );
+        synthesisWorker.clearTask(n.index);
+        LOG.debug(`キャッシュ生成開始。index:${n.index}`, "EditorView");
+        synthesisWorker.resamp(request, vb, n.index).catch((error) => {
+          LOG.error(
+            `キャッシュ生成の失敗。input:${JSON.stringify(
+              request.resamp
+            )},error:${error.message}\n${error.stack}}`,
+            "EditorView"
+          );
+        });
+      }
+    });
+  };
 
   /** playとwavdownloadの共通処理 */
   const synthesis = async () => {

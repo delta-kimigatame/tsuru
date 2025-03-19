@@ -9,20 +9,21 @@ type Deferred<T> = {
   promise: Promise<T>;
   resolve: (value: T) => void;
   reject: (reason?: any) => void;
+  index: number;
 };
 
 /**
  * Defreedを生成するためのヘルパー関数
  * @returns
  */
-const createDeferred = <T>(): Deferred<T> => {
+const createDeferred = <T>(index: number): Deferred<T> => {
   let resolve: (value: T) => void = () => {};
   let reject: (reason?: any) => void = () => {};
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;
   });
-  return { promise, resolve, reject };
+  return { promise, resolve, reject, index };
 };
 
 /**
@@ -68,13 +69,15 @@ export class ResampWorkerPool {
    * API: requestとvbを渡して、resampWorkerの結果（Promise<Float64Array>）を返す
    * @param request resamp用のリクエスト
    * @param vb VoiceBankインスタンス
+   * @param index 生成するノートのindex
    * @returns Promise<Float64Array>
    */
   public runResamp(
     request: ResampRequest,
-    vb: VoiceBank
+    vb: VoiceBank,
+    index: number
   ): Promise<Float64Array> {
-    const deferred = createDeferred<Float64Array>();
+    const deferred = createDeferred<Float64Array>(index);
     // タスクを作成してキューに追加
     const task: ResampTask = { request, vb, deferred };
     this.enqueueTask(task);
@@ -126,5 +129,19 @@ export class ResampWorkerPool {
       task.deferred.reject(new Error("Canceled"));
     });
     this.taskQueue = [];
+  }
+
+  /**
+   * ノートインデックスを指定し、該当するタスクをキャンセルする
+   * @param index ノートのインデックス
+   */
+  clearTask(index: number): void {
+    this.taskQueue = this.taskQueue.filter((task) => {
+      if (task.deferred.index === index) {
+        task.deferred.reject(new Error("Canceled"));
+        return false;
+      }
+      return true;
+    });
   }
 }

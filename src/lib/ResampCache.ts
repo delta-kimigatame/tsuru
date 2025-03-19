@@ -82,6 +82,13 @@ class ResampCache {
     if (request === undefined) return false;
     return this.checkKey(note.index, this.createKey(request));
   };
+
+  /**
+   * 全てのキャッシュをクリアする
+   */
+  clear = () => {
+    this.cache = {};
+  };
 }
 
 export const resampCache = new ResampCache();

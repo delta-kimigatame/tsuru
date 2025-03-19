@@ -107,7 +107,7 @@ export class SynthesisWorker {
           "synthesis,SynthesisWorker"
         );
         const promise = this.workersPool
-          .runResamp(param.resamp, vb)
+          .runResamp(param.resamp, vb, index)
           .then((result) => {
             resampCache.set(index, key, result);
             return result;
@@ -164,5 +164,13 @@ export class SynthesisWorker {
       LOG.error(errMsg, "synthesis,SynthesisWorker");
       throw new Error(errMsg);
     }
+  };
+
+  /**
+   * ノートインデックスを指定し、該当するタスクをキャンセルする
+   * @param index ノートのインデックス
+   */
+  clearTask = (index: number) => {
+    this.workersPool.clearTask(index);
   };
 }
