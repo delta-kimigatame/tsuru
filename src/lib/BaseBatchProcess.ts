@@ -28,6 +28,9 @@ export abstract class BaseBatchProcess<TOptions = any> {
    */
   protected abstract _process(notes: Note[], options?: TOptions): Note[];
 
+  constructor() {
+    this.process = this.process.bind(this);
+  }
   /**
    * 実際の処理を呼出し、undoManagerに適切に登録します。
    * @param notes 変更前のノート
@@ -37,7 +40,10 @@ export abstract class BaseBatchProcess<TOptions = any> {
   public process(notes: Note[], options?: TOptions): Note[] {
     if (notes.length === 0) return [];
     const oldNotes = notes.map((n) => n.deepCopy());
-    this.log(`${this.summary}、options:${options}`, LogLevel.INFO);
+    this.log(
+      `${this.summary}、options:${JSON.stringify(options)}`,
+      LogLevel.INFO
+    );
     const newNotes = this._process(notes, options);
     undoManager.register({
       undo: this.undo,
