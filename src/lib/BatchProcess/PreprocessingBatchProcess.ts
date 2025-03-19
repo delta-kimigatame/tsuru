@@ -381,7 +381,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
           defaultValue: true,
         },
         {
-          key: "lyricOptions.useHeading",
+          key: "lyricOptions.useHeadingCV",
           labelKey: "batchprocess.preprocessing.lyric.useHeadingCV",
           inputType: "checkbox",
           defaultValue: true,
