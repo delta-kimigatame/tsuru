@@ -32,4 +32,6 @@ export const PIANOROLL_CONFIG = {
   LYRIC_PADDING_LEFT: 4,
   // 音高名を表示する部分
   TONEMAP_WIDTH: 50,
+  // シークバーの太さ
+  SEEKBAR_WIDTH: 1,
 };

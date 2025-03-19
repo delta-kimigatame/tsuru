@@ -43,6 +43,7 @@ export const EditorView: React.FC = () => {
    * 再生中の状態
    */
   const [playing, setPlaying] = React.useState<boolean>(false);
+  const [playingMs, setPlayingMs] = React.useState<number>(0);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -160,11 +161,24 @@ export const EditorView: React.FC = () => {
     }
   };
 
+  /**
+   * wavの再生を停止する処理
+   */
   const handlePlayStop = () => {
     LOG.debug("再生終了", "EditorView");
     setPlaying(false);
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
+    setPlayingMs(0);
+  };
+
+  /**
+   * 再生にあわせてシークバーを動かす処理
+   *
+   * 頻繁に呼ばれる予定のためログは生成しない
+   */
+  const handleTimeUpdate = () => {
+    setPlayingMs(audioRef.current.currentTime * 1000);
   };
 
   React.useEffect(() => {
@@ -178,11 +192,15 @@ export const EditorView: React.FC = () => {
   }, [wavUrl, playReady]);
   return (
     <>
-      <Pianoroll />
+      <Pianoroll
+        playing={playing}
+        playingMs={playingMs}
+        selectedNotesIndex={selectNotesIndex}
+      />
       <br />
       <br />
       <FooterMenu
-        selectedNotesIndex={[]}
+        selectedNotesIndex={selectNotesIndex}
         handlePlay={handlePlay}
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
@@ -197,6 +215,7 @@ export const EditorView: React.FC = () => {
             ref={audioRef}
             data-testid="audio"
             onEnded={handlePlayStop}
+            onTimeUpdate={handleTimeUpdate}
           ></audio>
         </>
       )}

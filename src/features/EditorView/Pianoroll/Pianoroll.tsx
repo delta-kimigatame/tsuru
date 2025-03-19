@@ -9,11 +9,12 @@ import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
-import { notenumToPoint, PianorollPitch } from "./PianorollPitch";
+import { msToPoint, notenumToPoint, PianorollPitch } from "./PianorollPitch";
+import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollVibrato } from "./PianorollVibrato";
 
-export const Pianoroll: React.FC = () => {
+export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { notes, vb } = useMusicProjectStore();
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -27,36 +28,87 @@ export const Pianoroll: React.FC = () => {
   }, [vb]);
   const vertcalMenu = useVerticalFooterMenu();
   const windowSize = useWindowSize();
+  const [seekBarX, setSeekBarX] = React.useState<number>(0);
+
   /**
    * 各ノートのx座標描画位置を予め求めておく
    */
-  const notesLeft = React.useMemo(() => {
+  const { notesLeft, notesLeftMs, totalLength } = React.useMemo(() => {
     LOG.debug("notesの更新検知", "Pianoroll");
-    if (notes.length === 0) return [];
-    LOG.debug("notesLeftの再計算", "Pianoroll");
+    if (notes.length === 0)
+      return { notesLeft: [], notesLeftMs: [], totalLength: 0 };
+    LOG.debug("notesLeft,notesLeftMs,totalLengthの再計算", "Pianoroll");
+    const leftsMs = new Array<number>();
+    let totalMsLength = 0;
     const lefts = new Array<number>();
     let totalLength = 0;
     for (let i = 0; i < notes.length; i++) {
       lefts.push(totalLength);
       totalLength += notes[i].length;
+      leftsMs.push(totalMsLength);
+      totalMsLength += notes[i].msLength;
     }
-    return lefts;
+    return { notesLeft: lefts, notesLeftMs: leftsMs, totalLength: totalLength };
   }, [notes]);
-
-  /**
-   * svg幅を計算するためにノート長の合計を求める
-   */
-  const totalLength = React.useMemo(() => {
-    LOG.debug("notesLeftの更新検知", "Pianoroll");
-    if (notes.length === 0) return 0;
-    LOG.debug("totalLengthの再計算", "Pianoroll");
-    return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
-  }, [notesLeft]);
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント、c4Center:${c4Center}`, "Pianoroll");
     window.scrollTo(0, c4Center - window.innerHeight / 2);
   }, [c4Center]);
+
+  React.useEffect(() => {
+    if (
+      notesLeftMs.length !== notes.length ||
+      notesLeftMs.length !== notesLeft.length ||
+      notes.length === 0
+    )
+      return;
+    const targetNotesIndexOffset =
+      props.selectedNotesIndex.length === 0 ? 0 : props.selectedNotesIndex[0];
+    const notesOffsetMs = notesLeftMs[targetNotesIndexOffset];
+    /** 選択中のノートより後ろ側をループし、条件に該当する1つめでtargetNotesIndexを更新する */
+    let targetNotesIndex = targetNotesIndexOffset;
+    for (let i = targetNotesIndex; i < notesLeftMs.length - 1; i++) {
+      /** 再生開始位置から各ノートまでの時間を比較する */
+      if (
+        notesLeftMs[targetNotesIndexOffset + i + 1] - notesOffsetMs >
+        props.playingMs
+      ) {
+        targetNotesIndex = i;
+        break;
+      }
+    }
+    /** 再生位置より前の部分では1msと1pixelの対応関係が不明のため、確実に対応しているtickを使ってオフセットを求める */
+    const lengthOffset =
+      notesLeft[targetNotesIndex] *
+      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+      horizontalZoom;
+    const x =
+      lengthOffset +
+      msToPoint(
+        props.playingMs - notesLeftMs[targetNotesIndex],
+        notes[targetNotesIndex].tempo,
+        horizontalZoom
+      );
+
+    /** 自動スクロール */
+    if (x < containerRef.current.clientWidth / 2) {
+      //シークバーが画面中央に来るまではスクロールしない
+      containerRef.current.scrollTo(0, containerRef.current.scrollTop);
+    } else {
+      // シークバーが画面中央を超えるとスクロールする。最後はまたシークバーが動く
+      containerRef.current.scrollTo(
+        Math.min(
+          x - containerRef.current.clientWidth / 2,
+          containerRef.current.scrollWidth -
+            containerRef.current.clientWidth / 2
+        ),
+        containerRef.current.scrollTop
+      );
+    }
+    setSeekBarX(x);
+  }, [horizontalZoom, props.playingMs]);
+
   return (
     <Box
       sx={{
@@ -68,7 +120,6 @@ export const Pianoroll: React.FC = () => {
         m: 0,
         p: 0,
       }}
-      ref={containerRef}
     >
       <Box sx={{ display: "block", width: PIANOROLL_CONFIG.TONEMAP_WIDTH }}>
         <svg
@@ -82,7 +133,10 @@ export const Pianoroll: React.FC = () => {
           <PianorollTonemap />
         </svg>
       </Box>
-      <Box sx={{ display: "block", overflowX: "scroll", position: "relative" }}>
+      <Box
+        sx={{ display: "block", overflowX: "scroll", position: "relative" }}
+        ref={containerRef}
+      >
         <svg
           width={
             (totalLength + 480 * 8) *
@@ -119,6 +173,11 @@ export const Pianoroll: React.FC = () => {
               notesLeft={notesLeft}
             />
           </g>
+          <g id="seekbar">
+            {props.playing && (
+              <PianorollSeekbar seekBarX={seekBarX} totalLength={totalLength} />
+            )}
+          </g>
         </svg>
       </Box>
       {portraitUrl !== undefined && (
@@ -141,3 +200,12 @@ export const Pianoroll: React.FC = () => {
     </Box>
   );
 };
+
+export interface PianorollProps {
+  /** 再生状況 */
+  playing: boolean;
+  /** 再生中の時間 */
+  playingMs: number;
+  /** 選択中のノートのインデックス */
+  selectedNotesIndex: Array<number>;
+}

@@ -28,6 +28,8 @@ interface Pallet {
   tonemapWhiteKey: string;
   /** ピアノロールの黒鍵部分の色 */
   tonemapBlackKey: string;
+  /** 再生中の位置を表すシークバーの色 */
+  seekBar: string;
 }
 
 interface ColorPallet {
@@ -55,6 +57,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       pitch: "#FF0000",
       tonemapWhiteKey: "#F0F0F0",
       tonemapBlackKey: "#FFC0FF",
+      seekBar: "#FF0000",
     },
     dark: {
       whiteKey: "#000000",
@@ -70,6 +73,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       pitch: "#FF0000",
       tonemapWhiteKey: "#606060",
       tonemapBlackKey: "#906090",
+      seekBar: "#FF0000",
     },
   },
 };
