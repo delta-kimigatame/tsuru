@@ -43,6 +43,7 @@ export class SynthesisWorker {
     selectNotes: Array<number>,
     setSynthesisCount: (number) => void = (value) => {}
   ): Promise<ArrayBuffer> => {
+    this.wavtool = new Wavtool();
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
