@@ -264,9 +264,10 @@ describe("BatchProcess - 実行ボタン押下時の動作", () => {
     const n2 = new Note();
     n2.index = 2;
     n2.lyric = "c";
-
+    const dummyUst = { notes: [n0, n1, n2] };
     // store の notes を初期化する
-    useMusicProjectStore.setState({ notes: [n0, n1, n2] });
+    //@ts-expect-error テストのためにわざと異なる型を与えている
+    useMusicProjectStore.setState({ ust: dummyUst, notes: [n0, n1, n2] });
 
     // DummyBatchProcess インスタンスを作成
     dummyProcess = new DummyBatchProcessFlat();
