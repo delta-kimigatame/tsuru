@@ -113,6 +113,7 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       updatedNote[key] = value;
 
       updatedNotes[index] = updatedNote;
+      state.ust.notes = updatedNotes;
       return { notes: updatedNotes };
     }),
 
@@ -122,11 +123,13 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
 
       const updatedNotes = [...state.notes];
       updatedNotes[index] = value;
+      state.ust.notes = updatedNotes;
       return { notes: updatedNotes };
     }),
 
   setNotes: (newNotes) =>
-    set({
-      notes: newNotes,
+    set((state) => {
+      state.ust.notes = newNotes;
+      return { notes: newNotes };
     }),
 }));
