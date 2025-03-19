@@ -1,5 +1,6 @@
 import { PaletteMode } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import React from "react";
 import { LOG } from "../lib/Logging";
 import { useCookieStore } from "../store/cookieStore";
 
@@ -13,18 +14,21 @@ import { useCookieStore } from "../store/cookieStore";
  * @returns {PaletteMode} "light", "dark"のいずれか。cookieの設定が"system"の場合は、端末設定に基づいたモードが返されます。
  * */
 export const useThemeMode = (): PaletteMode => {
-  LOG.info("モードの取得", "useThemeMode");
   const { mode } = useCookieStore();
   const prefersDarkMode: boolean = useMediaQuery(
     "(prefers-color-scheme: dark)"
   );
 
-  const mode_: PaletteMode =
-    mode !== "system" ? mode : prefersDarkMode ? "dark" : "light";
-  LOG.debug(
-    `cookie:${mode}、端末設定:${prefersDarkMode}、採用:${mode_}`,
-    "useThemeMode"
-  );
+  const computedMode = React.useMemo<PaletteMode>(() => {
+    const mode_: PaletteMode =
+      mode !== "system" ? mode : prefersDarkMode ? "dark" : "light";
+    LOG.info("モードの取得", "useThemeMode");
+    LOG.debug(
+      `cookie:${mode}、端末設定:${prefersDarkMode}、採用:${mode_}`,
+      "useThemeMode"
+    );
+    return mode_;
+  }, [mode, prefersDarkMode]);
 
-  return mode_;
+  return computedMode;
 };
