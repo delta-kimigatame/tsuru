@@ -50,11 +50,6 @@ export const EditorView: React.FC = () => {
     LOG.info("wavファイル生成", "EditorView");
     setSynthesisProgress(true);
     LOG.info("wavファイル生成完了", "EditorView");
-    /** TODO
-     * synthesisにsetSynthesisCountを渡せるようにする
-     *
-     * synthesisからさらにappendにsetSynthesisCountを渡し、appendのループを使って値を更新する
-     */
     try {
       setSynthesisCount(0);
       const wavBuf = await synthesisWorker.synthesis(
