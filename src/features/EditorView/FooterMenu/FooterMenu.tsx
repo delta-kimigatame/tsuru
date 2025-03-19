@@ -138,7 +138,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       executeBatchProcess<void>(
         props.selectedNotesIndex,
         notes,
-        setNote,
+        setNotes,
         vb,
         bp.process,
         undefined

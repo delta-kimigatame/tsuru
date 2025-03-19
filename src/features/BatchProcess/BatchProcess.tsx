@@ -18,7 +18,7 @@ type NestedKeyOf<ObjectType extends object> = {
 }[keyof ObjectType & (string | number)];
 
 export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
-  const { notes, setNote, vb } = useMusicProjectStore();
+  const { notes, setNotes, vb } = useMusicProjectStore();
   const { t } = useTranslation();
   type FormState = typeof props.batchprocess.initialOptions;
   type Action = {
@@ -64,7 +64,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
     executeBatchProcess<FormState>(
       props.selectedNotesIndex,
       notes,
-      setNote,
+      setNotes,
       vb,
       props.batchprocess.process,
       formState

@@ -113,6 +113,12 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       updatedNote[key] = value;
 
       updatedNotes[index] = updatedNote;
+      updatedNotes.forEach((_, i) => {
+        updatedNotes[i].index = i;
+        updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+        updatedNotes[i].next =
+          i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+      });
       state.ust.notes = updatedNotes;
       return { notes: updatedNotes };
     }),
@@ -123,12 +129,24 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
 
       const updatedNotes = [...state.notes];
       updatedNotes[index] = value;
+      updatedNotes.forEach((_, i) => {
+        updatedNotes[i].index = i;
+        updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+        updatedNotes[i].next =
+          i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+      });
       state.ust.notes = updatedNotes;
       return { notes: updatedNotes };
     }),
 
   setNotes: (newNotes) =>
     set((state) => {
+      newNotes.forEach((_, i) => {
+        newNotes[i].index = i;
+        newNotes[i].prev = i === 0 ? undefined : newNotes[i - 1];
+        newNotes[i].next =
+          i === newNotes.length - 1 ? undefined : newNotes[i + 1];
+      });
       state.ust.notes = newNotes;
       return { notes: newNotes };
     }),
