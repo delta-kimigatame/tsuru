@@ -83,6 +83,7 @@ export const translationJa = {
       horizontalZoomIn: "拡大(横)",
       horizontalZoomOut: "縮小(横)",
     },
+    synthesisError: "合成処理に失敗しました。",
   },
   batchprocess: {
     octaveUp: "1オクターブ上げる",

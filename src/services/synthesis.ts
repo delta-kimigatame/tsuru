@@ -39,13 +39,16 @@ export class SynthesisWorker {
    * @param selectNotes 再生するノートのインデックス列。空の配列が渡された場合、全ノートが対象となる。
    * @returns 16bit/44100Hzのwavデータを表すArrayBuffer
    */
-  synthesis = async (selectNotes: Array<number>): Promise<ArrayBuffer> => {
+  synthesis = async (
+    selectNotes: Array<number>,
+    setSynthesisCount: (number) => void = (value) => {}
+  ): Promise<ArrayBuffer> => {
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
     LOG.info("音声合成開始", "synthesis,SynthesisWorker");
     this.resampResults = requestParams.map((p) => this.resamp(p, vb));
-    await this.append(requestParams);
+    await this.append(requestParams, 0, setSynthesisCount);
     LOG.info("音声合成終了", "synthesis,SynthesisWorker");
     /** 16bit/44100HzのWaveオブジェクトのbuffer */
     try {
@@ -99,7 +102,8 @@ export class SynthesisWorker {
       resamp: ResampRequest | undefined;
       append: AppendRequestBase;
     }>,
-    index: number = 0
+    index: number = 0,
+    setSynthesisCount: (number) => void
   ): Promise<void> => {
     // 全てのタスクが処理済みの場合は終了
     if (index >= this.resampResults.length) {
@@ -116,12 +120,13 @@ export class SynthesisWorker {
     }
     try {
       LOG.debug(`wavtoolで結合。${index}`, "synthesis,SynthesisWorker");
+      setSynthesisCount(index);
       this.wavtool.append({
         inputData: Array.from(res),
         ...params[index].append,
       });
       // 次のタスクを処理する
-      await this.append(params, index + 1);
+      await this.append(params, index + 1, setSynthesisCount);
     } catch (error) {
       const errMsg = `append処理でエラー発生(index:${index}): ${error}`;
       LOG.error(errMsg, "synthesis,SynthesisWorker");

@@ -186,7 +186,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           onClick={handleProjectTabClick}
           sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={ustLoadProgress || batchProcessProgress}
+          disabled={
+            ustLoadProgress || batchProcessProgress || props.synthesisProgress
+          }
         />
         <Tab
           icon={<ZoomInIcon />}
@@ -202,23 +204,55 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           onClick={handleBatchProcessMenuOpen}
           sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 || batchProcessProgress}
+          disabled={
+            notes.length === 0 ||
+            batchProcessProgress ||
+            props.synthesisProgress
+          }
         />
         <Tab
-          icon={<PlayArrowIcon />}
-          label={t("editor.footer.play")}
-          onClick={undefined}
+          icon={
+            props.synthesisProgress ? <CircularProgress /> : <PlayArrowIcon />
+          }
+          label={
+            props.synthesisProgress
+              ? `${props.synthesisCount}/${
+                  props.selectedNotesIndex.length !== 0
+                    ? props.selectedNotesIndex.length
+                    : notes.length
+                }`
+              : t("editor.footer.play")
+          }
+          onClick={props.handlePlay}
           sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 || batchProcessProgress}
+          disabled={
+            notes.length === 0 ||
+            batchProcessProgress ||
+            props.synthesisProgress
+          }
         />
         <Tab
-          icon={<DownloadIcon />}
-          label={t("editor.footer.wav")}
-          onClick={undefined}
+          icon={
+            props.synthesisProgress ? <CircularProgress /> : <DownloadIcon />
+          }
+          label={
+            props.synthesisProgress
+              ? `${props.synthesisCount}/${
+                  props.selectedNotesIndex.length !== 0
+                    ? props.selectedNotesIndex.length
+                    : notes.length
+                }`
+              : t("editor.footer.wav")
+          }
+          onClick={props.handleDownload}
           sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={notes.length === 0 || batchProcessProgress}
+          disabled={
+            notes.length === 0 ||
+            batchProcessProgress ||
+            props.synthesisProgress
+          }
         />
       </Tabs>
       <FooterZoomMenu
@@ -245,4 +279,12 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
 export interface FooterMenuProps {
   /** 選択されているノートのインデックス 将来的に必須引数にするが開発中のため暫定的にオプショナルとする */
   selectedNotesIndex: number[];
+  /** 再生ボタンを押したときの動作 */
+  handlePlay: () => void;
+  /** ダウンロードボタンを押したときの動作 */
+  handleDownload: () => void;
+  /** 生成処理状況 */
+  synthesisProgress: boolean;
+  /** 生成処理の進捗状況をいくつめのノートまで進んだか */
+  synthesisCount: number;
 }
