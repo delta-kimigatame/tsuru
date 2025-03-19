@@ -708,10 +708,9 @@ export class Note {
      */
     if (this.next !== undefined && this.next.lyric !== "R") {
       const nextOffset = offset + this.msLength;
-      if (timeAxis.slice(-1)[0] >= (this.next.pbs.time + nextOffset) / 1000) {
-        start = timeAxis.findIndex(
-          (v) => v >= (this.next.pbs.time + nextOffset) / 1000
-        );
+      const nextPbs = this.next.pbs ? this.next.pbs.time : 0;
+      if (timeAxis.slice(-1)[0] >= (nextPbs + nextOffset) / 1000) {
+        start = timeAxis.findIndex((v) => v >= (nextPbs + nextOffset) / 1000);
         for (let i = start; i < basePitches.length; i++) {
           basePitches[i] = (this.next.notenum - this.notenum) * 100;
         }
