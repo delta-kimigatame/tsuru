@@ -6,7 +6,7 @@ import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
  * バッチプロセスを実行し、結果のノートを更新する共通処理。
  * 結果はsetNoteを通して反映される
  *
- * @param selectedNotesIndex 選択されているノートのインデックス。空配列の場合は全ノート対象。
+ * @param filteredSelectNotesIndex 選択されているノートのインデックス。空配列の場合は全ノート対象。
  * @param notes 現在のノート配列
  * @param setNotes ノートを更新するための関数。(note) を受け取る。
  * @param vb vb(音源)情報。存在しない場合は適用せず警告ログを出す。
@@ -14,7 +14,7 @@ import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
  * @param options オプション（バッチプロセスによって必要な場合のみ使用）
  */
 export function executeBatchProcess<TOptions>(
-  selectedNotesIndex: number[],
+  selectNotesIndex: number[],
   notes: Note[],
   setNotes: (note: Array<Note>) => void,
   vb: VoiceBank | null,
@@ -22,12 +22,15 @@ export function executeBatchProcess<TOptions>(
   options: TOptions
 ) {
   // 対象ノートの抽出：選択があればそのノート、なければ全ノート
+  const filteredSelectNotesIndex = selectNotesIndex.filter(
+    (idx) => idx >= 0 && idx < notes.length
+  );
   const targetNotes =
-    selectedNotesIndex.length > 0
-      ? selectedNotesIndex.map((idx) => notes[idx])
+    filteredSelectNotesIndex.length > 0
+      ? filteredSelectNotesIndex.map((idx) => notes[idx])
       : notes;
   LOG.info(
-    `selectedIndex:${selectedNotesIndex}、selectedNotes:${selectedNotesIndex.length}、target:${targetNotes.length}`,
+    `selectedIndex:${filteredSelectNotesIndex}、selectedNotes:${filteredSelectNotesIndex.length}、target:${targetNotes.length}`,
     "executeBatchProcess"
   );
   LOG.info("バッチ処理の実行", "executeBatchProcess");
@@ -42,10 +45,10 @@ export function executeBatchProcess<TOptions>(
       "executeBatchProcess"
     );
   }
-  if (selectedNotesIndex.length > 0) {
+  if (filteredSelectNotesIndex.length > 0) {
     LOG.info("選択されたノートの更新", "executeBatchProcess");
     const updatedNotes = [...notes];
-    selectedNotesIndex.forEach((idx, i) => {
+    filteredSelectNotesIndex.forEach((idx, i) => {
       updatedNotes[idx] = resultNotes[i];
     });
     setNotes(updatedNotes);
