@@ -74,12 +74,27 @@ describe("musicProjectStore", () => {
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    const n2 = new Note();
+    n.length = 480;
+    n.index = 0;
+    n.lyric = "あ";
     const initialStore = useMusicProjectStore.getState();
     initialStore.notes.push(n);
+    initialStore.notes.push(n2);
     expect(initialStore.notes[0].lyric).toBe("あ");
     setNoteProperty(0, "lyric", "い");
     const updatedStore = useMusicProjectStore.getState();
     expect(updatedStore.notes[0].lyric).toBe("い");
+
+    //setNotePropertyによってindexとリンクが更新されていることを確認
+    expect(updatedStore.notes[0].index).toBe(0);
+    expect(updatedStore.notes[0].prev).toBe(undefined);
+    expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
+    expect(updatedStore.notes[1].index).toBe(1);
+    expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
+    expect(updatedStore.notes[1].next).toBe(undefined);
+    // ust.notesとnotesが同じオブジェクトを参照していることの確認
+    expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
   });
 
   it("setNote", () => {
@@ -109,6 +124,15 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[0].length).toBe(240);
     expect(updatedStore.notes[1].lyric).toBe("あ");
     expect(updatedStore.notes[1].length).toBe(480);
+    //setNoteによってindexとリンクが更新されていることを確認
+    expect(updatedStore.notes[0].index).toBe(0);
+    expect(updatedStore.notes[0].prev).toBe(undefined);
+    expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
+    expect(updatedStore.notes[1].index).toBe(1);
+    expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
+    expect(updatedStore.notes[1].next).toBe(undefined);
+    // ust.notesとnotesが同じオブジェクトを参照していることの確認
+    expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
   });
 
   it("setNotes", () => {
@@ -138,6 +162,15 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[0].length).toBe(480);
     expect(updatedStore.notes[1].lyric).toBe("あ");
     expect(updatedStore.notes[1].length).toBe(480);
+    //setNotesによってindexとリンクが更新されていることを確認
+    expect(updatedStore.notes[0].index).toBe(0);
+    expect(updatedStore.notes[0].prev).toBe(undefined);
+    expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
+    expect(updatedStore.notes[1].index).toBe(1);
+    expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
+    expect(updatedStore.notes[1].next).toBe(undefined);
+    // ust.notesとnotesが同じオブジェクトを参照していることの確認
+    expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
     /** setNotesが更新に使えることの確認 */
     setNotes(newNotes);
     const updatedStore2 = useMusicProjectStore.getState();
@@ -145,5 +178,42 @@ describe("musicProjectStore", () => {
     expect(updatedStore2.notes[0].length).toBe(240);
     expect(updatedStore2.notes[1].lyric).toBe("あ");
     expect(updatedStore2.notes[1].length).toBe(480);
+    //setNotesによってindexとリンクが更新されていることを確認
+    expect(updatedStore2.notes[0].index).toBe(0);
+    expect(updatedStore2.notes[0].prev).toBe(undefined);
+    expect(updatedStore2.notes[0].next).toBe(updatedStore2.notes[1]);
+    expect(updatedStore2.notes[1].index).toBe(1);
+    expect(updatedStore2.notes[1].prev).toBe(updatedStore2.notes[0]);
+    expect(updatedStore2.notes[1].next).toBe(undefined);
+    // ust.notesとnotesが同じオブジェクトを参照していることの確認
+    expect(updatedStore2.notes).toBe(updatedStore2.ust?.notes);
+  });
+
+  it("無効なインデックスの場合、状態変更が行われない", () => {
+    const initialStore = useMusicProjectStore.getState();
+    // 2つのノートがある状態を用意
+    const note1 = new Note();
+    note1.length = 480;
+    note1.index = 0;
+    note1.lyric = "あ";
+    const note2 = new Note();
+    note2.length = 480;
+    note2.index = 1;
+    note2.lyric = "あ";
+    initialStore.notes = [note1, note2];
+    // 現在の状態を保存
+    const originalNotes = [...initialStore.notes];
+
+    // 負のインデックスの場合
+    const { setNoteProperty, setNote } = useMusicProjectStore.getState();
+    setNoteProperty(-1, "lyric", "い");
+    setNoteProperty(2, "lyric", "い");
+    // 配列の長さ以上の場合
+    setNote(-1, new Note());
+    setNote(2, new Note());
+
+    const updatedStore = useMusicProjectStore.getState();
+    // notesが変更されていないことを確認
+    expect(updatedStore.notes).toEqual(originalNotes);
   });
 });
