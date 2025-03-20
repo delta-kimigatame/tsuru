@@ -23,8 +23,6 @@ export default {
     synthesisCount: 0,
     playing: false,
     handlePlayStop: () => {},
-    // 追加のテスト用フラグ
-    actionCalled: false,
   },
 } as Meta;
 
@@ -32,9 +30,7 @@ i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
 const darkTheme = createTheme(getDesignTokens("dark"));
 
-const Template: StoryFn<FooterMenuProps & { actionCalled: boolean }> = (
-  args
-) => <FooterMenu {...args} />;
+const Template: StoryFn<FooterMenuProps> = (args) => <FooterMenu {...args} />;
 export const LightMode = Template.bind({});
 LightMode.args = {};
 LightMode.decorators = [
