@@ -75,6 +75,7 @@ export const translationJa = {
       zoom: "拡大縮小",
       batchprocess: "一括処理",
       play: "再生",
+      playStop: "停止",
       wav: "wav保存",
       ustLoadError:
         "ustファイルの読み込みに失敗しました。ファイルを確認してください。",

@@ -228,6 +228,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
                     ? props.selectedNotesIndex.length
                     : notes.length
                 }`
+              : props.playing
+              ? t("editor.footer.playStop")
               : t("editor.footer.play")
           }
           onClick={() => {
