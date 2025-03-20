@@ -565,11 +565,15 @@ export class Note {
       this._atPreutter =
         this._preutter !== undefined
           ? this._preutter * rate
-          : this.otoPreutter * rate;
+          : this.otoPreutter !== undefined
+          ? this.otoPreutter * rate
+          : undefined;
       this._atOverlap =
         this._overlap !== undefined
           ? this._overlap * rate
-          : this.otoOverlap * rate;
+          : this.otoOverlap !== undefined
+          ? this.otoOverlap * rate
+          : undefined;
       this._atStp = this.stp !== undefined ? this.stp : 0;
       return;
     }
@@ -587,8 +591,8 @@ export class Note {
     const realOverlap =
       (this._overlap !== undefined ? this._overlap : this.otoOverlap) * rate;
     const realStp = this.stp !== undefined ? this.stp : 0;
-
-    if (prevMsLength < realPreutter - realOverlap) {
+    if (Number.isNaN(realPreutter) || Number.isNaN(realOverlap)) {
+    } else if (prevMsLength < realPreutter - realOverlap) {
       this._atPreutter =
         (realPreutter / (realPreutter - realOverlap)) * prevMsLength;
       this._atOverlap =

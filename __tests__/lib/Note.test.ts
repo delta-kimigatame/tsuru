@@ -564,6 +564,7 @@ describe("RenderNote", () => {
     n.length = 480;
     n.tempo = 125;
     n.preutter = 100;
+    n.overlap = 0;
     n.stp = 70;
     n.notenum = 60;
     const p_note = new Note();
