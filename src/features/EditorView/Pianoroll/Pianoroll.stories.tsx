@@ -9,14 +9,15 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { modernVCVUst } from "../../../storybook/sampledata";
 import { base64ToArrayBuffer, loadVB } from "../../../storybook/utils";
 import { last } from "../../../utils/array";
-import { Pianoroll } from "./Pianoroll";
+import { Pianoroll, PianorollProps } from "./Pianoroll";
 
 export default {
   title: "EditView/Pianoroll/Pianoroll",
   component: Pianoroll,
+  args: { selectedNotesIndex: [], playing: false, playingMs: 0 },
 } as Meta<typeof Pianoroll>;
 
-const Template: StoryFn = () => <Pianoroll />;
+const Template: StoryFn<PianorollProps> = (args) => <Pianoroll {...args} />;
 
 /** テスト用の処理。最低限必要なパラメータを持ったノートを指定数生成する */
 const createNotes = (count: number): Note[] => {
