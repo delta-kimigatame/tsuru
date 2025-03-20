@@ -332,11 +332,13 @@ describe("PreprocessingBatchProcessのenvelopeCrossfade", () => {
     notes[0].index = 0;
     notes[0].overlap = 10;
     notes[0].lyric = "あ";
+    notes[0] = notes[0].deepCopy();
     /** 前のノートが非休符でoverlapがある。後ろのノートが休符 */
     notes.push(new Note());
     notes[1].index = 1;
     notes[1].overlap = 11;
     notes[1].lyric = "あ";
+    notes[1] = notes[1].deepCopy();
     notes[1].prev = notes[0];
     notes[0].next = notes[1];
     /** 休符 */
@@ -648,12 +650,14 @@ describe("PreprocessingBatchProcess", () => {
     notes[0].setPbm(["r", "j"]);
     notes[0].setPbw([100, 100]);
     notes[0].setPby([10, 10]);
+    notes[0] = notes[0].deepCopy();
     /** notes[1]は初期値がないパターン */
     notes.push(new Note());
     notes[1].index = 0;
     notes[1].lyric = "あ";
     notes[1].length = 480;
     notes[1].tempo = 120;
+    notes[1] = notes[1].deepCopy();
     notes[1].prev = notes[0];
     notes[0].next = notes[1];
     /** notes[2]は休符のパターン */
@@ -662,8 +666,9 @@ describe("PreprocessingBatchProcess", () => {
     notes[2].lyric = "R";
     notes[2].length = 480;
     notes[2].tempo = 120;
+    notes[2] = notes[2].deepCopy();
     notes[2].prev = notes[1];
-    notes[1].next = notes[0];
+    notes[1].next = notes[2];
     return notes;
   };
   let bp: PreprocessingBatchProcess;
@@ -735,6 +740,10 @@ describe("PreprocessingBatchProcess", () => {
     expect(result[2].flags).toBeUndefined();
     const undo = undoManager.undo();
     const redo = undoManager.redo();
+    undo.forEach((n, i) => {
+      n.prev = i === 0 ? undefined : undo[i - 1];
+      n.next = i === n.length - 1 ? undefined : undo[i + 1];
+    });
     expect(undo).toEqual(notes);
     expect(redo).toEqual(result);
   });
@@ -1358,6 +1367,10 @@ describe("PreprocessingBatchProcess", () => {
     expect(result[1].flags).toBeUndefined();
     expect(result[2].flags).toBeUndefined();
     const undo = undoManager.undo();
+    undo.forEach((n, i) => {
+      n.prev = i === 0 ? undefined : undo[i - 1];
+      n.next = i === n.length - 1 ? undefined : undo[i + 1];
+    });
     const redo = undoManager.redo();
     expect(undo).toEqual(notes);
     expect(redo).toEqual(result);
