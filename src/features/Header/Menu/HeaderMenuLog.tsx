@@ -1,6 +1,12 @@
 import CloseIcon from "@mui/icons-material/Close";
 import SubjectIcon from "@mui/icons-material/Subject";
-import { Button, Dialog, DialogContent, IconButton } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+} from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -47,6 +53,18 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
       />
 
       <Dialog open={open} onClose={handleClose} fullScreen>
+        <DialogTitle>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleButtonClick}
+            size="large"
+            sx={{ mx: 1 }}
+            color="inherit"
+          >
+            {t("error.download")}
+          </Button>
+        </DialogTitle>
         <IconButton
           onClick={handleClose}
           aria-label="close"
@@ -59,16 +77,6 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
           <CloseIcon />
         </IconButton>
         <DialogContent>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleButtonClick}
-            size="large"
-            sx={{ mx: 1 }}
-            color="inherit"
-          >
-            {t("error.download")}
-          </Button>
           <LogPaper />
         </DialogContent>
       </Dialog>
