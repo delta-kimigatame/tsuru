@@ -43,6 +43,9 @@ export const EditorView: React.FC = () => {
    * 再生中の状態
    */
   const [playing, setPlaying] = React.useState<boolean>(false);
+  /**
+   * 再生時間
+   */
   const [playingMs, setPlayingMs] = React.useState<number>(0);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -152,6 +155,7 @@ export const EditorView: React.FC = () => {
       return;
     }
     if (wavUrl !== undefined) {
+      LOG.info("再生開始", "EditorView");
       setPlaying(true);
       audioRef.current.play();
     } else {

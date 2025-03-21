@@ -22,6 +22,7 @@ export const PianorollSeekbar: React.FC<PianorollSeekbarProps> = (props) => {
         left: 0,
         zIndex: 4,
       }}
+      data-testid="pianoroll-seekbar"
     >
       <line
         x1={props.seekBarX}

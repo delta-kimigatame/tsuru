@@ -40,10 +40,10 @@ export class SynthesisWorker {
    * @param selectNotes 再生するノートのインデックス列。空の配列が渡された場合、全ノートが対象となる。
    * @returns 16bit/44100Hzのwavデータを表すArrayBuffer
    */
-  synthesis = async (
+  async synthesis(
     selectNotes: Array<number>,
     setSynthesisCount: (number) => void = (value) => {}
-  ): Promise<ArrayBuffer> => {
+  ): Promise<ArrayBuffer> {
     this.wavtool = new Wavtool();
     this.workersPool.clearTasks();
     const { vb, ust } = useMusicProjectStore.getState();
@@ -66,7 +66,7 @@ export class SynthesisWorker {
       LOG.error("wav変換に失敗しました", "synthesis,SynthesisWorker");
       throw error;
     }
-  };
+  }
 
   /**
    * wavtoolに渡すためのwavデータ部分を表すFloat64ArrayのPromiseを返す。
