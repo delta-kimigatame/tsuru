@@ -1,1 +1,0 @@
-var r=(e=>(e.UTF8="utf8",e.SHIFT_JIS="shiftJis",e))(r||{});const t={utf8:{textDecoder:"utf-8",fileReader:"UTF-8"},shiftJis:{textDecoder:"Shift-Jis",fileReader:"SJIS"}},i=e=>t[e].textDecoder,s=e=>t[e].fileReader;export{r as E,i as a,s as g};

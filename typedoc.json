@@ -1,7 +1,0 @@
-{
-  "entryPointStrategy": "expand",
-  "entryPoints": ["src/*"],
-  "out": "docs",
-  "htmlLang": "jp",
-  "exclude": ["src/**/*.stories.tsx"]
-}

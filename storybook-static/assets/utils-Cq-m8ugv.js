@@ -1,1 +1,0 @@
-const n=t=>{const r=atob(t),e=r.length,a=new Uint8Array(e);for(let o=0;o<e;o++)a[o]=r.charCodeAt(o);return a.buffer},s=async t=>{const r=await fetch(`/${t}`);if(!r.ok)throw new Error(`Failed to load ${t}: ${r.statusText}`);return r.arrayBuffer()};export{n as b,s as l};

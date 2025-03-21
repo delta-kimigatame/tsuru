@@ -1,1 +1,0 @@
-import{r as n}from"./index-iNOV5qWA.js";import{u}from"./useEnhancedEffect-DCkc7bGx.js";function o(e,r){typeof e=="function"?e(r):e&&(e.current=r)}function f(e){const r=n.useRef(e);return u(()=>{r.current=e}),n.useRef((...t)=>(0,r.current)(...t)).current}function a(...e){return n.useMemo(()=>e.every(r=>r==null)?null:r=>{e.forEach(t=>{o(t,r)})},e)}export{f as a,o as s,a as u};

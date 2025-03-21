@@ -1,1 +1,0 @@
-const n={C:0,"C#":1,"C♯":1,Db:1,"D♭":1,D:2,"D#":3,"D♯":3,Eb:3,"E♭":3,E:4,F:5,"F#":6,"F♯":6,Gb:6,"G♭":6,G:7,"G#":8,"G♯":8,Ab:8,"A♭":8,A:9,"A#":10,"A♯":10,Bb:10,"B♭":10,B:11},s=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],c=o=>{const t=parseInt(o.slice(-1)),e=o.slice(0,-1);return n[e]+(t+1)*12},a=o=>{const t=Math.floor(o/12)-1;return s[o%12]+t};export{a as n,c as t};
