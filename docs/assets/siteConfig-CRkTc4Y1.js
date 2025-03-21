@@ -1,0 +1,1 @@
+const t={productName:"UTAlet",productUrl:"https://k-uta.jp/utalet/",siteName:"きみがためtools",developerXUrl:"https://twitter.com/delta_kuro",githubUrl:"https://github.com/delta-kimigatame/tsuru",discordUrl:"https://discord.gg/aqZRj3CRcm"};export{t as s};

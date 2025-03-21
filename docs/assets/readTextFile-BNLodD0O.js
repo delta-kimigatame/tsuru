@@ -1,0 +1,1 @@
+const s=async(t,r="SJIS")=>{const e=new FileReader;return e.readAsText(new Blob([t],{type:"text/plain"}),r),new Promise((n,a)=>{e.addEventListener("load",()=>{typeof e.result=="string"?n(e.result):a("file can't read")})})};export{s as r};

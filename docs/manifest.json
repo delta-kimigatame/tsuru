@@ -1,0 +1,27 @@
+{
+  "short_name": "UTAlet",
+  "name": "きみがためtools - UTAlet -",
+  "icons": [
+    {
+      "src": "static/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "static/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "static/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#9575CD",
+  "background_color": "#EEEEEE"
+}

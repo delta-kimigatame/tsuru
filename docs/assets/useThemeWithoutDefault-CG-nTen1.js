@@ -1,0 +1,1 @@
+import{r as n}from"./index-iNOV5qWA.js";import{T as o}from"./resolveProps-BxfXLv92.js";function r(t){return Object.keys(t).length===0}function u(t=null){const e=n.useContext(o);return!e||r(e)?t:e}export{u};

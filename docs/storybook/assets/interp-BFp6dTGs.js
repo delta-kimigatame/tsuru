@@ -1,1 +1,0 @@
-const h=(t,e,r)=>{const s=new Array;return r.map(c=>{const o=e.findIndex(m=>m>=c),n=o===-1?e.length-1:o,a=n!==0?e[n-1]:0,p=e[n]-a,d=n!==0?t[n-1]:0,i=p!==0?(c-a)/p:1;s.push(d*(1-i)+t[n]*i)}),s},l=(t,e,r)=>{const s=Math.ceil((r-e)/t)+1;return[...Array(s)].map((o,n)=>n*t+e)};export{h as i,l as m};
