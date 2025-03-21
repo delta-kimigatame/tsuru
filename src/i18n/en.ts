@@ -1,0 +1,194 @@
+export const translationEn = {
+  header: {
+    clickInfo:
+      "No voice bank selected. Please select a voice bank to get started!",
+  },
+  language: {
+    ja: "JA",
+    en: "EN",
+  },
+  theme: {
+    system: "Follow system settings",
+    light: "Light mode",
+    dark: "Dark mode",
+  },
+  menu: {
+    toDarkMode: "to Dark Mode",
+    toLightMode: "to Light Mode",
+    changeLanguage: "Language setting",
+    showLog: "Show Log",
+    logAttention:
+      "Logs are not sent automatically, so please send them to the developer if necessary.",
+  },
+  top: {
+    catchphrase: "Let's UTA! Let's go!",
+    descriptions: [
+      "UTAlet is a browser-based voice synthesis tool using UTAU voicebanks.",
+      "It is designed to work with both CV (Consonant-Vowel) and VCV (Vowel-Consonant-Vowel) voicebanks.",
+    ],
+    selectZipButtonText: "Agree and Proceed",
+    selectZipButtonDescription:
+      "By clicking 'Agree and Proceed', you accept the Terms of Use and select the UTAU VoiceBank ZIP file.",
+    rule: "Terms of service",
+    ruleDescription:
+      "Only voice sources with permission from the voice rights holder may be used.",
+    ruleDescription2:
+      "If you wish to use someone else's voice, you must obtain their explicit permission.",
+    privacy: "Privacy Policy",
+    privacyAnalytics: `We use Google Analytics to analyze visitor behavior on our site. The data collected through Google Analytics is anonymous and does not identify individual users.`,
+    privacyCookie:
+      "Cookies are used to customize the display and user interaction for improving user experience. These cookies do not collect personal data and are only used to enhance the site's usability.",
+    privacyOffline:
+      "This service is designed to work fully offline and does not engage in any communication with external servers.",
+    privacyWorker:
+      "The workers used on this site do not collect any privacy-related data.",
+    history: "Release Note",
+    changelog: ["2025/03/** Release"],
+  },
+  loadVBDialog: {
+    title: "Read Zip",
+    encodeCheck: "Check the encoding",
+    encoding: "character code",
+    submit: "OK",
+    error: "Load Error.This file is not UTAU VoiceBank.",
+  },
+  infoVBDialog: {
+    characterInfo: {
+      name: "VB Name",
+      author: "author",
+      web: "web site",
+      version: "version info",
+      voice: "voicer",
+      otoCounts: "oto aliases count",
+    },
+    TextTabs: {
+      notFound: "*.txt is not found.",
+    },
+    TextTabContent: {
+      error: "can't read txtfile.",
+    },
+    agreeButton: "Agree to All",
+  },
+  editor: {
+    footer: {
+      project: "Load UST",
+      zoom: "Zoom",
+      batchprocess: "Batch Process",
+      play: "Play",
+      playStop: "Stop",
+      wav: "Save WAV",
+      ustLoadError: "Failed to load the UST file. Please check the file.",
+      verticalZoomIn: "Zoom In (Vertical)",
+      verticalZoomOut: "Zoom Out (Vertical)",
+      horizontalZoomIn: "Zoom In (Horizontal)",
+      horizontalZoomOut: "Zoom Out (Horizontal)",
+    },
+    synthesisError: "Synthesis process failed.",
+  },
+  batchprocess: {
+    octaveUp: "Raise by 1 Octave",
+    octaveDown: "Lower by 1 Octave",
+    envelopeNormalize: "Envelope Normalization",
+    resetEdit: {
+      title: "Edit Voice Reset",
+      info: "Reset Labels",
+      pitch: "Reset Pitch",
+      intensity: "Reset Volume",
+      flags: "Reset Flags",
+      velocity: "Reset Consonant Speed",
+      envelope: "Reset Envelope",
+      vibrato: "Reset Vibrato",
+      modulation: "Reset Modulation",
+    },
+    preprocessing: {
+      title: "Automatic Preprocessing",
+      lyric: {
+        title: "Lyrics",
+        lyric: "Change Lyrics",
+        mode: "aa",
+        modeOptions: ["CV", "VCV"],
+        replace:
+          "Replace 'を', 'ぢ', and 'づ' with 'お', 'じ', and 'ず' respectively.",
+        useHeadingCV:
+          "In CV mode, use the heading format for the first note ([- あ]).",
+        vowelConnect: "Vowel Connection (CV mode)",
+        vowelConnectOptions: [
+          "Use vowel connection format [* あ]",
+          "Use [あ] as is",
+          "Automatically adjust parameters for [あ]",
+        ],
+      },
+      pitch: {
+        title: "Pitch",
+        pitch: "Set Pitch in Batch",
+        speed: "Speed of Pitch Change",
+        speedOptions: ["Very Fast", "Fast", "Normal", "Slow", "Very Slow"],
+        timing: "Timing of Pitch Change",
+        timingOptions: ["Very Fast", "Fast", "Medium", "Slow", "Very Slow"],
+      },
+      vibrato: {
+        title: "Vibrato",
+        vibrato: "Apply Vibrato",
+        default: "Apply light vibrato to all notes",
+        defaultThreshold: "Note length threshold (for light vibrato)",
+        long: "Apply deep vibrato to long notes",
+        longThreshold: "Note length threshold (for long notes)",
+        ending: "Apply extended deep vibrato to the note before a rest",
+        endingThreshold: "Note length threshold (before rest)",
+        thresholdOptions: [
+          "Quarter note (480)",
+          "Dotted quarter note (720)",
+          "Half note (960)",
+          "Dotted half note (1440)",
+          "Whole note (1930)",
+        ],
+      },
+      envelope: {
+        title: "Envelope",
+        envelope: "Automatically adjust envelope",
+        type: "Type of automatic adjustment",
+        option: ["Crossfade for VCV only", "Crossfade for all notes", "Reset"],
+      },
+      velocity: {
+        title: "Consonant Speed",
+        velocity: "Set consonant speed in batch",
+        value: "Consonant speed (higher is faster)",
+      },
+      intensity: {
+        title: "Volume",
+        intensity: "Set volume in batch",
+        value: "Volume",
+      },
+      modulation: {
+        title: "Modulation",
+        modulation: "Set modulation in batch",
+        value: "Modulation (pitch fluctuation; if unsure, set to 0)",
+      },
+      flags: {
+        title: "Flags (Not supported in UTAlet)",
+        flags: "Set flags in batch",
+        value:
+          "Flags (varies by engine; not supported in UTAlet standard engine)",
+      },
+    },
+    process: "Execute",
+  },
+  footer: {
+    disclaimer:
+      "UTAU is a singing voice synthesis software created for Windows and published by 飴屋／菖蒲",
+    disclaimer2: "This software is not affiliated with UTAU official.",
+    developerx: "Developer X account",
+    github: "github",
+    discord: "discord",
+  },
+  xbutton: {
+    share: "share",
+  },
+  error: {
+    title: "Error",
+    message:
+      "An unexpected error has occurred. Please download the log from the button below and send it to the developer.",
+    download: "Download Log",
+    log: "Log",
+  },
+};
