@@ -1,7 +1,16 @@
 export const translationEn = {
+  header: {
+    clickInfo:
+      "No voice bank selected. Please select a voice bank to get started!",
+  },
   language: {
     ja: "JA",
     en: "EN",
+  },
+  theme: {
+    system: "Follow system settings",
+    light: "Light mode",
+    dark: "Dark mode",
   },
   menu: {
     toDarkMode: "to Dark Mode",
@@ -61,112 +70,108 @@ export const translationEn = {
     agreeButton: "Agree to All",
   },
   editor: {
-    file_check: {
-      title: "File Check",
-      all: "Select All",
-      file_list: "File List",
-      contentsdir: {
-        title: "Voicebank Root (Folder containing files to install)",
-        description: `Changing this setting will discard edits to 
-          character.txt, character.yaml, readme.txt, install.txt, and prefix.map.`,
+    footer: {
+      project: "Load UST",
+      zoom: "Zoom",
+      batchprocess: "Batch Process",
+      play: "Play",
+      playStop: "Stop",
+      wav: "Save WAV",
+      ustLoadError: "Failed to load the UST file. Please check the file.",
+      verticalZoomIn: "Zoom In (Vertical)",
+      verticalZoomOut: "Zoom Out (Vertical)",
+      horizontalZoomIn: "Zoom In (Horizontal)",
+      horizontalZoomOut: "Zoom Out (Horizontal)",
+    },
+    synthesisError: "Synthesis process failed.",
+  },
+  batchprocess: {
+    octaveUp: "Raise by 1 Octave",
+    octaveDown: "Lower by 1 Octave",
+    envelopeNormalize: "Envelope Normalization",
+    resetEdit: {
+      title: "Edit Voice Reset",
+      info: "Reset Labels",
+      pitch: "Reset Pitch",
+      intensity: "Reset Volume",
+      flags: "Reset Flags",
+      velocity: "Reset Consonant Speed",
+      envelope: "Reset Envelope",
+      vibrato: "Reset Vibrato",
+      modulation: "Reset Modulation",
+    },
+    preprocessing: {
+      title: "Automatic Preprocessing",
+      lyric: {
+        title: "Lyrics",
+        lyric: "Change Lyrics",
+        mode: "aa",
+        modeOptions: ["CV", "VCV"],
+        replace:
+          "Replace 'を', 'ぢ', and 'づ' with 'お', 'じ', and 'ず' respectively.",
+        useHeadingCV:
+          "In CV mode, use the heading format for the first note ([- あ]).",
+        vowelConnect: "Vowel Connection (CV mode)",
+        vowelConnectOptions: [
+          "Use vowel connection format [* あ]",
+          "Use [あ] as is",
+          "Automatically adjust parameters for [あ]",
+        ],
       },
-      remove: {
-        title: "Delete Unnecessary Files",
-        read: "Delete $read",
-        uspec: "Delete UTAU voicebank cache files (*.uspec)",
-        setparam: "Delete setParam cache files (oto.setParam-Scache)",
-        vlabeler: "Delete vLabeler cache folders (*.lbp.caches/)",
+      pitch: {
+        title: "Pitch",
+        pitch: "Set Pitch in Batch",
+        speed: "Speed of Pitch Change",
+        speedOptions: ["Very Fast", "Fast", "Normal", "Slow", "Very Slow"],
+        timing: "Timing of Pitch Change",
+        timingOptions: ["Very Fast", "Fast", "Medium", "Slow", "Very Slow"],
       },
-      frq: {
-        title: "Frequency Table Files",
-        description: `By default, all files except frq will be deleted.
-          Keep them if you have manually modified the frequency table.`,
-        frq: "Generate UTAU standard frequency table (*.frq) if missing",
-        pmk: "Delete tips engine frequency table (*.pmk)",
-        frc: "Delete model4 engine frequency table (*.frc) (Distribution prohibited by terms of use)",
-        vs4ufrq: "Delete VS4U engine frequency table (*.vs4ufrq)",
-        world: "Delete w4u engine frequency table (*.dio, *.stac, *.platinum)",
-        llsm: "Delete moresampler analysis file (*.llsm)",
-        mrq: "Delete moresampler analysis file (*.mrq)",
+      vibrato: {
+        title: "Vibrato",
+        vibrato: "Apply Vibrato",
+        default: "Apply light vibrato to all notes",
+        defaultThreshold: "Note length threshold (for light vibrato)",
+        long: "Apply deep vibrato to long notes",
+        longThreshold: "Note length threshold (for long notes)",
+        ending: "Apply extended deep vibrato to the note before a rest",
+        endingThreshold: "Note length threshold (before rest)",
+        thresholdOptions: [
+          "Quarter note (480)",
+          "Dotted quarter note (720)",
+          "Half note (960)",
+          "Dotted half note (1440)",
+          "Whole note (1930)",
+        ],
       },
-      oto: {
-        title: "oto.ini",
-        root: "Generate an empty oto.ini if none exists in the voicebank root",
+      envelope: {
+        title: "Envelope",
+        envelope: "Automatically adjust envelope",
+        type: "Type of automatic adjustment",
+        option: ["Crossfade for VCV only", "Crossfade for all notes", "Reset"],
       },
-      wav: {
-        title: "Audio Data",
-        description: "Select all by default",
-        stereo: "Convert stereo voicebanks to mono",
-        sampleRate: "Set sampling rate to 44,100 Hz",
-        depth: "Set bit depth to 16-bit",
-        dcoffset: "Remove DC offset",
+      velocity: {
+        title: "Consonant Speed",
+        velocity: "Set consonant speed in batch",
+        value: "Consonant speed (higher is faster)",
+      },
+      intensity: {
+        title: "Volume",
+        intensity: "Set volume in batch",
+        value: "Volume",
+      },
+      modulation: {
+        title: "Modulation",
+        modulation: "Set modulation in batch",
+        value: "Modulation (pitch fluctuation; if unsure, set to 0)",
+      },
+      flags: {
+        title: "Flags (Not supported in UTAlet)",
+        flags: "Set flags in batch",
+        value:
+          "Flags (varies by engine; not supported in UTAlet standard engine)",
       },
     },
-    character: {
-      title: "Character",
-      description: "Information about the voicebank. This is required.",
-      check: "Create or update character.txt (always created if missing)",
-      convertBmp:
-        "Select an image and convert it to a UTAU icon (bmp/jpg/gif/png)",
-      field: {
-        name: "Voicebank Name",
-        image: "Icon Image (bmp/jpg/gif)",
-        sample: "Sample Audio",
-        author: "Administrator",
-        web: "Website",
-        version: "Version Info",
-        convertBmp: "Select an external image (bmp/jpg/gif/png)",
-        uploadSample: "Select an external audio file (wav)",
-      },
-    },
-    characterYaml: {
-      description: "Additional settings for OpenUtau.",
-      check: "Create or update character.yaml",
-      TextFileEncoding: "Specify text file encoding (shift-jis)",
-      Portrait: "Standing Illustration",
-      PortraitUpload: "Select an external image (png)",
-      PortraitOpacity: "Standing Illustration Opacity",
-      PortraitHeight: "Standing Illustration Height",
-      Voice: "Voice Provider",
-    },
-    readme: {
-      title: "Readme & Terms of Use",
-      check: "Create or update readme.txt",
-      description: `Displayed when using the voicebank for the first time. 
-        It is recommended to include terms of use and voicebank details.`,
-    },
-    install: {
-      title: "Installation Settings",
-      check: "Create or update install.txt",
-      description: "Allows drag-and-drop installation into UTAU.",
-      field: {
-        folder: "Installation Destination Folder",
-        contentsdir: "Folder containing files to install",
-        description: "One-line description for installation",
-      },
-    },
-    prefixmap: {
-      title: "prefix.map",
-      description:
-        "Settings to automatically switch voicebanks based on pitch.",
-      description2: "Voice Color is not available in standard UTAU.",
-      check: "Create or update prefix.map",
-      header: {
-        tone: "Pitch",
-        prefix: "Prefix",
-        suffix: "Suffix",
-      },
-      voiceColor: "Voice Color",
-      add: "Add",
-      change: "Modify",
-      delete: "Delete",
-      all: "Select All",
-      cancel: "Deselect",
-      set: "Set",
-      clear: "Clear",
-    },
-    output: "Generate ZIP File",
-    download: "Download",
+    process: "Execute",
   },
   footer: {
     disclaimer:
@@ -175,14 +180,6 @@ export const translationEn = {
     developerx: "Developer X account",
     github: "github",
     discord: "discord",
-  },
-  loadZipDialog: {
-    title: "Read Zip",
-    encodeCheck: "Check the encoding",
-    encoding: "character code",
-    reload: "Reload with the specified character code",
-    submit: "OK",
-    error: "ERROR",
   },
   xbutton: {
     share: "share",
