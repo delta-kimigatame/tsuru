@@ -13,6 +13,6 @@ const config: StorybookConfig = {
     options: {},
   },
   // Storybook専用の静的アセットフォルダを指定
-  staticDirs: ["../storybookPublic"],
+  staticDirs: [{ from: "../storybookPublic", to: "storybookPublic" }],
 };
 export default config;
