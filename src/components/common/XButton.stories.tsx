@@ -1,7 +1,6 @@
-import { ButtonProps } from "@mui/material";
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
-import { XButton } from "./XButton";
+import { XButton, XButtonProps } from "./XButton";
 
 export default {
   title: "50_共通部品/Xボタン",
@@ -9,7 +8,7 @@ export default {
   argTypes: {},
 } as Meta;
 
-const Template: StoryFn<ButtonProps> = (args) => <XButton {...args} />;
+const Template: StoryFn<XButtonProps> = (args) => <XButton {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

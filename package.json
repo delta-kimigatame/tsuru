@@ -10,9 +10,9 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
-    "makedoc": "npx typedoc --entryPointStrategy expand ./src --htmlLang jp --cleanOutputDir false",
+    "makedoc": "npx typedoc",
     "storybook": "storybook dev -p 6006 --host 0.0.0.0 --no-open",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build -o docs/storybook",
     "eslint": "eslint \"src/**/*.{ts,tsx}\"",
     "eslint:fix": "eslint --fix \"src/**/*.{ts,tsx}\""
   },

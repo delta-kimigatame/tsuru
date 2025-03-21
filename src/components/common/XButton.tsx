@@ -8,7 +8,7 @@ import React from "react";
  * SNSでのシェア用のXButtonコンポーネント。
  * デフォルトでXIconをstartIconとして表示し、hrefとtarget="_blank"を必須にする。
  */
-interface XButtonProps extends ButtonProps {
+export interface XButtonProps extends ButtonProps {
   href: string; // hrefは必須
   target?: string; // targetは任意に設定
 }

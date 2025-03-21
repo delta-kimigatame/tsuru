@@ -1,0 +1,1 @@
+import{a as e}from"./resolveProps-BxfXLv92.js";import{g as a,C as o}from"./generateUtilityClasses-DXwt_ASJ.js";import{c as s}from"./createBox-BQknTud0.js";import{c as t}from"./createTheme-B5w4ml5n.js";const r=a("MuiBox",["root"]),m=t(),f=s({themeId:e,defaultTheme:m,defaultClassName:r.root,generateClassName:o.generate});export{f as B};
