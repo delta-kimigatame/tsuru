@@ -1,6 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import SubjectIcon from "@mui/icons-material/Subject";
-import { Dialog, DialogContent, IconButton } from "@mui/material";
+import { Button, Dialog, DialogContent, IconButton } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,6 +23,21 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
     setOpen(true);
     props.onMenuClose();
   };
+  /**
+   * ダウンロードボタンを押した際の動作
+   */
+  const handleButtonClick = () => {
+    const text = LOG.datas.join("\r\n");
+    console.log(text);
+    const logFile = new File([text], `log_${new Date().toJSON()}.txt`, {
+      type: "text/plane;charset=utf-8",
+    });
+    const url = URL.createObjectURL(logFile);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = logFile.name;
+    a.click();
+  };
   return (
     <>
       <HeaderMenuItemBase
@@ -44,6 +59,16 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
           <CloseIcon />
         </IconButton>
         <DialogContent>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleButtonClick}
+            size="large"
+            sx={{ mx: 1 }}
+            color="inherit"
+          >
+            {t("error.download")}
+          </Button>
           <LogPaper />
         </DialogContent>
       </Dialog>
