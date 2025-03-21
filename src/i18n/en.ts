@@ -26,6 +26,7 @@ export const translationEn = {
       "UTAlet is a browser-based voice synthesis tool using UTAU voicebanks.",
       "It is designed to work with both CV (Consonant-Vowel) and VCV (Vowel-Consonant-Vowel) voicebanks.",
     ],
+    install: "install",
     selectZipButtonText: "Agree and Proceed",
     selectZipButtonDescription:
       "By clicking 'Agree and Proceed', you accept the Terms of Use and select the UTAU VoiceBank ZIP file.",

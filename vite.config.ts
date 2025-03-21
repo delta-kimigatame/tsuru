@@ -17,7 +17,8 @@ export default defineConfig({
         theme_color: "#9575CD",
         background_color: "#EEEEEE",
         lang: "ja",
-        start_url: "/",
+        start_url: "/utalet/",
+        scope: "/utalet/",
         display: "standalone",
         icons: [
           {

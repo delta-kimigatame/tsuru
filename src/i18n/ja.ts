@@ -25,6 +25,7 @@ export const translationJa = {
       "UTAletはUTAU音源を用いたブラウザベースの歌声合成ツールです。",
       "日本語の単独音と連続音が想定されています。",
     ],
+    install: "インストール",
     selectZipButtonText: "UTAU音源のzipファイルを選択",
     selectZipButtonDescription:
       "「UTAU音源のzipファイルを選択」をクリックすると、利用規約に同意したとみなします。",

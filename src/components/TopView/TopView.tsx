@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { InstallPaper } from "../../features/TopView/InstallPaper";
 import { DescriptionPaper } from "./DescriptionPaper";
 import { HistoryPaper } from "./HistoryPaper";
 import { PrivacyPaper } from "./PrivacyPaper";
@@ -14,6 +15,7 @@ export const TopView: React.FC = () => {
       <RulePaper />
       <PrivacyPaper />
       <HistoryPaper />
+      <InstallPaper />
     </>
   );
 };
