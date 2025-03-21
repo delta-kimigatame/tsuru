@@ -1,7 +1,7 @@
 {
   "entryPointStrategy": "expand",
   "entryPoints": ["src/*"],
-  "out": "docs/typedoc",
+  "out": "docs",
   "htmlLang": "jp",
   "exclude": ["src/**/*.stories.tsx"]
 }

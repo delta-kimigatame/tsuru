@@ -12,7 +12,7 @@
     "test:ui": "vitest --ui",
     "makedoc": "npx typedoc",
     "storybook": "storybook dev -p 6006 --host 0.0.0.0 --no-open",
-    "build-storybook": "storybook build -o docs",
+    "build-storybook": "storybook build",
     "eslint": "eslint \"src/**/*.{ts,tsx}\"",
     "eslint:fix": "eslint --fix \"src/**/*.{ts,tsx}\""
   },
