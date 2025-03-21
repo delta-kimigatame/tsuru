@@ -43,7 +43,7 @@ export const translationJa = {
     privacyWorker:
       "本サイトで使用されるワーカーは、プライバシーに関わるデータを収集しません。",
     history: "更新履歴",
-    changelog: ["2025/03/** 初版公開"],
+    changelog: ["2025/03/22 初版公開"],
   },
   loadVBDialog: {
     title: "ZIP読込",

@@ -43,7 +43,7 @@ export const translationEn = {
     privacyWorker:
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
-    changelog: ["2025/03/** Release"],
+    changelog: ["2025/03/22 Release"],
   },
   loadVBDialog: {
     title: "Read Zip",
