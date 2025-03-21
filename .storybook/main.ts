@@ -14,12 +14,5 @@ const config: StorybookConfig = {
   },
   // Storybook専用の静的アセットフォルダを指定
   staticDirs: ["../storybookPublic"],
-  viteFinal: async (config, { configType }) => {
-    return {
-      ...config,
-      // GitHub Pagesで公開する際のベースパス（リポジトリ名に合わせる）
-      base: "/tsuru/",
-    };
-  },
 };
 export default config;
