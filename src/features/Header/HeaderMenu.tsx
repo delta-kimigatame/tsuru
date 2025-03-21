@@ -1,8 +1,9 @@
 import MenuIcon from "@mui/icons-material/Menu";
-import { IconButton, Menu } from "@mui/material";
+import { Divider, IconButton, Menu } from "@mui/material";
 import React from "react";
 import { LOG } from "../../lib/Logging";
 import { HeaderMenuLanguage } from "./Menu/HeaderMenuLanguage";
+import { HeaderMenuLog } from "./Menu/HeaderMenuLog";
 import { HeaderMenuTheme } from "./Menu/HeaderMenuTheme";
 
 export const HeaderMenu: React.FC = () => {
@@ -33,6 +34,8 @@ export const HeaderMenu: React.FC = () => {
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={handleClose}>
         <HeaderMenuLanguage onMenuClose={handleClose} />
         <HeaderMenuTheme onMenuClose={handleClose} />
+        <Divider />
+        <HeaderMenuLog onMenuClose={handleClose} />
       </Menu>
     </>
   );
