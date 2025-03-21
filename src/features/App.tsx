@@ -33,6 +33,8 @@ export const App: React.FC = () => {
         <EditorView />
       ) : (
         <>
+          <br />
+          <br />
           <TopView />
           <Footer />
         </>
