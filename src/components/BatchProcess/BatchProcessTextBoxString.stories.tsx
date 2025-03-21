@@ -10,7 +10,7 @@ import {
 } from "./BatchProcessTextBoxString";
 
 export default {
-  title: "BatchProcess/BatchProcessTextBoxString",
+  title: "03_3_バッチプロセス/共通部品/テキストボックス(文字列用)",
   component: BatchProcessTextBoxString,
   argTypes: {},
 } as Meta;
@@ -37,3 +37,4 @@ Default.args = {
     console.log(`Changed ${key}: ${value}`);
   },
 };
+Default.storyName = "デフォルト";

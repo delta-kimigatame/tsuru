@@ -12,7 +12,7 @@ i18n.changeLanguage("ja");
 const theme = createTheme(getDesignTokens("light"));
 
 export default {
-  title: "BatchProcess/AutoUI",
+  title: "03_3_バッチプロセス/自動UI(実際のバッチプロセス)",
   component: BatchProcess,
   argTypes: {},
 } as Meta;
@@ -31,6 +31,7 @@ ResetEditAutoUI.args = {
   batchprocess: new ResetEditBatchProcess(),
   selectedNotesIndex: [],
 };
+ResetEditAutoUI.storyName = "ベタ打ちに戻す";
 
 /**
  * PreprocessingBatchProcess の自動生成UIを確認するストーリー
@@ -40,3 +41,4 @@ PreprocessingAutoUI.args = {
   batchprocess: new PreprocessingBatchProcess(),
   selectedNotesIndex: [],
 };
+PreprocessingAutoUI.storyName = "おまかせ一括調声";

@@ -7,7 +7,7 @@ import { LOG } from "../../lib/Logging";
 import { LogPaper } from "./LogPaper";
 
 export default {
-  title: "Logging/LogPaper",
+  title: "80_ログ/ログ表示共通部品",
   component: LogPaper,
   argTypes: {},
 } as Meta;
@@ -32,7 +32,7 @@ Default.decorators = [
     );
   },
 ];
-
+Default.storyName = "デフォルト";
 export const Empty = Template.bind({});
 Empty.args = {};
 Empty.decorators = [
@@ -45,3 +45,4 @@ Empty.decorators = [
     );
   },
 ];
+Empty.storyName = "ログ無し";

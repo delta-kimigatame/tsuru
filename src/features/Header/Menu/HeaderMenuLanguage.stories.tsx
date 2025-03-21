@@ -10,7 +10,7 @@ const dummyLanguage = "ja";
 useCookieStore.setState({ language: dummyLanguage });
 
 export default {
-  title: "Header/HeaderMenuLanguage",
+  title: "01_ヘッダ/ヘッダ部品/メニュー部品/言語ボタン",
   component: HeaderMenuLanguage,
   argTypes: {},
 } as Meta;
@@ -20,7 +20,7 @@ const Template: StoryFn<HeaderMenuItemProps> = (args) => (
 );
 
 export const Default = Template.bind({});
-Default.storyName = "HeaderMenuLanguage のデフォルト表示";
+Default.storyName = "デフォルト";
 Default.args = {
   onClick: () => {},
   onMenuClose: () => {

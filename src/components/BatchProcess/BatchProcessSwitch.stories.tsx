@@ -10,7 +10,7 @@ import {
 } from "./BatchProcessSwitch";
 
 export default {
-  title: "BatchProcess/BatchProcessSwitch",
+  title: "03_3_バッチプロセス/共通部品/スイッチ",
   component: BatchProcessSwitch,
   argTypes: {},
 } as Meta;
@@ -36,3 +36,4 @@ Default.args = {
     console.log(`Changed ${key}: ${value}`);
   },
 };
+Default.storyName = "デフォルト";

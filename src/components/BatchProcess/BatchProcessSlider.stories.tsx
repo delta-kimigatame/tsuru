@@ -10,7 +10,7 @@ import {
 } from "./BatchProcessSlider";
 
 export default {
-  title: "BatchProcess/BatchProcessSlider",
+  title: "03_3_バッチプロセス/共通部品/スライダー",
   component: BatchProcessSlider,
   argTypes: {},
 } as Meta;
@@ -39,3 +39,4 @@ Default.args = {
     console.log(`Changed ${key}: ${value}`);
   },
 };
+Default.storyName = "デフォルト";

@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { RulePaper } from "./RulePaper";
 
 export default {
-  title: "TopView/RulePaper",
+  title: "02_トップ/トップ部品/利用規約",
   component: RulePaper,
   argTypes: {},
 } as Meta;
@@ -24,3 +24,4 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
+Default.storyName = "デフォルト";

@@ -13,7 +13,7 @@ import { base64ToArrayBuffer } from "../../../storybook/utils";
 import { FooterMenu, FooterMenuProps } from "./FooterMenu";
 
 export default {
-  title: "EditView/FooterMenu/FooterMenu",
+  title: "03_1_エディタ下部メニュー/全体",
   component: FooterMenu,
   args: {
     selectedNotesIndex: [],
@@ -40,6 +40,7 @@ LightMode.decorators = [
     </ThemeProvider>
   ),
 ];
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.args = {
@@ -52,6 +53,7 @@ DarkMode.decorators = [
     </ThemeProvider>
   ),
 ];
+DarkMode.storyName = "ダークモード";
 
 export const SynthesisProgress = Template.bind({});
 SynthesisProgress.args = {
@@ -66,6 +68,7 @@ SynthesisProgress.decorators = [
     </ThemeProvider>
   ),
 ];
+SynthesisProgress.storyName = "合成待ち画面(全体)";
 SynthesisProgress.play = async () => {
   const projectStore = useMusicProjectStore.getState();
   const notes = new Array<Note>();
@@ -102,6 +105,7 @@ SynthesisProgressWithSelect.play = async () => {
   projectStore.setUst({} as Ust);
   projectStore.setNotes(notes);
 };
+SynthesisProgressWithSelect.storyName = "合成待ち画面(選択ノート)";
 
 export const Playing = Template.bind({});
 Playing.args = {
@@ -130,6 +134,7 @@ Landscape.decorators = [
     </ThemeProvider>
   ),
 ];
+Landscape.storyName = "iphoneX横向き";
 
 export const ClickUst = Template.bind({});
 ClickUst.args = {};
@@ -149,6 +154,7 @@ ClickUst.play = async ({ canvasElement, step }) => {
     throw new Error("隠しファイル入力が見つかりません");
   }
 };
+ClickUst.storyName = "UST読込クリック(ファイル読込が開く)";
 export const ClickZoom = Template.bind({});
 ClickZoom.args = {};
 ClickZoom.decorators = [
@@ -175,6 +181,7 @@ ClickZoom.play = async ({ canvasElement, step }) => {
   await userEvent.click(zoomTab);
   await within(document.body).findByRole("menu", {}, { timeout: 5000 });
 };
+ClickZoom.storyName = "拡大縮小クリック(メニューが開く)";
 
 export const ClickBatchProcess = Template.bind({});
 ClickBatchProcess.args = {};
@@ -203,6 +210,7 @@ ClickBatchProcess.play = async ({ canvasElement, step }) => {
 
   await within(document.body).findByRole("menu", {}, { timeout: 5000 });
 };
+ClickBatchProcess.storyName = "一括処理クリック(メニューが開く)";
 
 const DummyParent: React.FC = () => {
   const [playing, setPlaying] = React.useState<boolean>(false);
@@ -243,6 +251,7 @@ ClickPlay.decorators = [
     </ThemeProvider>
   ),
 ];
+ClickPlay.storyName = "再生クリック";
 
 ClickPlay.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
@@ -273,6 +282,7 @@ ClickDownload.decorators = [
   ),
 ];
 
+ClickDownload.storyName = "wav保存をクリック";
 ClickDownload.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
   await step(

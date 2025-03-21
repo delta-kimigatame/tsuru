@@ -10,7 +10,7 @@ import { PianorollNotes, PianorollNotesProps } from "./PianorollNotes";
 import { PianorollVibrato } from "./PianorollVibrato";
 
 export default {
-  title: "EditView/Pianoroll/PianorollVibrato",
+  title: "03_2_ピアノロール/部品/ビブラート",
   component: PianorollVibrato,
   args: { selectedNotesIndex: [] },
 } as Meta<typeof PianorollVibrato>;
@@ -101,6 +101,7 @@ LightMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.play = async () => {
@@ -113,6 +114,7 @@ DarkMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+DarkMode.storyName = "ダークモード";
 
 export const VerticalZoom = Template.bind({});
 VerticalZoom.play = async () => {
@@ -125,6 +127,7 @@ VerticalZoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+VerticalZoom.storyName = "音階方向縮小";
 
 export const HorizontalZoom = Template.bind({});
 HorizontalZoom.play = async () => {
@@ -137,6 +140,7 @@ HorizontalZoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+HorizontalZoom.storyName = "時間方向縮小";
 
 export const Zoom = Template.bind({});
 Zoom.play = async () => {
@@ -149,3 +153,4 @@ Zoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+Zoom.storyName = "縮小";

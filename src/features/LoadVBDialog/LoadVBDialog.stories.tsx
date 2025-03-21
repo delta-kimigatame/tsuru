@@ -7,7 +7,7 @@ import { base64ToArrayBuffer } from "../../storybook/utils";
 import { LoadVBDialog, LoadVBDialogProps } from "./LoadVBDialog";
 
 export default {
-  title: "LoadVBDialog/LoadVBDialog",
+  title: "05_音源読込画面/音源読込画面全体",
   component: LoadVBDialog,
   argTypes: {},
 } as Meta;
@@ -40,6 +40,7 @@ Default.decorators = [
     );
   },
 ];
+Default.storyName = "デフォルト";
 
 export const NotOpen = Template.bind({});
 NotOpen.args = {
@@ -60,6 +61,7 @@ NotOpen.decorators = [
     );
   },
 ];
+NotOpen.storyName = "ファイル読込前(何も表示されない)";
 
 export const FileNull = Template.bind({});
 FileNull.args = {
@@ -78,3 +80,4 @@ FileNull.decorators = [
     );
   },
 ];
+FileNull.storyName = "ファイルがnull(何も表示されない)";

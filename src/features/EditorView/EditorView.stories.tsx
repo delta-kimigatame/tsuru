@@ -12,7 +12,7 @@ import { sampleLongCVUst } from "../../storybook/sampledata";
 import { base64ToArrayBuffer, loadVB } from "../../storybook/utils";
 import { EditorView } from "./EditorView";
 export default {
-  title: "EditView/EditorView",
+  title: "03_0_エディタ/エディタ全体",
   component: EditorView,
 } as Meta<typeof EditorView>;
 
@@ -69,6 +69,7 @@ LightMode.play = async () => {
   store.setMode("light");
   store.setColorTheme("default");
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.args = {};
@@ -81,6 +82,7 @@ DarkMode.decorators = [
     );
   },
 ];
+DarkMode.storyName = "ダークモード";
 
 DarkMode.play = async () => {
   const store = useCookieStore.getState();
@@ -103,6 +105,7 @@ Landscape.decorators = [
     </ThemeProvider>
   ),
 ];
+Landscape.storyName = "iphoneX横向き";
 
 export const ClickUst = Template.bind({});
 ClickUst.args = {};
@@ -113,6 +116,7 @@ ClickUst.decorators = [
     </ThemeProvider>
   ),
 ];
+ClickUst.storyName = "UST読込をクリック";
 ClickUst.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
   const ustTab = await canvas.findByRole("tab", { name: /UST読込/i });
@@ -132,6 +136,7 @@ LoadUstAndPlay.decorators = [
     </ThemeProvider>
   ),
 ];
+LoadUstAndPlay.storyName = "ustを読み込んで再生";
 
 LoadUstAndPlay.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
@@ -157,8 +162,9 @@ LoadUstAndPlay.play = async ({ canvasElement, step }) => {
 };
 
 export const LoadUstAndPlayAndStop = Template.bind({});
-LoadUstAndPlay.args = {};
-LoadUstAndPlay.decorators = [
+LoadUstAndPlayAndStop.args = {};
+LoadUstAndPlayAndStop.storyName = "ustを読み込んで再生中に停止";
+LoadUstAndPlayAndStop.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>
       <Story />
@@ -199,6 +205,7 @@ LoadUstAndPlayAndStop.play = async ({ canvasElement, step }) => {
 
 export const LoadUstAndDownload = Template.bind({});
 LoadUstAndDownload.args = {};
+LoadUstAndDownload.storyName = "ustを読み込んでwavをダウンロード";
 LoadUstAndDownload.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>
@@ -235,6 +242,7 @@ LoadUstAndDownload.play = async ({ canvasElement, step }) => {
 
 export const LoadUstAndVerticalZoom = Template.bind({});
 LoadUstAndVerticalZoom.args = {};
+LoadUstAndVerticalZoom.storyName = "ustを読み込んで音高方向拡大縮小";
 LoadUstAndVerticalZoom.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>
@@ -283,6 +291,7 @@ LoadUstAndVerticalZoom.play = async ({ canvasElement, step }) => {
 
 export const LoadUstAndHorizontalZoom = Template.bind({});
 LoadUstAndHorizontalZoom.args = {};
+LoadUstAndHorizontalZoom.storyName = "ustを読み込んで時間方向拡大縮小";
 LoadUstAndHorizontalZoom.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>
@@ -330,6 +339,7 @@ LoadUstAndHorizontalZoom.play = async ({ canvasElement, step }) => {
 };
 
 export const LoadUstAndBatchProcessAndPlay = Template.bind({});
+LoadUstAndBatchProcessAndPlay.storyName = "ustを読み込んで一括処理を実行し再生";
 LoadUstAndBatchProcessAndPlay.args = {};
 LoadUstAndBatchProcessAndPlay.decorators = [
   (Story) => (

@@ -15,7 +15,7 @@ i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
 
 export default {
-  title: "VbInfoDialog/TextTabs",
+  title: "06_音源情報画面/音源情報画面部品/テキストタブ(全体)",
   component: TextTabs,
   argTypes: {},
 } as Meta;
@@ -85,13 +85,13 @@ Default.args = {
 };
 
 // タブ切替動作のストーリー
-export const タブ切替動作 = Template.bind({});
-タブ切替動作.storyName = "タブ切替動作";
-タブ切替動作.args = {
+export const changeTab = Template.bind({});
+changeTab.storyName = "タブ切替動作";
+changeTab.args = {
   zipFiles: multiZipFiles,
   encoding: EncodingOption.SHIFT_JIS,
 };
-タブ切替動作.play = async ({ canvasElement, step }) => {
+changeTab.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
 
   await step(
@@ -119,10 +119,9 @@ export const タブ切替動作 = Template.bind({});
 };
 
 // フォールバックのストーリー: テキストファイルが見つからない場合
-export const テキストファイル不在 = Template.bind({});
-テキストファイル不在.storyName =
-  "テキストファイルが見つからない場合のフォールバック";
-テキストファイル不在.args = {
+export const fileNotFound = Template.bind({});
+fileNotFound.storyName = "テキストファイルが見つからない場合";
+fileNotFound.args = {
   zipFiles: fallbackZipFiles,
   encoding: EncodingOption.SHIFT_JIS,
 };

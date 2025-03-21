@@ -5,7 +5,7 @@ import FooterLinks from "./FooterLinks";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Footer/FooterLinks",
+  title: "04_フッタ/フッタ部品/リンク",
   component: FooterLinks,
   argTypes: {},
 } as Meta;
@@ -13,3 +13,4 @@ export default {
 const Template: StoryFn = (args) => <FooterLinks {...args} />;
 export const Default = Template.bind({});
 Default.args = {};
+Default.storyName = "デフォルト";

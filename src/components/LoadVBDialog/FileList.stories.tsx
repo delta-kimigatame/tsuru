@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { FileList, FileListProps } from "./FileList";
 
 export default {
-  title: "LoadVBDialog/FileList",
+  title: "05_音源読込画面/ファイル一覧",
   component: FileList,
   argTypes: {},
 } as Meta;
@@ -24,13 +24,13 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
-
+Default.storyName = "デフォルト";
 export const Processing = Template.bind({});
 Processing.args = {
   processing: true,
   files: ["_ああいあうえあ.wav", "character.txt"],
 };
-
+Processing.storyName = "ファイル読込中";
 Processing.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>

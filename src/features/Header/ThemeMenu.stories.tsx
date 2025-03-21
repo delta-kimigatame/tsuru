@@ -4,7 +4,7 @@ import i18n from "../../i18n/configs";
 import { ThemeMenu, ThemeMenuProps } from "./ThemeMenu";
 
 export default {
-  title: "Header/ThemeMenu",
+  title: "01_ヘッダ/ヘッダ部品/テーマメニュー",
   component: ThemeMenu,
   argTypes: {},
 } as Meta;

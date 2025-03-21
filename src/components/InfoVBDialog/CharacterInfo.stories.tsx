@@ -7,7 +7,7 @@ import { base64ToArrayBuffer } from "../../storybook/utils";
 import { CharacterInfo, CharacterInfoProps } from "./CharacterInfo";
 
 export default {
-  title: "VbInfoDialog/CharacterInfo",
+  title: "06_音源情報画面/音源情報画面部品/音源情報",
   component: CharacterInfo,
   argTypes: {},
 } as Meta;
@@ -30,6 +30,7 @@ Default.args = {
   voice: "中の人",
   otoCount: 0,
 };
+Default.storyName = "デフォルト";
 
 export const Minimum = Template.bind({});
 Minimum.args = {
@@ -42,3 +43,4 @@ Minimum.args = {
   voice: undefined,
   otoCount: 0,
 };
+Minimum.storyName = "最小構成";

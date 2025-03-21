@@ -8,7 +8,7 @@ import { base64ToArrayBuffer } from "../../storybook/utils";
 import { LoadVBUnit } from "./LoadVBUnit";
 
 export default {
-  title: "TopView/LoadVBUnit",
+  title: "02_トップ/音源読込",
   component: LoadVBUnit,
   argTypes: {},
 } as Meta;
@@ -29,9 +29,9 @@ const base64ZipData =
 export const Default = Template.bind({});
 Default.storyName = "初期状態";
 
-export const ファイル選択画面の表示 = Template.bind({});
-ファイル選択画面の表示.storyName = "ファイル選択画面の表示";
-ファイル選択画面の表示.play = async ({ canvasElement, step }) => {
+export const clickButton = Template.bind({});
+clickButton.storyName = "ファイル選択画面の表示";
+clickButton.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
 
   await step("SelectVBButton をクリックする", async () => {
@@ -52,10 +52,9 @@ export const ファイル選択画面の表示 = Template.bind({});
   });
 };
 
-export const 隠しファイル入力によるダイアログ表示 = Template.bind({});
-隠しファイル入力によるダイアログ表示.storyName =
-  "隠しファイル入力によるダイアログ表示";
-隠しファイル入力によるダイアログ表示.play = async ({ canvasElement, step }) => {
+export const showDialog = Template.bind({});
+showDialog.storyName = "音源読込画面表示";
+showDialog.play = async ({ canvasElement, step }) => {
   const canvas = within(canvasElement);
 
   await step(

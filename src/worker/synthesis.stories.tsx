@@ -1,17 +1,13 @@
 import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
-import {
-  modernVCVUst,
-  sampleShortCVUst,
-  sampleShortVCVUst,
-} from "../storybook/sampledata";
+import { sampleShortCVUst } from "../storybook/sampledata";
 import { base64ToArrayBuffer } from "../storybook/utils";
 import SynthesisWorkerDemo from "./SynthesisWorkerDemo";
 
 const ustBuffer = base64ToArrayBuffer(sampleShortCVUst);
 
 const meta: Meta = {
-  title: "Worker/Synthesis Worker Demo",
+  title: "90_Workerテスト/synthテスト",
   component: SynthesisWorkerDemo,
 };
 
@@ -25,21 +21,4 @@ export const MinimumCV: StoryFn = () => (
     testDescription="休符が2つ、音符が7つの短い音声を合成します。"
   />
 );
-
-// Story for standardVCV.zip
-export const StandardVCV: StoryFn = () => (
-  <SynthesisWorkerDemo
-    vbFileName="standardVCV.zip"
-    ustBuffer={base64ToArrayBuffer(sampleShortVCVUst)}
-    testDescription="休符が2つ、音符が7つの短い音声を合成します。"
-  />
-);
-
-// Story for
-export const music: StoryFn = () => (
-  <SynthesisWorkerDemo
-    vbFileName="standardVCV.zip"
-    ustBuffer={base64ToArrayBuffer(modernVCVUst)}
-    testDescription="休符が132、音符が652の実際の楽曲を合成します"
-  />
-);
+MinimumCV.storyName = "単独音で短いustを合成する時間の測定";

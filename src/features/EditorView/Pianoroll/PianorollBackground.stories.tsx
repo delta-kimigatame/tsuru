@@ -9,7 +9,7 @@ import {
 } from "./PianorollBackground";
 
 export default {
-  title: "EditView/Pianoroll/PianorollBackground",
+  title: "03_2_ピアノロール/部品/背景",
   component: PianorollBackground,
 } as Meta<typeof PianorollBackground>;
 const DummyParent = (args) => {
@@ -64,7 +64,7 @@ LightMode.play = async () => {
   store.setVerticalZoom(1);
 };
 LightMode.args = {};
-
+LightMode.storyName = "ライトモード";
 export const DarkMode = Template.bind({});
 DarkMode.play = async () => {
   const store = useCookieStore.getState();
@@ -73,6 +73,7 @@ DarkMode.play = async () => {
   store.setVerticalZoom(1);
 };
 DarkMode.args = {};
+DarkMode.storyName = "ダークモード";
 
 export const Zoom05 = Template.bind({});
 Zoom05.play = async () => {
@@ -82,3 +83,4 @@ Zoom05.play = async () => {
   store.setVerticalZoom(0.5);
 };
 Zoom05.args = {};
+Zoom05.storyName = "縮小";

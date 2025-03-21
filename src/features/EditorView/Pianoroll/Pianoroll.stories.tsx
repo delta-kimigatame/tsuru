@@ -6,13 +6,13 @@ import { Ust } from "../../../lib/Ust";
 import { VoiceBank } from "../../../lib/VoiceBanks/VoiceBank";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
-import { modernVCVUst } from "../../../storybook/sampledata";
+import { sampleLongCVUst } from "../../../storybook/sampledata";
 import { base64ToArrayBuffer, loadVB } from "../../../storybook/utils";
 import { last } from "../../../utils/array";
 import { Pianoroll, PianorollProps } from "./Pianoroll";
 
 export default {
-  title: "EditView/Pianoroll/Pianoroll",
+  title: "03_2_ピアノロール/全体",
   component: Pianoroll,
   args: { selectedNotesIndex: [], playing: false, playingMs: 0 },
 } as Meta<typeof Pianoroll>;
@@ -50,6 +50,7 @@ LightMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.play = async () => {
@@ -62,6 +63,7 @@ DarkMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+DarkMode.storyName = "ダークモード";
 
 export const VerticalZoom = Template.bind({});
 VerticalZoom.play = async () => {
@@ -74,6 +76,7 @@ VerticalZoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+VerticalZoom.storyName = "音階方向縮小";
 
 export const HorizontalZoom = Template.bind({});
 HorizontalZoom.play = async () => {
@@ -86,6 +89,7 @@ HorizontalZoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+HorizontalZoom.storyName = "時間方向縮小";
 
 export const Zoom = Template.bind({});
 Zoom.play = async () => {
@@ -98,6 +102,7 @@ Zoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+Zoom.storyName = "両方縮小";
 
 export const Portrait = Template.bind({});
 Portrait.play = async () => {
@@ -119,6 +124,7 @@ Portrait.play = async () => {
   await loadedVb.initialize();
   projectStore.setVb(loadedVb);
 };
+Portrait.storyName = "立ち絵表示";
 
 export const RealUst = Template.bind({});
 RealUst.play = async () => {
@@ -129,7 +135,8 @@ RealUst.play = async () => {
   store.setVerticalZoom(1);
   store.setHorizontalZoom(1);
   const u = new Ust();
-  await u.load(base64ToArrayBuffer(modernVCVUst));
+  await u.load(base64ToArrayBuffer(sampleLongCVUst));
   projectStore.setUst(u);
   projectStore.setNotes(u.notes);
 };
+RealUst.storyName = "ust読込";

@@ -9,7 +9,7 @@ import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes, PianorollNotesProps } from "./PianorollNotes";
 
 export default {
-  title: "EditView/Pianoroll/PianorollNotes",
+  title: "03_2_ピアノロール/部品/ノート",
   component: PianorollNotes,
 } as Meta<typeof PianorollNotes>;
 const DummyParent = (args) => {
@@ -94,6 +94,7 @@ LightMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.args = {
@@ -110,6 +111,7 @@ DarkMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+DarkMode.storyName = "ダークモード";
 
 export const VerticalZoomEffect = Template.bind({});
 VerticalZoomEffect.args = {
@@ -126,6 +128,7 @@ VerticalZoomEffect.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+VerticalZoomEffect.storyName = "音階方向縮小";
 export const HorizontalZoomEffect = Template.bind({});
 HorizontalZoomEffect.args = {
   selectedNotesIndex: [0, 1],
@@ -141,6 +144,7 @@ HorizontalZoomEffect.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+HorizontalZoomEffect.storyName = "時間方向縮小";
 
 export const ZoomEffect = Template.bind({});
 ZoomEffect.args = {
@@ -157,6 +161,7 @@ ZoomEffect.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+ZoomEffect.storyName = "縮小";
 
 const PerformanceWrapper: React.FC<PianorollNotesProps> = (props) => {
   const [renderTime, setRenderTime] = React.useState<number | null>(null);
@@ -211,6 +216,7 @@ PeformanceTest9999.play = async () => {
   });
   projectStore.setNotes(newNotes);
 };
+PeformanceTest9999.storyName = "※※負荷試験※※ノートが9,999個";
 
 export const PeformanceTest2000 = PeformanceTemplate.bind({});
 PeformanceTest2000.args = {
@@ -225,6 +231,7 @@ PeformanceTest2000.play = async () => {
   });
   projectStore.setNotes(newNotes);
 };
+PeformanceTest2000.storyName = "※※負荷試験※※ノートが2,000個";
 
 export const PeformanceTest1000 = PeformanceTemplate.bind({});
 PeformanceTest1000.args = {
@@ -239,3 +246,4 @@ PeformanceTest1000.play = async () => {
   });
   projectStore.setNotes(newNotes);
 };
+PeformanceTest1000.storyName = "※※負荷試験※※ノートが1,000個";

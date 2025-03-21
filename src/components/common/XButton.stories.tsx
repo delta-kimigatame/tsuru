@@ -4,7 +4,7 @@ import React from "react";
 import { XButton } from "./XButton";
 
 export default {
-  title: "Common/XButton",
+  title: "50_共通部品/Xボタン",
   component: XButton,
   argTypes: {},
 } as Meta;
@@ -16,3 +16,4 @@ Default.args = {
   children: "共有",
   href: "https://twitter.com/intent/tweet",
 };
+Default.storyName = "デフォルト";

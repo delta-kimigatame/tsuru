@@ -10,7 +10,7 @@ import { PianorollNotes, PianorollNotesProps } from "./PianorollNotes";
 import { PianorollPitch } from "./PianorollPitch";
 
 export default {
-  title: "EditView/Pianoroll/PianorollPitch",
+  title: "03_2_ピアノロール/部品/ピッチ",
   component: PianorollPitch,
   args: { selectedNotesIndex: [] },
 } as Meta<typeof PianorollPitch>;
@@ -102,6 +102,7 @@ LightMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.play = async () => {
@@ -114,6 +115,7 @@ DarkMode.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+DarkMode.storyName = "ダークモード";
 
 export const pbmS = Template.bind({});
 pbmS.play = async () => {
@@ -127,6 +129,7 @@ pbmS.play = async () => {
   newNotes.forEach((n) => n.setPbm(["s"]));
   projectStore.setNotes(newNotes);
 };
+pbmS.storyName = "直線ピッチの描画";
 export const pbmR = Template.bind({});
 pbmR.play = async () => {
   const store = useCookieStore.getState();
@@ -139,6 +142,7 @@ pbmR.play = async () => {
   newNotes.forEach((n) => n.setPbm(["r"]));
   projectStore.setNotes(newNotes);
 };
+pbmR.storyName = "Rピッチの描画";
 
 export const pbmJ = Template.bind({});
 pbmJ.play = async () => {
@@ -152,6 +156,7 @@ pbmJ.play = async () => {
   newNotes.forEach((n) => n.setPbm(["j"]));
   projectStore.setNotes(newNotes);
 };
+pbmJ.storyName = "Jピッチの描画";
 
 export const MultiPoltament = Template.bind({});
 MultiPoltament.play = async () => {
@@ -169,6 +174,7 @@ MultiPoltament.play = async () => {
   });
   projectStore.setNotes(newNotes);
 };
+MultiPoltament.storyName = "複雑なピッチの描画";
 
 export const VerticalZoom = Template.bind({});
 VerticalZoom.play = async () => {
@@ -181,3 +187,4 @@ VerticalZoom.play = async () => {
   const newNotes = createNotes(107 - 24 + 1);
   projectStore.setNotes(newNotes);
 };
+VerticalZoom.storyName = "音階方向の縮小";

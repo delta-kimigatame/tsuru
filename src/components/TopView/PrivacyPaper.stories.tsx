@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { PrivacyPaper } from "./PrivacyPaper";
 
 export default {
-  title: "TopView/PrivacyPaper",
+  title: "02_トップ/トップ部品/プライバシーポリシー",
   component: PrivacyPaper,
   argTypes: {},
 } as Meta;
@@ -24,3 +24,4 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
+Default.storyName = "デフォルト";

@@ -176,7 +176,7 @@ class DummyBatchProcessGrouped extends BaseBatchProcess<any> {
 }
 
 export default {
-  title: "BatchProcess/BatchProcessIntegration",
+  title: "03_3_バッチプロセス/自動UI(動作確認用)",
   component: BatchProcess,
   argTypes: {},
 } as Meta;
@@ -193,7 +193,7 @@ FlatDesktop.args = {
   batchprocess: new DummyBatchProcessFlat(),
   selectedNotesIndex: [],
 };
-
+FlatDesktop.storyName = "フラット配置";
 /** Flat UI - Mobile */
 export const FlatMobile = Template.bind({});
 FlatMobile.args = {
@@ -207,6 +207,7 @@ FlatMobile.decorators = [
     </div>
   ),
 ];
+FlatMobile.storyName = "フラット配置(小さな画面)";
 
 /** Grouped UI - Desktop */
 export const GroupedDesktop = Template.bind({});
@@ -214,6 +215,7 @@ GroupedDesktop.args = {
   batchprocess: new DummyBatchProcessGrouped(),
   selectedNotesIndex: [],
 };
+GroupedDesktop.storyName = "グループにまとめて配置";
 
 /** Grouped UI - Mobile */
 export const GroupedMobile = Template.bind({});
@@ -228,6 +230,7 @@ GroupedMobile.decorators = [
     </div>
   ),
 ];
+GroupedMobile.storyName = "グループにまとめて配置(小さい画面)";
 
 /** インタラクション検証 - 各子コンポーネント更新 */
 export const InteractivityChildComponents = Template.bind({});
@@ -235,6 +238,7 @@ InteractivityChildComponents.args = {
   batchprocess: new DummyBatchProcessFlat(),
   selectedNotesIndex: [],
 };
+InteractivityChildComponents.storyName = "パラメータ変更テスト(フラット)";
 InteractivityChildComponents.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
 
@@ -280,6 +284,7 @@ InteractivityChildComponents.play = async ({ canvasElement }) => {
 
 /** インタラクション検証 - ネストされたオプション */
 export const InteractivityNestedOption = Template.bind({});
+InteractivityNestedOption.storyName = "パラメータ変更テスト(グループ)";
 InteractivityNestedOption.args = {
   batchprocess: new DummyBatchProcessGrouped(),
   // 例として、特定のノートを選択して更新対象にするシナリオ

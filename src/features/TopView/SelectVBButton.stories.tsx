@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { SelectVBButton, SelectVBButtonProps } from "./SelectVbButton";
 
 export default {
-  title: "TopView/SelectVBButton",
+  title: "02_トップ/トップ部品/音源選択ボタン",
   component: SelectVBButton,
   argTypes: {},
 } as Meta;
@@ -31,7 +31,7 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
-
+Default.storyName = "デフォルト";
 export const Processing = Template.bind({});
 Processing.args = {
   processing: true,
@@ -46,3 +46,5 @@ Processing.decorators = [
     </ThemeProvider>
   ),
 ];
+
+Processing.storyName = "音源読込中";

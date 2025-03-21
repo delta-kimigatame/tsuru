@@ -5,7 +5,7 @@ import i18n from "../../i18n/configs";
 import { HeaderMenu } from "./HeaderMenu";
 
 export default {
-  title: "Header/HeaderMenu",
+  title: "01_ヘッダ/ヘッダ部品/メニュー",
   component: HeaderMenu,
   argTypes: {},
 } as Meta;
@@ -13,7 +13,7 @@ export default {
 i18n.changeLanguage("ja");
 const Template: StoryFn = (args) => <HeaderMenu {...args} />;
 export const Default = Template.bind({});
-Default.storyName = "HeaderMenu のデフォルト表示";
+Default.storyName = "デフォルト";
 Default.args = {};
 
 Default.play = async ({ canvasElement, step }) => {

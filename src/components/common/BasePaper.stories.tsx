@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { BasePaper, BasePaperProps } from "./BasePaper";
 
 export default {
-  title: "Common/BasePaper",
+  title: "50_共通部品/ペーパー",
   component: BasePaper,
   argTypes: {},
 } as Meta;
@@ -25,7 +25,7 @@ Default.args = {
     </>
   ),
 };
-
+Default.storyName = "デフォルト";
 export const ElevationChange = Template.bind({});
 ElevationChange.args = {
   title: "エレベーション6",
@@ -38,6 +38,7 @@ ElevationChange.args = {
   ),
   elevation: 6,
 };
+ElevationChange.storyName = "エレベーション6";
 
 export const SxAdd = Template.bind({});
 SxAdd.args = {
@@ -51,6 +52,7 @@ SxAdd.args = {
   ),
   sx: { maxWidth: 300 },
 };
+SxAdd.storyName = "スタイルの追加(maxwidth:300)";
 
 export const ThemeProviderStory = Template.bind({});
 ThemeProviderStory.args = {
@@ -70,6 +72,7 @@ ThemeProviderStory.decorators = [
     </ThemeProvider>
   ),
 ];
+ThemeProviderStory.storyName = "ライトモード";
 export const ThemeProviderStoryDark = Template.bind({});
 ThemeProviderStoryDark.args = {
   title: "Theme test(dark)",
@@ -88,3 +91,4 @@ ThemeProviderStoryDark.decorators = [
     </ThemeProvider>
   ),
 ];
+ThemeProviderStoryDark.storyName = "ダークモード";

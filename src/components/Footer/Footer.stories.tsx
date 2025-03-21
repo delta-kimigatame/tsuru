@@ -5,7 +5,7 @@ import { Footer } from "./Footer";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Footer/Footer",
+  title: "04_フッタ/フッタ全体",
   component: Footer,
   parameters: {
     viewport: {
@@ -18,12 +18,13 @@ export default {
 const Template: StoryFn = () => <Footer />;
 export const Default = Template.bind({});
 Default.args = {};
+Default.storyName = "デフォルト";
 
 // モバイルビュー用の Story
 export const NarrowScreen = Template.bind({});
 NarrowScreen.storyName = "狭い画面 (モバイルレイアウト)";
 NarrowScreen.parameters = {
   viewport: {
-    defaultViewport: "mobile1", // Storybook の `mobile1` サイズを使用
+    defaultViewport: "iphonex", // Storybook の `mobile1` サイズを使用
   },
 };

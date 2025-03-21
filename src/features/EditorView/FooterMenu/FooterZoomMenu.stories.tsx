@@ -6,7 +6,7 @@ import i18n from "../../../i18n/configs";
 import { FooterZoomMenu, FooterZoomMenuProps } from "./FooterZoomMenu";
 
 export default {
-  title: "EditView/FooterMenu/FooterZoomMenu",
+  title: "03_1_エディタ下部メニュー/部品/拡大縮小メニュー",
   component: FooterZoomMenu,
   argTypes: {},
 } as Meta;
@@ -53,7 +53,7 @@ LightMode.decorators = [
     </ThemeProvider>
   ),
 ];
-
+LightMode.storyName = "ライトモード";
 export const DarkMode = Template.bind({});
 DarkMode.args = {};
 DarkMode.decorators = [
@@ -63,3 +63,4 @@ DarkMode.decorators = [
     </ThemeProvider>
   ),
 ];
+DarkMode.storyName = "ダークモード";

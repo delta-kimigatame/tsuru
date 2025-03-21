@@ -46,7 +46,7 @@ const fakeVb = {
 useMusicProjectStore.setState({ vb: fakeVb });
 
 export default {
-  title: "VBInfoDialog/InfoVBDialog",
+  title: "06_音源情報画面/音源情報画面全体",
   component: InfoVBDialog,
   argTypes: {},
 } as Meta;

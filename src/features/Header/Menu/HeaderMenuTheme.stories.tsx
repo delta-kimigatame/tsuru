@@ -10,7 +10,7 @@ const dummyTheme = "system";
 useCookieStore.setState({ mode: dummyTheme });
 
 export default {
-  title: "Header/HeaderMenuTheme",
+  title: "01_ヘッダ/ヘッダ部品/メニュー部品/テーマボタン",
   component: HeaderMenuTheme,
   argTypes: {},
 } as Meta;
@@ -20,7 +20,7 @@ const Template: StoryFn<HeaderMenuItemProps> = (args) => (
 );
 
 export const Default = Template.bind({});
-Default.storyName = "HeaderMenuTheme のデフォルト表示";
+Default.storyName = "デフォルト";
 Default.args = {
   onClick: () => {},
   onMenuClose: () => {

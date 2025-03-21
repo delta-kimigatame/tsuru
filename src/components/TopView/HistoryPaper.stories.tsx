@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { HistoryPaper } from "./HistoryPaper";
 
 export default {
-  title: "TopView/HistoryPaper",
+  title: "02_トップ/トップ部品/更新履歴",
   component: HistoryPaper,
   argTypes: {},
 } as Meta;
@@ -24,3 +24,4 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
+Default.storyName = "デフォルト";

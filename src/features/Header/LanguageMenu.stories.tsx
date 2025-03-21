@@ -4,7 +4,7 @@ import i18n from "../../i18n/configs";
 import { LanguageMenu, LanguageMenuProps } from "./LanguageMenu";
 
 export default {
-  title: "Header/LanguageMenu",
+  title: "01_ヘッダ/ヘッダ部品/言語メニュー",
   component: LanguageMenu,
   argTypes: {},
 } as Meta;

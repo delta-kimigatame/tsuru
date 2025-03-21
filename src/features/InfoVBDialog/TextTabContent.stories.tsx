@@ -10,7 +10,7 @@ import { TextTabContent, TextTabContentProps } from "./TextTabContent";
 const lightTheme = createTheme(getDesignTokens("light"));
 
 export default {
-  title: "VbInfoDialog/TextTabContent",
+  title: "06_音源情報画面/音源情報画面部品/テキストタブ(中身)",
   component: TextTabContent,
 } as Meta;
 

@@ -85,9 +85,10 @@ const ResampWorkerDemo: React.FC = () => {
 };
 
 const meta: Meta = {
-  title: "Worker/Resamp Worker Demo",
+  title: "90_Workerテスト/resampler",
   component: ResampWorkerDemo,
 };
 
 export default meta;
 export const Default: StoryFn = () => <ResampWorkerDemo />;
+Default.storyName = "単純な合成";

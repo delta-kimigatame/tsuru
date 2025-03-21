@@ -13,7 +13,7 @@ i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
 
 export default {
-  title: "Logging/ErrorPaper",
+  title: "80_ログ/エラー画面",
   component: ErrorPaper,
   argTypes: {},
 } as Meta;
@@ -30,10 +30,7 @@ const ErrorTrigger: React.FC = () => {
   }
   return <Button onClick={() => setShouldThrow(true)}>エラー発生</Button>;
 };
-/**
- * シナリオ1: エラー発生時のErrorBoundaryを利用してErrorPaperを表示するシナリオ
- * リセットボタンは存在しないため、エラーメッセージとスタックトレースの表示を目視で確認する。
- */
+
 const ErrorScenario: StoryFn = () => {
   // シンプルなエラーオブジェクトを作成
   const testError = new Error("テストエラー");
@@ -58,7 +55,7 @@ WithError.decorators = [
     </ThemeProvider>
   ),
 ];
-
+WithError.storyName = "エラーが生じると自動で表示される";
 /**
  * シナリオ2: ユーザー操作シミュレーション
  * ダウンロードボタンをクリックすることで、ErrorPaperに組み込まれたログダウンロード処理が発火することを確認する。
@@ -111,3 +108,4 @@ DownloadAction.play = async ({ canvasElement }) => {
   // ボタンのクリックアクションをシミュレート
   await userEvent.click(downloadButton);
 };
+DownloadAction.storyName = "ボタンをクリックしてログをダウンロード";

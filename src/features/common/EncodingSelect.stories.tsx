@@ -5,7 +5,7 @@ import { getDesignTokens } from "../../config/theme";
 import { EncodingSelect, EncodingSelectProps } from "./EncodingSelect";
 
 export default {
-  title: "Common/EncodingSelect",
+  title: "50_共通部品/文字コード選択",
   component: EncodingSelect,
   argTypes: {},
 } as Meta;
@@ -27,7 +27,7 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
-
+Default.storyName = "デフォルト";
 export const Disabled = Template.bind({});
 Disabled.args = {
   disabled: true,
@@ -41,3 +41,5 @@ Disabled.decorators = [
     </ThemeProvider>
   ),
 ];
+
+Disabled.storyName = "使用不可";

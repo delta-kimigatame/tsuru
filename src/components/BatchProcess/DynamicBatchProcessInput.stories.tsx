@@ -17,7 +17,7 @@ import {
 } from "./DynamicBatchProcessInput";
 
 export default {
-  title: "BatchProcess/DynamicBatchProcessInput",
+  title: "03_3_バッチプロセス/自動UI(部品)",
   component: DynamicBatchProcessInput,
   argTypes: {},
 } as Meta;
@@ -43,6 +43,7 @@ CheckBoxStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+CheckBoxStory.storyName = "チェックボックス";
 
 export const SwitchStory = Template.bind({});
 SwitchStory.args = {
@@ -56,6 +57,7 @@ SwitchStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+SwitchStory.storyName = "スイッチ";
 
 export const SelectStory = Template.bind({});
 SelectStory.args = {
@@ -71,6 +73,7 @@ SelectStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+SelectStory.storyName = "セレクトボックス";
 
 export const TextBoxNumberStory = Template.bind({});
 TextBoxNumberStory.args = {
@@ -86,6 +89,7 @@ TextBoxNumberStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+TextBoxNumberStory.storyName = "テキストボックス(数値用)";
 
 export const TextBoxStringStory = Template.bind({});
 TextBoxStringStory.args = {
@@ -99,6 +103,7 @@ TextBoxStringStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+TextBoxStringStory.storyName = "テキストボックス(文字列用)";
 
 export const SliderStory = Template.bind({});
 SliderStory.args = {
@@ -115,3 +120,4 @@ SliderStory.args = {
   onChange: (key: string, value: boolean | string | number) =>
     console.log(`Changed ${key}: ${value}`),
 };
+SliderStory.storyName = "スライダー";

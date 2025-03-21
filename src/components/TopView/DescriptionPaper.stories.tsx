@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { DescriptionPaper } from "./DescriptionPaper";
 
 export default {
-  title: "TopView/DescriptionPaper",
+  title: "02_トップ/トップ部品/アプリ説明",
   component: DescriptionPaper,
   argTypes: {},
 } as Meta;
@@ -24,3 +24,4 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
+Default.storyName = "デフォルト";

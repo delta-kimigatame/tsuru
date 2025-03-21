@@ -10,7 +10,7 @@ import {
 } from "./BatchProcessSelect";
 
 export default {
-  title: "BatchProcess/BatchProcessSelect",
+  title: "03_3_バッチプロセス/共通部品/セレクトボックス",
   component: BatchProcessSelect,
   argTypes: {},
 } as Meta;
@@ -39,3 +39,4 @@ Default.args = {
     console.log(`Changed ${key}: ${value}`);
   },
 };
+Default.storyName = "デフォルト";

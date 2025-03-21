@@ -5,7 +5,7 @@ import FooterShare from "./FooterShare";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Footer/FooterShare",
+  title: "04_フッタ/フッタ部品/共有ボタン",
   component: FooterShare,
   argTypes: {},
 } as Meta;
@@ -20,3 +20,4 @@ export const Default = Template.bind({});
 Default.args = {
   matches: true,
 };
+Default.storyName = "デフォルト";

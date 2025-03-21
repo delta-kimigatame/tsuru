@@ -6,7 +6,7 @@ import i18n from "../../i18n/configs";
 import { TopView } from "./TopView";
 
 export default {
-  title: "TopView/TopView",
+  title: "02_トップ/トップ全体",
   component: TopView,
   argTypes: {},
 } as Meta;
@@ -25,6 +25,7 @@ Default.decorators = [
     </ThemeProvider>
   ),
 ];
+Default.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.args = {};
@@ -35,6 +36,7 @@ DarkMode.decorators = [
     </ThemeProvider>
   ),
 ];
+DarkMode.storyName = "ダークモード";
 
 export const Japanese = Template.bind({});
 Japanese.args = {};
@@ -48,6 +50,7 @@ Japanese.decorators = [
     );
   },
 ];
+Japanese.storyName = "日本語";
 
 export const English = Template.bind({});
 English.args = {};
@@ -61,3 +64,4 @@ English.decorators = [
     );
   },
 ];
+English.storyName = "English";

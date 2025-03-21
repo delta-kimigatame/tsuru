@@ -6,7 +6,7 @@ import {
   HeadermenuItemBaseProps,
 } from "./HeaderMenuItemBase";
 export default {
-  title: "Header/HeaderMenuItemBase",
+  title: "01_ヘッダ/共通部品/メニューアイテム",
   component: HeaderMenuItemBase,
   argTypes: {},
 } as Meta;

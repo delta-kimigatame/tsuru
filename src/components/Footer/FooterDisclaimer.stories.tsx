@@ -5,7 +5,7 @@ import FooterDisclaimer from "./FooterDisclaimer";
 
 i18n.changeLanguage("ja");
 export default {
-  title: "Footer/FooterDisclaimer",
+  title: "04_フッタ/フッタ部品/免責事項",
   component: FooterDisclaimer,
   argTypes: {},
 } as Meta;
@@ -22,3 +22,4 @@ export const Default = Template.bind({});
 Default.args = {
   matches: true,
 };
+Default.storyName = "デフォルト";

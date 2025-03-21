@@ -31,7 +31,7 @@ const fakeVb = {
 
 useMusicProjectStore.setState({ vb: null });
 export default {
-  title: "Header/HeaderLogo",
+  title: "01_ヘッダ/ヘッダ部品/ロゴ",
   component: HeaderLogo,
   decorators: [
     (Story) => (
@@ -52,7 +52,7 @@ export default {
 const Template: StoryFn = () => <HeaderLogo />;
 
 export const Default_vbnull = Template.bind({});
-Default_vbnull.storyName = "vbがnullの場合";
+Default_vbnull.storyName = "音源読込前";
 Default_vbnull.play = async ({ canvasElement, step }) => {
   // グローバルな vb を null に設定
   useMusicProjectStore.setState({ vb: null });
@@ -64,7 +64,7 @@ Default_vbnull.play = async ({ canvasElement, step }) => {
 };
 
 export const Default_withVb = Template.bind({});
-Default_withVb.storyName = "vbが非nullの場合";
+Default_withVb.storyName = "音源読込後";
 Default_withVb.play = async ({ canvasElement }) => {
   // @ts-expect-error testのために実際と異なる型の代入
   useMusicProjectStore.setState({ vb: fakeVb });
@@ -75,7 +75,7 @@ Default_withVb.play = async ({ canvasElement }) => {
 
 export const avatarClick = Template.bind({});
 avatarClick.storyName =
-  "vbが非nullでAvatarをクリックするとInfoVBDialogが表示される";
+  "音源読込後にアイコンをクリックすると音源情報画面が表示される";
 avatarClick.play = async ({ canvasElement, step }) => {
   // @ts-expect-error testのために実際と異なる型の代入
   useMusicProjectStore.setState({ vb: fakeVb });
@@ -93,7 +93,8 @@ avatarClick.play = async ({ canvasElement, step }) => {
 };
 
 export const vbNullAvatarClick = Template.bind({});
-vbNullAvatarClick.storyName = "vbがnullの場合（SnackBarで案内表示）";
+vbNullAvatarClick.storyName =
+  "音源読込前にアイコンをクリックすると案内が表示される";
 vbNullAvatarClick.play = async ({ canvasElement, step }) => {
   // vb を null に設定
   useMusicProjectStore.setState({ vb: null });
@@ -116,7 +117,7 @@ export const smallScreen = Template.bind({});
 smallScreen.storyName = "画面サイズが小さい場合（テキスト非表示）";
 smallScreen.parameters = {
   viewport: {
-    defaultViewport: "mobile1",
+    defaultViewport: "iphonex",
   },
 };
 smallScreen.play = async ({ canvasElement, step }) => {

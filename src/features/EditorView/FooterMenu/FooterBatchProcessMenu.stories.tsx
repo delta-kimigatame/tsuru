@@ -10,7 +10,7 @@ import {
 } from "./FooterBatchProcessMenu";
 
 export default {
-  title: "EditView/FooterMenu/FooterBatchProcessMenu",
+  title: "03_1_エディタ下部メニュー/部品/一括処理メニュー",
   component: FooterBatchProcessMenu,
   argTypes: {},
 } as Meta;
@@ -73,6 +73,7 @@ LightMode.args = {
     console.log("Process called with index", index);
   },
 };
+LightMode.storyName = "ライトモード";
 LightMode.decorators = [
   (Story) => (
     <ThemeProvider theme={lightTheme}>
@@ -95,3 +96,4 @@ DarkMode.decorators = [
     </ThemeProvider>
   ),
 ];
+DarkMode.storyName = "ダークモード";

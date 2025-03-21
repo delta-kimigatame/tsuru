@@ -10,7 +10,7 @@ i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
 
 export default {
-  title: "Header/Header",
+  title: "01_ヘッダ/ヘッダ全体",
   component: Header,
 } as Meta;
 
@@ -21,4 +21,4 @@ const Template: StoryFn = () => (
 );
 
 export const Default = Template.bind({});
-Default.storyName = "Header の表示";
+Default.storyName = "デフォルト";

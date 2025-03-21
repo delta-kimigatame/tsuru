@@ -8,7 +8,7 @@ import { loadVB } from "../storybook/utils";
 import { App } from "./App";
 
 export default {
-  title: "App",
+  title: "00_アプリ全体",
   component: App,
   args: {
     mode: "system",
@@ -44,16 +44,18 @@ interface DummyParentProps {
 
 const Template: StoryFn<DummyParentProps> = (args) => <DummyParent {...args} />;
 export const Default = Template.bind({});
-
+Default.storyName = "デフォルト(標準画面で、モードは端末設定)";
 export const LightMode = Template.bind({});
 LightMode.args = {
   mode: "light",
 };
+LightMode.storyName = "ライトモード";
 
 export const DarkMode = Template.bind({});
 DarkMode.args = {
   mode: "dark",
 };
+DarkMode.storyName = "ダークモード";
 
 export const iphoneXLandscape = Template.bind({});
 iphoneXLandscape.args = {};
@@ -63,6 +65,7 @@ iphoneXLandscape.parameters = {
     defaultOrientation: "landscape",
   },
 };
+iphoneXLandscape.storyName = "モバイル(横向き)";
 export const iphoneX = Template.bind({});
 iphoneX.args = {};
 iphoneX.parameters = {
@@ -71,6 +74,7 @@ iphoneX.parameters = {
     defaultOrientation: "portrait",
   },
 };
+iphoneX.storyName = "モバイル(縦向き)";
 
 export const ipadLandscape = Template.bind({});
 ipadLandscape.args = {};
@@ -80,6 +84,7 @@ ipadLandscape.parameters = {
     defaultOrientation: "landscape",
   },
 };
+ipadLandscape.storyName = "ipad(横向き)";
 export const ipad = Template.bind({});
 ipad.args = {};
 ipad.parameters = {
@@ -88,6 +93,7 @@ ipad.parameters = {
     defaultOrientation: "portrait",
   },
 };
+ipad.storyName = "ipad(縦向き)";
 const testVBFileName = "minimumCV.zip";
 const td = new TextDecoder("Shift-JIS");
 const playEditorView = async ({ canvasElement, step }) => {
@@ -133,18 +139,22 @@ const playEditorView = async ({ canvasElement, step }) => {
 
 export const DefaultEditorView = Template.bind({});
 DefaultEditorView.play = playEditorView;
+DefaultEditorView.storyName =
+  "エディタ画面・デフォルト(標準画面で、モードは端末設定)";
 
 export const LightModeEditorView = Template.bind({});
 LightModeEditorView.args = {
   mode: "light",
 };
 LightModeEditorView.play = playEditorView;
+LightModeEditorView.storyName = "エディタ画面・ライトモード";
 
 export const DarkModeEditorView = Template.bind({});
 DarkMode.args = {
   mode: "dark",
 };
 DarkModeEditorView.play = playEditorView;
+DarkModeEditorView.storyName = "エディタ画面・ダークモード";
 
 export const iphoneXLandscapeEditorView = Template.bind({});
 iphoneXLandscapeEditorView.parameters = {
@@ -154,6 +164,8 @@ iphoneXLandscapeEditorView.parameters = {
   },
 };
 iphoneXLandscapeEditorView.play = playEditorView;
+iphoneXLandscapeEditorView.storyName = "エディタ画面・モバイル(横向き)";
+
 export const iphoneXEditorView = Template.bind({});
 iphoneXEditorView.parameters = {
   viewport: {
@@ -162,6 +174,7 @@ iphoneXEditorView.parameters = {
   },
 };
 iphoneXEditorView.play = playEditorView;
+iphoneXEditorView.storyName = "エディタ画面・モバイル(縦向き)";
 
 export const ipadLandscapeEditorView = Template.bind({});
 ipadLandscapeEditorView.parameters = {
@@ -171,6 +184,8 @@ ipadLandscapeEditorView.parameters = {
   },
 };
 ipadLandscapeEditorView.play = playEditorView;
+ipadLandscapeEditorView.storyName = "エディタ画面・ipad(横向き)";
+
 export const ipadEditorView = Template.bind({});
 ipadEditorView.parameters = {
   viewport: {
@@ -179,3 +194,4 @@ ipadEditorView.parameters = {
   },
 };
 ipadEditorView.play = playEditorView;
+ipadEditorView.storyName = "エディタ画面・ipad(縦向き)";
