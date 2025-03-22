@@ -17,9 +17,16 @@ export const HistoryPaper: React.FC = () => {
     <BasePaper title={t("top.history")}>
       <Box sx={{ m: 1, p: 1 }}>
         {(t("top.changelog", { returnObjects: true }) as Array<string>).map(
-          (l) => (
+          (changelog) => (
             <>
-              <Typography variant="body2">{l}</Typography>
+              <Typography variant="body2">
+                {changelog.split("\n").map((l) => (
+                  <>
+                    {l}
+                    <br />
+                  </>
+                ))}
+              </Typography>
               <Divider />
             </>
           )
