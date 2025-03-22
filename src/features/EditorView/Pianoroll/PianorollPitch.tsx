@@ -143,10 +143,8 @@ export const getPathD = (
     );
     return "";
   }
-  const pbm = n.pbm ?? [];
-  const pby = n.pby ?? [];
-  pby.slice(0, n.pbw.length - 1);
-  pbm.slice(0, n.pbw.length);
+  const pbm = n.pbm !== undefined ? n.pbm.slice(0, n.pbw.length) : [];
+  const pby = n.pby !== undefined ? n.pby.slice(0, n.pbw.length - 1) : [];
   while (pbm.length < n.pbw.length) {
     pbm.push("");
   }
