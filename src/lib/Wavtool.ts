@@ -122,22 +122,14 @@ export class Wavtool {
   concat(overlapFrames: number, inputData: Array<number>): void {
     const checkedOverlapFrames =
       overlapFrames > inputData.length ? inputData.length : overlapFrames;
-    console.log(`overlapFramesDebug,checkedOverlapFrames:${checkedOverlapFrames}`);
     if (checkedOverlapFrames > this._data.length) {
       const fillArray = new Array(
         Math.ceil(checkedOverlapFrames - this._data.length)
       ).fill(0);
       this._data = fillArray.concat(this._data);
     } else if (overlapFrames < 0) {
-    console.log(`overlapFramesDebug,inverse,${checkedOverlapFrames * -1}`);
-      const fillArray = new Array(
-        Math.ceil(checkedOverlapFrames * -1)
-      ).fill(0);
-    console.log(`overlapFramesDebug,filly`);
-      this._data = this._data.concat(
-        fillArray.fill(0)
-      );
-    console.log(`overlapFramesDebug,inverseOK`);
+      const fillArray = new Array(Math.ceil(checkedOverlapFrames * -1)).fill(0);
+      this._data = this._data.concat(fillArray.fill(0));
     }
     const overlapValue =
       checkedOverlapFrames === 0
@@ -145,18 +137,12 @@ export class Wavtool {
         : this._data
             .slice(-1 * checkedOverlapFrames)
             .map((v, i) => v + inputData[i]);
-    console.log(
-      `overlapFrames:${overlapFrames},data.length:${
-        this._data.length
-      },inputdata.length:${inputData.length},check:${checkedOverlapFrames <= 0}`
-    );
     this._data =
       checkedOverlapFrames <= 0
         ? this._data.concat(inputData)
         : this._data
             .slice(0, -1 * checkedOverlapFrames)
             .concat(overlapValue, inputData.slice(checkedOverlapFrames));
-    console.log(`overlapFramesDebug,result:${this._data.length}`);
   }
 
   /**
