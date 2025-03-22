@@ -11,7 +11,12 @@
 import { renderingConfig } from "../config/rendering";
 import { LOG } from "../lib/Logging";
 import type { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
-import type { ResampRequest, ResampWorkerRequest } from "../types/request";
+import type {
+  ResampRequest,
+  ResampWorkerRequest,
+  WithFrq,
+  WithoutFrq,
+} from "../types/request";
 import { interp1d, makeTimeAxis } from "../utils/interp";
 import { waitForWorkerMessage } from "./worker";
 
@@ -195,6 +200,7 @@ export class ResampWorkerService {
       timeAxis: number[];
       frqAverage: number;
     };
+    let frqRequest: WithFrq | WithoutFrq = { withFrq: false };
     try {
       frqDataObj = await getFrqData(
         request.inputWav,
@@ -202,31 +208,40 @@ export class ResampWorkerService {
         (waveData.length / renderingConfig.frameRate) * 1000,
         vb
       );
+      frqRequest = {
+        withFrq: true,
+        frqData: Float64Array.from(frqDataObj.frq),
+        ampData: Float64Array.from(frqDataObj.amp),
+        frqAverage: frqDataObj.frqAverage,
+      } as unknown as WithFrq;
     } catch (err) {
-      throw err;
+      LOG.debug(
+        `frqの読み込みに失敗したため合成時に生成します:${request.inputWav}`,
+        "resampWorker.ResampWorkerService"
+      );
     }
 
     // ResampWorkerRequest を作成
-    const workerRequest: ResampWorkerRequest = {
-      // ResampRequest の元のプロパティ
-      inputWav: request.inputWav,
-      targetTone: request.targetTone,
-      velocity: request.velocity,
-      flags: request.flags,
-      offsetMs: request.offsetMs,
-      targetMs: request.targetMs,
-      fixedMs: request.fixedMs,
-      cutoffMs: request.cutoffMs,
-      intensity: request.intensity,
-      modulation: request.modulation,
-      tempo: request.tempo,
-      pitches: request.pitches,
-      // メインスレッドで取得したデータ
-      inputWavData: Float64Array.from(waveData),
-      frqData: Float64Array.from(frqDataObj.frq),
-      ampData: Float64Array.from(frqDataObj.amp),
-      frqAverage: frqDataObj.frqAverage,
-    };
+    const workerRequest = Object.assign(
+      {
+        // ResampRequest の元のプロパティ
+        inputWav: request.inputWav,
+        targetTone: request.targetTone,
+        velocity: request.velocity,
+        flags: request.flags,
+        offsetMs: request.offsetMs,
+        targetMs: request.targetMs,
+        fixedMs: request.fixedMs,
+        cutoffMs: request.cutoffMs,
+        intensity: request.intensity,
+        modulation: request.modulation,
+        tempo: request.tempo,
+        pitches: request.pitches,
+        // メインスレッドで取得したデータ
+        inputWavData: Float64Array.from(waveData),
+      },
+      frqRequest
+    ) as ResampWorkerRequest;
 
     // 一意なリクエスト ID を生成
     const requestId = workerIdCounter++;
@@ -241,20 +256,24 @@ export class ResampWorkerService {
       `workerにwav生成リクエスト送信:${JSON.stringify({
         ...request,
         inputWavData: waveData.length,
-        frqData: frqDataObj.frq.length,
-        ampData: frqDataObj.amp.length,
-        frqAverage: frqDataObj.frqAverage,
+        withFrq: frqRequest.withFrq,
       })}、requestId:${requestId}`,
       "resampWorker.ResampWorkerService"
     );
 
     // Worker にメッセージを送信
     // Float64Array の buffer は Transferable として渡せる
-    this.worker.postMessage({ id: requestId, request: workerRequest }, [
-      workerRequest.inputWavData.buffer,
-      workerRequest.frqData.buffer,
-      workerRequest.ampData.buffer,
-    ]);
+    if (frqRequest.withFrq) {
+      this.worker.postMessage({ id: requestId, request: workerRequest }, [
+        workerRequest.inputWavData.buffer,
+        workerRequest.frqData.buffer,
+        workerRequest.ampData.buffer,
+      ]);
+    } else {
+      this.worker.postMessage({ id: requestId, request: workerRequest }, [
+        workerRequest.inputWavData.buffer,
+      ]);
+    }
 
     // Worker からのレスポンスを待ち、結果を返す
     const response = await responsePromise;

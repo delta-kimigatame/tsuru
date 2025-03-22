@@ -151,7 +151,12 @@ export class SynthesisWorker {
       throw new Error(errMsg);
     }
     try {
-      LOG.debug(`wavtoolで結合。${index}`, "synthesis,SynthesisWorker");
+      LOG.debug(
+        `wavtoolで結合。${index},params:${JSON.stringify(
+          params[index].append
+        )}`,
+        "synthesis,SynthesisWorker"
+      );
       setSynthesisCount(index);
       this.wavtool.append({
         inputData: Array.from(res),

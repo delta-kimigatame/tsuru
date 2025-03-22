@@ -24,7 +24,21 @@ export type ResampRequest = {
   /** -2048 ～ 2047のピッチの値列をBas64エンコードしてランレングス圧縮したもの */
   pitches: string;
 };
+export type WithFrq = {
+  /** frqDataの有無 */
+  withFrq: true;
+  /** 入力wavの基準周波数データ */
+  frqData: Float64Array;
+  /** 入力wavの音量列データ */
+  ampData: Float64Array;
+  /** 平均周波数 */
+  frqAverage: number;
+};
 
+export type WithoutFrq = {
+  /** frqDataの有無 */
+  withFrq: false;
+};
 export type ResampWorkerRequest = {
   /** 入力wavデータ */
   inputWavData: Float64Array;
@@ -34,7 +48,8 @@ export type ResampWorkerRequest = {
   ampData: Float64Array;
   /** 平均周波数 */
   frqAverage: number;
-} & ResampRequest;
+} & ResampRequest &
+  (WithFrq | WithoutFrq);
 
 export type AppendRequestBase = {
   /** 音源ルートから入力wavまでの相対パス */
