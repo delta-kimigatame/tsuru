@@ -124,20 +124,20 @@ describe("Wavtool", () => {
   });
   it("concat_overlap", () => {
     const tool = new Wavtool();
-    tool.concat(0, new Array(10).fill(100));
+    tool.concat(0, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
     tool.concat(5, new Array(10).fill(50));
     expect(tool.data).toEqual(
-      new Array(5)
-        .fill(100)
-        .concat(new Array(5).fill(150), new Array(5).fill(50))
+      [0, 10, 20, 30, 40, 100, 110, 120, 130, 140].concat(new Array(5).fill(50))
     );
   });
   it("concat_overlap_less", () => {
     const tool = new Wavtool();
-    tool.concat(0, new Array(10).fill(100));
+    tool.concat(0, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
     tool.concat(20, new Array(20).fill(50));
     expect(tool.data).toEqual(
-      new Array(10).fill(50).concat(new Array(10).fill(150))
+      new Array(10)
+        .fill(50)
+        .concat([50, 60, 70, 80, 90, 100, 110, 120, 130, 140])
     );
   });
   it("concat_overlap_less_and_over", () => {
@@ -146,6 +146,17 @@ describe("Wavtool", () => {
     tool.concat(50, new Array(20).fill(50));
     expect(tool.data).toEqual(
       new Array(10).fill(50).concat(new Array(10).fill(150))
+    );
+  });
+  it("concat_overlap_inverse", () => {
+    const tool = new Wavtool();
+    tool.concat(0, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
+    tool.concat(-5, new Array(10).fill(50));
+    expect(tool.data).toEqual(
+      [0, 10, 20, 30, 40, 50, 60, 70, 80, 90].concat(
+        new Array(5).fill(0),
+        new Array(10).fill(50)
+      )
     );
   });
 });
