@@ -12,7 +12,7 @@
     "test:ui": "vitest --ui",
     "makedoc": "npx typedoc",
     "storybook": "storybook dev -p 6006 --host 0.0.0.0 --no-open",
-    "build-storybook": "storybook build",
+    "build-storybook": "cross-env STORYBOOK=true storybook build",
     "eslint": "eslint \"src/**/*.{ts,tsx}\"",
     "eslint:fix": "eslint --fix \"src/**/*.{ts,tsx}\""
   },
@@ -68,6 +68,7 @@
     "@typescript-eslint/parser": "^8.24.1",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^3.0.5",
+    "cross-env": "^7.0.3",
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-import-resolver-typescript": "^3.8.1",
