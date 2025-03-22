@@ -900,7 +900,7 @@ export class Note {
     const params = { resamp: undefined, append: undefined };
     if (this._oto !== undefined && !this.direct) {
       params["resamp"] = {
-        inputWav: this._oto.dirpath + "/" + this._oto.filename,
+        inputWav: this._oto.dirpath!==""? this._oto.dirpath+ "/" + this._oto.filename:this._oto.filename,
         targetTone: noteNumToTone(this.notenum),
         velocity: this.velocity ? this.velocity : defaultValue.velocity,
         flags: this.flags ? this.flags : flags,
@@ -918,7 +918,7 @@ export class Note {
     }
     if (this._oto !== undefined && this.direct) {
       params["append"] = {
-        inputWav: this._oto.dirpath + "/" + this._oto.filename,
+        inputWav: this._oto.dirpath!==""? this._oto.dirpath+ "/" + this._oto.filename:this._oto.filename,
         stp: this.atStp + this._oto.offset,
         length: this.outputMs,
         envelope: this.envelope ? this.envelope : defaultValue.envelope,
