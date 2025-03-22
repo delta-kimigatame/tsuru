@@ -335,7 +335,7 @@ describe("VoiceBank", () => {
     const o_output = new File(
       [
         iconv.encode(
-          "_あ.wav=あ,1,2,3,4,5\r\n_あ.wav=あ_,6,7,8,9,10\r\n_あ.wav=あ_A,11,12,13,14,15",
+          "_あ.wav=あ,1,2,3,4,5\r\n_あ.wav=あ_,6,7,8,9,10\r\n_あ.wav=あ_A,11,12,13,14,15\r\nあ2.wav=,16,17,18,19,20",
           "Windows-31j"
         ),
       ],
@@ -351,6 +351,7 @@ describe("VoiceBank", () => {
     expect(vb.getOtoRecord("あ", 72, "a").offset).toBe(1);
     expect(vb.getOtoRecord("あ", 60, "a").offset).toBe(11);
     expect(vb.getOtoRecord("あ_A", 60, "").offset).toBe(11);
+    expect(vb.getOtoRecord("あ2", 60, "").offset).toBe(16);
     expect(vb.getOtoRecord("あ_B", 60, "")).toBeNull();
   });
 
