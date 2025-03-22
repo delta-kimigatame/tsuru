@@ -22,3 +22,13 @@ export const MinimumCV: StoryFn = () => (
   />
 );
 MinimumCV.storyName = "単独音で短いustを合成する時間の測定";
+
+// Story for minimumCV.zip
+export const noFrqCV: StoryFn = () => (
+  <SynthesisWorkerDemo
+    vbFileName="nofrqCV.zip"
+    ustBuffer={base64ToArrayBuffer(sampleShortCVUst)}
+    testDescription="休符が2つ、音符が7つの短い音声を合成します。(周波数表無し)"
+  />
+);
+noFrqCV.storyName = "(周波数表無し)単独音で短いustを合成する時間の測定";

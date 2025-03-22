@@ -3,6 +3,7 @@ import { renderingConfig } from "../config/rendering";
 import type { ResampRequest, ResampWorkerRequest } from "../types/request";
 import { interp1d, makeTimeAxis } from "../utils/interp";
 import { decodePitch, getFrqFromTone } from "../utils/pitch";
+import { Frq } from "./VoiceBanks/UtauFrq";
 import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 /**
@@ -116,6 +117,12 @@ export class Resamp {
         request.inputWavData.length / renderingConfig.frameRate
       )
     );
+    if (!request.withFrq) {
+      const f0 = this.Harvest(request.inputWavData, timeAxis);
+      request.frqData = f0.frq;
+      request.ampData = f0.amp;
+      request.frqAverage = f0.frqAverage;
+    }
     const sp = this.world.CheapTrick(
       request.inputWavData,
       request.frqData,
@@ -192,6 +199,50 @@ export class Resamp {
       );
       resolve(wavData.LogicalNormalize(1).slice(offsetFrame, cutoffFrame));
     });
+  }
+
+  /**
+   * frqが存在しない際にf0列を生成するための処理
+   * @params wavData 今回の合成に使用する範囲のwavの波形データ。1が最大のArray
+   * @params timeAxis worldデータ共通時間軸
+   */
+  Harvest(
+    wavData: Float64Array,
+    timeAxis: Float64Array
+  ): {
+    frq: Float64Array;
+    amp: Float64Array;
+    timeAxis: Float64Array;
+    frqAverage: number;
+  } {
+    const wavMs = wavData.length / renderingConfig.frameRate;
+    const f0 = this.world.Harvest(
+      wavData,
+      renderingConfig.frameRate,
+      (256 / renderingConfig.frameRate) * 1000
+    );
+    const frq = new Frq({
+      frq: f0.f0,
+      data: wavData,
+      perSamples: 256,
+    });
+    const frqTimeAxis = makeTimeAxis(
+      (1 / renderingConfig.frqFrameRate) * frq.perSamples,
+      0,
+      wavMs
+    );
+
+    frq.calcAverageFrq();
+    return {
+      frq: Float64Array.from(
+        interp1d(Array.from(frq.frq), frqTimeAxis, Array.from(timeAxis))
+      ),
+      amp: Float64Array.from(
+        interp1d(Array.from(frq.amp), frqTimeAxis, Array.from(timeAxis))
+      ),
+      timeAxis: f0.time_axis,
+      frqAverage: frq.frqAverage,
+    };
   }
 
   /**

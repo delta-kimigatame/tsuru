@@ -24,7 +24,7 @@ export class Wavtool {
     const overlapFrames = (renderingConfig.frameRate * request.overlap) / 1000;
     const inputData = request.inputData.slice(
       stpFrames,
-      stpFrames + lengthFrames,
+      stpFrames + lengthFrames
     );
     const frameEnvelope = this.getEnvelope(request.length, request.envelope);
     const applyedData = this.applyEnvelope(inputData, frameEnvelope);
@@ -39,7 +39,7 @@ export class Wavtool {
    */
   getEnvelope(
     length: number,
-    envelope: { point: Array<number>; value: Array<number> },
+    envelope: { point: Array<number>; value: Array<number> }
   ): { framePoint: Array<number>; value: Array<number> } {
     const sortedPoint = new Array<number>();
     if (envelope.point[0] !== 0) {
@@ -49,7 +49,7 @@ export class Wavtool {
     sortedPoint.push(envelope.point[0] + envelope.point[1]);
     if (envelope.point.length === 5) {
       sortedPoint.push(
-        envelope.point[0] + envelope.point[1] + envelope.point[4],
+        envelope.point[0] + envelope.point[1] + envelope.point[4]
       );
     }
     if (envelope.point.length >= 4) {
@@ -63,7 +63,7 @@ export class Wavtool {
       sortedPoint.push(length);
     }
     const framePoint = sortedPoint.map((p) =>
-      Math.floor((renderingConfig.frameRate * p) / 1000),
+      Math.floor((renderingConfig.frameRate * p) / 1000)
     );
     const sortedValue = [];
     if (envelope.value.length >= 3) {
@@ -94,7 +94,7 @@ export class Wavtool {
    */
   applyEnvelope(
     inputData: Array<number>,
-    envelope: { framePoint: Array<number>; value: Array<number> },
+    envelope: { framePoint: Array<number>; value: Array<number> }
   ): Array<number> {
     const outputData = new Array<number>();
     if (envelope.framePoint.length === 2) {
@@ -124,22 +124,25 @@ export class Wavtool {
       overlapFrames > inputData.length ? inputData.length : overlapFrames;
     if (checkedOverlapFrames > this._data.length) {
       const fillArray = new Array(
-        checkedOverlapFrames - this._data.length,
+        Math.ceil(checkedOverlapFrames - this._data.length)
       ).fill(0);
       this._data = fillArray.concat(this._data);
+    } else if (overlapFrames < 0) {
+      const fillArray = new Array(Math.ceil(checkedOverlapFrames * -1)).fill(0);
+      this._data = this._data.concat(fillArray.fill(0));
     }
     const overlapValue =
       checkedOverlapFrames === 0
         ? []
         : this._data
-          .slice(-1 * checkedOverlapFrames)
-          .map((v, i) => v + inputData[i]);
+            .slice(-1 * checkedOverlapFrames)
+            .map((v, i) => v + inputData[i]);
     this._data =
-      checkedOverlapFrames === 0
-        ? this._data.concat(inputData.slice(checkedOverlapFrames))
+      checkedOverlapFrames <= 0
+        ? this._data.concat(inputData)
         : this._data
-          .slice(0, -1 * checkedOverlapFrames)
-          .concat(overlapValue, inputData.slice(checkedOverlapFrames));
+            .slice(0, -1 * checkedOverlapFrames)
+            .concat(overlapValue, inputData.slice(checkedOverlapFrames));
   }
 
   /**
@@ -151,7 +154,7 @@ export class Wavtool {
     const wav: Wave = GenerateWave(
       renderingConfig.frameRate,
       renderingConfig.depth,
-      wp.InverseLogicalNormalize(this._data, renderingConfig.depth),
+      wp.InverseLogicalNormalize(this._data, renderingConfig.depth)
     );
     return wav.Output();
   }

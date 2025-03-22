@@ -44,7 +44,10 @@ export const translationEn = {
     privacyWorker:
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
-    changelog: ["2025/03/22 Release"],
+    changelog: [
+      "2025/03/22\nVoiceBanks that were not UTA'd properly can now be UTA'd normally. (in cases where the overlap is a negative number, when the wav file is in the original sound root, when no alias is set in oto, or when frq is missing)\nust that could not be loaded normally can now be loaded. (in cases where pitch-related parameters are inconsistent)\nAdjusted the layout of the log display screen",
+      "2025/03/21\nRelease",
+    ],
   },
   loadVBDialog: {
     title: "Read Zip",
