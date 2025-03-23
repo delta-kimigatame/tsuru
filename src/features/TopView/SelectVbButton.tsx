@@ -48,6 +48,10 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
     }
     props.setProcessing(true);
     LOG.info(`音源zipの選択:${e.target.files[0].name}`, "SelectVBButton");
+    LOG.gtag("selectVb", {
+      filename: e.target.files[0].name,
+      fileSize: e.target.files[0].size,
+    });
     props.setReadFile(e.target.files[0]);
     LOG.info(`音源読込ダイアログの表示`, "SelectVBButton");
     props.setDialogOpen(true);

@@ -258,6 +258,7 @@ export class VoiceBank {
   async getWave(filename: string): Promise<Wave> {
     return new Promise(async (resolve, reject) => {
       const root = this._root !== undefined ? this._root + "/" : "";
+      console.log(`GETWAVE:${root + filename}`);
       if (Object.keys(this._zip).includes(root + filename)) {
         const buf = await extractFileFromZip(this._zip[root + filename]);
         resolve(new Wave(buf));
@@ -461,7 +462,9 @@ export class VoiceBank {
    * @param encoding oto.ini読み込み時の文字コード
    */
   async extractOto(path: string, encoding: string): Promise<void> {
-    const reg = new RegExp("^" + this._root);
+    const reg = new RegExp(
+      "^" + this._root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
     return new Promise(async (resolve) => {
       const dirPath = path
         .split("/")

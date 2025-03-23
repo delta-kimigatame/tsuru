@@ -102,10 +102,15 @@ export const EditorView: React.FC = () => {
     LOG.info("wavファイル生成完了", "EditorView");
     try {
       setSynthesisCount(0);
+      const synthesisStartTime = Date.now();
       const wavBuf = await synthesisWorker.synthesis(
         selectNotesIndex,
         setSynthesisCount
       );
+      LOG.gtag("synthesis", {
+        wavSize: wavBuf.byteLength,
+        synthesisTime: Date.now() - synthesisStartTime,
+      });
       const wavUrl_ = URL.createObjectURL(
         new File([wavBuf], "temp.wav", { type: "audio/wav" })
       );
@@ -135,6 +140,7 @@ export const EditorView: React.FC = () => {
     const dataUrl = wavUrl ?? (await synthesis());
     setSynthesisProgress(false);
     if (dataUrl !== undefined) {
+      LOG.gtag("download");
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -156,6 +162,7 @@ export const EditorView: React.FC = () => {
     }
     if (wavUrl !== undefined) {
       LOG.info("再生開始", "EditorView");
+      LOG.gtag("play");
       setPlaying(true);
       audioRef.current.play();
     } else {
