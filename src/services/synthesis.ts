@@ -1,5 +1,4 @@
 import { renderingConfig } from "../config/rendering";
-import { resampWorkersCount } from "../config/workers";
 import { LOG } from "../lib/Logging";
 import { resampCache } from "../lib/ResampCache";
 import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
@@ -29,8 +28,9 @@ export class SynthesisWorker {
    * クラス初期化時にworker poolも初期化しておく
    */
   constructor() {
+    const { workersCount } = useCookieStore.getState();
     LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
-    this.workersPool = new ResampWorkerPool(resampWorkersCount);
+    this.workersPool = new ResampWorkerPool(workersCount);
     LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
     this.wavtool = new Wavtool();
   }
@@ -47,7 +47,7 @@ export class SynthesisWorker {
     this.wavtool = new Wavtool();
     this.workersPool.clearTasks();
     const { vb, ust } = useMusicProjectStore.getState();
-    const { defaultNote } = useCookieStore.getState();
+    const { defaultNote, workersCount } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
     const targetIndexes =
       selectNotes.length !== 0 ? selectNotes : ust.notes.map((n) => n.index);
