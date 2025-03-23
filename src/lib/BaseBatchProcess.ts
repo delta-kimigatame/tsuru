@@ -52,6 +52,7 @@ export abstract class BaseBatchProcess<TOptions = any> {
       redoArgs: { notes: oldNotes, options: options },
       summary: this.summary,
     } as UndoRedoCommand);
+    LOG.gtag("batchProcess", { summary: this.summary });
     return newNotes;
   }
 

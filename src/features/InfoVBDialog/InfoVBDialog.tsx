@@ -78,6 +78,14 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   const handleButtonClick = () => {
     LOG.info("音源利用規約に同意しました", "InfoVBDialog");
     setAgreed(true);
+    // 利用規約に同意してダイアログを閉じるときにはファイル読込内容が確定している
+    LOG.gtag("vbInfo", {
+      name: vb.name,
+      txtEncoding: encoding,
+      hasIcon: vb.image !== undefined,
+      hasSample: vb.sample !== undefined,
+      hasPortrait: vb.portrait !== undefined,
+    });
     LOG.info("音源情報ダイアログを閉じる", "InfoVBDialog");
     props.setOpen(false);
   };
