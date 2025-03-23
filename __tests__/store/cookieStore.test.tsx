@@ -20,12 +20,20 @@ const TestComponent = () => {
     defaultNote,
     verticalZoom,
     horizontalZoom,
+    workersCount,
+    fastResamp,
+    useCache,
+    backgroundResamp,
     setMode,
     setLanguage,
     setColorTheme,
     setDefaultNote,
     setVerticalZoom,
     setHorizontalZoom,
+    setWorkersCount,
+    setFastResamp,
+    setUseCache,
+    setBackgroundResamp,
   } = useCookieStore();
   const [cookies] = useCookies();
 
@@ -37,6 +45,10 @@ const TestComponent = () => {
       <p data-testid="defaultNote">{JSON.stringify(defaultNote)}</p>
       <p data-testid="verticalZoom">{verticalZoom.toString()}</p>
       <p data-testid="horizontalZoom">{horizontalZoom.toString()}</p>
+      <p data-testid="workersCount">{workersCount.toString()}</p>
+      <p data-testid="useCache">{useCache.toString()}</p>
+      <p data-testid="fastResamp">{fastResamp.toString()}</p>
+      <p data-testid="backgroundResamp">{backgroundResamp.toString()}</p>
       <button onClick={() => setMode("dark")}>Set Mode Dark</button>
       <button onClick={() => setLanguage("en")}>Set Language EN</button>
       <button onClick={() => setColorTheme("red")}>Set Color Theme Red</button>
@@ -55,6 +67,12 @@ const TestComponent = () => {
       <button onClick={() => setVerticalZoom(2)}>Set Vertical Zoom 2</button>
       <button onClick={() => setHorizontalZoom(2)}>
         Set Horizontal Zoom 2
+      </button>
+      <button onClick={() => setWorkersCount(2)}>Set Workers Count 2</button>
+      <button onClick={() => setFastResamp(true)}>Set FastResamp true</button>
+      <button onClick={() => setUseCache(false)}>Set UseCache false</button>
+      <button onClick={() => setBackgroundResamp(false)}>
+        Set BackgroundResamp false
       </button>
     </div>
   );
@@ -113,6 +131,18 @@ describe("cookieStore", () => {
     expect(screen.getByTestId("horizontalZoom")).toHaveTextContent(
       cookieDefaults.horizontalZoom.toString()
     );
+    expect(screen.getByTestId("workersCount")).toHaveTextContent(
+      cookieDefaults.workersCount.toString()
+    );
+    expect(screen.getByTestId("fastResamp")).toHaveTextContent(
+      cookieDefaults.fastResamp.toString()
+    );
+    expect(screen.getByTestId("useCache")).toHaveTextContent(
+      cookieDefaults.useCache.toString()
+    );
+    expect(screen.getByTestId("backgroundResamp")).toHaveTextContent(
+      cookieDefaults.backgroundResamp.toString()
+    );
   });
 
   it("zustandLoadCookie", async () => {
@@ -128,6 +158,10 @@ describe("cookieStore", () => {
     })}`;
     document.cookie = `${COOKIE_KEYS.verticalZoom}=0.8`;
     document.cookie = `${COOKIE_KEYS.horizontalZoom}=0.8`;
+    document.cookie = `${COOKIE_KEYS.workersCount}=1`;
+    document.cookie = `${COOKIE_KEYS.fastResamp}=true`;
+    document.cookie = `${COOKIE_KEYS.useCache}=false`;
+    document.cookie = `${COOKIE_KEYS.backgroundResamp}=false`;
 
     render(
       <CookiesProvider>
@@ -149,6 +183,10 @@ describe("cookieStore", () => {
       );
       expect(screen.getByTestId("verticalZoom")).toHaveTextContent("0.8");
       expect(screen.getByTestId("horizontalZoom")).toHaveTextContent("0.8");
+      expect(screen.getByTestId("workersCount")).toHaveTextContent("1");
+      expect(screen.getByTestId("fastResamp")).toHaveTextContent("true");
+      expect(screen.getByTestId("useCache")).toHaveTextContent("false");
+      expect(screen.getByTestId("backgroundResamp")).toHaveTextContent("false");
     });
   });
 
@@ -165,6 +203,10 @@ describe("cookieStore", () => {
     fireEvent.click(screen.getByText("Set Default Note"));
     fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
     fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
+    fireEvent.click(screen.getByText("Set Workers Count 2"));
+    fireEvent.click(screen.getByText("Set FastResamp true"));
+    fireEvent.click(screen.getByText("Set UseCache false"));
+    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
 
     expect(screen.getByTestId("mode")).toHaveTextContent("dark");
     expect(screen.getByTestId("language")).toHaveTextContent("en");
@@ -179,6 +221,10 @@ describe("cookieStore", () => {
     );
     expect(screen.getByTestId("verticalZoom")).toHaveTextContent("2");
     expect(screen.getByTestId("horizontalZoom")).toHaveTextContent("2");
+    expect(screen.getByTestId("workersCount")).toHaveTextContent("2");
+    expect(screen.getByTestId("fastResamp")).toHaveTextContent("true");
+    expect(screen.getByTestId("useCache")).toHaveTextContent("false");
+    expect(screen.getByTestId("backgroundResamp")).toHaveTextContent("false");
   });
 
   it("changeCookieWhenChangeValue", async () => {
@@ -194,6 +240,10 @@ describe("cookieStore", () => {
     fireEvent.click(screen.getByText("Set Default Note"));
     fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
     fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
+    fireEvent.click(screen.getByText("Set Workers Count 2"));
+    fireEvent.click(screen.getByText("Set FastResamp true"));
+    fireEvent.click(screen.getByText("Set UseCache false"));
+    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
 
     await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.mode}=dark`);
@@ -211,6 +261,12 @@ describe("cookieStore", () => {
       );
       expect(document.cookie).toContain(`${COOKIE_KEYS.verticalZoom}=2`);
       expect(document.cookie).toContain(`${COOKIE_KEYS.horizontalZoom}=2`);
+      expect(document.cookie).toContain(`${COOKIE_KEYS.workersCount}=2`);
+      expect(document.cookie).toContain(`${COOKIE_KEYS.fastResamp}=true`);
+      expect(document.cookie).toContain(`${COOKIE_KEYS.useCache}=false`);
+      expect(document.cookie).toContain(
+        `${COOKIE_KEYS.backgroundResamp}=false`
+      );
     });
   });
 });

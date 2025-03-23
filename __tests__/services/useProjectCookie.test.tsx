@@ -50,6 +50,44 @@ const TestProjectCookieHorizontalZoom: React.FC = () => {
     </div>
   );
 };
+const TestProjectCookieWorkersCount: React.FC = () => {
+  const { workersCount, setWorkersCount } = useProjectCookie();
+  return (
+    <div>
+      <p>WorkersCount: {workersCount}</p>
+      <button onClick={() => setWorkersCount(2)}>Set WorkersCount</button>
+    </div>
+  );
+};
+const TestProjectCookieFastResamp: React.FC = () => {
+  const { fastResamp, setFastResamp } = useProjectCookie();
+  return (
+    <div>
+      <p>FastResamp: {fastResamp.toString()}</p>
+      <button onClick={() => setFastResamp(true)}>Set FastResamp</button>
+    </div>
+  );
+};
+const TestProjectCookieUseCache: React.FC = () => {
+  const { useCache, setUseCache } = useProjectCookie();
+  return (
+    <div>
+      <p>UseCache: {useCache.toString()}</p>
+      <button onClick={() => setUseCache(false)}>Set UseCache</button>
+    </div>
+  );
+};
+const TestProjectCookieBackgroundResamp: React.FC = () => {
+  const { backgroundResamp, setBackgroundResamp } = useProjectCookie();
+  return (
+    <div>
+      <p>BackgroundResamp: {backgroundResamp.toString()}</p>
+      <button onClick={() => setBackgroundResamp(false)}>
+        Set BackgroundResamp
+      </button>
+    </div>
+  );
+};
 
 const TestProjectCookieDefaultNote: React.FC = () => {
   const { defaultNote, setDefaultNote } = useProjectCookie();
@@ -285,5 +323,113 @@ describe("useProjectCookie", () => {
     const button = screen.getByRole("button");
     await fireEvent.click(button);
     expect(screen.getByText("HorizontalZoom: 2")).toBeInTheDocument();
+  });
+  it("defaultWorkersCount", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieWorkersCount />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("WorkersCount: 3")).toBeInTheDocument();
+  });
+  it("hasWorkersCount", () => {
+    document.cookie = "workersCount=1; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieWorkersCount />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("WorkersCount: 1")).toBeInTheDocument();
+  });
+  it("changeWorkersCount", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieWorkersCount />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("WorkersCount: 2")).toBeInTheDocument();
+  });
+  it("defaultFastResamp", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieFastResamp />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("FastResamp: false")).toBeInTheDocument();
+  });
+  it("hasFastResamp", () => {
+    document.cookie = "fastResamp=true; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieFastResamp />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("FastResamp: true")).toBeInTheDocument();
+  });
+  it("changeFastResamp", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieFastResamp />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("FastResamp: true")).toBeInTheDocument();
+  });
+  it("defaultUseCache", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieUseCache />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("UseCache: true")).toBeInTheDocument();
+  });
+  it("hasUseCache", () => {
+    document.cookie = "useCache=false; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieUseCache />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("UseCache: false")).toBeInTheDocument();
+  });
+  it("changeUseCache", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieUseCache />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("UseCache: false")).toBeInTheDocument();
+  });
+  it("defaultBackgroundResamp", () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieBackgroundResamp />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("BackgroundResamp: true")).toBeInTheDocument();
+  });
+  it("hasBackgroundResamp", () => {
+    document.cookie = "backgroundResamp=false; path=/;";
+    render(
+      <CookiesProvider>
+        <TestProjectCookieBackgroundResamp />
+      </CookiesProvider>
+    );
+    expect(screen.getByText("BackgroundResamp: false")).toBeInTheDocument();
+  });
+  it("changeBackgroundResamp", async () => {
+    render(
+      <CookiesProvider>
+        <TestProjectCookieBackgroundResamp />
+      </CookiesProvider>
+    );
+    const button = screen.getByRole("button");
+    await fireEvent.click(button);
+    expect(screen.getByText("BackgroundResamp: false")).toBeInTheDocument();
   });
 });

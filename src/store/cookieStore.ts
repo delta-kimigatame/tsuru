@@ -42,6 +42,24 @@ interface CookieStore {
    * ピアノロールにおけるwidth方向の拡大率
    */
   horizontalZoom: number;
+  /**
+   * workerの数
+   */
+  workersCount: number;
+  /**
+   * resampにおいて、非周期性指標の分析を省略して高速化するか
+   */
+  fastResamp: boolean;
+  /**
+   * resampの結果をキャッシュするかを選択します。
+   * trueの方が高速ですが、falseの方が省メモリです
+   */
+  useCache: boolean;
+  /**
+   * バックグラウンドでresampのキャッシュを作成するか選択します。
+   * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
+   */
+  backgroundResamp: boolean;
 
   /**
    * 表示モードを更新する関数。モードを変更するために使用されます。
@@ -82,6 +100,31 @@ interface CookieStore {
    * @param horizontalZoom ピアノロールのwidth方向の拡大率
    */
   setHorizontalZoom: (horizontalZoom: number) => void;
+  /**
+   * 合成処理に使用するworkerの数。
+   *
+   * @param workersCount 合成処理に使用するworkerの数。
+   */
+  setWorkersCount: (workersCount: number) => void;
+  /**
+   * 非周期性指標を省略して合成を高速化するか
+   *
+   * @param fastResamp 合成処理に使用するworkerの数。
+   */
+  setFastResamp: (fastResamp: boolean) => void;
+  /**
+   * resampの結果をキャッシュするかを選択します。
+   * trueの方が高速ですが、falseの方が省メモリです
+   *
+   * @param useCache resampの結果をキャッシュするか
+   */
+  setUseCache: (useCache: boolean) => void;
+  /**
+   * バックグラウンドでresampのキャッシュを作成するか選択します。
+   * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
+   * @param backgroundResamp バックグラウンドでresampのキャッシュを作成するか
+   */
+  setBackgroundResamp: (backgroundResamp: boolean) => void;
 
   /**
    * cookieに表示モードを保存する関数。
@@ -122,6 +165,30 @@ interface CookieStore {
    * @param horizontalZoom ピアノロールのwidth方向の拡大率
    */
   setHorizontalZoomInCookie: (horizontalZoom: number) => void;
+  /**
+   * 合成処理に使用するworkerの数。
+   *
+   * @param workersCount 合成処理に使用するworkerの数
+   */
+  setWorkersCountInCookie: (workersCount: number) => void;
+  /**
+   * resampにおいて、非周期性指標の分析を省略して高速化するか
+   *
+   * @param fastResamp resampにおいて、非周期性指標の分析を省略して高速化するか
+   */
+  setFastResampInCookie: (fastResamp: boolean) => void;
+  /**
+   * resampの結果をキャッシュするかを選択します。
+   * trueの方が高速ですが、falseの方が省メモリです
+   * @param useCache resampにおいて、非周期性指標の分析を省略して高速化するか
+   */
+  setUseCacheInCookie: (useCache: boolean) => void;
+  /**
+   * バックグラウンドでresampのキャッシュを作成するか選択します。
+   * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
+   * @param backgroundResamp resampにおいて、非周期性指標の分析を省略して高速化するか
+   */
+  setBackgroundResampInCookie: (backgroundResamp: boolean) => void;
 
   /**
    * 初期化フラグ。状態が初期化されているかどうかを示します。
@@ -144,6 +211,10 @@ export const useCookieStore = create<CookieStore>((set) => {
     defaultNote: cookieDefaults.defaultNote,
     verticalZoom: cookieDefaults.verticalZoom,
     horizontalZoom: cookieDefaults.horizontalZoom,
+    workersCount: cookieDefaults.workersCount,
+    fastResamp: cookieDefaults.fastResamp,
+    useCache: cookieDefaults.useCache,
+    backgroundResamp: cookieDefaults.backgroundResamp,
     // 状態更新関数
     setMode: (newMode) =>
       set((state) => {
@@ -183,6 +254,32 @@ export const useCookieStore = create<CookieStore>((set) => {
       });
     },
 
+    setWorkersCount: (workersCount) => {
+      set((state) => {
+        state.setWorkersCountInCookie(workersCount);
+        return { workersCount: workersCount };
+      });
+    },
+
+    setFastResamp: (fastResamp) => {
+      set((state) => {
+        state.setFastResampInCookie(fastResamp);
+        return { fastResamp: fastResamp };
+      });
+    },
+    setUseCache: (useCache) => {
+      set((state) => {
+        state.setUseCacheInCookie(useCache);
+        return { useCache: useCache };
+      });
+    },
+    setBackgroundResamp: (backgroundResamp) => {
+      set((state) => {
+        state.setBackgroundResampInCookie(backgroundResamp);
+        return { backgroundResamp: backgroundResamp };
+      });
+    },
+
     // 初期状態ではダミー関数を設定
     setModeInCookie: () => {},
     setLanguageInCookie: () => {},
@@ -190,6 +287,10 @@ export const useCookieStore = create<CookieStore>((set) => {
     setDefaultNoteInCookie: () => {},
     setVerticalZoomInCookie: () => {},
     setHorizontalZoomInCookie: () => {},
+    setWorkersCountInCookie: () => {},
+    setFastResampInCookie: () => {},
+    setUseCacheInCookie: () => {},
+    setBackgroundResampInCookie: () => {},
     isInitialized: false,
   };
 });
@@ -206,12 +307,20 @@ export const useInitializeCookieStore = () => {
       defaultNote: projectCookie.defaultNote,
       verticalZoom: projectCookie.verticalZoom,
       horizontalZoom: projectCookie.horizontalZoom,
+      workersCount: projectCookie.workersCount,
+      fastResamp: projectCookie.fastResamp,
+      useCache: projectCookie.useCache,
+      backgroundResamp: projectCookie.backgroundResamp,
       setModeInCookie: projectCookie.setMode,
       setLanguageInCookie: projectCookie.setLanguage,
       setColorThemeInCookie: projectCookie.setColorTheme,
       setDefaultNoteInCookie: projectCookie.setDefaultNote,
       setVerticalZoomInCookie: projectCookie.setVerticalZoom,
       setHorizontalZoomInCookie: projectCookie.setHorizontalZoom,
+      setWorkersCountInCookie: projectCookie.setWorkersCount,
+      setFastResampInCookie: projectCookie.setFastResamp,
+      setUseCacheInCookie: projectCookie.setUseCache,
+      setBackgroundResampInCookie: projectCookie.setBackgroundResamp,
       isInitialized: true,
     });
   }, [projectCookie]);
