@@ -498,9 +498,12 @@ export class Resamp {
    */
   adjustVolume(data: Array<number>, intensity: number): Array<number> {
     const maxAmp = data.reduce(
-      (m, current) => Math.max(m, Math.abs(current)),
+      (m, current) =>
+        Math.max(m, Number.isNaN(current) ? 0 : Math.abs(current)),
       -1
     );
-    return data.map((v) => ((v / maxAmp) * 0.5 * intensity) / 100);
+    return data.map(
+      (v) => ((Number.isNaN(v) ? 0 : v / maxAmp) * 0.5 * intensity) / 100
+    );
   }
 }
