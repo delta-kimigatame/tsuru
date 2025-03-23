@@ -52,6 +52,7 @@ self.addEventListener("message", async (event: MessageEvent) => {
   } catch (error) {
     postMessage({
       id,
+      type: "error",
       error: error instanceof Error ? error.message : error,
     });
   }

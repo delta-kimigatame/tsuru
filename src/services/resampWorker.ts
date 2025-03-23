@@ -138,16 +138,30 @@ export class ResampWorkerService {
           `resamp workerからのデバッグメッセージ:${event.data.data}`,
           "resampWorker.ResampWorkerService"
         );
+      } else if (event.data && event.data.type === "error") {
+        LOG.warn(
+          `resamp workerからのエラーメッセージ:${JSON.stringify(
+            event.data.error
+          )}`,
+          "resampWorker.ResampWorkerService"
+        );
       }
     });
     // ready 状態を管理する Promise を作成
     this.readyPromise = new Promise((resolve) => {
       const handler = (event: MessageEvent) => {
         if (event.data && event.data.type === "ready") {
-          LOG.info("resamp workerのロード完了", "resampWorker.Worker");
+          LOG.info("resamp workerのロード完了", "resampWorker.WorkerService");
           this.isReady = true;
           this.worker.removeEventListener("message", handler);
           resolve();
+        } else if (event.data && event.data.type === "error") {
+          LOG.warn(
+            `resamp workerからのエラーメッセージ:${JSON.stringify(
+              event.data.error
+            )}`,
+            "resampWorker.ResampWorkerService"
+          );
         }
       };
       this.worker.addEventListener("message", handler);
