@@ -497,6 +497,10 @@ export class Resamp {
    * @returns 音量を適用したwavデータ
    */
   adjustVolume(data: Array<number>, intensity: number): Array<number> {
-    return data.map((v) => (v * intensity) / 100);
+    const maxAmp = data.reduce(
+      (m, current) => Math.max(m, Math.abs(current)),
+      -1
+    );
+    return data.map((v) => ((v / maxAmp) * 0.5 * intensity) / 100);
   }
 }
