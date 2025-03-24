@@ -90,6 +90,8 @@ export const translationJa = {
       horizontalZoomOut: "縮小(横)",
     },
     synthesisError: "合成処理に失敗しました。",
+    selectRangeBegin: "範囲の最初のノートを選択してください",
+    selectRangeEnd: "範囲の終わりのノートを選択してください",
   },
   batchprocess: {
     octaveUp: "1オクターブ上げる",

@@ -89,6 +89,8 @@ export const translationEn = {
       horizontalZoomOut: "Zoom Out (Horizontal)",
     },
     synthesisError: "Synthesis process failed.",
+    selectRangeBegin: "Select the first note in the range",
+    selectRangeEnd: "Select the end note in the range",
   },
   batchprocess: {
     octaveUp: "Raise by 1 Octave",
