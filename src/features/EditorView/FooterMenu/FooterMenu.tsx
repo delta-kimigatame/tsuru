@@ -1,7 +1,9 @@
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import SelectAllIcon from "@mui/icons-material/SelectAll";
 import StopIcon from "@mui/icons-material/Stop";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
@@ -153,6 +155,25 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     handleBatchProcessMenuClose();
   };
 
+  const handleSelectClick = () => {
+    LOG.debug("click SelectTab", "FooterMenu");
+    if (props.selectMode === "toggle") {
+      props.setSelectMode("range");
+      snackBarStore.setSeverity("info");
+      snackBarStore.setValue(t("editor.selectRangeBegin")); //範囲の最初のノートを選択してください
+      snackBarStore.setOpen(true);
+    } else if (props.selectMode === "range") {
+      if (props.selectedNotesIndex.length !== 0) {
+        props.setSelectedNotesIndes([]);
+        snackBarStore.setSeverity("info");
+        snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
+        snackBarStore.setOpen(true);
+      } else {
+        props.setSelectMode("toggle");
+      }
+    }
+  };
+
   return (
     <>
       <input
@@ -198,6 +219,26 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           sx={{ flex: 1, p: 0 }}
           value={0}
           disabled={notes.length === 0 || batchProcessProgress}
+        />
+        <Tab
+          icon={
+            props.selectMode === "toggle" ? <SelectAllIcon /> : <ClearIcon />
+          }
+          label={
+            props.selectMode === "toggle"
+              ? t("editor.footer.selectRange")
+              : props.selectedNotesIndex.length !== 0
+              ? t("editor.footer.selectReset")
+              : t("editor.footer.selectCancel")
+          }
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            notes.length === 0 ||
+            batchProcessProgress ||
+            props.synthesisProgress
+          }
+          onClick={handleSelectClick}
         />
         <Tab
           icon={batchProcessProgress ? <CircularProgress /> : <AutorenewIcon />}
@@ -290,6 +331,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
 export interface FooterMenuProps {
   /** 選択されているノートのインデックス 将来的に必須引数にするが開発中のため暫定的にオプショナルとする */
   selectedNotesIndex: number[];
+  /** ノートを選択するためのコールバック */
+  setSelectedNotesIndes: (indexes: number[]) => void;
   /** 再生ボタンを押したときの動作 */
   handlePlay: () => void;
   /** ダウンロードボタンを押したときの動作 */
@@ -302,4 +345,8 @@ export interface FooterMenuProps {
   playing: boolean;
   /** 再生を終了するためのコールバック */
   handlePlayStop: () => void;
+  /** 選択モード */
+  selectMode: "toggle" | "range";
+  /** 選択モードを更新するためのコールバック */
+  setSelectMode: (mode: "toggle" | "range") => void;
 }

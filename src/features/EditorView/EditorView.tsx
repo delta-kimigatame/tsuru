@@ -47,6 +47,12 @@ export const EditorView: React.FC = () => {
    * 再生時間
    */
   const [playingMs, setPlayingMs] = React.useState<number>(0);
+  /**
+   * 選択モード
+   */
+  const [selectMode, setSelectMode] = React.useState<"toggle" | "range">(
+    "toggle"
+  );
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -66,6 +72,11 @@ export const EditorView: React.FC = () => {
     LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
     makeCache();
   }, [notes, ustFlags, defaultNote]);
+
+  React.useEffect(() => {
+    LOG.debug("selectNotesIndexの更新を検知", "EditorView");
+    setSelectMode("toggle");
+  }, [selectNotesIndex]);
 
   /**
    * バックグラウンドでキャッシュを生成する
@@ -208,17 +219,21 @@ export const EditorView: React.FC = () => {
         playingMs={playingMs}
         selectedNotesIndex={selectNotesIndex}
         setSelectedNotesIndes={setSelectNotesIndex}
+        selectMode={selectMode}
       />
       <br />
       <br />
       <FooterMenu
         selectedNotesIndex={selectNotesIndex}
+        setSelectedNotesIndes={setSelectNotesIndex}
         handlePlay={handlePlay}
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
         synthesisProgress={synthesisProgress}
         playing={playing}
         handlePlayStop={handlePlayStop}
+        selectMode={selectMode}
+        setSelectMode={setSelectMode}
       />
       {wavUrl !== undefined && (
         <>

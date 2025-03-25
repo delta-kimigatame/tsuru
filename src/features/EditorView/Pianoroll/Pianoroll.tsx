@@ -187,7 +187,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               setSelectedNotesIndex={props.setSelectedNotesIndes}
               totalLength={totalLength}
               notesLeft={notesLeft}
-              selectMode="toggle"
+              selectMode={props.selectMode}
             />
           </g>
         </svg>
@@ -222,4 +222,6 @@ export interface PianorollProps {
   selectedNotesIndex: Array<number>;
   /** ノートを選択するためのコールバック */
   setSelectedNotesIndes: (indexes: number[]) => void;
+  /** 選択モード */
+  selectMode: "toggle" | "range";
 }
