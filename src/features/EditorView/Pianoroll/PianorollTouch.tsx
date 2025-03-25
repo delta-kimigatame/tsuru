@@ -59,8 +59,7 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
-    const svgPoint = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-    startHoldTimer({ x: svgPoint.x, y: pt.y });
+    startHoldTimer({ x: pt.x, y: pt.y });
   };
 
   /**
@@ -144,7 +143,9 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   };
 
   const hold = (x: number, y: number) => {
-    // props.setMenuAnchor({ x: x, y: y });
+    if (props.selectedNotesIndex.length !== 0) {
+      props.setMenuAnchor({ x: x, y: y });
+    }
   };
 
   React.useEffect(() => {

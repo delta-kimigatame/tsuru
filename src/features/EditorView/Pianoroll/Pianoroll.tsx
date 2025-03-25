@@ -1,4 +1,4 @@
-import { Box, Menu } from "@mui/material";
+import { Box } from "@mui/material";
 import React from "react";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
@@ -7,6 +7,7 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
 import { msToPoint, notenumToPoint, PianorollPitch } from "./PianorollPitch";
@@ -116,10 +117,6 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     setSeekBarX(x);
   }, [horizontalZoom, props.playingMs]);
 
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-  };
-
   return (
     <Box
       sx={{
@@ -199,18 +196,12 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               setMenuAnchor={setMenuAnchor}
             />
           </g>
-          {menuAnchor !== null && (
-            <Menu
-              open={Boolean(menuAnchor)}
-              anchorReference="anchorPosition"
-              anchorPosition={{ top: menuAnchor.y + 10, left: menuAnchor.x }}
-              onClose={handleMenuClose}
-            >
-              <Box sx={{ border: 1, p: 1, bgcolor: "background.paper" }}>
-                The content of the Popper.
-              </Box>
-            </Menu>
-          )}
+          <NoteMenu
+            menuAnchor={menuAnchor}
+            setMenuAnchor={setMenuAnchor}
+            selectedNotesIndex={props.selectedNotesIndex}
+            setSelectedNotesIndex={props.setSelectedNotesIndes}
+          />
         </svg>
       </Box>
       {portraitUrl !== undefined && (
