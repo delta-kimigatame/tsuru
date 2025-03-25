@@ -45,6 +45,8 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/03/26\nNotes can now be moved. After selecting a note, please hold your finger on the screen for about one second.",
+      "2025/03/25\nAdded range selection functionality",
       "2025/03/24\nFixed the issue where character encoding selection was not available on the voice bank information screen.\nFixed the issue where icons and sample audio could not be loaded if they were not in the same directory as character.txt.\nFixed the issue where noise occurred during crossfade.\nAdded note selection functionality (toggle).",
       "2025/03/23\nFixed an issue where UTA fails to process voice banks with filenames containing specific characters.\nFixed an issue that caused immediate audio distortion.\nEnhanced logging functionality for improved troubleshooting in future updates.",
       "2025/03/22\nVoiceBanks that were not UTA'd properly can now be UTA'd normally. (in cases where the overlap is a negative number, when the wav file is in the original sound root, when no alias is set in oto, or when frq is missing)\nust that could not be loaded normally can now be loaded. (in cases where pitch-related parameters are inconsistent)\nAdjusted the layout of the log display screen",
