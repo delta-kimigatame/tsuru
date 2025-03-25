@@ -49,6 +49,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   const ReInitializeVb = async () => {
     if (vb === null) {
       LOG.debug("vbはnull", "InfoVBDialog");
+      setProgress(false);
       return;
     }
     LOG.info(`${encoding}に基づきVBを再度initialize`, "InfoVBDialog");

@@ -344,10 +344,14 @@ export class VoiceBank {
     return new Promise(async (resolve) => {
       if (
         this._character.image !== undefined &&
-        this._filenames.includes(this._root + "/" + this._character.image)
+        this._filenames.includes(
+          this._root + "/" + this._character.image.replace(/\\/g, "/")
+        )
       ) {
         this._icon = await extractFileFromZip(
-          this._zip[this._root + "/" + this._character.image]
+          this._zip[
+            this._root + "/" + this._character.image.replace(/\\/g, "/")
+          ]
         );
       }
       resolve();
@@ -360,10 +364,14 @@ export class VoiceBank {
     return new Promise(async (resolve) => {
       if (
         this._character.sample !== undefined &&
-        this._filenames.includes(this._root + "/" + this._character.sample)
+        this._filenames.includes(
+          this._root + "/" + this._character.sample.replace(/\\/g, "/")
+        )
       ) {
         this._sample = await extractFileFromZip(
-          this._zip[this._root + "/" + this._character.sample]
+          this._zip[
+            this._root + "/" + this._character.sample.replace(/\\/g, "/")
+          ]
         );
       }
       resolve();
@@ -409,11 +417,13 @@ export class VoiceBank {
       if (
         this._characterYaml.portrait !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._characterYaml.portrait
+          this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
         )
       ) {
         this._portrait = await extractFileFromZip(
-          this._zip[this._root + "/" + this._characterYaml.portrait]
+          this._zip[
+            this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
+          ]
         );
       }
       resolve();

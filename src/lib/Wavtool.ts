@@ -109,7 +109,7 @@ export class Wavtool {
       const range = envelope.framePoint[j] - envelope.framePoint[j - 1];
       const rate =
         ((i - envelope.framePoint[j]) * valueDif) / range + envelope.value[j];
-      outputData.push((v * rate) / 100);
+      outputData.push(Number.isNaN(rate) ? 0 : (v * rate) / 100);
     });
     return outputData;
   }

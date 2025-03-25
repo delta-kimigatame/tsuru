@@ -51,10 +51,10 @@ export const EditorView: React.FC = () => {
   const snackBarStore = useSnackBarStore();
 
   React.useEffect(() => {
-    LOG.debug("vbかnotesの更新を検知", "EditorView");
+    LOG.debug("vbかnotesかselectNotesIndexの更新を検知", "EditorView");
     LOG.debug("生成済みwavのクリア", "EditorView");
     setWavUrl(undefined);
-  }, [vb, notes]);
+  }, [vb, notes, selectNotesIndex]);
 
   React.useEffect(() => {
     LOG.debug("vbの更新を検知。全てのキャッシュクリア", "EditorView");
@@ -207,6 +207,7 @@ export const EditorView: React.FC = () => {
         playing={playing}
         playingMs={playingMs}
         selectedNotesIndex={selectNotesIndex}
+        setSelectedNotesIndes={setSelectNotesIndex}
       />
       <br />
       <br />

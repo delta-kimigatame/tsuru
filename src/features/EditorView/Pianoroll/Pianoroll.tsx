@@ -12,6 +12,7 @@ import { PianorollNotes } from "./PianorollNotes";
 import { msToPoint, notenumToPoint, PianorollPitch } from "./PianorollPitch";
 import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
+import { PianorollToutch } from "./PianorollTouch";
 import { PianorollVibrato } from "./PianorollVibrato";
 
 export const Pianoroll: React.FC<PianorollProps> = (props) => {
@@ -86,10 +87,12 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     const x =
       lengthOffset +
       msToPoint(
-        props.playingMs - notesLeftMs[targetNotesIndex],
+        props.playingMs -
+          (notesLeftMs[targetNotesIndex] - notesLeftMs[targetNotesIndexOffset]),
         notes[targetNotesIndex].tempo,
         horizontalZoom
       );
+    console.log(notesOffsetMs, targetNotesIndexOffset, lengthOffset, x);
 
     /** 自動スクロール */
     if (x < containerRef.current.clientWidth / 2) {
@@ -154,21 +157,21 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           </g>
           <g id="notes">
             <PianorollNotes
-              selectedNotesIndex={[]}
+              selectedNotesIndex={props.selectedNotesIndex}
               totalLength={totalLength}
               notesLeft={notesLeft}
             />
           </g>
           <g id="pitch">
             <PianorollPitch
-              selectedNotesIndex={[]}
+              selectedNotesIndex={props.selectedNotesIndex}
               totalLength={totalLength}
               notesLeft={notesLeft}
             />
           </g>
           <g id="vibrato">
             <PianorollVibrato
-              selectedNotesIndex={[]}
+              selectedNotesIndex={props.selectedNotesIndex}
               totalLength={totalLength}
               notesLeft={notesLeft}
             />
@@ -177,6 +180,15 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             {props.playing && (
               <PianorollSeekbar seekBarX={seekBarX} totalLength={totalLength} />
             )}
+          </g>
+          <g id="touch">
+            <PianorollToutch
+              selectedNotesIndex={props.selectedNotesIndex}
+              setSelectedNotesIndex={props.setSelectedNotesIndes}
+              totalLength={totalLength}
+              notesLeft={notesLeft}
+              selectMode="toggle"
+            />
           </g>
         </svg>
       </Box>
@@ -208,4 +220,6 @@ export interface PianorollProps {
   playingMs: number;
   /** 選択中のノートのインデックス */
   selectedNotesIndex: Array<number>;
+  /** ノートを選択するためのコールバック */
+  setSelectedNotesIndes: (indexes: number[]) => void;
 }
