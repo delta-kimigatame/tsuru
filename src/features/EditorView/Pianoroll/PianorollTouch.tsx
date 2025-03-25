@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
@@ -24,15 +25,58 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
+  const [touchStart, setTouchStart] = React.useState<number | undefined>(
+    undefined
+  );
   const [startIndex, setStartIndex] = React.useState<number | undefined>(
     undefined
   );
+  const holdTimerRef = React.useRef<number | null>(null);
+
+  const startHoldTimer = (coords: { x: number; y: number }) => {
+    holdTimerRef.current = window.setTimeout(() => {
+      // HOLD_THRESHOLD_MS後にホールド処理を実行
+      hold(coords.x, coords.y);
+      // タイマークリア
+      holdTimerRef.current = null;
+    }, EDITOR_CONFIG.HOLD_THRESHOLD_MS);
+  };
+
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current !== null) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
 
   /**
-   * レイヤーをタップした際の動作。props.selectModeにあわせてselectNotesIndexを更新する。
-   * @param event
+   * レイヤーをタップしたときの動作。タイマーをスタートする。
    */
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    setTouchStart(Date.now());
+    // SVG上の座標を取得
+    const svg = event.currentTarget;
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    const svgPoint = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+    startHoldTimer({ x: svgPoint.x, y: pt.y });
+  };
+
+  /**
+   * レイヤータップが終了した際の動作
+   */
+  const handlePointerCancel = () => {
+    clearHoldTimer();
+    setTouchStart(undefined);
+  };
+
+  /**
+   * レイヤーから手を離したときの動作。処理時間にあわせてtapとholdに振り分ける。
+   * @param event
+   */
+  const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    clearHoldTimer();
     // このイベントは頻繁に起こることが予想されるため、イベント起動時点ではログをとらない
     const svg = event.currentTarget;
     const pt = svg.createSVGPoint();
@@ -40,6 +84,21 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     pt.y = event.clientY;
     // SVGの座標系に変換する
     const svgPoint = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+    if (touchStart === undefined) {
+      //基本的にはそんなはずはないが……
+      tap(svgPoint);
+    } else if (Date.now() - touchStart < EDITOR_CONFIG.HOLD_THRESHOLD_MS) {
+      tap(svgPoint);
+    }
+    setTouchStart(undefined);
+  };
+
+  /**
+   * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
+   * @param svgPoint
+   * @returns
+   */
+  const tap = (svgPoint: DOMPoint) => {
     const targetNoteIndex = getTargetNoteIndex(
       svgPoint,
       notes,
@@ -84,6 +143,10 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     }
   };
 
+  const hold = (x: number, y: number) => {
+    // props.setMenuAnchor({ x: x, y: y });
+  };
+
   React.useEffect(() => {
     LOG.debug(
       `selectModeの変更検知,mode:${props.selectMode}`,
@@ -107,7 +170,9 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         zIndex: 9,
         pointerEvents: "all",
       }}
+      onPointerUp={handlePointerUp}
       onPointerDown={handlePointerDown}
+      onPointerCancel={handlePointerCancel}
     >
       <rect
         x={0}
@@ -191,4 +256,5 @@ export interface PianorollToutchProps {
   notesLeft: Array<number>;
   totalLength: number;
   selectMode?: "toggle" | "range";
+  setMenuAnchor: (anchor: { x: number; y: number }) => void;
 }

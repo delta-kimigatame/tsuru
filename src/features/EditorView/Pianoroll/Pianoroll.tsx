@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Menu } from "@mui/material";
 import React from "react";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
@@ -30,6 +30,10 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const vertcalMenu = useVerticalFooterMenu();
   const windowSize = useWindowSize();
   const [seekBarX, setSeekBarX] = React.useState<number>(0);
+  const [menuAnchor, setMenuAnchor] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   /**
    * 各ノートのx座標描画位置を予め求めておく
@@ -112,6 +116,10 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     setSeekBarX(x);
   }, [horizontalZoom, props.playingMs]);
 
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
   return (
     <Box
       sx={{
@@ -188,8 +196,21 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               totalLength={totalLength}
               notesLeft={notesLeft}
               selectMode={props.selectMode}
+              setMenuAnchor={setMenuAnchor}
             />
           </g>
+          {menuAnchor !== null && (
+            <Menu
+              open={Boolean(menuAnchor)}
+              anchorReference="anchorPosition"
+              anchorPosition={{ top: menuAnchor.y + 10, left: menuAnchor.x }}
+              onClose={handleMenuClose}
+            >
+              <Box sx={{ border: 1, p: 1, bgcolor: "background.paper" }}>
+                The content of the Popper.
+              </Box>
+            </Menu>
+          )}
         </svg>
       </Box>
       {portraitUrl !== undefined && (
