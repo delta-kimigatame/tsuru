@@ -225,7 +225,7 @@ export const EditorView: React.FC = () => {
       <br />
       <FooterMenu
         selectedNotesIndex={selectNotesIndex}
-        setSelectedNotesIndes={setSelectNotesIndex}
+        setSelectedNotesIndex={setSelectNotesIndex}
         handlePlay={handlePlay}
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}

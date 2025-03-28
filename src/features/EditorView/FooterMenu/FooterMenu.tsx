@@ -164,7 +164,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       snackBarStore.setOpen(true);
     } else if (props.selectMode === "range") {
       if (props.selectedNotesIndex.length !== 0) {
-        props.setSelectedNotesIndes([]);
+        props.setSelectedNotesIndex([]);
         snackBarStore.setSeverity("info");
         snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
         snackBarStore.setOpen(true);
@@ -332,7 +332,7 @@ export interface FooterMenuProps {
   /** 選択されているノートのインデックス 将来的に必須引数にするが開発中のため暫定的にオプショナルとする */
   selectedNotesIndex: number[];
   /** ノートを選択するためのコールバック */
-  setSelectedNotesIndes: (indexes: number[]) => void;
+  setSelectedNotesIndex: (indexes: number[]) => void;
   /** 再生ボタンを押したときの動作 */
   handlePlay: () => void;
   /** ダウンロードボタンを押したときの動作 */
