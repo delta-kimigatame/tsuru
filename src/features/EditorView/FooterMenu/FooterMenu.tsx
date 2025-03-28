@@ -187,7 +187,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       <Tabs
         orientation={menuVertical ? "vertical" : "horizontal"}
         variant="scrollable"
-        scrollButtons={true}
+        scrollButtons
+        allowScrollButtonsMobile
         sx={{
           display: "flex",
           position: "fixed",
