@@ -14,6 +14,7 @@ import { executeBatchProcess } from "../../../../src/utils/batchProcess";
 import * as useMenuModule from "../../../../src/hooks/useMenu";
 import { Ust } from "../../../../src/lib/Ust";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import { useSnackBarStore } from "../../../../src/store/snackBarStore";
 import * as batchProcessModule from "../../../../src/utils/loadBatchProcess";
 
 // ダミーのバッチプロセスクラス（uiが空の場合）
@@ -53,6 +54,8 @@ const defaultProps: FooterMenuProps = {
   synthesisCount: 0,
   playing: false,
   handlePlayStop: () => {},
+  selectMode: "toggle",
+  setSelectMode: () => {},
 };
 
 describe("FooterMenu", () => {
@@ -288,6 +291,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -322,6 +328,7 @@ describe("FooterMenu", () => {
     // handleBatchProcessMenuClose が呼ばれたことを検証
     expect(handleBatchProcessMenuCloseSpy).toHaveBeenCalled();
     expect(projectTab).toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -337,6 +344,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -350,6 +360,7 @@ describe("FooterMenu", () => {
       name: /editor.footer.wav/i,
     });
     expect(projectTab).not.toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -371,6 +382,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -383,6 +397,7 @@ describe("FooterMenu", () => {
     const playTab = tabs[0];
     const wavTab = tabs[1];
     expect(projectTab).toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).not.toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -434,5 +449,77 @@ describe("FooterMenu", () => {
     });
     fireEvent.click(downloadTab);
     expect(handleDownloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("selectModeがtoggleのとき、selectボタンを押すと、setSelectModeにrangeが渡り、スナックバーが表示される。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      setSelectMode: setSelectModeSpy,
+    };
+    const snackBarstore = useSnackBarStore.getState();
+    const setValueSpy = vi.spyOn(snackBarstore, "setValue");
+    const setOpenSpy = vi.spyOn(snackBarstore, "setOpen");
+    const setSeveritySpy = vi.spyOn(snackBarstore, "setSeverity");
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("range");
+    expect(setSeveritySpy).toHaveBeenCalledWith("info");
+    expect(setOpenSpy).toHaveBeenCalledWith(true);
+    expect(setValueSpy).toHaveBeenCalledWith("editor.selectRangeBegin");
+  });
+  it("selectModeがrangeかつselectNotesIndex.length!==0のとき、selectボタンを押すと、selectNotesIndexが空配列になり、スナックバーが表示される。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectedNotesIndexSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "range",
+      setSelectedNotesIndex: setSelectedNotesIndexSpy,
+      selectedNotesIndex: [0],
+    };
+    const snackBarstore = useSnackBarStore.getState();
+    const setValueSpy = vi.spyOn(snackBarstore, "setValue");
+    const setOpenSpy = vi.spyOn(snackBarstore, "setOpen");
+    const setSeveritySpy = vi.spyOn(snackBarstore, "setSeverity");
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectReset/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([]);
+    expect(setSeveritySpy).toHaveBeenCalledWith("info");
+    expect(setOpenSpy).toHaveBeenCalledWith(true);
+    expect(setValueSpy).toHaveBeenCalledWith("editor.selectReset");
+  });
+  it("selectModeがrangeかつselectNotesIndex.length===0のとき、selectボタンを押すと、setSelectModeにtoggleが渡る。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "range",
+      setSelectMode: setSelectModeSpy,
+    };
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectCancel/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("toggle");
   });
 });
