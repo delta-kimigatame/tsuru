@@ -116,6 +116,9 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       updatedNotes.forEach((_, i) => {
         updatedNotes[i].index = i;
         updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+        if (updatedNotes[i].prev !== undefined && !updatedNotes[i].hasTempo) {
+          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+        }
         updatedNotes[i].next =
           i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
       });
@@ -132,6 +135,9 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       updatedNotes.forEach((_, i) => {
         updatedNotes[i].index = i;
         updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+        if (updatedNotes[i].prev !== undefined && !updatedNotes[i].hasTempo) {
+          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+        }
         updatedNotes[i].next =
           i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
       });
@@ -144,6 +150,9 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       newNotes.forEach((_, i) => {
         newNotes[i].index = i;
         newNotes[i].prev = i === 0 ? undefined : newNotes[i - 1];
+        if (newNotes[i].prev !== undefined && !newNotes[i].hasTempo) {
+          newNotes[i].tempo = newNotes[i].prev.tempo;
+        }
         newNotes[i].next =
           i === newNotes.length - 1 ? undefined : newNotes[i + 1];
       });
