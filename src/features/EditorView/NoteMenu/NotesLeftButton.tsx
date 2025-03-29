@@ -29,6 +29,7 @@ export const NotesLeftButton: React.FC<NoteMoveButtonProps> = (props) => {
     <IconButton
       onClick={handleClick}
       disabled={props.selectedNotesIndex.includes(0)}
+      data-testid="NotesLeftButton"
     >
       <ArrowBackIcon />
     </IconButton>
@@ -66,7 +67,6 @@ export const notesLeft = (
     }
     return notes[i + 1].deepCopy();
   });
-  console.log(newNotes);
   return newNotes;
 };
 
