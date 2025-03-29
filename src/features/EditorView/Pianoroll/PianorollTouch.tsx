@@ -119,7 +119,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         LOG.debug(`${targetNoteIndex}を選択`, "PianorollToutch");
         const newSelectNotesIndex = props.selectedNotesIndex.slice();
         newSelectNotesIndex.push(targetNoteIndex);
-        console.log(newSelectNotesIndex.sort((a, b) => a - b));
         props.setSelectedNotesIndex(newSelectNotesIndex.sort((a, b) => a - b));
       } else {
         //選択済みの場合
