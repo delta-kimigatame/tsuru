@@ -29,6 +29,7 @@ export const NotesRightButton: React.FC<NoteMoveButtonProps> = (props) => {
     <IconButton
       onClick={handleClick}
       disabled={props.selectedNotesIndex.includes(notes.length - 1)}
+      data-testid="NotesRightButton"
     >
       <ArrowForwardIcon />
     </IconButton>
