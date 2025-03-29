@@ -97,7 +97,6 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         notes[targetNotesIndex].tempo,
         horizontalZoom
       );
-    console.log(notesOffsetMs, targetNotesIndexOffset, lengthOffset, x);
 
     /** 自動スクロール */
     if (x < containerRef.current.clientWidth / 2) {
