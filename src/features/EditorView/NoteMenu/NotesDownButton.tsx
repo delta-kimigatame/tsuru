@@ -1,4 +1,4 @@
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { IconButton } from "@mui/material";
 import React from "react";
 import { Note } from "../../../lib/Note";
@@ -16,7 +16,7 @@ export const NotesDownButton: React.FC<NoteMoveButtonProps> = (props) => {
       return;
     }
     const targetNotes = getTargetNotes(notes, filteredSelectNotesIndex);
-    const resultNotes = notesUp(targetNotes);
+    const resultNotes = notesDown(targetNotes);
     const updatedNotes = [...notes];
     filteredSelectNotesIndex.forEach((idx, i) => {
       updatedNotes[idx] = resultNotes[i];
@@ -25,29 +25,29 @@ export const NotesDownButton: React.FC<NoteMoveButtonProps> = (props) => {
   };
 
   return (
-    <IconButton onClick={handleClick}>
-      <ArrowUpwardIcon />
+    <IconButton onClick={handleClick} data-testid="NotesDownButton">
+      <ArrowDownwardIcon />
     </IconButton>
   );
 };
 
 /**
- * 渡されたノートを半音上げ、undoManagerを更新する。
+ * 渡されたノートを半音下げ、undoManagerを更新する。
  * @param notes 更新対象ノート
  * @returns 半音上がったノート
  */
-export const notesUp = (notes: Note[]): Note[] => {
+export const notesDown = (notes: Note[]): Note[] => {
   const oldNotes = notes.map((n) => n.deepCopy());
   undoManager.register({
     undo: undo,
     undoArgs: oldNotes,
-    redo: notesUp,
+    redo: notesDown,
     redoArgs: oldNotes,
-    summary: `半音上げる`,
+    summary: `半音下げる`,
   });
   const newNotes = notes.map((n) => {
     const newNote = n.deepCopy();
-    newNote.notenum = newNote.notenum + 1;
+    newNote.notenum = newNote.notenum - 1;
     return newNote;
   });
   return newNotes;
