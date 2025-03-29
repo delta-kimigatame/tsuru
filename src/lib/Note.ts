@@ -1064,15 +1064,15 @@ export class Note {
     }
     if (this.vibrato) {
       //オブジェクトかundefined
-      noteText += `VBR=${this.vibratoLength.toFixed(
+      noteText += `VBR=${this.vibrato.length.toFixed(
         0
-      )},${this.vibratoCycle.toFixed(0)},${this.vibratoDepth.toFixed(
+      )},${this.vibrato.cycle.toFixed(0)},${this.vibrato.depth.toFixed(
         0
-      )},${this.vibratoFadeInTime.toFixed(0)},${this.vibratoFadeOutTime.toFixed(
+      )},${this.vibrato.fadeInTime.toFixed(
         0
-      )},${this.vibratoPhase.toFixed(0)},${this.vibratoHeight.toFixed(
+      )},${this.vibrato.fadeOutTime.toFixed(0)},${this.vibrato.phase.toFixed(
         0
-      )},0\r\n`;
+      )},${this.vibrato.height.toFixed(0)},0\r\n`;
     }
     if (this.envelope) {
       //オブジェクトかundefined
