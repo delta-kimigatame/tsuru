@@ -54,6 +54,28 @@ export const notesLeft = (
     redoArgs: { notes: oldNotes, selectedNotesIndex: selectedNotesIndex },
     summary: `1音左へ`,
   });
+  return notesLeftCore(
+    notes.map((n) => n.deepCopy()),
+    selectedNotesIndex
+  );
+};
+
+/**
+ * ノートを1音左に移動する処理のredo用コマンド
+ * @param args
+ * @returns
+ */
+const notesLeftRedo = (args: {
+  notes: Note[];
+  selectedNotesIndex: number[];
+}) => {
+  return notesLeftCore(args.notes, args.selectedNotesIndex);
+};
+const undo = (notes: Note[]) => {
+  return notes;
+};
+
+const notesLeftCore = (notes: Note[], selectedNotesIndex: number[]): Note[] => {
   let tempIndex: number | undefined = undefined;
   const newNotes = notes.map((n, i) => {
     if (!selectedNotesIndex.includes(i + 1)) {
@@ -68,19 +90,4 @@ export const notesLeft = (
     return notes[i + 1].deepCopy();
   });
   return newNotes;
-};
-
-/**
- * ノートを1音左に移動する処理のredo用コマンド
- * @param args
- * @returns
- */
-const notesLeftRedo = (args: {
-  notes: Note[];
-  selectedNotesIndex: number[];
-}) => {
-  return notesLeft(args.notes, args.selectedNotesIndex);
-};
-const undo = (notes: Note[]) => {
-  return notes;
 };

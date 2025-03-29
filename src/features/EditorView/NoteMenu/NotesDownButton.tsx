@@ -41,7 +41,7 @@ export const notesDown = (notes: Note[]): Note[] => {
   undoManager.register({
     undo: undo,
     undoArgs: oldNotes,
-    redo: notesDown,
+    redo: redo,
     redoArgs: oldNotes,
     summary: `半音下げる`,
   });
@@ -54,4 +54,12 @@ export const notesDown = (notes: Note[]): Note[] => {
 };
 const undo = (notes: Note[]) => {
   return notes;
+};
+const redo = (notes: Note[]) => {
+  const newNotes = notes.map((n) => {
+    const newNote = n.deepCopy();
+    newNote.notenum = newNote.notenum - 1;
+    return newNote;
+  });
+  return newNotes;
 };
