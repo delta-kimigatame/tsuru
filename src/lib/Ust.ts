@@ -49,15 +49,23 @@ export class Ust {
       const lines = (utfData === undefined ? data : utfData)
         .replace(/\r/g, "")
         .split("\n");
-      const noteStart = lines.indexOf("[#0000]");
-      this.loadHeader(lines.slice(0, noteStart));
-      this.loadNote(lines.slice(noteStart));
-      for (let i = 1; i < this.notes.length; i++) {
-        this.notes[i - 1].next = this.notes[i];
-        this.notes[i].prev = this.notes[i - 1];
-      }
+      this.loadText(lines);
       resolve();
     });
+  }
+
+  /**
+   * テキストを与えてプロジェクトを読み込む
+   * @param lines プロジェクトデータのテキストを1行毎にした文字列の配列
+   */
+  loadText(lines: string[]) {
+    const noteStart = lines.findIndex((line) => /^\[#\d+\]$/.test(line));
+    this.loadHeader(lines.slice(0, noteStart));
+    this.loadNote(lines.slice(noteStart));
+    for (let i = 1; i < this.notes.length; i++) {
+      this.notes[i - 1].next = this.notes[i];
+      this.notes[i].prev = this.notes[i - 1];
+    }
   }
 
   /**

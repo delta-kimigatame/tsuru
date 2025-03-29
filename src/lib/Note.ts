@@ -900,7 +900,10 @@ export class Note {
     const params = { resamp: undefined, append: undefined };
     if (this._oto !== undefined && !this.direct) {
       params["resamp"] = {
-        inputWav: this._oto.dirpath!==""? this._oto.dirpath+ "/" + this._oto.filename:this._oto.filename,
+        inputWav:
+          this._oto.dirpath !== ""
+            ? this._oto.dirpath + "/" + this._oto.filename
+            : this._oto.filename,
         targetTone: noteNumToTone(this.notenum),
         velocity: this.velocity ? this.velocity : defaultValue.velocity,
         flags: this.flags ? this.flags : flags,
@@ -918,7 +921,10 @@ export class Note {
     }
     if (this._oto !== undefined && this.direct) {
       params["append"] = {
-        inputWav: this._oto.dirpath!==""? this._oto.dirpath+ "/" + this._oto.filename:this._oto.filename,
+        inputWav:
+          this._oto.dirpath !== ""
+            ? this._oto.dirpath + "/" + this._oto.filename
+            : this._oto.filename,
         stp: this.atStp + this._oto.offset,
         length: this.outputMs,
         envelope: this.envelope ? this.envelope : defaultValue.envelope,
@@ -996,4 +1002,132 @@ export class Note {
 
     return copiedNote;
   }
+
+  dump(): string {
+    let noteText = `[#${this.index.toString().padStart(4, "0")}]\r\nLyric=${
+      this.lyric
+    }\r\nLength=${this.length}\r\nNoteNum=${this.notenum}\r\n`;
+    if (this.hasTempo) {
+      //tempoは必ずfloatで、hasTempoがtrueの時だけ書出し
+      noteText += `Tempo=${this.tempo.toFixed(2)}\r\n`;
+    }
+    if (this.preutter !== undefined) {
+      //floatかundefined
+      noteText += `PreUtterance=${this.preutter.toFixed(2)}\r\n`;
+    }
+    if (this.overlap !== undefined) {
+      //floatかundefined
+      noteText += `VoiceOverlap=${this.overlap.toFixed(2)}\r\n`;
+    }
+    if (this.stp !== undefined) {
+      //floatかundefined
+      noteText += `StartPoint=${this.stp.toFixed(2)}\r\n`;
+    }
+    if (this.velocity !== undefined) {
+      //intかundefined
+      noteText += `Velocity=${this.velocity.toString()}\r\n`;
+    }
+    if (this.intensity !== undefined) {
+      //intかundefined
+      noteText += `Intensity=${this.intensity.toString()}\r\n`;
+    }
+    if (this.pitches) {
+      //int列かundefined
+      noteText += `PitchBend=${this.pitches.join(",")}\r\n`;
+    }
+    if (this.pbStart !== undefined) {
+      //floatかundefined
+      noteText += `PBStart=${this.pbStart.toFixed(2)}\r\n`;
+    }
+    if (this.pbs) {
+      noteText += `PBS=${this.pbs.time.toFixed(1)}`;
+      if (this.pbs.height !== undefined) {
+        noteText += `;${this.pbs.height.toFixed(1)}`;
+      }
+      noteText += "\r\n";
+    }
+    if (this.pby) {
+      //float列かundefined
+      noteText += `PBY=${this.pby.map((y) => y.toFixed(1)).join(",")}\r\n`;
+    }
+    if (this.pbw) {
+      //float列かundefined
+      noteText += `PBW=${this.pbw.map((w) => w.toFixed(1)).join(",")}\r\n`;
+    }
+    if (this.pbm) {
+      //string列かundefined
+      noteText += `PBM=${this.pbm.join(",")}\r\n`;
+    }
+    if (this.flags !== undefined) {
+      //stringかundefined
+      noteText += `Flags=${this.flags}\r\n`;
+    }
+    if (this.vibrato) {
+      //オブジェクトかundefined
+      noteText += `VBR=${this.vibratoLength.toFixed(
+        0
+      )},${this.vibratoCycle.toFixed(0)},${this.vibratoDepth.toFixed(
+        0
+      )},${this.vibratoFadeInTime.toFixed(0)},${this.vibratoFadeOutTime.toFixed(
+        0
+      )},${this.vibratoPhase.toFixed(0)},${this.vibratoHeight.toFixed(
+        0
+      )},0\r\n`;
+    }
+    if (this.envelope) {
+      //オブジェクトかundefined
+      noteText += `Envelope=${dumpEnvelope(this.envelope)}\r\n`;
+    }
+    if (this.label !== undefined) {
+      //stringかundefined
+      noteText += `Label=${this.label}\r\n`;
+    }
+    if (this.direct) {
+      //booleanかundefinedだが、出力はtrueのときのみ
+      noteText += `$direct=True\r\n`;
+    }
+    if (this.region !== undefined) {
+      //stringかundefined
+      noteText += `$region=${this.region}\r\n`;
+    }
+    if (this.regionEnd !== undefined) {
+      //stringかundefined
+      noteText += `$region_end=${this.regionEnd}\r\n`;
+    }
+    return noteText;
+  }
 }
+export const dumpEnvelope = (envelope: {
+  point: Array<number>;
+  value: Array<number>;
+}): string => {
+  let output = `${envelope.point[0].toFixed(2)},${envelope.point[1].toFixed(
+    2
+  )}`;
+  if (envelope.point.length >= 3) {
+    output += `,${envelope.point[2].toFixed(2)},${envelope.value[0].toFixed(
+      0
+    )},${envelope.value[1].toFixed(0)},${envelope.value[2].toFixed(0)}`;
+    if (envelope.value.length >= 4) {
+      output += `,${envelope.value[3].toFixed(0)}`;
+      if (envelope.point.length >= 4) {
+        output += `,%,${envelope.point[3].toFixed(2)}`;
+        if (envelope.point.length === 5) {
+          output += `,${envelope.point[4].toFixed(
+            2
+          )},${envelope.value[4].toFixed(0)}`;
+        }
+      }
+    }
+  }
+  return output;
+};
+
+export const dumpNotes = (notes: Note[], tempo: number, flags: string) => {
+  let output = `Tempo=${tempo}\r\nFlags=${flags}\r\n`;
+  notes.forEach((n) => {
+    output += n.dump();
+  });
+  output += "[#TRACKEND]";
+  return output;
+};
