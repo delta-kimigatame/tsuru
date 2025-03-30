@@ -10,7 +10,12 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
-import { msToPoint, notenumToPoint, PianorollPitch } from "./PianorollPitch";
+import {
+  deciToneToPoint,
+  msToPoint,
+  notenumToPoint,
+  PianorollPitch,
+} from "./PianorollPitch";
 import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollToutch } from "./PianorollTouch";
@@ -56,6 +61,48 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     }
     return { notesLeft: lefts, notesLeftMs: leftsMs, totalLength: totalLength };
   }, [notes]);
+
+  const { pitchPoltament } = React.useMemo(() => {
+    LOG.debug("notesかnotesLeftかpitchTargetIndexの更新検知", "Pianoroll");
+    if (props.pitchTargetIndex === undefined) {
+      return { pitchPoltament: [] };
+    }
+    const n = notes[props.pitchTargetIndex];
+    if (n === undefined || n.lyric === "R" || n.pbs === undefined) {
+      return { pitchPoltament: [] };
+    }
+    const points = new Array();
+    let poltamentXOffset = n.pbs.time;
+    // pbsと前のノートに依存する1点目
+    points.push({
+      x:
+        notesLeft[props.pitchTargetIndex] *
+          PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+          horizontalZoom +
+        msToPoint(poltamentXOffset, n.tempo, horizontalZoom),
+      y:
+        n.prev === null || n.prev.lyric === "R"
+          ? notenumToPoint(n.notenum, verticalZoom) -
+            deciToneToPoint(n.pbs.height, verticalZoom)
+          : notenumToPoint(n.prev.notenum, verticalZoom),
+    });
+    n.pbw.forEach((w, i) => {
+      poltamentXOffset += w;
+      points.push({
+        x:
+          notesLeft[props.pitchTargetIndex] *
+            PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+            horizontalZoom +
+          msToPoint(poltamentXOffset, n.tempo, horizontalZoom),
+        y:
+          notenumToPoint(n.notenum, verticalZoom) -
+          (n.pby !== undefined && n.pby.length > i
+            ? deciToneToPoint(n.pby[i], verticalZoom)
+            : 0),
+      });
+    });
+    return { pitchPoltament: points };
+  }, [notes, props.pitchTargetIndex, notesLeft]);
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント、c4Center:${c4Center}`, "Pianoroll");
@@ -141,7 +188,11 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         </svg>
       </Box>
       <Box
-        sx={{ display: "block", overflowX: "scroll", position: "relative" }}
+        sx={{
+          display: "block",
+          overflowX: "scroll",
+          position: "relative",
+        }}
         ref={containerRef}
       >
         <svg
@@ -171,6 +222,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               selectedNotesIndex={props.selectedNotesIndex}
               totalLength={totalLength}
               notesLeft={notesLeft}
+              poltaments={pitchPoltament}
             />
           </g>
           <g id="vibrato">
@@ -193,6 +245,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               notesLeft={notesLeft}
               selectMode={props.selectMode}
               setMenuAnchor={setMenuAnchor}
+              poltaments={pitchPoltament}
             />
           </g>
           <NoteMenu
@@ -200,6 +253,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             setMenuAnchor={setMenuAnchor}
             selectedNotesIndex={props.selectedNotesIndex}
             setSelectedNotesIndex={props.setSelectedNotesIndes}
+            setPitchTargetIndex={props.setPitchTargetIndex}
           />
         </svg>
       </Box>
@@ -234,5 +288,9 @@ export interface PianorollProps {
   /** ノートを選択するためのコールバック */
   setSelectedNotesIndes: (indexes: number[]) => void;
   /** 選択モード */
-  selectMode: "toggle" | "range";
+  selectMode: "toggle" | "range" | "pitch";
+  /** ピッチターゲット */
+  pitchTargetIndex?: number | undefined;
+  /** ピッチターゲット更新のためのコールバック */
+  setPitchTargetIndex?: (index: number | undefined) => void;
 }

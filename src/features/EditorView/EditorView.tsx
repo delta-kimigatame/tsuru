@@ -11,13 +11,11 @@ import { Pianoroll } from "./Pianoroll/Pianoroll";
 
 export const EditorView: React.FC = () => {
   const { t } = useTranslation();
-  const { vb, notes, ustFlags } = useMusicProjectStore();
+  const { vb, notes, ustFlags, setNote } = useMusicProjectStore();
   const { defaultNote } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   /**
    * ノートのインデックス一覧
-   *
-   * TODO 将来的にはピアノロールビューにてノートを選択できるようにする。
    */
   const [selectNotesIndex, setSelectNotesIndex] = React.useState<Array<number>>(
     []
@@ -50,9 +48,12 @@ export const EditorView: React.FC = () => {
   /**
    * 選択モード
    */
-  const [selectMode, setSelectMode] = React.useState<"toggle" | "range">(
-    "toggle"
-  );
+  const [selectMode, setSelectMode] = React.useState<
+    "toggle" | "range" | "pitch"
+  >("toggle");
+  const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
+    number | undefined
+  >(undefined);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -75,8 +76,34 @@ export const EditorView: React.FC = () => {
 
   React.useEffect(() => {
     LOG.debug("selectNotesIndexの更新を検知", "EditorView");
-    setSelectMode("toggle");
+    if (selectMode !== "pitch") {
+      setSelectMode("toggle");
+    } else {
+      setPitchTargetIndex(selectNotesIndex[0]);
+    }
   }, [selectNotesIndex]);
+
+  React.useEffect(() => {
+    LOG.debug("selectModeの更新を検知", "EditorView");
+    if (selectMode !== "pitch") {
+      setPitchTargetIndex(undefined);
+    }
+  }, [selectMode]);
+  React.useEffect(() => {
+    LOG.debug("pitchTargetIndexの更新検知", "EditorView");
+    if (pitchTargetIndex === undefined) {
+      setSelectMode("toggle");
+    } else {
+      const n = notes[pitchTargetIndex];
+      if (n.pbs === undefined) {
+        n.pbs = "-40;0";
+        n.pbw = "80";
+        n.pbm = "";
+        setNote(n.index, n);
+      }
+      setSelectMode("pitch");
+    }
+  }, [pitchTargetIndex]);
 
   /**
    * バックグラウンドでキャッシュを生成する
@@ -220,6 +247,8 @@ export const EditorView: React.FC = () => {
         selectedNotesIndex={selectNotesIndex}
         setSelectedNotesIndes={setSelectNotesIndex}
         selectMode={selectMode}
+        pitchTargetIndex={pitchTargetIndex}
+        setPitchTargetIndex={setPitchTargetIndex}
       />
       <br />
       <br />

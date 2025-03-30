@@ -84,19 +84,31 @@ export const PianorollPitch: React.FC<PianorollPitchProps> = (props) => {
             {
               /** pbsが存在しないノートはピッチの描画無し */
               n.lyric !== "R" && n.pbs !== undefined && (
-                <polyline
-                  key={i}
-                  points={pitchToPoliline(
-                    n,
-                    props.notesLeft[i] *
-                      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
-                      horizontalZoom,
-                    verticalZoom,
-                    horizontalZoom
-                  )}
-                  stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
-                  fill="none"
-                />
+                <>
+                  <polyline
+                    key={i}
+                    points={pitchToPoliline(
+                      n,
+                      props.notesLeft[i] *
+                        PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+                        horizontalZoom,
+                      verticalZoom,
+                      horizontalZoom
+                    )}
+                    stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
+                    fill="none"
+                  />
+                  {props.poltaments !== undefined &&
+                    props.poltaments.map((p) => (
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={10}
+                        stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
+                        fill="none"
+                      />
+                    ))}
+                </>
               )
             }
           </>
@@ -109,6 +121,7 @@ export interface PianorollPitchProps {
   selectedNotesIndex: Array<number>;
   notesLeft: Array<number>;
   totalLength: number;
+  poltaments?: Array<{ x: number; y: number }>;
 }
 
 /**

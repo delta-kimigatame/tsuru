@@ -171,6 +171,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       } else {
         props.setSelectMode("toggle");
       }
+    } else {
+      props.setSelectMode("toggle");
     }
   };
 
@@ -347,7 +349,7 @@ export interface FooterMenuProps {
   /** 再生を終了するためのコールバック */
   handlePlayStop: () => void;
   /** 選択モード */
-  selectMode: "toggle" | "range";
+  selectMode: "toggle" | "range" | "pitch";
   /** 選択モードを更新するためのコールバック */
-  setSelectMode: (mode: "toggle" | "range") => void;
+  setSelectMode: (mode: "toggle" | "range" | "pitch") => void;
 }
