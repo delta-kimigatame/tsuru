@@ -12,7 +12,7 @@ dummyNote.preutter = 50;
 dummyNote.overlap = 30;
 dummyNote.envelope = "0,5,35,0,100,100,0";
 export default {
-  title: "03_6_エディタ/エンベロープエディタ",
+  title: "03_4_ダイアログ/エンベロープダイアログ",
   component: EnvelopeDialog,
   args: { open: true, note: dummyNote, handleClose: () => {} },
 } as Meta;
