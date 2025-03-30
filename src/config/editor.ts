@@ -9,4 +9,8 @@ export const EDITOR_CONFIG = {
   HOLD_THRESHOLD_MS: 500,
   /** ダイアログをフルスクリーン表示にする閾値 */
   FULLSCREEN_DIALOG_THRESHOLD_WIDTH: 600,
+  /** ピッチポルタメントの当たり判定 */
+  PITCH_POLTAMENT_THRESHOLD: 20,
+  /** ダブルタップ判定となる時間(ms) */
+  DOUBLE_TAP_MS: 300,
 };
