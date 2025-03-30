@@ -6,5 +6,7 @@ export const EDITOR_CONFIG = {
   /** フッタメニューを縦配置にする閾値の画面高さ */
   VERTICAL_FOOTER_MENU_THRESHOLD: 600,
   /** ホールド判定となる時間(ms) */
-  HOLD_THRESHOLD_MS: 1000,
+  HOLD_THRESHOLD_MS: 500,
+  /** ダイアログをフルスクリーン表示にする閾値 */
+  FULLSCREEN_DIALOG_THRESHOLD_WIDTH: 600,
 };
