@@ -51,7 +51,12 @@ export const EditorView: React.FC = () => {
   const [selectMode, setSelectMode] = React.useState<
     "toggle" | "range" | "pitch"
   >("toggle");
+  /** ピッチ編集対象のノート */
   const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
+    number | undefined
+  >(undefined);
+  /** ピッチ編集モードで操作するポルタメント */
+  const [targetPoltament, setTargetPoltament] = React.useState<
     number | undefined
   >(undefined);
   const audioRef = React.useRef<HTMLAudioElement>(null);
@@ -249,6 +254,7 @@ export const EditorView: React.FC = () => {
         selectMode={selectMode}
         pitchTargetIndex={pitchTargetIndex}
         setPitchTargetIndex={setPitchTargetIndex}
+        setTargetPoltament={setTargetPoltament}
       />
       <br />
       <br />

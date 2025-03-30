@@ -246,6 +246,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               selectMode={props.selectMode}
               setMenuAnchor={setMenuAnchor}
               poltaments={pitchPoltament}
+              setTargetPoltament={props.setTargetPoltament}
             />
           </g>
           <NoteMenu
@@ -293,4 +294,6 @@ export interface PianorollProps {
   pitchTargetIndex?: number | undefined;
   /** ピッチターゲット更新のためのコールバック */
   setPitchTargetIndex?: (index: number | undefined) => void;
+  /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
+  setTargetPoltament?: (index: number | undefined) => void;
 }

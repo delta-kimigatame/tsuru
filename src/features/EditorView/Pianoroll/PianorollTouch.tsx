@@ -23,7 +23,7 @@ import { last, range } from "../../../utils/array";
 export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   const { t } = useTranslation();
   const { verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes } = useMusicProjectStore();
+  const { notes, setNote } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [touchStart, setTouchStart] = React.useState<number | undefined>(
     undefined
@@ -32,6 +32,7 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     undefined
   );
   const holdTimerRef = React.useRef<number | null>(null);
+  const [lastTap, setLastTap] = React.useState<number>(0);
 
   const startHoldTimer = (coords: { x: number; y: number }) => {
     holdTimerRef.current = window.setTimeout(() => {
@@ -53,15 +54,33 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
    * レイヤーをタップしたときの動作。タイマーをスタートする。
    */
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    setTouchStart(Date.now());
     // SVG上の座標を取得
     const svg = event.currentTarget;
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
+    setTouchStart(Date.now());
     startHoldTimer({ x: pt.x, y: pt.y });
   };
-
+  /**
+   * pbmを順送りする
+   * @param n ノート
+   * @param i 変更の対象となるpbmのインデックス
+   */
+  const rotatePbm = (n: Note, i: number): void => {
+    const pbm = n.pbm.slice();
+    if (pbm[i - 1] === "") {
+      pbm[i - 1] = "s";
+    } else if (pbm[i - 1] === "s") {
+      pbm[i - 1] = "r";
+    } else if (pbm[i - 1] === "r") {
+      pbm[i - 1] = "j";
+    } else {
+      pbm[i - 1] = "";
+    }
+    n.setPbm(pbm);
+    setNote(n.index, n);
+  };
   /**
    * レイヤータップが終了した際の動作
    */
@@ -89,6 +108,7 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     } else if (Date.now() - touchStart < EDITOR_CONFIG.HOLD_THRESHOLD_MS) {
       tap(svgPoint);
     }
+    setLastTap(Date.now());
     setTouchStart(undefined);
   };
 
@@ -98,6 +118,10 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
    * @returns
    */
   const tap = (svgPoint: DOMPoint) => {
+    const targetPoltamentIndex =
+      props.selectMode !== "pitch" || props.poltaments === undefined
+        ? undefined
+        : getTargetPpltamentIndex(svgPoint, props.poltaments);
     const targetNoteIndex = getTargetNoteIndex(
       svgPoint,
       notes,
@@ -105,14 +129,42 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       horizontalZoom,
       verticalZoom
     );
-    if (targetNoteIndex === undefined) {
+    if (targetNoteIndex === undefined && targetPoltamentIndex === undefined) {
       return;
     }
     LOG.debug(
       `notes[${targetNoteIndex}] click,mode:${props.selectMode}`,
       "PianorollToutch"
     );
-    if (props.selectMode === "toggle") {
+    if (props.selectMode === "pitch") {
+      //ピッチモード
+      if (targetPoltamentIndex !== undefined) {
+        // ポルタメントをタップした場合
+        if (
+          targetPoltamentIndex !== 0 &&
+          Date.now() - lastTap < EDITOR_CONFIG.DOUBLE_TAP_MS
+        ) {
+          LOG.debug(
+            `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}をダブルタップ`,
+            "PianorollToutch"
+          );
+          rotatePbm(
+            notes[props.selectedNotesIndex[0]].deepCopy(),
+            targetPoltamentIndex
+          );
+        } else {
+          LOG.debug(
+            `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
+            "PianorollToutch"
+          );
+          props.setTargetPoltament(targetPoltamentIndex);
+        }
+      } else if (notes[targetNoteIndex].lyric !== "R") {
+        // ノートをタップした場合
+        LOG.debug(`${targetNoteIndex}に切替`, "PianorollToutch");
+        props.setSelectedNotesIndex([targetNoteIndex]);
+      }
+    } else if (props.selectMode === "toggle") {
       //toggleモードの場合
       if (!props.selectedNotesIndex.includes(targetNoteIndex)) {
         //未選択の場合
@@ -190,6 +242,30 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
 };
 
 /**
+ * クリックした座標を与えてタップしたポルタメントを返す
+ * @param svgPoint svg空間における座標
+ * @param poltaments ポルタメントの座標一覧
+ * @returns クリックしたポルタメントのインデックスを返す。該当がなければundefinedを返す
+ */
+export const getTargetPpltamentIndex = (
+  svgPoint: { x: number; y: number },
+  poltaments: Array<{ x: number; y: number }>
+) => {
+  let minIndex: number | undefined = undefined;
+  let minDistance: number = EDITOR_CONFIG.PITCH_POLTAMENT_THRESHOLD;
+  poltaments.forEach((p, i) => {
+    const distance = Math.sqrt(
+      (svgPoint.x - p.x) ** 2 + (svgPoint.y - p.y) ** 2
+    );
+    if (distance <= minDistance) {
+      minDistance = distance;
+      minIndex = i;
+    }
+  });
+  return minIndex;
+};
+
+/**
  * クリックした座標を与えてクリックしたノートのインデックスを返す。ノート以外をクリックした場合はundefinedを返す
  * @param svgPoint svg空間における座標
  * @param notes globalなノート列
@@ -255,6 +331,9 @@ export interface PianorollToutchProps {
   setSelectedNotesIndex: (indexes: number[]) => void;
   notesLeft: Array<number>;
   totalLength: number;
-  selectMode?: "toggle" | "range";
+  selectMode?: "toggle" | "range" | "pitch";
   setMenuAnchor: (anchor: { x: number; y: number }) => void;
+  poltaments?: Array<{ x: number; y: number }>;
+  /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
+  setTargetPoltament?: (index: number | undefined) => void;
 }
