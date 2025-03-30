@@ -22,11 +22,11 @@ import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { EnvelopeEditorSvg } from "./EnvelopeEditorSvg";
 
-const getEnvelopeValueToY = (value: number, height: number): number => {
+export const getEnvelopeValueToY = (value: number, height: number): number => {
   return ((200 - value) / 200) * height;
 };
 
-const getEnvelopePointToX = (
+export const getEnvelopePointToX = (
   point: number,
   msLength: number,
   width: number
@@ -60,16 +60,16 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
         ? defaultNote.envelope
         : props.note.envelope;
     //pointsの数を正として初期化する
-    const { p, v } = envelopeToPoint(envelope, props.note.msLength);
+    const { p, v } = envelopeToPoint(envelope, props.note.outputMs);
     setPoints(p);
     setValues(v);
   }, [props.note]);
 
   const pointX = React.useMemo(() => {
     return points.map((p) =>
-      getEnvelopePointToX(p, props.note.msLength, svgSize.width)
+      getEnvelopePointToX(p, props.note.outputMs, svgSize.width)
     );
-  }, [points, props.note.msLength, svgSize]);
+  }, [points, props.note, svgSize]);
 
   const pointY = React.useMemo(() => {
     return values.map((v) => getEnvelopeValueToY(v, svgSize.height));
@@ -88,7 +88,7 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
       value,
       points,
       values,
-      props.note.msLength
+      props.note.outputMs
     );
     if (v.length !== values.length) {
       setValues(v);
@@ -102,7 +102,7 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
       value,
       points,
       values,
-      props.note.msLength
+      props.note.outputMs
     );
     if (p.length !== points.length) {
       setPoints(p);
@@ -137,17 +137,17 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
               pallet={COLOR_PALLET[colorTheme][mode]}
               overlapX={getEnvelopePointToX(
                 props.note.atOverlap ?? 0,
-                props.note.msLength,
+                props.note.outputMs,
                 svgSize.width
               )}
               preutterX={getEnvelopePointToX(
                 props.note.atPreutter ?? 0,
-                props.note.msLength,
+                props.note.outputMs,
                 svgSize.width
               )}
               pointX={pointX}
               pointY={pointY}
-              msLength={props.note.msLength}
+              msLength={props.note.outputMs}
               setPoint={setPoint}
               setValue={setValue}
             />
@@ -220,7 +220,7 @@ const undo = (oldNote: Note): Note[] => {
  * redo用のコマンド。undoManagerはNote[]を返すことを期待するので、元のノートを配列にして返す
  */
 const redo = (args: { n: Note; point: number[]; value: number[] }): Note[] => {
-  return [envelopeApplyCore(args.n, args.point, args.value)];
+  return [envelopeApplyCore(args.n.deepCopy(), args.point, args.value)];
 };
 
 /**
@@ -235,12 +235,12 @@ const envelopeApplyCore = (n: Note, point: number[], value: number[]): Note => {
   envelope.point.push(point[0]);
   envelope.point.push(point[1] - point[0]);
   if (point.length === 3) {
-    envelope.point.push(n.msLength - point[2]);
+    envelope.point.push(n.outputMs - point[2]);
   } else {
-    envelope.point.push(n.msLength - point[3] - point[2]);
+    envelope.point.push(point[3] - point[2]);
   }
   if (point.length >= 4) {
-    envelope.point.push(n.msLength - point[3]);
+    envelope.point.push(n.outputMs - point[3]);
   }
   if (point.length === 5) {
     envelope.point.push(point[4] - point[1]);
@@ -313,7 +313,7 @@ export const validationY = (
   const p = points.slice();
   const v = values.slice();
   if (value === "") {
-    return;
+    return { p: p, v: v };
   }
   if (index >= 3 && p.length === 3) {
     p.push(msLength);
@@ -323,7 +323,7 @@ export const validationY = (
     p.push(p[1]);
     v.push(100);
   }
-  v[index] = Math.min(Math.max(value === "" ? 0 : parseFloat(value), 0), 200);
+  v[index] = Math.min(Math.max(value === "" ? 0 : parseInt(value), 0), 200);
   return { p: p, v: v };
 };
 
@@ -337,7 +337,7 @@ export const validationX = (
   const p = points.slice();
   const v = values.slice();
   if (value === "") {
-    return;
+    return { p: p, v: v };
   }
   if (index === 0) {
     p[0] = Math.min(Math.max(value === "" ? 0 : parseFloat(value), 0), p[1]);
