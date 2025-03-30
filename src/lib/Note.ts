@@ -740,13 +740,14 @@ export class Note {
     note.pbw.forEach((v, i) => {
       x.push(x[i] + v);
     });
-    const y = note.pby.map((v) => v * 10);
+    const pby = note.pby === undefined ? [] : note.pby;
+    const y = pby.map((v) => v * 10);
     if (note.prev !== undefined && note.prev.lyric !== "R") {
       y.unshift((note.prev.notenum - note.notenum) * 100);
     } else {
       y.unshift(note.pbs.height * 10);
     }
-    const mode = note.pbm;
+    const mode = note.pbm === undefined ? [] : note.pbm;
     while (mode.length < x.length - 1) {
       mode.push("");
     }
@@ -765,12 +766,7 @@ export class Note {
     offset: number
   ): Array<number> {
     const result = new Array(timeAxis.length).fill(0);
-    if (
-      note.pbs === undefined ||
-      note.pby === undefined ||
-      note.pbw === undefined ||
-      note.pbm === undefined
-    ) {
+    if (note.pbs === undefined || note.pbw === undefined) {
       return result;
     }
     const { x, y, mode } = note.getPitchInterpBase(note, offset);
@@ -784,7 +780,7 @@ export class Note {
       const start = timeAxis.findIndex((v) => v >= x[i - 1] / 1000);
       const end = timeAxis.findIndex((v) => v >= t / 1000);
       const cycle = (t - x[i - 1]) / 1000;
-      const height = y[i] - y[i - 1];
+      const height = (y[i] === undefined ? 0 : y[i]) - y[i - 1];
       if (end <= start) {
         return;
       }

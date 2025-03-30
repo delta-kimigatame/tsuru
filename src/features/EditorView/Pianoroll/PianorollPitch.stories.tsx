@@ -2,6 +2,7 @@ import { Meta, StoryFn } from "@storybook/react";
 import React from "react";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { Note } from "../../../lib/Note";
+import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { last } from "../../../utils/array";
@@ -100,6 +101,7 @@ LightMode.play = async () => {
   store.setVerticalZoom(1);
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 LightMode.storyName = "ライトモード";
@@ -113,6 +115,7 @@ DarkMode.play = async () => {
   store.setVerticalZoom(1);
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 DarkMode.storyName = "ダークモード";
@@ -127,6 +130,7 @@ pbmS.play = async () => {
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
   newNotes.forEach((n) => n.setPbm(["s"]));
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 pbmS.storyName = "直線ピッチの描画";
@@ -140,6 +144,7 @@ pbmR.play = async () => {
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
   newNotes.forEach((n) => n.setPbm(["r"]));
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 pbmR.storyName = "Rピッチの描画";
@@ -154,6 +159,7 @@ pbmJ.play = async () => {
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
   newNotes.forEach((n) => n.setPbm(["j"]));
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 pbmJ.storyName = "Jピッチの描画";
@@ -172,6 +178,7 @@ MultiPoltament.play = async () => {
     n.setPbm(["j", "r", "s"]);
     n.setPby([10, -5, 5]);
   });
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 MultiPoltament.storyName = "複雑なピッチの描画";
@@ -185,6 +192,7 @@ VerticalZoom.play = async () => {
   store.setVerticalZoom(0.5);
   store.setHorizontalZoom(1);
   const newNotes = createNotes(107 - 24 + 1);
+  projectStore.setUst({} as Ust);
   projectStore.setNotes(newNotes);
 };
 VerticalZoom.storyName = "音階方向の縮小";
