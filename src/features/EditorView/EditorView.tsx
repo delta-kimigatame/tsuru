@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { EDITOR_CONFIG } from "../../config/editor";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
 import { SynthesisWorker } from "../../services/synthesis";
@@ -8,6 +9,7 @@ import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
+import { PitchPortal } from "./PitchPortal/PitchPortal";
 
 export const EditorView: React.FC = () => {
   const { t } = useTranslation();
@@ -75,8 +77,14 @@ export const EditorView: React.FC = () => {
   }, [vb]);
 
   React.useEffect(() => {
-    LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
-    makeCache();
+    const timerId = setTimeout(() => {
+      LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
+      makeCache();
+    }, EDITOR_CONFIG.MAKE_CACHE_DELAT);
+
+    return () => {
+      clearTimeout(timerId);
+    };
   }, [notes, ustFlags, defaultNote]);
 
   React.useEffect(() => {
@@ -108,6 +116,7 @@ export const EditorView: React.FC = () => {
       }
       setSelectMode("pitch");
     }
+    setTargetPoltament(undefined);
   }, [pitchTargetIndex]);
 
   /**
@@ -269,6 +278,10 @@ export const EditorView: React.FC = () => {
         handlePlayStop={handlePlayStop}
         selectMode={selectMode}
         setSelectMode={setSelectMode}
+      />
+      <PitchPortal
+        targetIndex={targetPoltament}
+        note={notes[pitchTargetIndex]}
       />
       {wavUrl !== undefined && (
         <>
