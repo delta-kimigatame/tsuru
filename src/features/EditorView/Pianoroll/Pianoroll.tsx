@@ -223,6 +223,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               totalLength={totalLength}
               notesLeft={notesLeft}
               poltaments={pitchPoltament}
+              targetPoltament={props.targetPoltament}
             />
           </g>
           <g id="vibrato">
@@ -296,4 +297,6 @@ export interface PianorollProps {
   setPitchTargetIndex?: (index: number | undefined) => void;
   /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
   setTargetPoltament?: (index: number | undefined) => void;
+  /** ピッチ編集モードで操作するポルタメントのインデックス */
+  targetPoltament?: number | undefined;
 }

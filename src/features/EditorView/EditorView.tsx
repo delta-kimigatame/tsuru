@@ -264,6 +264,7 @@ export const EditorView: React.FC = () => {
         pitchTargetIndex={pitchTargetIndex}
         setPitchTargetIndex={setPitchTargetIndex}
         setTargetPoltament={setTargetPoltament}
+        targetPoltament={targetPoltament}
       />
       <br />
       <br />

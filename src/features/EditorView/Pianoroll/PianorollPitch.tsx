@@ -99,13 +99,14 @@ export const PianorollPitch: React.FC<PianorollPitchProps> = (props) => {
                     fill="none"
                   />
                   {props.poltaments !== undefined &&
-                    props.poltaments.map((p) => (
+                    props.poltaments.map((p, i) => (
                       <circle
                         cx={p.x}
                         cy={p.y}
                         r={10}
                         stroke={COLOR_PALLET[colorTheme][mode]["pitch"]}
                         fill="none"
+                        strokeWidth={props.targetPoltament === i ? 2 : 1}
                       />
                     ))}
                 </>
@@ -122,6 +123,8 @@ export interface PianorollPitchProps {
   notesLeft: Array<number>;
   totalLength: number;
   poltaments?: Array<{ x: number; y: number }>;
+  /** ピッチ編集モードで操作するポルタメントのインデックス */
+  targetPoltament?: number | undefined;
 }
 
 /**
