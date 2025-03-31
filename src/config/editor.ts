@@ -13,4 +13,6 @@ export const EDITOR_CONFIG = {
   PITCH_POLTAMENT_THRESHOLD: 20,
   /** ダブルタップ判定となる時間(ms) */
   DOUBLE_TAP_MS: 300,
+  /** ノート更新からキャッシュ生成までの時間(ms) */
+  MAKE_CACHE_DELAT: 1000,
 };

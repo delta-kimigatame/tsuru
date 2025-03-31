@@ -63,25 +63,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     startHoldTimer({ x: pt.x, y: pt.y });
   };
   /**
-   * pbmを順送りする
-   * @param n ノート
-   * @param i 変更の対象となるpbmのインデックス
-   */
-  const rotatePbm = (n: Note, i: number): void => {
-    const pbm = n.pbm.slice();
-    if (pbm[i - 1] === "") {
-      pbm[i - 1] = "s";
-    } else if (pbm[i - 1] === "s") {
-      pbm[i - 1] = "r";
-    } else if (pbm[i - 1] === "r") {
-      pbm[i - 1] = "j";
-    } else {
-      pbm[i - 1] = "";
-    }
-    n.setPbm(pbm);
-    setNote(n.index, n);
-  };
-  /**
    * レイヤータップが終了した際の動作
    */
   const handlePointerCancel = () => {
@@ -140,25 +121,11 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       //ピッチモード
       if (targetPoltamentIndex !== undefined) {
         // ポルタメントをタップした場合
-        if (
-          targetPoltamentIndex !== 0 &&
-          Date.now() - lastTap < EDITOR_CONFIG.DOUBLE_TAP_MS
-        ) {
-          LOG.debug(
-            `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}をダブルタップ`,
-            "PianorollToutch"
-          );
-          rotatePbm(
-            notes[props.selectedNotesIndex[0]].deepCopy(),
-            targetPoltamentIndex
-          );
-        } else {
-          LOG.debug(
-            `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
-            "PianorollToutch"
-          );
-          props.setTargetPoltament(targetPoltamentIndex);
-        }
+        LOG.debug(
+          `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
+          "PianorollToutch"
+        );
+        props.setTargetPoltament(targetPoltamentIndex);
       } else if (notes[targetNoteIndex].lyric !== "R") {
         // ノートをタップした場合
         LOG.debug(`${targetNoteIndex}に切替`, "PianorollToutch");
