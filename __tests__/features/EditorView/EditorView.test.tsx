@@ -121,12 +121,15 @@ describe("EditorView", () => {
   });
 
   it("初回レンダリング時に、[notes,ustFlags,defaultNote]依存のuseEffectが実行されるはず", async () => {
+    vi.useFakeTimers();
     render(<EditorView />);
+    vi.runAllTimers();
     expect(
       LOG.datas.some((d) =>
         d.includes("notesかustFlagsかdefaultNoteの更新検知")
       )
     ).toBe(true);
+    vi.useRealTimers();
   });
   it("初回レンダリング時に、[wavUrl, playReady]依存のuseEffectが実行されるはず", async () => {
     render(<EditorView />);
@@ -159,10 +162,12 @@ describe("EditorView", () => {
       createMinimumNote(),
       createMinimumNote(),
     ];
+    vi.useFakeTimers();
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
       useMusicProjectStore.setState({ notes: dummyNotes });
     });
+    vi.runAllTimers();
     expect(
       LOG.datas.some((d) =>
         d.includes("notesかustFlagsかdefaultNoteの更新検知")
@@ -170,13 +175,16 @@ describe("EditorView", () => {
     ).toBe(true);
     // makeChacheの検知用。vbが非nullでnotes.length!==0なら必ず呼ばれるはず
     expect(getRequestParamSpy).toHaveBeenCalled();
+    vi.useRealTimers();
   });
   it("ustFlagsの更新でmakeCache用のuseEffectが呼ばれる", async () => {
     render(<EditorView />);
+    vi.useFakeTimers();
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
       useMusicProjectStore.setState({ ustFlags: "B50" });
     });
+    vi.runAllTimers();
     expect(
       LOG.datas.some((d) =>
         d.includes("notesかustFlagsかdefaultNoteの更新検知")
@@ -184,13 +192,16 @@ describe("EditorView", () => {
     ).toBe(true);
     // makeChacheの検知用。vbが非nullでnotes.length!==0なら必ず呼ばれるはず
     expect(getRequestParamSpy).toHaveBeenCalled();
+    vi.useRealTimers();
   });
   it("defaultNoteの更新でmakeCache用のuseEffectが呼ばれる", async () => {
     render(<EditorView />);
+    vi.useFakeTimers();
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
       useCookieStore.setState({ defaultNote: {} as defaultParam });
     });
+    vi.runAllTimers();
     expect(
       LOG.datas.some((d) =>
         d.includes("notesかustFlagsかdefaultNoteの更新検知")
@@ -198,6 +209,7 @@ describe("EditorView", () => {
     ).toBe(true);
     // makeChacheの検知用。vbが非nullでnotes.length!==0なら必ず呼ばれるはず
     expect(getRequestParamSpy).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it("WAV保存タブをクリックすると、合成進捗が '0/2' と表示されるタブが2つ見つかる", async () => {
