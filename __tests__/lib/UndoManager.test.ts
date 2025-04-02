@@ -32,30 +32,44 @@ describe("UndoManager", () => {
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe("a");
     expect(um.undoSummary).toBe("test2");
     expect(um.redoSummary).toBe("test3");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(1);
     expect(um.undoSummary).toBe("test1");
     expect(um.redoSummary).toBe("test2");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(2);
     expect(um.undoSummary).toBe(undefined);
     expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.redo();
     expect(checker).toBe(1);
     expect(um.undoSummary).toBe("test1");
     expect(um.redoSummary).toBe("test2");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.redo();
     expect(checker).toBe("a");
     expect(um.undoSummary).toBe("test2");
     expect(um.redoSummary).toBe("test3");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.redo();
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
   });
 
   it("undo後に別のコマンドを登録し、redoが空になることを確認する", () => {
@@ -74,9 +88,13 @@ describe("UndoManager", () => {
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test1");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(um.undoSummary).toBe(undefined);
     expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.register({
       undo: set,
       undoArgs: 1,
@@ -86,6 +104,8 @@ describe("UndoManager", () => {
     });
     expect(um.undoSummary).toBe("test2");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
   });
   it("Undoスタックが空になった後にUndoをしてもRedoスタックは変更されない。", () => {
     const um = new UndoManager();
@@ -117,26 +137,38 @@ describe("UndoManager", () => {
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe("a");
     expect(um.undoSummary).toBe("test2");
     expect(um.redoSummary).toBe("test3");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(1);
     expect(um.undoSummary).toBe("test1");
     expect(um.redoSummary).toBe("test2");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(2);
     expect(um.undoSummary).toBe(undefined);
     expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(2);
     expect(um.undoSummary).toBe(undefined);
     expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.undo();
     expect(checker).toBe(2);
     expect(um.undoSummary).toBe(undefined);
     expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
   });
   it("Redoスタックが空のときRedoをしてもUndoスタックは変更されない。", () => {
     const um = new UndoManager();
@@ -168,12 +200,18 @@ describe("UndoManager", () => {
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.redo();
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
     um.redo();
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeFalsy();
   });
   it("ジェネリクスが期待した通り動いているか型テスト", () => {
     const um = new UndoManager();
@@ -232,5 +270,77 @@ describe("UndoManager", () => {
     expect(checker).toBe(0);
     expect(um.undoSummary).toBe("test3");
     expect(um.redoSummary).toBe(undefined);
+  });
+  it("allオプションのテスト", () => {
+    const um = new UndoManager();
+    let checker: any = 0;
+    const set = (value) => {
+      checker = value;
+    };
+    um.register({
+      undo: set,
+      undoArgs: 2,
+      redo: set,
+      redoArgs: 1,
+      summary: "test1",
+      all: true,
+    });
+    um.register({
+      undo: set,
+      undoArgs: 1,
+      redo: set,
+      redoArgs: "a",
+      summary: "test2",
+      all: true,
+    });
+    um.register({
+      undo: set,
+      undoArgs: "a",
+      redo: set,
+      redoArgs: 0,
+      summary: "test3",
+      all: true,
+    });
+    expect(checker).toBe(0);
+    expect(um.undoSummary).toBe("test3");
+    expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeFalsy();
+    um.undo();
+    expect(checker).toBe("a");
+    expect(um.undoSummary).toBe("test2");
+    expect(um.redoSummary).toBe("test3");
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeTruthy();
+    um.undo();
+    expect(checker).toBe(1);
+    expect(um.undoSummary).toBe("test1");
+    expect(um.redoSummary).toBe("test2");
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeTruthy();
+    um.undo();
+    expect(checker).toBe(2);
+    expect(um.undoSummary).toBe(undefined);
+    expect(um.redoSummary).toBe("test1");
+    expect(um.undoAll).toBeFalsy();
+    expect(um.redoAll).toBeTruthy();
+    um.redo();
+    expect(checker).toBe(1);
+    expect(um.undoSummary).toBe("test1");
+    expect(um.redoSummary).toBe("test2");
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeTruthy();
+    um.redo();
+    expect(checker).toBe("a");
+    expect(um.undoSummary).toBe("test2");
+    expect(um.redoSummary).toBe("test3");
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeTruthy();
+    um.redo();
+    expect(checker).toBe(0);
+    expect(um.undoSummary).toBe("test3");
+    expect(um.redoSummary).toBe(undefined);
+    expect(um.undoAll).toBeTruthy();
+    expect(um.redoAll).toBeFalsy();
   });
 });

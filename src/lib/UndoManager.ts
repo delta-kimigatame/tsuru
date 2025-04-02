@@ -34,6 +34,8 @@ export interface UndoRedoCommand<
    * 処理内容の概要
    */
   summary: string;
+  /** ノートの増減を伴う場合使用するフラグ */
+  all?: boolean;
 }
 
 /**
@@ -117,6 +119,24 @@ export class UndoManager {
   get redoSummary(): string | undefined {
     if (this._redoStack.length === 0) return undefined;
     return this._redoStack.slice(-1)[0].summary;
+  }
+
+  /**
+   * UIから呼ばれることを想定
+   * @returns 次にundoを実行した際に行う処理がノート数の増減を伴うかを返す
+   */
+  get undoAll(): boolean {
+    if (this._undoStack.length === 0) return false;
+    return this._undoStack.slice(-1)[0].all !== undefined;
+  }
+
+  /**
+   * UIから呼ばれることを想定
+   * @returns 次にredoを実行した際に行う処理がノート数の増減を伴うかを返す
+   */
+  get redoAll(): boolean {
+    if (this._redoStack.length === 0) return false;
+    return this._redoStack.slice(-1)[0].all !== undefined;
   }
 
   /**
