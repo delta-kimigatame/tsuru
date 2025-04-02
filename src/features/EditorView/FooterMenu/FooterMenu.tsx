@@ -3,8 +3,10 @@ import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RedoIcon from "@mui/icons-material/Redo";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import StopIcon from "@mui/icons-material/Stop";
+import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
 import React from "react";
@@ -15,6 +17,7 @@ import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
+import { undoManager } from "../../../lib/UndoManager";
 import { Ust } from "../../../lib/Ust";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
@@ -110,6 +113,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       }
       setNotes(ust.notes);
       setUstLoadProgress(false);
+      undoManager.clear();
     } catch (e) {
       LOG.warn(`ustの読込失敗。${e}`, "FooterMenu");
       snackBarStore.setSeverity("error");
@@ -173,6 +177,35 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       }
     } else {
       props.setSelectMode("toggle");
+    }
+  };
+
+  const handleUndoClick = () => {
+    LOG.debug("click UndoTab", "FooterMenu");
+    const allFlag = undoManager.undoAll;
+    const undoResult = undoManager.undo();
+    if (allFlag) {
+      setNotes(undoResult);
+    } else {
+      const newNotes = notes.slice();
+      undoResult.forEach((un) => {
+        newNotes[un.index] = un;
+      });
+      setNotes(newNotes);
+    }
+  };
+  const handleRedoClick = () => {
+    LOG.debug("click RedoTab", "FooterMenu");
+    const allFlag = undoManager.redoAll;
+    const redoResult = undoManager.redo();
+    if (allFlag) {
+      setNotes(redoResult);
+    } else {
+      const newNotes = notes.slice();
+      redoResult.forEach((un) => {
+        newNotes[un.index] = un;
+      });
+      setNotes(newNotes);
     }
   };
 
@@ -242,6 +275,26 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
             props.synthesisProgress
           }
           onClick={handleSelectClick}
+        />
+        <Tab
+          icon={<UndoIcon />}
+          label={t("editor.footer.undo")}
+          onClick={handleUndoClick}
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            undoManager.undoSummary === undefined || props.synthesisProgress
+          }
+        />
+        <Tab
+          icon={<RedoIcon />}
+          label={t("editor.footer.redo")}
+          onClick={handleRedoClick}
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            undoManager.redoSummary === undefined || props.synthesisProgress
+          }
         />
         <Tab
           icon={batchProcessProgress ? <CircularProgress /> : <AutorenewIcon />}
