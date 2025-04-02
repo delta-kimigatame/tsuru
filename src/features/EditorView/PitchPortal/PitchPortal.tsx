@@ -1,295 +1,103 @@
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import { Box, Fab, Slider } from "@mui/material";
+import { Box } from "@mui/material";
 import Portal from "@mui/material/Portal";
 import React from "react";
 import { EDITOR_CONFIG } from "../../../config/editor";
-import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
 import { Note } from "../../../lib/Note";
+import { undoManager } from "../../../lib/UndoManager";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { PitchHorizontalSlider } from "./PitchHorizontalSlider";
+import { PitchVerticalSlider } from "./PitchVerticalSlider";
+import { PoltamentAddFab } from "./PoltamentAddFab";
+import { PoltamentRemoveFab } from "./PoltamentRemoveFab";
+import { RotateModeFab } from "./RotateModeFab";
 
-const SLIDER_PADDING = 16;
-const SLIDER_SIZE = 45;
-
-export const PitchPortal: React.FC<PitchPortal> = (props) => {
+export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
   const verticalMenu = useVerticalFooterMenu();
-  const { setNote } = useMusicProjectStore();
-  const handleChangeVerticalSlider = (e, newValue: number) => {
-    const n = props.note.deepCopy();
-    if (props.targetIndex === 0) {
-      n.pbsHeight = newValue;
+  const { notes } = useMusicProjectStore();
+  const [hasUpdate, setHasUpdate] = React.useState<boolean>(false);
+  const [initialUndoIndex, setInitialUndoIndex] = React.useState<
+    number | undefined
+  >(undefined);
+  const [initialUndoNote, setInitialUndoNote] = React.useState<
+    Note | undefined
+  >(undefined);
+  React.useEffect(() => {
+    if (props.note === undefined) {
+      //コンポーネントマウント時もしくはピッチ編集モードを抜けたとき
+      setUndoManager(initialUndoNote, notes);
+      //共通動作
+      setInitialUndoIndex(undefined);
+      setInitialUndoNote(undefined);
+    } else if (props.targetIndex === undefined) {
+      //ピッチ編集モードに入った時か操作対象ノートが変更されたとき
+      setUndoManager(initialUndoNote, notes);
+      setInitialUndoIndex(undefined);
+      setInitialUndoNote(props.note);
     } else {
-      n.pby[props.targetIndex - 1] = newValue;
+      //操作対象ポルタメントが初期設定されたか変更されたとき
+      setUndoManager(initialUndoNote, notes);
+      setInitialUndoIndex(props.targetIndex);
+      setInitialUndoNote(props.note);
     }
-    setNote(n.index, n);
-  };
+    setHasUpdate(false);
+  }, [props.targetIndex, props.note]);
 
-  const handleChangeHorizontalSlider = (e, newValue: number) => {
-    const n = props.note.deepCopy();
-    if (props.targetIndex === 0) {
-      const dif = newValue - n.pbs.time;
-      n.pbsTime = newValue;
-      n.pbw[0] -= dif;
-    } else {
-      const dif = newValue - n.pbw[props.targetIndex - 1];
-      console.log("PITCH_DEBUG", n.pbs.time, dif, n.pbw);
-      n.pbw[props.targetIndex - 1] = newValue;
-      if (props.targetIndex !== n.pbw.length) {
-        n.pbw[props.targetIndex] -= dif;
-      }
+  const setUndoManager = (oldNote: Note, notes: Note[]) => {
+    if (
+      initialUndoIndex !== undefined &&
+      initialUndoNote !== undefined &&
+      hasUpdate
+    ) {
+      const newNote = notes[oldNote.index];
+      /**
+       * 一連の累積的な処理の登録であるため、個別のパラメータは記録せず、直接編集前後のノートを返す形でundoManagerに登録する。
+       * undoおよびredoはNote[]を返すことが期待されるため、Note[]にして返す
+       * */
+      undoManager.register({
+        undo: (oldNote: Note): Note[] => [oldNote],
+        undoArgs: oldNote.deepCopy(),
+        redo: (newNote: Note): Note[] => [newNote],
+        redoArgs: newNote.deepCopy(),
+        summary: `ピッチの編集。ノートインデックス${initialUndoNote},ポルタメントのインデックス:${initialUndoIndex}`,
+      });
     }
-    setNote(n.index, n);
-  };
-
-  const handleMinusClick = () => {
-    const pbwIndex = props.targetIndex - 1;
-    const n = props.note.deepCopy();
-    const newPbw = n.pbw[pbwIndex] + n.pbw[pbwIndex + 1];
-    n.setPbw(
-      pbwIndex === 0
-        ? n.pbw.slice(1)
-        : n.pbw.slice(0, pbwIndex).concat(n.pbw.slice(pbwIndex + 1))
-    );
-    n.pbw[pbwIndex] = newPbw;
-    n.setPby(
-      pbwIndex === 0
-        ? n.pby.slice(1)
-        : n.pby.slice(0, pbwIndex).concat(n.pby.slice(pbwIndex + 1))
-    );
-    n.setPbm(
-      pbwIndex === 0
-        ? n.pbm.slice(1)
-        : n.pbm.slice(0, pbwIndex).concat(n.pbm.slice(pbwIndex + 1))
-    );
-    setNote(n.index, n);
-  };
-
-  const handleAddClick = () => {
-    const pbwIndex = props.targetIndex - 1;
-    const n = props.note.deepCopy();
-    const newPbw = n.pbw[pbwIndex < 0 ? 0 : pbwIndex] / 2;
-    const newPby = n.pby[pbwIndex + 1] / 2;
-    if (props.targetIndex === 0) {
-      n.pbw[0] = newPbw;
-      n.pbw.unshift(newPbw);
-      n.pby.unshift(newPby);
-      n.pbm.unshift("");
-    } else if (pbwIndex === n.pbw.length - 1) {
-      n.pbw.push(10);
-      if (n.pby === undefined) {
-        n.setPby([0]);
-      } else {
-        n.pby.push(0);
-      }
-      if (n.pbm === undefined) {
-        n.setPbm([""]);
-      } else {
-        n.pbm.push("");
-      }
-    } else {
-      n.pbw[pbwIndex] = newPbw;
-      n.setPbw(
-        n.pbw.slice(0, pbwIndex + 1).concat([newPbw], n.pbw.slice(pbwIndex + 1))
-      );
-      n.setPby(
-        n.pby.slice(0, pbwIndex + 1).concat([newPby], n.pby.slice(pbwIndex + 1))
-      );
-      if (n.pbm === undefined) {
-        n.setPbm(Array(n.pbw.length).fill(""));
-      } else {
-        n.setPbm(
-          n.pbm.slice(0, pbwIndex + 1).concat([""], n.pbm.slice(pbwIndex + 1))
-        );
-      }
-    }
-    setNote(n.index, n);
-  };
-
-  /**
-   * pbmを順送りする
-   * @param props.note ノート
-   * @param props.targetIndex 変更の対象となるpbmのインデックス
-   */
-  const handleRotatePbmClick = (): void => {
-    const pbm = props.note.pbm.slice();
-    if (pbm[props.targetIndex - 1] === "") {
-      pbm[props.targetIndex - 1] = "s";
-    } else if (pbm[props.targetIndex - 1] === "s") {
-      pbm[props.targetIndex - 1] = "r";
-    } else if (pbm[props.targetIndex - 1] === "r") {
-      pbm[props.targetIndex - 1] = "j";
-    } else {
-      pbm[props.targetIndex - 1] = "";
-    }
-    props.note.setPbm(pbm);
-    setNote(props.note.index, props.note);
   };
 
   return (
     <>
       {props.note !== undefined && props.note.pbw !== undefined && (
         <Portal>
-          {isHorizontalVisible(props.targetIndex, props.note) && (
-            <Box
-              sx={{
-                position: "fixed",
-                bottom: !verticalMenu
-                  ? EDITOR_CONFIG.FOOTER_MENU_SIZE + SLIDER_PADDING
-                  : SLIDER_PADDING,
-                right: verticalMenu
-                  ? EDITOR_CONFIG.FOOTER_MENU_SIZE + SLIDER_PADDING * 2
-                  : SLIDER_PADDING * 2,
-                left:
-                  SLIDER_PADDING * 2 +
-                  PIANOROLL_CONFIG.TONEMAP_WIDTH +
-                  SLIDER_SIZE,
-                zIndex: 100,
-              }}
-            >
-              <Slider
-                color="error"
-                step={0.1}
-                min={horizontalMin(props.targetIndex, props.note)}
-                max={horizontalMax(props.targetIndex, props.note)}
-                value={
-                  props.targetIndex === 0
-                    ? props.note.pbs.time
-                    : props.note.pbw[props.targetIndex - 1]
-                }
-                onChange={handleChangeHorizontalSlider}
-              />
-            </Box>
-          )}
-          <Box
-            sx={{
-              position: "fixed",
-              bottom:
-                (!verticalMenu ? EDITOR_CONFIG.FOOTER_MENU_SIZE : 0) +
-                SLIDER_SIZE,
-              right: verticalMenu
-                ? EDITOR_CONFIG.FOOTER_MENU_SIZE + SLIDER_PADDING * 2
-                : SLIDER_PADDING * 2,
-              zIndex: 100,
-            }}
-          >
-            <Fab
-              size="small"
-              color="default"
-              aria-label="poltamentRemove"
-              sx={{ m: 1, textTransform: "none" }}
-              disabled={props.targetIndex === 0}
-              onClick={handleRotatePbmClick}
-            >
-              {props.note.pbm[props.targetIndex - 1] === undefined ||
-              props.note.pbm[props.targetIndex - 1] === ""
-                ? "S"
-                : props.note.pbm[props.targetIndex - 1] === "s"
-                ? "/"
-                : props.note.pbm[props.targetIndex - 1]}
-            </Fab>
-            <Fab
-              size="small"
-              color="default"
-              aria-label="poltamentRemove"
-              sx={{ m: 1 }}
-              disabled={isMinusDisabled(props.targetIndex, props.note.pbw)}
-              onClick={handleMinusClick}
-            >
-              <RemoveIcon />
-            </Fab>
-            <Fab
-              size="small"
-              color="default"
-              aria-label="poltamentAdd"
-              sx={{ m: 1 }}
-              disabled={isAddDisabled(props.targetIndex)}
-              onClick={handleAddClick}
-            >
-              <AddIcon />
-            </Fab>
+          <Box data-testid="pitchPortal">
+            <PitchHorizontalSlider {...props} setHasUpdate={setHasUpdate} />
+            {props.targetIndex !== undefined && (
+              <Box
+                sx={{
+                  position: "fixed",
+                  bottom:
+                    (!verticalMenu ? EDITOR_CONFIG.FOOTER_MENU_SIZE : 0) +
+                    EDITOR_CONFIG.SLIDER_SIZE,
+                  right: verticalMenu
+                    ? EDITOR_CONFIG.FOOTER_MENU_SIZE +
+                      EDITOR_CONFIG.SLIDER_PADDING * 2
+                    : EDITOR_CONFIG.SLIDER_PADDING * 2,
+                  zIndex: 100,
+                }}
+              >
+                <RotateModeFab {...props} />
+                <PoltamentRemoveFab {...props} />
+                <PoltamentAddFab {...props} />
+              </Box>
+            )}
+            <PitchVerticalSlider {...props} setHasUpdate={setHasUpdate} />
           </Box>
-          {isVerticalVisible(props.targetIndex, props.note) && (
-            <Box
-              sx={{
-                position: "fixed",
-                top: EDITOR_CONFIG.HEADER_HEIGHT + SLIDER_PADDING,
-                bottom:
-                  (!verticalMenu ? EDITOR_CONFIG.FOOTER_MENU_SIZE : 0) +
-                  SLIDER_SIZE +
-                  SLIDER_PADDING,
-                left: SLIDER_PADDING * 2 + PIANOROLL_CONFIG.TONEMAP_WIDTH,
-                zIndex: 100,
-              }}
-            >
-              <Slider
-                color="error"
-                step={0.1}
-                orientation="vertical"
-                min={-200}
-                max={200}
-                value={
-                  props.targetIndex === 0
-                    ? props.note.pbs.height
-                    : props.note.pby[props.targetIndex - 1]
-                }
-                onChange={handleChangeVerticalSlider}
-              />
-            </Box>
-          )}
         </Portal>
       )}
     </>
   );
 };
 
-const horizontalMin = (targetIndex: number, note: Note): number => {
-  if (targetIndex === 0) {
-    if (note.prev === null) {
-      return 0;
-    } else {
-      return note.prev.msLength * -1;
-    }
-  } else {
-    return 0;
-  }
-};
-const horizontalMax = (targetIndex: number, note: Note): number => {
-  if (targetIndex === 0) {
-    //1点目
-    return note.pbw[0];
-  } else if (targetIndex === note.pbw.length) {
-    //最後
-    // 1つ手前のノートまでのpbwの累積
-    const total =
-      note.pbw.slice(0, targetIndex - 2).reduce((s, c) => s + c, 0) +
-      note.pbs.time;
-    return note.msLength - total;
-  } else {
-    return note.pbw[targetIndex - 1] + note.pbw[targetIndex];
-  }
-};
-
-const isMinusDisabled = (targetIndex: number, pbw: number[]): boolean => {
-  if (targetIndex === 0 || targetIndex === undefined) return true;
-  return targetIndex === pbw.length;
-};
-
-const isAddDisabled = (targetIndex: number): boolean => {
-  return targetIndex === undefined;
-};
-
-const isVerticalVisible = (targetIndex: number, note: Note): boolean => {
-  if (note === undefined || targetIndex === undefined) return false;
-  if (targetIndex === 0) return note.prev === null || note.prev.lyric === "R";
-  return targetIndex !== note.pbw.length;
-};
-
-const isHorizontalVisible = (targetIndex: number, note: Note): boolean => {
-  return note !== undefined && targetIndex !== undefined;
-};
-
-export interface PitchPortal {
+export interface PitchPortalProps {
   targetIndex: number | undefined;
   note: Note | undefined;
 }

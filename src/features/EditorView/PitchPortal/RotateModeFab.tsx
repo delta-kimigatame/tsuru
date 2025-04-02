@@ -22,7 +22,8 @@ export const RotateModeFab: React.FC<PitchPortalProps> = (props) => {
       disabled={props.targetIndex === 0}
       onClick={handleClick}
     >
-      {props.note.pbm[props.targetIndex - 1] === undefined ||
+      {props.note.pbm === undefined ||
+      props.note.pbm[props.targetIndex - 1] === undefined ||
       props.note.pbm[props.targetIndex - 1] === ""
         ? "S"
         : props.note.pbm[props.targetIndex - 1] === "s"
