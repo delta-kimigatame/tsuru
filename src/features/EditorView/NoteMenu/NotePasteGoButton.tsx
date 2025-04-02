@@ -56,6 +56,7 @@ export const pasteGo = (
     redo: redo,
     redoArgs: { notes: oldNotes, insertNotes: insertNotes, index: index },
     summary: `クリップボードから挿入`,
+    all: true,
   });
   const newNotes = notes
     .slice(0, index + 1)

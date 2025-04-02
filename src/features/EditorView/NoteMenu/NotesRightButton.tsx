@@ -53,6 +53,7 @@ export const notesRight = (
     redo: notesRightRedo,
     redoArgs: { notes: oldNotes, selectedNotesIndex: selectedNotesIndex },
     summary: `1音右へ`,
+    all: true,
   });
   return notesRightCore(
     notes.map((n) => n.deepCopy()),

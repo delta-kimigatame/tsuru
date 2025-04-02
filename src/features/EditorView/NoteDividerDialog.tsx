@@ -180,6 +180,7 @@ export const noteDivide = (
     redo: redo,
     redoArgs: { notes: oldNote, index: index, newLength: newLength },
     summary: `ノート分割確定。index:${index}、分割後長さ:${newLength}`,
+    all: true,
   });
   return noteDivideCore(notes, index, newLength);
 };

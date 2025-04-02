@@ -38,6 +38,7 @@ export const deleteNote = (notes: Note[], selectedNotesIndex: number[]) => {
       selectedNotesIndex: selectedNotesIndex.slice(),
     },
     summary: `選択ノートを削除`,
+    all: true,
   });
   return deleteNoteCore({
     notes: notes,
