@@ -1,3 +1,4 @@
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -180,6 +181,15 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     }
   };
 
+  const handleAddClick = () => {
+    LOG.debug("click AddTab", "FooterMenu");
+    if (props.selectMode === "add") {
+      props.setSelectMode("toggle");
+    } else {
+      props.setSelectMode("add");
+    }
+  };
+
   const handleUndoClick = () => {
     LOG.debug("click UndoTab", "FooterMenu");
     const allFlag = undoManager.undoAll;
@@ -257,12 +267,26 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           disabled={notes.length === 0 || batchProcessProgress}
         />
         <Tab
+          icon={props.selectMode !== "add" ? <AddBoxIcon /> : <ClearIcon />}
+          label={
+            props.selectMode !== "add"
+              ? t("editor.footer.addNote")
+              : t("editor.footer.selectCancel")
+          }
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={batchProcessProgress || props.synthesisProgress}
+          onClick={handleAddClick}
+        />
+        <Tab
           icon={
             props.selectMode === "toggle" ? <SelectAllIcon /> : <ClearIcon />
           }
           label={
             props.selectMode === "toggle"
               ? t("editor.footer.selectRange")
+              : props.selectMode !== "range"
+              ? t("editor.footer.selectCancel")
               : props.selectedNotesIndex.length !== 0
               ? t("editor.footer.selectReset")
               : t("editor.footer.selectCancel")
@@ -402,7 +426,7 @@ export interface FooterMenuProps {
   /** 再生を終了するためのコールバック */
   handlePlayStop: () => void;
   /** 選択モード */
-  selectMode: "toggle" | "range" | "pitch";
+  selectMode: "toggle" | "range" | "pitch" | "add";
   /** 選択モードを更新するためのコールバック */
-  setSelectMode: (mode: "toggle" | "range" | "pitch") => void;
+  setSelectMode: (mode: "toggle" | "range" | "pitch" | "add") => void;
 }

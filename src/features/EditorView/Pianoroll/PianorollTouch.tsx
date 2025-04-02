@@ -4,6 +4,7 @@ import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
+import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
@@ -23,7 +24,7 @@ import { last, range } from "../../../utils/array";
 export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   const { t } = useTranslation();
   const { verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes, setNote } = useMusicProjectStore();
+  const { ust, notes, setNotes, ustTempo, setUst } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [touchStart, setTouchStart] = React.useState<number | undefined>(
     undefined
@@ -59,7 +60,9 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
-    setTouchStart(Date.now());
+    if (props.selectMode !== "add") {
+      setTouchStart(Date.now());
+    }
     startHoldTimer({ x: pt.x, y: pt.y });
   };
   /**
@@ -110,7 +113,11 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       horizontalZoom,
       verticalZoom
     );
-    if (targetNoteIndex === undefined && targetPoltamentIndex === undefined) {
+    if (
+      targetNoteIndex === undefined &&
+      targetPoltamentIndex === undefined &&
+      props.selectMode !== "add"
+    ) {
       return;
     }
     LOG.debug(
@@ -157,6 +164,42 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         LOG.debug(`${startIndex}～${targetNoteIndex}を選択`, "PianorollToutch");
         props.setSelectedNotesIndex(range(startIndex, targetNoteIndex));
       }
+    } else if (props.selectMode === "add") {
+      const clickNotenum =
+        107 -
+        Math.floor(svgPoint.y / PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
+      const newNote = new Note();
+      newNote.hasTempo = false;
+      newNote.lyric = "あ";
+      newNote.length = 480;
+      newNote.notenum = clickNotenum;
+      const targetNoteIndexFromX = getTargetNoteIndexFromX(
+        svgPoint.x,
+        notes === undefined ? [] : notes,
+        props.notesLeft,
+        horizontalZoom
+      );
+      newNote.tempo =
+        notes === undefined || notes.length === 0
+          ? ustTempo
+          : targetNoteIndexFromX === undefined
+          ? last(notes).tempo
+          : notes[targetNoteIndexFromX].tempo;
+      const newNotes =
+        notes === undefined || notes.length === 0
+          ? [newNote]
+          : targetNoteIndexFromX === undefined
+          ? notes.slice().concat([newNote])
+          : notes
+              .slice(0, targetNoteIndexFromX)
+              .concat([newNote], notes.slice(targetNoteIndexFromX));
+      if (ust === null) {
+        const initialUst = new Ust();
+        initialUst.tempo = 120;
+        initialUst.flags = "";
+        setUst(initialUst);
+      }
+      setNotes(newNotes);
     }
   };
 
@@ -262,7 +305,9 @@ export const getTargetNoteIndex = (
   } else {
     const clickNotenum =
       107 - Math.floor(svgPoint.y / PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
-    return notes[targetNoteIndex].notenum === clickNotenum
+    return notes[targetNoteIndex] === undefined
+      ? undefined
+      : notes[targetNoteIndex].notenum === clickNotenum
       ? targetNoteIndex
       : undefined;
   }
@@ -286,7 +331,9 @@ export const getTargetNoteIndexFromX = (
   const targetNoteIndex_ = notesLeft.findIndex((x) => x > targetX) - 1;
   const targetNoteIndex =
     targetNoteIndex_ < 0
-      ? last(notesLeft) + last(notes).length <= targetX
+      ? last(notesLeft) +
+          (last(notes) === undefined ? 0 : last(notes).length) <=
+        targetX
         ? undefined
         : notes.length - 1
       : targetNoteIndex_;
@@ -298,7 +345,7 @@ export interface PianorollToutchProps {
   setSelectedNotesIndex: (indexes: number[]) => void;
   notesLeft: Array<number>;
   totalLength: number;
-  selectMode?: "toggle" | "range" | "pitch";
+  selectMode?: "toggle" | "range" | "pitch" | "add";
   setMenuAnchor: (anchor: { x: number; y: number }) => void;
   poltaments?: Array<{ x: number; y: number }>;
   /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
