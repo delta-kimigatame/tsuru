@@ -67,7 +67,9 @@ describe("NotesCopyButton", () => {
   it("ボタンをクリックすると、選択したノートがコピーされる。失敗", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
-    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(undefined);
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue({
+      message: "error",
+    });
     const setSelectedNotesIndexSpy = vi.fn();
     const handleMenuCloseSpy = vi.fn();
     store.setUst({} as Ust);
