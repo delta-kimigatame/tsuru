@@ -1,28 +1,36 @@
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
-import ContentPasteGoIcon from "@mui/icons-material/ContentPasteGo";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
-import TimelineIcon from "@mui/icons-material/Timeline";
 import { ButtonGroup, IconButton, Menu } from "@mui/material";
 import React from "react";
-import { DividerNoteIcon } from "../../../components/EditorView/NoteMenu/DividerNoteIcon";
-import { EnvelopeNoteIcon } from "../../../components/EditorView/NoteMenu/EnvelopeNoteIcon";
+import { useTranslation } from "react-i18next";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
-import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { EnvelopeDialog } from "../EnvelopeDialog/EnvelopeDialog";
+import { NoteDividerDialog } from "../NoteDividerDialog";
 import { NotePropertyDialog } from "../NotePropertyDialog";
+import { DividerButton } from "./DividerButton";
+import { EditButton } from "./EditButton";
+import { EnvelopeEditButton } from "./EnvelopeEditButton";
+import { NotePasteGoButton } from "./NotePasteGoButton";
+import { NotesCopyButton } from "./NotesCopyButton";
+import { NotesDeleteButton } from "./NotesDeleteButton";
 import { NotesDownButton } from "./NotesDownButton";
 import { NotesLeftButton } from "./NotesLeftButton";
 import { NotesRightButton } from "./NotesRightButton";
 import { NotesUpButton } from "./NotesUpButton";
+import { PitchEditButton } from "./PitchEditButton";
 
 export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
-  const { notes } = useMusicProjectStore();
+  const { t } = useTranslation();
   const windowSize = useWindowSize();
   const [propertyTargetNote, setPropertyTargetNote] = React.useState<
+    Note | undefined
+  >(undefined);
+  const [dividerTargetIndex, setDividerTargetIndex] = React.useState<
+    number | undefined
+  >(undefined);
+  const [envelopeTargetNote, setEnvelopeTargetNote] = React.useState<
     Note | undefined
   >(undefined);
   /**
@@ -32,18 +40,19 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
     props.setMenuAnchor(null);
   };
 
-  const handleEditButtonClick = () => {
-    // selectedNotesIndexの長さが1のはず
-    LOG.debug(
-      `プロパティダイアログ開く targetIndex:${props.selectedNotesIndex[0]}`,
-      "NoteMenu"
-    );
-    setPropertyTargetNote(notes[props.selectedNotesIndex[0]]);
-  };
-
   const handlePropertyDialogClose = () => {
     LOG.debug("プロパティダイアログ閉じる", "NoteMenu");
     setPropertyTargetNote(undefined);
+  };
+
+  const handleDividerDialogClose = () => {
+    LOG.debug("ノート分割ダイアログを閉じる", "NoteMenu");
+    setDividerTargetIndex(undefined);
+  };
+
+  const handleEnvelopeDialogClose = () => {
+    LOG.debug("エンベロープダイアログを閉じる", "NoteMenu");
+    setEnvelopeTargetNote(undefined);
   };
 
   return (
@@ -79,38 +88,47 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
           {props.selectedNotesIndex.length === 1 && (
             <>
               <ButtonGroup variant="contained">
-                <IconButton
-                  disabled={props.selectedNotesIndex.length !== 1}
-                  onClick={handleEditButtonClick}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton disabled>
-                  <DividerNoteIcon />
-                </IconButton>
-                <IconButton disabled>
-                  <EnvelopeNoteIcon />
-                </IconButton>
-                <IconButton disabled>
-                  <TimelineIcon />
-                </IconButton>
+                <EditButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setSelectedNotesIndex={props.setSelectedNotesIndex}
+                  setPropertyTargetNote={setPropertyTargetNote}
+                />
+                <DividerButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setDividerTargetIndex={setDividerTargetIndex}
+                />
+                <EnvelopeEditButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setEnvelopeTargetNote={setEnvelopeTargetNote}
+                />
+                <PitchEditButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setPitchTargetIndex={props.setPitchTargetIndex}
+                  handleMenuClose={handleMenuClose}
+                />
               </ButtonGroup>
               <br />
             </>
           )}
           <ButtonGroup variant="contained">
-            <IconButton disabled>
-              <ContentCopyIcon />
-            </IconButton>
-            <IconButton disabled>
+            <NotesCopyButton
+              selectedNotesIndex={props.selectedNotesIndex}
+              setSelectedNotesIndex={props.setSelectedNotesIndex}
+              handleMenuClose={handleMenuClose}
+            />
+            <IconButton disabled data-testid="NotesPasteButton">
               <ContentPasteIcon />
             </IconButton>
-            <IconButton disabled>
-              <ContentPasteGoIcon />
-            </IconButton>
-            <IconButton disabled>
-              <DeleteForeverIcon />
-            </IconButton>
+            <NotePasteGoButton
+              selectedNotesIndex={props.selectedNotesIndex}
+              setSelectedNotesIndex={props.setSelectedNotesIndex}
+              handleMenuClose={handleMenuClose}
+            />
+            <NotesDeleteButton
+              selectedNotesIndex={props.selectedNotesIndex}
+              setSelectedNotesIndex={props.setSelectedNotesIndex}
+              handleMenuClose={handleMenuClose}
+            />
           </ButtonGroup>
         </Menu>
       )}
@@ -118,6 +136,16 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
         open={propertyTargetNote !== undefined}
         note={propertyTargetNote}
         handleClose={handlePropertyDialogClose}
+      />
+      <NoteDividerDialog
+        open={dividerTargetIndex !== undefined}
+        noteIndex={dividerTargetIndex}
+        handleClose={handleDividerDialogClose}
+      />
+      <EnvelopeDialog
+        open={envelopeTargetNote !== undefined}
+        note={envelopeTargetNote}
+        handleClose={handleEnvelopeDialogClose}
       />
     </>
   );
@@ -147,9 +175,17 @@ export interface NoteMenuProps {
   setMenuAnchor: (anchor: { x: number; y: number } | null) => void;
   selectedNotesIndex: Array<number>;
   setSelectedNotesIndex: (indexes: number[]) => void;
+  /** ピッチターゲット更新のためのコールバック */
+  setPitchTargetIndex?: (index: number | undefined) => void;
 }
 
 export interface NoteMoveButtonProps {
   selectedNotesIndex: Array<number>;
   setSelectedNotesIndex?: (indexes: number[]) => void;
+}
+
+export interface NoteEditButtonProps {
+  selectedNotesIndex: Array<number>;
+  setSelectedNotesIndex?: (indexes: number[]) => void;
+  handleMenuClose: () => void;
 }
