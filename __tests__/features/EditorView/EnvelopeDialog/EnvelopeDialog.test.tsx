@@ -458,7 +458,7 @@ describe("EnvelopeDialog", () => {
     store.setUst({} as Ust);
     store.setNotes([n]);
     const dialogCloseSpy = vi.fn();
-    render(
+    const { rerender } = render(
       <EnvelopeDialog open={true} note={n} handleClose={dialogCloseSpy} />
     );
     const pts = new Array();
@@ -493,6 +493,13 @@ describe("EnvelopeDialog", () => {
     fireEvent.click(button);
     //ダイアログが閉じているはず
     expect(dialogCloseSpy).toHaveBeenCalled();
+    rerender(
+      <EnvelopeDialog
+        open={false}
+        note={undefined}
+        handleClose={dialogCloseSpy}
+      />
+    );
     const resultNotes = useMusicProjectStore.getState().notes;
     expect(resultNotes[0].envelope).toEqual({
       point: [5, 10, 30, 10, 20],

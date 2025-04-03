@@ -140,7 +140,7 @@ describe("NotePropertyDialog", () => {
     store.setUst({} as Ust);
     store.setNotes([n]);
     const dialogCloseSpy = vi.fn();
-    render(
+    const { rerender } = render(
       <NotePropertyDialog open={true} note={n} handleClose={dialogCloseSpy} />
     );
     const user = userEvent.setup();
@@ -213,6 +213,13 @@ describe("NotePropertyDialog", () => {
     fireEvent.click(button);
     //ダイアログが閉じているはず
     expect(dialogCloseSpy).toHaveBeenCalled();
+    rerender(
+      <NotePropertyDialog
+        open={false}
+        note={undefined}
+        handleClose={dialogCloseSpy}
+      />
+    );
     // notesが更新されているはず
     const resultNotes = useMusicProjectStore.getState().notes;
     expect(resultNotes[0].lyric).toBe("う");

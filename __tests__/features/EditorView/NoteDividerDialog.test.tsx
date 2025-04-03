@@ -98,4 +98,28 @@ describe("NotesDividerDialog", () => {
     fireEvent.change(slider, { target: { value: 50 } });
     expect(Number(slider.getAttribute("aria-valuenow"))).toBe(50);
   });
+
+  it("dialogを閉じる動作が正常に終了することの確認", async () => {
+    const notes = createNotes();
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(notes);
+    const dialogCloseSpy = vi.fn();
+    const { rerender } = render(
+      <NoteDividerDialog
+        open={true}
+        noteIndex={1}
+        handleClose={dialogCloseSpy}
+      />
+    );
+    const slider = screen.getByLabelText("editor.noteDividerDialog.divider");
+    fireEvent.change(slider, { target: { value: 50 } });
+    rerender(
+      <NoteDividerDialog
+        open={false}
+        noteIndex={undefined}
+        handleClose={dialogCloseSpy}
+      />
+    );
+  });
 });
