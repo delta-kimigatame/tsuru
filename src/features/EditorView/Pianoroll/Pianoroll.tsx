@@ -248,6 +248,8 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               setMenuAnchor={setMenuAnchor}
               poltaments={pitchPoltament}
               setTargetPoltament={props.setTargetPoltament}
+              addNoteLength={props.addNoteLength}
+              addNoteLyric={props.addNoteLyric}
             />
           </g>
           <NoteMenu
@@ -299,4 +301,6 @@ export interface PianorollProps {
   setTargetPoltament?: (index: number | undefined) => void;
   /** ピッチ編集モードで操作するポルタメントのインデックス */
   targetPoltament?: number | undefined;
+  addNoteLength?: number;
+  addNoteLyric?: string;
 }

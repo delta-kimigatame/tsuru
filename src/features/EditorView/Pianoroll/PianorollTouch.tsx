@@ -4,6 +4,7 @@ import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
+import { undoManager } from "../../../lib/UndoManager";
 import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
@@ -168,39 +169,40 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       const clickNotenum =
         107 -
         Math.floor(svgPoint.y / PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
-      const newNote = new Note();
-      newNote.hasTempo = false;
-      newNote.lyric = "あ";
-      newNote.length = 480;
-      newNote.notenum = clickNotenum;
       const targetNoteIndexFromX = getTargetNoteIndexFromX(
         svgPoint.x,
         notes === undefined ? [] : notes,
         props.notesLeft,
         horizontalZoom
       );
-      newNote.tempo =
-        notes === undefined || notes.length === 0
-          ? ustTempo
-          : targetNoteIndexFromX === undefined
-          ? last(notes).tempo
-          : notes[targetNoteIndexFromX].tempo;
-      const newNotes =
-        notes === undefined || notes.length === 0
-          ? [newNote]
-          : targetNoteIndexFromX === undefined
-          ? notes.slice().concat([newNote])
-          : notes
-              .slice(0, targetNoteIndexFromX)
-              .concat([newNote], notes.slice(targetNoteIndexFromX));
+      const newNotes = AddNote(
+        notes,
+        targetNoteIndexFromX,
+        clickNotenum,
+        props.addNoteLyric,
+        props.addNoteLength,
+        ustTempo
+      );
       if (ust === null) {
-        const initialUst = new Ust();
-        initialUst.tempo = 120;
-        initialUst.flags = "";
-        setUst(initialUst);
+        initialUst();
       }
+      undoManager.register({
+        undo: (oldNotes: Note[]): Note[] => oldNotes,
+        undoArgs: notes === undefined ? [] : notes.map((n) => n.deepCopy()),
+        redo: (newNotes: Note[]): Note[] => newNotes,
+        redoArgs: newNotes.map((n) => n.deepCopy()),
+        summary: `ノートの追加。追加位置${targetNoteIndexFromX},歌詞:${props.addNoteLyric},長さ:${props.addNoteLength}`,
+        all: true,
+      });
       setNotes(newNotes);
     }
+  };
+
+  const initialUst = () => {
+    const initialUst = new Ust();
+    initialUst.tempo = 120;
+    initialUst.flags = "";
+    setUst(initialUst);
   };
 
   const hold = (x: number, y: number) => {
@@ -350,4 +352,60 @@ export interface PianorollToutchProps {
   poltaments?: Array<{ x: number; y: number }>;
   /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
   setTargetPoltament?: (index: number | undefined) => void;
+  addNoteLength?: number;
+  addNoteLyric?: string;
 }
+
+export const AddNote = (
+  notes: Note[],
+  index: number | undefined,
+  notenum: number,
+  addNoteLyric: string,
+  addNoteLength: number,
+  ustTempo: number
+): Note[] => {
+  const newNote = createNewNote(
+    notes,
+    index,
+    notenum,
+    addNoteLyric,
+    addNoteLength,
+    ustTempo
+  );
+  const newNotes =
+    notes === undefined || notes.length === 0
+      ? [newNote]
+      : index === undefined
+      ? notes.slice().concat([newNote])
+      : notes.slice(0, index).concat([newNote], notes.slice(index));
+  undoManager.register({
+    undo: (oldNotes: Note[]): Note[] => oldNotes,
+    undoArgs: notes === undefined ? [] : notes.map((n) => n.deepCopy()),
+    redo: (newNotes: Note[]): Note[] => newNotes,
+    redoArgs: newNotes.map((n) => n.deepCopy()),
+    summary: `ノートの追加。追加位置${index},歌詞:${addNoteLyric},長さ:${addNoteLength}`,
+    all: true,
+  });
+  return newNotes;
+};
+const createNewNote = (
+  notes: Note[],
+  index: number | undefined,
+  notenum: number,
+  addNoteLyric: string,
+  addNoteLength: number,
+  ustTempo: number
+): Note => {
+  const newNote = new Note();
+  newNote.hasTempo = false;
+  newNote.lyric = addNoteLyric;
+  newNote.length = addNoteLength;
+  newNote.notenum = notenum;
+  newNote.tempo =
+    notes === undefined || notes.length === 0
+      ? ustTempo
+      : index === undefined
+      ? last(notes).tempo
+      : notes[index].tempo;
+  return newNote;
+};

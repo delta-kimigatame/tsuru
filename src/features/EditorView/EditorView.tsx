@@ -51,7 +51,7 @@ export const EditorView: React.FC = () => {
    * 選択モード
    */
   const [selectMode, setSelectMode] = React.useState<
-    "toggle" | "range" | "pitch"
+    "toggle" | "range" | "pitch" | "add"
   >("toggle");
   /** ピッチ編集対象のノート */
   const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
@@ -61,6 +61,10 @@ export const EditorView: React.FC = () => {
   const [targetPoltament, setTargetPoltament] = React.useState<
     number | undefined
   >(undefined);
+  /** ノート追加モードで追加するノートの長さ */
+  const [addNoteLength, setAddNoteLength] = React.useState<number>(480);
+  /** ノート追加モードで追加するノートの歌詞 */
+  const [addNoteLyric, setAddNoteLyric] = React.useState<string>("あ");
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -265,6 +269,8 @@ export const EditorView: React.FC = () => {
         setPitchTargetIndex={setPitchTargetIndex}
         setTargetPoltament={setTargetPoltament}
         targetPoltament={targetPoltament}
+        addNoteLength={addNoteLength}
+        addNoteLyric={addNoteLyric}
       />
       <br />
       <br />
