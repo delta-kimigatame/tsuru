@@ -13,7 +13,7 @@ export const NotesCopyButton: React.FC<NoteEditButtonProps> = (props) => {
   const { notes, ustTempo, ustFlags } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const handleClick = async () => {
-    LOG.info("クリップボードにコピー", "NoteMenu");
+    LOG.info("クリップボードにコピー", "NotesCopyButton");
     const targetNotes = getTargetNotes(notes, props.selectedNotesIndex);
     const copyText = dumpNotes(targetNotes, ustTempo, ustFlags);
     try {
@@ -21,7 +21,8 @@ export const NotesCopyButton: React.FC<NoteEditButtonProps> = (props) => {
       snackBarStore.setValue(t("editor.copySuccess"));
       snackBarStore.setSeverity("success");
       snackBarStore.setOpen(true);
-    } catch {
+    } catch (e) {
+      LOG.warn(`クリップボードへのコピー失敗。${e.message}`, "NotesCopyButton");
       snackBarStore.setValue(t("editor.copyError"));
       snackBarStore.setSeverity("error");
       snackBarStore.setOpen(true);
