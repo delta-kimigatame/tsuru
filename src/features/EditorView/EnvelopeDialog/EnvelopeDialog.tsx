@@ -66,12 +66,14 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
   }, [props.note]);
 
   const pointX = React.useMemo(() => {
+    if (props.note === undefined) return;
     return points.map((p) =>
       getEnvelopePointToX(p, props.note.outputMs, svgSize.width)
     );
   }, [points, props.note, svgSize]);
 
   const pointY = React.useMemo(() => {
+    if (props.note === undefined) return;
     return values.map((v) => getEnvelopeValueToY(v, svgSize.height));
   }, [values, svgSize]);
 
