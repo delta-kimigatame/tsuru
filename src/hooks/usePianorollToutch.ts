@@ -5,7 +5,7 @@ export interface UsePianorollTouchOptions {
   selectMode?: "toggle" | "range" | "pitch" | "add";
   holdThreshold?: number;
   onTap?: (svgPoint: DOMPoint) => void;
-  onHold?: (coords: { x: number; y: number }) => void;
+  onHold?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
 }
 export interface UsePianorollTouchReturn {
   handlePointerDown: (event: React.PointerEvent<SVGSVGElement>) => void;
@@ -31,10 +31,13 @@ export const usePianorollTouch = (
    * HOLDしている時間を管理するためのタイマーを開始する処理
    * @param coords ホールドを開始した画面上の座標
    */
-  const startHoldTimer = (coords: { x: number; y: number }) => {
+  const startHoldTimer = (
+    coords: { x: number; y: number },
+    svgPoint: DOMPoint
+  ) => {
     holdTimerRef.current = window.setTimeout(() => {
       if (onHold) {
-        onHold({ x: coords.x, y: coords.y });
+        onHold({ x: coords.x, y: coords.y }, svgPoint);
       }
       holdTimerRef.current = null;
     }, holdThreshold);
@@ -55,11 +58,16 @@ export const usePianorollTouch = (
     const pt = event.currentTarget.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
+    const svgPoint = getSVGPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY
+    );
     // 「add」以外の場合はタッチ開始時刻を記録
     if (selectMode !== "add") {
       setTouchStart(Date.now());
     }
-    startHoldTimer({ x: pt.x, y: pt.y });
+    startHoldTimer({ x: pt.x, y: pt.y }, svgPoint);
   };
 
   // ポインターアップイベント
