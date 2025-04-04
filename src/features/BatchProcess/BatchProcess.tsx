@@ -61,6 +61,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
    */
   const handleButtonClick = () => {
     LOG.debug(`click`, `BatchProcess`);
+    props.batchprocess.vb = vb;
     executeBatchProcess<FormState>(
       props.selectedNotesIndex,
       notes,
