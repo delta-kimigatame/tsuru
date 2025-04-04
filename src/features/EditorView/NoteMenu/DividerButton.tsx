@@ -14,6 +14,7 @@ export const DividerButton: React.FC<DividerButtonProps> = (props) => {
       "DividerButton"
     );
     props.setDividerTargetIndex(props.selectedNotesIndex[0]);
+    props.handleMenuClose();
   };
 
   return (
@@ -26,4 +27,5 @@ export const DividerButton: React.FC<DividerButtonProps> = (props) => {
 export interface DividerButtonProps {
   selectedNotesIndex: Array<number>;
   setDividerTargetIndex: (n: number | undefined) => void;
+  handleMenuClose: () => void;
 }

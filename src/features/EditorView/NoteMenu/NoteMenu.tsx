@@ -92,14 +92,17 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
                   selectedNotesIndex={props.selectedNotesIndex}
                   setSelectedNotesIndex={props.setSelectedNotesIndex}
                   setPropertyTargetNote={setPropertyTargetNote}
+                  handleMenuClose={handleMenuClose}
                 />
                 <DividerButton
                   selectedNotesIndex={props.selectedNotesIndex}
                   setDividerTargetIndex={setDividerTargetIndex}
+                  handleMenuClose={handleMenuClose}
                 />
                 <EnvelopeEditButton
                   selectedNotesIndex={props.selectedNotesIndex}
                   setEnvelopeTargetNote={setEnvelopeTargetNote}
+                  handleMenuClose={handleMenuClose}
                 />
                 <PitchEditButton
                   selectedNotesIndex={props.selectedNotesIndex}

@@ -15,6 +15,7 @@ export const EnvelopeEditButton: React.FC<EnvelopeEditButtonProps> = (
       data-testid="envelopeEditButton"
       onClick={() => {
         props.setEnvelopeTargetNote(notes[props.selectedNotesIndex[0]]);
+        props.handleMenuClose();
       }}
     >
       <EnvelopeNoteIcon />
@@ -24,4 +25,5 @@ export const EnvelopeEditButton: React.FC<EnvelopeEditButtonProps> = (
 export interface EnvelopeEditButtonProps {
   selectedNotesIndex: Array<number>;
   setEnvelopeTargetNote: (n: Note | undefined) => void;
+  handleMenuClose: () => void;
 }

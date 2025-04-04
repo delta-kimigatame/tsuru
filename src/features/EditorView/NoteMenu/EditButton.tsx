@@ -15,6 +15,7 @@ export const EditButton: React.FC<EditButtonProps> = (props) => {
       "EditButton"
     );
     props.setPropertyTargetNote(notes[props.selectedNotesIndex[0]]);
+    props.handleMenuClose();
   };
 
   return (
@@ -32,4 +33,5 @@ export interface EditButtonProps {
   selectedNotesIndex: Array<number>;
   setSelectedNotesIndex?: (indexes: number[]) => void;
   setPropertyTargetNote: (n: Note | undefined) => void;
+  handleMenuClose: () => void;
 }
