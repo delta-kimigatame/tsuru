@@ -31,15 +31,18 @@ describe("EnvelopeEditButton", () => {
     store.setUst({} as Ust);
     store.setNotes(notes);
     const setEnvelopeTargetNoteSpy = vi.fn();
+    const handleMenuCloseSpy = vi.fn();
     render(
       <EnvelopeEditButton
         setEnvelopeTargetNote={setEnvelopeTargetNoteSpy}
         selectedNotesIndex={[0]}
+        handleMenuClose={handleMenuCloseSpy}
       />
     );
     const button = await screen.findByTestId("envelopeEditButton");
     await fireEvent.click(button);
     expect(setEnvelopeTargetNoteSpy).toHaveBeenCalledWith(notes[0]);
+    expect(handleMenuCloseSpy).toHaveBeenCalled();
   });
   it("EnvelopeEditButton:selectNotesIndex[0]が指すノートがlyric===Rのときdisabled", async () => {
     const notes = createNotes();
@@ -48,10 +51,12 @@ describe("EnvelopeEditButton", () => {
     notes[0].lyric = "R";
     store.setNotes(notes);
     const setEnvelopeTargetNoteSpy = vi.fn();
+    const handleMenuCloseSpy = vi.fn();
     render(
       <EnvelopeEditButton
         setEnvelopeTargetNote={setEnvelopeTargetNoteSpy}
         selectedNotesIndex={[0]}
+        handleMenuClose={handleMenuCloseSpy}
       />
     );
     const button = await screen.findByTestId("envelopeEditButton");

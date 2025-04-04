@@ -31,14 +31,17 @@ describe("EditButton", () => {
     store.setUst({} as Ust);
     store.setNotes(notes);
     const setPropertyTargetNoteSpy = vi.fn();
+    const handleMenuCloseSpy = vi.fn();
     render(
       <EditButton
         setPropertyTargetNote={setPropertyTargetNoteSpy}
         selectedNotesIndex={[0]}
+        handleMenuClose={handleMenuCloseSpy}
       />
     );
     const button = await screen.findByTestId("EditButton");
     await fireEvent.click(button);
     expect(setPropertyTargetNoteSpy).toHaveBeenCalledWith(notes[0]);
+    expect(handleMenuCloseSpy).toHaveBeenCalled();
   });
 });

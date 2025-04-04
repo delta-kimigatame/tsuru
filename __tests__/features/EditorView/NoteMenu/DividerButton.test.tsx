@@ -9,14 +9,17 @@ describe("DividerButton", () => {
   it("DividerButton:クリックすると、setDividerTargetIndexにindexが渡される", async () => {
     const store = useMusicProjectStore.getState();
     const setDividerTargetIndexSpy = vi.fn();
+    const handleMenuCloseSpy = vi.fn();
     render(
       <DividerButton
         setDividerTargetIndex={setDividerTargetIndexSpy}
         selectedNotesIndex={[0]}
+        handleMenuClose={handleMenuCloseSpy}
       />
     );
     const button = await screen.findByTestId("DividerButton");
     await fireEvent.click(button);
     expect(setDividerTargetIndexSpy).toHaveBeenCalledWith(0);
+    expect(handleMenuCloseSpy).toHaveBeenCalled();
   });
 });
