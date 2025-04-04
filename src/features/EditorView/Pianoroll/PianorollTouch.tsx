@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { usePianorollTouch } from "../../../hooks/usePianorollToutch";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
 import { undoManager } from "../../../lib/UndoManager";
@@ -27,82 +28,13 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { ust, notes, setNotes, ustTempo, setUst } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
-  const [touchStart, setTouchStart] = React.useState<number | undefined>(
-    undefined
-  );
-  const [startIndex, setStartIndex] = React.useState<number | undefined>(
-    undefined
-  );
-  const holdTimerRef = React.useRef<number | null>(null);
-  const [lastTap, setLastTap] = React.useState<number>(0);
-
-  const startHoldTimer = (coords: { x: number; y: number }) => {
-    holdTimerRef.current = window.setTimeout(() => {
-      // HOLD_THRESHOLD_MS後にホールド処理を実行
-      hold(coords.x, coords.y);
-      // タイマークリア
-      holdTimerRef.current = null;
-    }, EDITOR_CONFIG.HOLD_THRESHOLD_MS);
-  };
-
-  const clearHoldTimer = () => {
-    if (holdTimerRef.current !== null) {
-      clearTimeout(holdTimerRef.current);
-      holdTimerRef.current = null;
-    }
-  };
-
-  /**
-   * レイヤーをタップしたときの動作。タイマーをスタートする。
-   */
-  const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    // SVG上の座標を取得
-    const svg = event.currentTarget;
-    const pt = svg.createSVGPoint();
-    pt.x = event.clientX;
-    pt.y = event.clientY;
-    if (props.selectMode !== "add") {
-      setTouchStart(Date.now());
-    }
-    startHoldTimer({ x: pt.x, y: pt.y });
-  };
-  /**
-   * レイヤータップが終了した際の動作
-   */
-  const handlePointerCancel = () => {
-    clearHoldTimer();
-    setTouchStart(undefined);
-  };
-
-  /**
-   * レイヤーから手を離したときの動作。処理時間にあわせてtapとholdに振り分ける。
-   * @param event
-   */
-  const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    clearHoldTimer();
-    // このイベントは頻繁に起こることが予想されるため、イベント起動時点ではログをとらない
-    const svg = event.currentTarget;
-    const pt = svg.createSVGPoint();
-    pt.x = event.clientX;
-    pt.y = event.clientY;
-    // SVGの座標系に変換する
-    const svgPoint = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-    if (touchStart === undefined) {
-      //基本的にはそんなはずはないが……
-      tap(svgPoint);
-    } else if (Date.now() - touchStart < EDITOR_CONFIG.HOLD_THRESHOLD_MS) {
-      tap(svgPoint);
-    }
-    setLastTap(Date.now());
-    setTouchStart(undefined);
-  };
 
   /**
    * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
    * @param svgPoint
    * @returns
    */
-  const tap = (svgPoint: DOMPoint) => {
+  const handleTap = (svgPoint: DOMPoint) => {
     const targetPoltamentIndex =
       props.selectMode !== "pitch" || props.poltaments === undefined
         ? undefined
@@ -126,75 +58,46 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       "PianorollToutch"
     );
     if (props.selectMode === "pitch") {
-      //ピッチモード
-      if (targetPoltamentIndex !== undefined) {
-        // ポルタメントをタップした場合
-        LOG.debug(
-          `${props.selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
-          "PianorollToutch"
-        );
-        props.setTargetPoltament(targetPoltamentIndex);
-      } else if (notes[targetNoteIndex].lyric !== "R") {
-        // ノートをタップした場合
-        LOG.debug(`${targetNoteIndex}に切替`, "PianorollToutch");
-        props.setSelectedNotesIndex([targetNoteIndex]);
-      }
-    } else if (props.selectMode === "toggle") {
-      //toggleモードの場合
-      if (!props.selectedNotesIndex.includes(targetNoteIndex)) {
-        //未選択の場合
-        LOG.debug(`${targetNoteIndex}を選択`, "PianorollToutch");
-        const newSelectNotesIndex = props.selectedNotesIndex.slice();
-        newSelectNotesIndex.push(targetNoteIndex);
-        props.setSelectedNotesIndex(newSelectNotesIndex.sort((a, b) => a - b));
-      } else {
-        //選択済みの場合
-        LOG.debug(`${targetNoteIndex}を選択解除`, "PianorollToutch");
-        props.setSelectedNotesIndex(
-          props.selectedNotesIndex.filter((n) => n != targetNoteIndex)
-        );
-      }
-    } else if (props.selectMode === "range") {
-      if (startIndex === undefined) {
-        LOG.debug(`${targetNoteIndex}を始点にセット`, "PianorollToutch");
-        setStartIndex(targetNoteIndex);
-        snackBarStore.setSeverity("info");
-        snackBarStore.setValue(t("editor.selectRangeEnd")); //範囲の終わりのノートを選択してください
-        snackBarStore.setOpen(true);
-      } else {
-        LOG.debug(`${startIndex}～${targetNoteIndex}を選択`, "PianorollToutch");
-        props.setSelectedNotesIndex(range(startIndex, targetNoteIndex));
-      }
-    } else if (props.selectMode === "add") {
-      const clickNotenum =
-        107 -
-        Math.floor(svgPoint.y / PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
-      const targetNoteIndexFromX = getTargetNoteIndexFromX(
-        svgPoint.x,
-        notes === undefined ? [] : notes,
-        props.notesLeft,
-        horizontalZoom
-      );
-      const newNotes = AddNote(
+      handlePitchModeTap(
         notes,
-        targetNoteIndexFromX,
-        clickNotenum,
-        props.addNoteLyric,
-        props.addNoteLength,
-        ustTempo
+        props.selectedNotesIndex,
+        targetPoltamentIndex,
+        targetNoteIndex,
+        props.setTargetPoltament,
+        props.setSelectedNotesIndex
       );
+    } else if (props.selectMode === "toggle") {
+      handleToggleModeTap(
+        props.selectedNotesIndex,
+        targetNoteIndex,
+        props.setSelectedNotesIndex
+      );
+    } else if (props.selectMode === "range") {
+      handleRangeModeTap(
+        startIndex,
+        targetNoteIndex,
+        setStartIndex,
+        props.setSelectedNotesIndex,
+        snackBarStore.setSeverity,
+        snackBarStore.setValue,
+        snackBarStore.setOpen,
+        t("editor.selectRangeEnd")
+      );
+    } else if (props.selectMode === "add") {
       if (ust === null) {
         initialUst();
       }
-      undoManager.register({
-        undo: (oldNotes: Note[]): Note[] => oldNotes,
-        undoArgs: notes === undefined ? [] : notes.map((n) => n.deepCopy()),
-        redo: (newNotes: Note[]): Note[] => newNotes,
-        redoArgs: newNotes.map((n) => n.deepCopy()),
-        summary: `ノートの追加。追加位置${targetNoteIndexFromX},歌詞:${props.addNoteLyric},長さ:${props.addNoteLength}`,
-        all: true,
-      });
-      setNotes(newNotes);
+      handleAddModeTap(
+        svgPoint,
+        notes,
+        props.notesLeft,
+        ustTempo,
+        props.addNoteLength,
+        props.addNoteLyric,
+        verticalZoom,
+        horizontalZoom,
+        setNotes
+      );
     }
   };
 
@@ -205,19 +108,24 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     setUst(initialUst);
   };
 
-  const hold = (x: number, y: number) => {
+  const handleHold = (coords: { x: number; y: number }) => {
     if (props.selectedNotesIndex.length !== 0) {
-      props.setMenuAnchor({ x: x, y: y });
+      props.setMenuAnchor({ x: coords.x, y: coords.y });
     }
   };
+  const {
+    handlePointerDown,
+    handlePointerUp,
+    handlePointerCancel,
+    startIndex,
+    setStartIndex,
+  } = usePianorollTouch({
+    selectMode: props.selectMode,
+    holdThreshold: EDITOR_CONFIG.HOLD_THRESHOLD_MS,
+    onTap: handleTap,
+    onHold: handleHold,
+  });
 
-  React.useEffect(() => {
-    LOG.debug(
-      `selectModeの変更検知,mode:${props.selectMode}`,
-      "PianorollToutch"
-    );
-    setStartIndex(undefined);
-  }, [props.selectMode]);
   return (
     <svg
       width={
@@ -388,6 +296,17 @@ export const AddNote = (
   });
   return newNotes;
 };
+
+/**
+ * 追加されるノートを生成する処理
+ * @param notes グローバルな状態ノート
+ * @param index ノートを追加するindex。undefinedの際はノート列の末尾に追加される
+ * @param notenum 追加する音高
+ * @param addNoteLyric 追加する歌詞
+ * @param addNoteLength 追加する長さ
+ * @param ustTempo プロジェクトのテンポ
+ * @returns 追加されるノート
+ */
 const createNewNote = (
   notes: Note[],
   index: number | undefined,
@@ -408,4 +327,137 @@ const createNewNote = (
       ? last(notes).tempo
       : notes[index].tempo;
   return newNote;
+};
+
+/**
+ * Pitchモードでタップした際の処理
+ * @param notes グローバルな状態ノート
+ * @param selectedNotesIndex 選択しているノートの一覧。ピッチモードにおいては、長さ1の列であることが期待される。
+ * @param targetPoltamentIndex 選択しているポルタメントのインデックス
+ * @param targetNoteIndex 現在選択されているノート以外をタップした際の対象ノートのインデックス
+ * @param setTargetPoltament 選択しているポルタメントを変更するためのコールバック
+ * @param setSelectedNotesIndex 選択ノートの一覧を更新するためのコールバック
+ */
+export const handlePitchModeTap = (
+  notes: Note[],
+  selectedNotesIndex: number[],
+  targetPoltamentIndex: number,
+  targetNoteIndex: number,
+  setTargetPoltament: (number) => void,
+  setSelectedNotesIndex: (number) => void
+) => {
+  //ピッチモード
+  if (targetPoltamentIndex !== undefined) {
+    // ポルタメントをタップした場合
+    LOG.debug(
+      `${selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
+      "PianorollToutch"
+    );
+    setTargetPoltament(targetPoltamentIndex);
+  } else if (notes[targetNoteIndex].lyric !== "R") {
+    // ノートをタップした場合
+    LOG.debug(`${targetNoteIndex}に切替`, "PianorollToutch");
+    setSelectedNotesIndex([targetNoteIndex]);
+  }
+};
+
+/**
+ * Toggleモードで画面をタップした際の動作
+ * @param selectedNotesIndex 現在選択しているノートのインデックスの一覧
+ * @param targetNoteIndex タップしたノートのインデックス
+ * @param setSelectedNotesIndex 現在選択しているノートのインデックスの一覧を更新するためのコールバック
+ */
+export const handleToggleModeTap = (
+  selectedNotesIndex: number[],
+  targetNoteIndex: number,
+  setSelectedNotesIndex: (number) => void
+) => {
+  if (!selectedNotesIndex.includes(targetNoteIndex)) {
+    //未選択の場合
+    LOG.debug(`${targetNoteIndex}を選択`, "PianorollToutch");
+    const newSelectNotesIndex = selectedNotesIndex.slice();
+    newSelectNotesIndex.push(targetNoteIndex);
+    setSelectedNotesIndex(newSelectNotesIndex.sort((a, b) => a - b));
+  } else {
+    //選択済みの場合
+    LOG.debug(`${targetNoteIndex}を選択解除`, "PianorollToutch");
+    setSelectedNotesIndex(
+      selectedNotesIndex.filter((n) => n != targetNoteIndex)
+    );
+  }
+};
+
+/**
+ * Rangeモードでノートをタップした際の処理
+ * @param startIndex 範囲選択の始点のインデックス
+ * @param targetNoteIndex 今回選択したノートのインデックス
+ * @param setStartIndex 範囲選択の始点を更新するためのコールバック
+ * @param setSelectedNotesIndex 選択ノートを更新するためのコールバック
+ * @param setSeverity スナックバーの種類を設定するためのコールバック
+ * @param setValue スナックバーに表示するテキストを設定するためのコールバック
+ * @param setOpen スナックバーを表示するためのコールバック
+ * @param snackBarText スナックバーに表示するテキスト
+ */
+export const handleRangeModeTap = (
+  startIndex: number,
+  targetNoteIndex: number,
+  setStartIndex: (number) => void,
+  setSelectedNotesIndex: (number) => void,
+  setSeverity: (severity: "success" | "info" | "warning" | "error") => void,
+  setValue: (string) => void,
+  setOpen: (boolean) => void,
+  snackBarText: string
+) => {
+  if (startIndex === undefined) {
+    LOG.debug(`${targetNoteIndex}を始点にセット`, "PianorollToutch");
+    setStartIndex(targetNoteIndex);
+    setSeverity("info");
+    setValue(snackBarText); //範囲の終わりのノートを選択してください
+    setOpen(true);
+  } else {
+    LOG.debug(`${startIndex}～${targetNoteIndex}を選択`, "PianorollToutch");
+    setSelectedNotesIndex(range(startIndex, targetNoteIndex));
+  }
+};
+
+/**
+ * Addモードで画面をタップした際の処理
+ * @param svgPoint タップしたsvg座標
+ * @param notes グローバルな状態ノート
+ * @param notesLeft 各ノートの開始までの累積tick
+ * @param ustTempo プロジェクトのテンポ
+ * @param addNoteLength 追加するノートの長さ
+ * @param addNoteLyric 追加するノートの歌詞
+ * @param verticalZoom 音高方向の拡大率
+ * @param horizontalZoom 時間方向の拡大率
+ * @param setNotes グローバルな状態ノートを更新するためのコールバック
+ */
+export const handleAddModeTap = (
+  svgPoint: DOMPoint,
+  notes: Note[],
+  notesLeft: number[],
+  ustTempo: number,
+  addNoteLength: number,
+  addNoteLyric: string,
+  verticalZoom: number,
+  horizontalZoom: number,
+  setNotes: (notes: Note[]) => void
+) => {
+  const clickNotenum =
+    107 - Math.floor(svgPoint.y / PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
+  const targetNoteIndexFromX = getTargetNoteIndexFromX(
+    svgPoint.x,
+    notes === undefined ? [] : notes,
+    notesLeft,
+    horizontalZoom
+  );
+  const newNotes = AddNote(
+    notes,
+    targetNoteIndexFromX,
+    clickNotenum,
+    addNoteLyric,
+    addNoteLength,
+    ustTempo
+  );
+  setNotes(newNotes);
 };
