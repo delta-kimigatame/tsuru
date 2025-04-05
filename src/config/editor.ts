@@ -15,4 +15,8 @@ export const EDITOR_CONFIG = {
   DOUBLE_TAP_MS: 300,
   /** ノート更新からキャッシュ生成までの時間(ms) */
   MAKE_CACHE_DELAT: 1000,
+  /** ピッチスライダーのパディング */
+  SLIDER_PADDING: 16,
+  /** ピッチスライダーのサイズ */
+  SLIDER_SIZE: 45,
 };
