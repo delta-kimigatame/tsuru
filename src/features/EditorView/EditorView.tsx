@@ -7,6 +7,7 @@ import { SynthesisWorker } from "../../services/synthesis";
 import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
+import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
 import { PitchPortal } from "./PitchPortal/PitchPortal";
@@ -290,6 +291,14 @@ export const EditorView: React.FC = () => {
         targetIndex={targetPoltament}
         note={notes[pitchTargetIndex]}
       />
+      {selectMode === "add" && (
+        <AddNotePortal
+          addNoteLength={addNoteLength}
+          addNoteLyric={addNoteLyric}
+          setAddNoteLength={setAddNoteLength}
+          setAddNoteLyric={setAddNoteLyric}
+        />
+      )}
       {wavUrl !== undefined && (
         <>
           <audio
