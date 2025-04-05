@@ -108,8 +108,26 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     setUst(initialUst);
   };
 
-  const handleHold = (coords: { x: number; y: number }) => {
-    if (props.selectedNotesIndex.length !== 0) {
+  const handleHold = (coords: { x: number; y: number }, svgPoint) => {
+    const targetNoteIndex = getTargetNoteIndex(
+      svgPoint,
+      notes,
+      props.notesLeft,
+      horizontalZoom,
+      verticalZoom
+    );
+    if (
+      targetNoteIndex === undefined &&
+      props.selectedNotesIndex.length !== 0
+    ) {
+      props.setMenuAnchor({ x: coords.x, y: coords.y });
+    } else if (
+      targetNoteIndex !== undefined &&
+      props.selectedNotesIndex.includes(targetNoteIndex)
+    ) {
+      props.setMenuAnchor({ x: coords.x, y: coords.y });
+    } else if (targetNoteIndex !== undefined) {
+      props.setSelectedNotesIndex([targetNoteIndex]);
       props.setMenuAnchor({ x: coords.x, y: coords.y });
     }
   };
@@ -341,8 +359,8 @@ const createNewNote = (
 export const handlePitchModeTap = (
   notes: Note[],
   selectedNotesIndex: number[],
-  targetPoltamentIndex: number,
-  targetNoteIndex: number,
+  targetPoltamentIndex: number | undefined,
+  targetNoteIndex: number | undefined,
   setTargetPoltament: (number) => void,
   setSelectedNotesIndex: (number) => void
 ) => {
@@ -399,7 +417,7 @@ export const handleToggleModeTap = (
  * @param snackBarText スナックバーに表示するテキスト
  */
 export const handleRangeModeTap = (
-  startIndex: number,
+  startIndex: number | undefined,
   targetNoteIndex: number,
   setStartIndex: (number) => void,
   setSelectedNotesIndex: (number) => void,
