@@ -132,6 +132,17 @@ export const translationEn = {
     envelopeDialog: {
       submitButton: "Change Envelope",
     },
+    vibratoDialog: {
+      useVibrato: "Enable Vibrato",
+      length: "Length (% of note)",
+      cycle: "Cycle (ms)",
+      depth: "Depth (cent)",
+      fadeInTime: "Fade-in (%)",
+      fadeOutTime: "Fade-out (%)",
+      phase: "Phase shift (%)",
+      height: "Height (%)",
+      submitButton: "Change",
+    },
     noteProperty: {
       lyric: "Lyric",
       length: "Note Length",

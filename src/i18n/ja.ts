@@ -133,6 +133,17 @@ export const translationJa = {
     envelopeDialog: {
       submitButton: "エンベロープ変更",
     },
+    vibratoDialog: {
+      useVibrato: "ビブラートをオンにする",
+      length: "ノートに対する長さ(%)",
+      cycle: "周期(ms)",
+      depth: "深さ(cent)",
+      fadeInTime: "フェードインの割合(%)",
+      fadeOutTime: "フェードアウトの割合(%)",
+      phase: "位相ずれ(%)",
+      height: "高さ(%)",
+      submitButton: "変更",
+    },
     noteProperty: {
       lyric: "歌詞",
       length: "ノート長",
