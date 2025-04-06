@@ -1120,7 +1120,7 @@ export const dumpEnvelope = (envelope: {
 };
 
 export const dumpNotes = (notes: Note[], tempo: number, flags: string) => {
-  let output = `Tempo=${tempo}\r\nFlags=${flags}\r\n`;
+  let output = `[#SETTING]\r\nCharset=UTF-8\r\nTempo=${tempo}\r\nFlags=${flags}\r\nMode2=True\r\n`;
   notes.forEach((n) => {
     output += n.dump();
   });
