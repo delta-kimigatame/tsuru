@@ -20,6 +20,7 @@ import { NotesLeftButton } from "./NotesLeftButton";
 import { NotesRightButton } from "./NotesRightButton";
 import { NotesUpButton } from "./NotesUpButton";
 import { PitchEditButton } from "./PitchEditButton";
+import { VibratoEditButton } from "./VibratoEditButton";
 
 export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   const { t } = useTranslation();
@@ -31,6 +32,9 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
     number | undefined
   >(undefined);
   const [envelopeTargetNote, setEnvelopeTargetNote] = React.useState<
+    Note | undefined
+  >(undefined);
+  const [vibratoTargetNote, setVibratoTargetNote] = React.useState<
     Note | undefined
   >(undefined);
   /**
@@ -53,6 +57,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   const handleEnvelopeDialogClose = () => {
     LOG.debug("エンベロープダイアログを閉じる", "NoteMenu");
     setEnvelopeTargetNote(undefined);
+  };
+
+  const handleVibratoDialogClose = () => {
+    LOG.debug("ビブラートダイアログを閉じる", "NoteMenu");
+    setVibratoTargetNote(undefined);
   };
 
   return (
@@ -107,6 +116,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
                 <PitchEditButton
                   selectedNotesIndex={props.selectedNotesIndex}
                   setPitchTargetIndex={props.setPitchTargetIndex}
+                  handleMenuClose={handleMenuClose}
+                />
+                <VibratoEditButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setVibratoTargetNote={setVibratoTargetNote}
                   handleMenuClose={handleMenuClose}
                 />
               </ButtonGroup>

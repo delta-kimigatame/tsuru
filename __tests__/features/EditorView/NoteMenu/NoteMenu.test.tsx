@@ -53,11 +53,12 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesPasteButton")).not.toBeNull();
     expect(screen.queryByTestId("notePasteGoButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
-    //以下4つのボタンは描画されない
+    //以下5つのボタンは描画されない
     expect(screen.queryByTestId("EditButton")).toBeNull();
     expect(screen.queryByTestId("envelopeEditButton")).toBeNull();
     expect(screen.queryByTestId("pitchEditButton")).toBeNull();
     expect(screen.queryByTestId("DividerButton")).toBeNull();
+    expect(screen.queryByTestId("vibratoEditButton")).toBeNull();
   });
   it("NoteMenu:menuAnchorがselectNotesIndex.lengthが1のとき全てのボタンが表示される", () => {
     const notes = createNotes();
@@ -82,6 +83,7 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
     expect(screen.queryByTestId("EditButton")).not.toBeNull();
     expect(screen.queryByTestId("envelopeEditButton")).not.toBeNull();
+    expect(screen.queryByTestId("vibratoEditButton")).not.toBeNull();
     expect(screen.queryByTestId("pitchEditButton")).not.toBeNull();
     expect(screen.queryByTestId("DividerButton")).not.toBeNull();
   });
@@ -106,11 +108,12 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesPasteButton")).not.toBeNull();
     expect(screen.queryByTestId("notePasteGoButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
-    //以下4つのボタンは表示されない
+    //以下5つのボタンは表示されない
     expect(screen.queryByTestId("EditButton")).toBeNull();
     expect(screen.queryByTestId("envelopeEditButton")).toBeNull();
     expect(screen.queryByTestId("pitchEditButton")).toBeNull();
     expect(screen.queryByTestId("DividerButton")).toBeNull();
+    expect(screen.queryByTestId("vibratoEditButton")).toBeNull();
   });
   it("NoteMenu:EditButtonをクリックすると、NotePropertyDialogが表示される", async () => {
     const notes = createNotes();
