@@ -19,13 +19,13 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
 import { undoManager } from "../../../lib/UndoManager";
-import { Ust } from "../../../lib/Ust";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { executeBatchProcess } from "../../../utils/batchProcess";
 import { loadBatchProcessClasses } from "../../../utils/loadBatchProcess";
 import { BatchProcessDialog } from "../../BatchProcess/BatchProcessDialog";
 import { FooterBatchProcessMenu } from "./FooterBatchProcessMenu";
+import { FooterProjectMenu } from "./FooterProjectMenu";
 import { FooterZoomMenu } from "./FooterZoomMenu";
 
 /**
@@ -35,10 +35,7 @@ import { FooterZoomMenu } from "./FooterZoomMenu";
  */
 export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const { t } = useTranslation();
-  /** 隠し表示する<input>へのref */
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const { setUst, setNotes, setNote, setUstFlags, setUstTempo, notes, vb } =
-    useMusicProjectStore();
+  const { setNotes, notes, vb } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [ustLoadProgress, setUstLoadProgress] = React.useState<boolean>(false);
   const [batchProcesses, setBatchProcesses] = React.useState<
@@ -53,6 +50,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const [zoomMenuAnchor, handleZoomMenuOpen, handleZoomMenuClose] = useMenu(
     "FooterMenu.ZoomMenu"
   );
+  const [projectMenuAnchor, handleProjectMenuOpen, handleProjectMenuClose] =
+    useMenu("FooterMenu.ProjectMenu");
   const [
     batchProcessMenuAnchor,
     handleBatchProcessMenuOpen,
@@ -69,71 +68,6 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       setBatchProcesses(results);
     });
   }, []);
-
-  /**
-   * inputのファイルを変更した際の動作
-   * nullやファイル数が0の場合何もせず終了する。
-   * ファイルが含まれている場合、1つ目のファイルをreadFileにセットする。
-   * 実際のファイルの読込はloadVBDialogで行う。
-   * @param e
-   */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      LOG.warn("ustの読込がキャンセルされたか失敗しました", "FooterMenu");
-      return;
-    }
-    setUstLoadProgress(true);
-    LOG.info(`ustの選択:${e.target.files[0].name}`, "FooterMenu");
-    LoadUst(e.target.files[0]);
-  };
-
-  /**
-   * ustファイルを非同期で読み込み、グローバルな状態ust,notes,ustTempo,ustFlagsを更新する
-   * @param file 選択されたustファイル
-   */
-  const LoadUst = async (file: File): Promise<void> => {
-    try {
-      LOG.info(`ustの読込開始`, "FooterMenu");
-      const ust = new Ust();
-      const buf = await file.arrayBuffer();
-      await ust.load(buf);
-      LOG.info(
-        `ustの読込完了。ノート数:${ust.notes.length},bpm=:${ust.tempo},flags:${ust.flags}`,
-        "FooterMenu"
-      );
-      setUst(ust);
-      setUstTempo(ust.tempo);
-      setUstFlags(ust.flags);
-      if (vb !== null) {
-        notes.forEach((n) => n.applyOto(vb));
-      } else {
-        LOG.warn(
-          `vbがロードされていません。テスト以外では必ず事前にロードされるはずなので何かがおかしい`,
-          "FooterMenu"
-        );
-      }
-      setNotes(ust.notes);
-      setUstLoadProgress(false);
-      undoManager.clear();
-    } catch (e) {
-      LOG.warn(`ustの読込失敗。${e}`, "FooterMenu");
-      snackBarStore.setSeverity("error");
-      snackBarStore.setValue(t("editor.footer.ustLoadError"));
-      snackBarStore.setOpen(true);
-      setUstLoadProgress(false);
-    }
-  };
-
-  /**
-   * Projectタブをクリックした際の動作。
-   * 不可視のinputのクリックイベントを発火する
-   */
-  const handleProjectTabClick = () => {
-    LOG.debug("click ProjectTab", "FooterMenu");
-    /** ファイル読み込みの発火 */
-    LOG.info("ustファイルの選択", "FooterMenu");
-    inputRef.current.click();
-  };
 
   /**
    * バッチプロセスを実行するか引数編集用のUIを開く
@@ -221,14 +155,6 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
 
   return (
     <>
-      <input
-        type="file"
-        onChange={handleFileChange}
-        hidden
-        ref={inputRef}
-        accept=".ust"
-        data-testid="file-input"
-      ></input>
       <Tabs
         orientation={menuVertical ? "vertical" : "horizontal"}
         variant="scrollable"
@@ -251,7 +177,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         <Tab
           icon={ustLoadProgress ? <CircularProgress /> : <LibraryMusicIcon />}
           label={t("editor.footer.project")}
-          onClick={handleProjectTabClick}
+          onClick={handleProjectMenuOpen}
           sx={{ flex: 1, p: 0 }}
           value={0}
           disabled={
@@ -387,6 +313,11 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
       </Tabs>
+      <FooterProjectMenu
+        anchor={projectMenuAnchor}
+        handleClose={handleProjectMenuClose}
+        setUstLoadProgress={setUstLoadProgress}
+      />
       <FooterZoomMenu
         anchor={zoomMenuAnchor}
         handleClose={handleZoomMenuClose}
