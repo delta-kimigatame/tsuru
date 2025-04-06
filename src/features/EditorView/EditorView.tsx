@@ -1,23 +1,24 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { EDITOR_CONFIG } from "../../config/editor";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
 import { SynthesisWorker } from "../../services/synthesis";
 import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
+import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
+import { PitchPortal } from "./PitchPortal/PitchPortal";
 
 export const EditorView: React.FC = () => {
   const { t } = useTranslation();
-  const { vb, notes, ustFlags } = useMusicProjectStore();
+  const { vb, notes, ustFlags, setNote } = useMusicProjectStore();
   const { defaultNote } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   /**
    * ノートのインデックス一覧
-   *
-   * TODO 将来的にはピアノロールビューにてノートを選択できるようにする。
    */
   const [selectNotesIndex, setSelectNotesIndex] = React.useState<Array<number>>(
     []
@@ -47,6 +48,24 @@ export const EditorView: React.FC = () => {
    * 再生時間
    */
   const [playingMs, setPlayingMs] = React.useState<number>(0);
+  /**
+   * 選択モード
+   */
+  const [selectMode, setSelectMode] = React.useState<
+    "toggle" | "range" | "pitch" | "add"
+  >("toggle");
+  /** ピッチ編集対象のノート */
+  const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
+    number | undefined
+  >(undefined);
+  /** ピッチ編集モードで操作するポルタメント */
+  const [targetPoltament, setTargetPoltament] = React.useState<
+    number | undefined
+  >(undefined);
+  /** ノート追加モードで追加するノートの長さ */
+  const [addNoteLength, setAddNoteLength] = React.useState<number>(480);
+  /** ノート追加モードで追加するノートの歌詞 */
+  const [addNoteLyric, setAddNoteLyric] = React.useState<string>("あ");
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -63,9 +82,47 @@ export const EditorView: React.FC = () => {
   }, [vb]);
 
   React.useEffect(() => {
-    LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
-    makeCache();
+    const timerId = setTimeout(() => {
+      LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
+      makeCache();
+    }, EDITOR_CONFIG.MAKE_CACHE_DELAT);
+
+    return () => {
+      clearTimeout(timerId);
+    };
   }, [notes, ustFlags, defaultNote]);
+
+  React.useEffect(() => {
+    LOG.debug("selectNotesIndexの更新を検知", "EditorView");
+    if (selectMode !== "pitch") {
+      setSelectMode("toggle");
+    } else {
+      setPitchTargetIndex(selectNotesIndex[0]);
+    }
+  }, [selectNotesIndex]);
+
+  React.useEffect(() => {
+    LOG.debug("selectModeの更新を検知", "EditorView");
+    if (selectMode !== "pitch") {
+      setPitchTargetIndex(undefined);
+    }
+  }, [selectMode]);
+  React.useEffect(() => {
+    LOG.debug("pitchTargetIndexの更新検知", "EditorView");
+    if (pitchTargetIndex === undefined) {
+      setSelectMode("toggle");
+    } else {
+      const n = notes[pitchTargetIndex];
+      if (n.pbs === undefined) {
+        n.pbs = "-40;0";
+        n.pbw = "80";
+        n.pbm = "";
+        setNote(n.index, n);
+      }
+      setSelectMode("pitch");
+    }
+    setTargetPoltament(undefined);
+  }, [pitchTargetIndex]);
 
   /**
    * バックグラウンドでキャッシュを生成する
@@ -208,18 +265,40 @@ export const EditorView: React.FC = () => {
         playingMs={playingMs}
         selectedNotesIndex={selectNotesIndex}
         setSelectedNotesIndes={setSelectNotesIndex}
+        selectMode={selectMode}
+        pitchTargetIndex={pitchTargetIndex}
+        setPitchTargetIndex={setPitchTargetIndex}
+        setTargetPoltament={setTargetPoltament}
+        targetPoltament={targetPoltament}
+        addNoteLength={addNoteLength}
+        addNoteLyric={addNoteLyric}
       />
       <br />
       <br />
       <FooterMenu
         selectedNotesIndex={selectNotesIndex}
+        setSelectedNotesIndex={setSelectNotesIndex}
         handlePlay={handlePlay}
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
         synthesisProgress={synthesisProgress}
         playing={playing}
         handlePlayStop={handlePlayStop}
+        selectMode={selectMode}
+        setSelectMode={setSelectMode}
       />
+      <PitchPortal
+        targetIndex={targetPoltament}
+        note={notes[pitchTargetIndex]}
+      />
+      {selectMode === "add" && (
+        <AddNotePortal
+          addNoteLength={addNoteLength}
+          addNoteLyric={addNoteLyric}
+          setAddNoteLength={setAddNoteLength}
+          setAddNoteLyric={setAddNoteLyric}
+        />
+      )}
       {wavUrl !== undefined && (
         <>
           <audio

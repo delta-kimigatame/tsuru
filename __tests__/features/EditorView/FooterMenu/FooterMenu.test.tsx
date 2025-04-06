@@ -14,6 +14,7 @@ import { executeBatchProcess } from "../../../../src/utils/batchProcess";
 import * as useMenuModule from "../../../../src/hooks/useMenu";
 import { Ust } from "../../../../src/lib/Ust";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import { useSnackBarStore } from "../../../../src/store/snackBarStore";
 import * as batchProcessModule from "../../../../src/utils/loadBatchProcess";
 
 // ダミーのバッチプロセスクラス（uiが空の場合）
@@ -53,6 +54,8 @@ const defaultProps: FooterMenuProps = {
   synthesisCount: 0,
   playing: false,
   handlePlayStop: () => {},
+  selectMode: "toggle",
+  setSelectMode: () => {},
 };
 
 describe("FooterMenu", () => {
@@ -74,114 +77,6 @@ describe("FooterMenu", () => {
     expect(loadBatchProcessMock).toHaveBeenCalled();
     // LOG にバッチプロセスの一覧取得ログがあるか確認（文字列の一部で検証）
     expect(LOG.datas[3]).toContain("バッチプロセスの一覧取得");
-  });
-
-  it("隠しファイル入力が存在し、accept属性が正しく設定されている", () => {
-    render(<FooterMenu {...defaultProps} />);
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    expect(fileInput).toBeInTheDocument();
-    expect(fileInput.getAttribute("accept")).toBe(".ust");
-  });
-
-  it("ファイル選択時にファイルが無い場合、LOG.warnが呼ばれる", async () => {
-    render(<FooterMenu {...defaultProps} />);
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    fireEvent.change(fileInput, { target: { files: [] } });
-    expect(LOG.datas[3]).toContain("ustの読込がキャンセルされた");
-    // Projectタブがdisabledになっていないことを確認
-    const projectTab = await screen.findByRole("tab", {
-      name: /editor.footer.project/i,
-    });
-    expect(projectTab).not.toHaveAttribute("aria-disabled", "true");
-  });
-
-  it("ファイル選択でustLoadProgressが一時的にtrueになり、非同期処理完了後にfalseになる", async () => {
-    // Ust.load を即解決するダミーモック
-    vi.spyOn(Ust.prototype, "load").mockResolvedValue(undefined);
-
-    render(<FooterMenu {...defaultProps} />);
-    // すぐには非同期処理が始まっているので、プロジェクトタブがdisabledになっているはず
-    const projectTab = await screen.findByRole("tab", {
-      name: /editor.footer.project/i,
-    });
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-
-    // ダミーファイル作成（arrayBufferもオーバーライド）
-    const dummyContent = "dummy content";
-    const dummyFile = new File([dummyContent], "test.ust", { type: ".ust" });
-    dummyFile.arrayBuffer = async () =>
-      new TextEncoder().encode(dummyContent).buffer;
-
-    // ファイル選択イベントを発火
-    fireEvent.change(fileInput, { target: { files: [dummyFile] } });
-
-    expect(projectTab).toHaveAttribute("disabled");
-
-    // 非同期処理の完了を待つ（微小な待機）
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // 処理完了後、ustLoadProgressがfalseになり、プロジェクトタブはdisabledでなくなる
-    expect(projectTab).not.toHaveAttribute("disabled");
-  });
-
-  it("ustの読み込み成功時にsetUst, setUstTempo, setUstFlags, setNotesが呼ばれる", async () => {
-    // ダミーUst の準備
-    const dummyNotes = [new Note(), new Note(), new Note()];
-    const dummyTempo = 130;
-    const dummyFlags = "dummyFlags";
-
-    // Ust.prototype.load をモックして、this にダミー値をセットする
-    vi.spyOn(Ust.prototype, "load").mockImplementation(function () {
-      this.notes = dummyNotes;
-      this.tempo = dummyTempo;
-      this.flags = dummyFlags;
-      return Promise.resolve();
-    });
-
-    // useMusicProjectStore の setter 関数を spyOn する
-    const store = useMusicProjectStore.getState();
-    const setUstSpy = vi.spyOn(store, "setUst");
-    const setUstTempoSpy = vi.spyOn(store, "setUstTempo");
-    const setUstFlagsSpy = vi.spyOn(store, "setUstFlags");
-    const setNotesSpy = vi.spyOn(store, "setNotes");
-
-    render(<FooterMenu {...defaultProps} />);
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-
-    // ダミーファイル作成
-    const dummyContent = "dummy ust content";
-    const dummyFile = new File([dummyContent], "dummy.ust", { type: ".ust" });
-    dummyFile.arrayBuffer = async () =>
-      new TextEncoder().encode(dummyContent).buffer;
-
-    // ファイル選択イベントを発火
-    fireEvent.change(fileInput, { target: { files: [dummyFile] } });
-
-    // 非同期処理完了を待つ
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(setUstSpy).toHaveBeenCalledWith(expect.any(Ust));
-    expect(setUstTempoSpy).toHaveBeenCalledWith(dummyTempo);
-    expect(setUstFlagsSpy).toHaveBeenCalledWith(dummyFlags);
-    expect(setNotesSpy).toHaveBeenCalledWith(dummyNotes);
-  });
-
-  it("Projectタブクリックで、隠しinputのclickが呼ばれる", async () => {
-    // render FooterMenu
-    render(<FooterMenu {...defaultProps} />);
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    // spyOn fileInput.click
-    const clickSpy = vi.spyOn(fileInput, "click");
-    // "UST読込" タブを取得（仮にラベルが "editor.footer.project" となっている）
-    const projectTab = await screen.findByRole("tab", {
-      name: /editor.footer.project/i,
-    });
-    fireEvent.click(projectTab);
-    expect(clickSpy).toHaveBeenCalled();
   });
 
   it("バッチプロセス実行時、bp.uiが空の場合はexecuteBatchProcessが呼ばれる", async () => {
@@ -288,6 +183,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -322,6 +220,7 @@ describe("FooterMenu", () => {
     // handleBatchProcessMenuClose が呼ばれたことを検証
     expect(handleBatchProcessMenuCloseSpy).toHaveBeenCalled();
     expect(projectTab).toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -337,6 +236,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -350,6 +252,7 @@ describe("FooterMenu", () => {
       name: /editor.footer.wav/i,
     });
     expect(projectTab).not.toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -371,6 +274,9 @@ describe("FooterMenu", () => {
     const projectTab = await screen.findByRole("tab", {
       name: /editor.footer.project/i,
     });
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
     const zoomTab = await screen.findByRole("tab", {
       name: /editor.footer.zoom/i,
     });
@@ -383,6 +289,7 @@ describe("FooterMenu", () => {
     const playTab = tabs[0];
     const wavTab = tabs[1];
     expect(projectTab).toHaveAttribute("disabled");
+    expect(selectTab).toHaveAttribute("disabled");
     expect(zoomTab).not.toHaveAttribute("disabled");
     expect(batchTab).toHaveAttribute("disabled");
     expect(playTab).toHaveAttribute("disabled");
@@ -434,5 +341,77 @@ describe("FooterMenu", () => {
     });
     fireEvent.click(downloadTab);
     expect(handleDownloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("selectModeがtoggleのとき、selectボタンを押すと、setSelectModeにrangeが渡り、スナックバーが表示される。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      setSelectMode: setSelectModeSpy,
+    };
+    const snackBarstore = useSnackBarStore.getState();
+    const setValueSpy = vi.spyOn(snackBarstore, "setValue");
+    const setOpenSpy = vi.spyOn(snackBarstore, "setOpen");
+    const setSeveritySpy = vi.spyOn(snackBarstore, "setSeverity");
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectRange/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("range");
+    expect(setSeveritySpy).toHaveBeenCalledWith("info");
+    expect(setOpenSpy).toHaveBeenCalledWith(true);
+    expect(setValueSpy).toHaveBeenCalledWith("editor.selectRangeBegin");
+  });
+  it("selectModeがrangeかつselectNotesIndex.length!==0のとき、selectボタンを押すと、selectNotesIndexが空配列になり、スナックバーが表示される。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectedNotesIndexSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "range",
+      setSelectedNotesIndex: setSelectedNotesIndexSpy,
+      selectedNotesIndex: [0],
+    };
+    const snackBarstore = useSnackBarStore.getState();
+    const setValueSpy = vi.spyOn(snackBarstore, "setValue");
+    const setOpenSpy = vi.spyOn(snackBarstore, "setOpen");
+    const setSeveritySpy = vi.spyOn(snackBarstore, "setSeverity");
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectReset/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([]);
+    expect(setSeveritySpy).toHaveBeenCalledWith("info");
+    expect(setOpenSpy).toHaveBeenCalledWith(true);
+    expect(setValueSpy).toHaveBeenCalledWith("editor.selectReset");
+  });
+  it("selectModeがrangeかつselectNotesIndex.length===0のとき、selectボタンを押すと、setSelectModeにtoggleが渡る。", async () => {
+    // まず、グローバルストアにダミーのノートを設定
+    const dummyNotes = [new Note(), new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "range",
+      setSelectMode: setSelectModeSpy,
+    };
+    render(<FooterMenu {...props} />);
+    const selectTab = await screen.findByRole("tab", {
+      name: /editor.footer.selectCancel/i,
+    });
+    fireEvent.click(selectTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("toggle");
   });
 });

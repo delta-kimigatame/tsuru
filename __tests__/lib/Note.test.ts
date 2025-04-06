@@ -3,7 +3,7 @@ import * as iconv from "iconv-lite";
 import JSZip from "jszip";
 import { beforeAll, describe, expect, it } from "vitest";
 import { defaultNote } from "../../src/config/note";
-import { Note } from "../../src/lib/Note";
+import { dumpEnvelope, Note } from "../../src/lib/Note";
 import { CharacterTxt } from "../../src/lib/VoiceBanks/CharacterTxt";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
 import { ResampRequest } from "../../src/types/request";
@@ -1196,5 +1196,107 @@ describe("getRequestParam", () => {
     // **3. 参照コピーされるべきオブジェクトは同じインスタンス**
     expect(copy.prev).toBe(prev);
     expect(copy.next).toBe(next);
+  });
+
+  it("dumpEnvelope", () => {
+    expect(dumpEnvelope({ point: [0, 100], value: [0, 100, 100] })).toBe(
+      "0.00,100.00"
+    );
+    expect(dumpEnvelope({ point: [0, 5, 35], value: [0, 80, 90] })).toBe(
+      "0.00,5.00,35.00,0,80,90"
+    );
+    expect(dumpEnvelope({ point: [0, 5, 35], value: [0, 80, 90, 5] })).toBe(
+      "0.00,5.00,35.00,0,80,90,5"
+    );
+    expect(dumpEnvelope({ point: [0, 5, 35, 20], value: [0, 80, 90, 5] })).toBe(
+      "0.00,5.00,35.00,0,80,90,5,%,20.00"
+    );
+    expect(
+      dumpEnvelope({ point: [0, 5, 35, 20, 10], value: [0, 80, 90, 5, 75] })
+    ).toBe("0.00,5.00,35.00,0,80,90,5,%,20.00,10.00,75");
+  });
+  it("dumpNote_minimum", () => {
+    const n = new Note();
+    n.index = 1;
+    n.length = 480;
+    n.lyric = "あ";
+    n.notenum = 60;
+    n.hasTempo = false;
+    n.tempo = 120;
+    const dump = n.dump();
+    expect(dump).toContain("[#0001]");
+    expect(dump).toContain("Length=480");
+    expect(dump).toContain("Lyric=あ");
+    expect(dump).toContain("NoteNum=60");
+    expect(dump).not.toContain("Tempo=");
+    expect(dump).not.toContain("PreUtterance=");
+    expect(dump).not.toContain("VoiceOverlap=");
+    expect(dump).not.toContain("StartPoint=");
+    expect(dump).not.toContain("Velocity=");
+    expect(dump).not.toContain("Intensity=");
+    expect(dump).not.toContain("PitchBend=");
+    expect(dump).not.toContain("PBStart=");
+    expect(dump).not.toContain("PBS=");
+    expect(dump).not.toContain("PBY=");
+    expect(dump).not.toContain("PBW=");
+    expect(dump).not.toContain("PBM=");
+    expect(dump).not.toContain("Flags=");
+    expect(dump).not.toContain("VBR=");
+    expect(dump).not.toContain("Envelope=");
+    expect(dump).not.toContain("Label=");
+    expect(dump).not.toContain("$direct=True");
+    expect(dump).not.toContain("$region=");
+    expect(dump).not.toContain("$region_end=");
+  });
+  it("dumpNote_all", () => {
+    const n = new Note();
+    n.index = 1;
+    n.length = 480;
+    n.lyric = "あ";
+    n.notenum = 60;
+    n.hasTempo = true;
+    n.tempo = 120;
+    n.preutter = 1;
+    n.overlap = 2;
+    n.stp = 3;
+    n.velocity = 50;
+    n.intensity = 60;
+    n.pitches = "0,0";
+    n.pbStart = -15;
+    n.pbs = "-10;30";
+    n.pby = "1,2,3";
+    n.pbw = "4,5,6";
+    n.pbm = ",s,r";
+    n.flags = "B50";
+    n.vibrato = "65,64,5,20,20,0,0,0";
+    n.envelope = "0,5,35,0,100,100,0";
+    n.label = "l";
+    n.direct = true;
+    n.region = "start";
+    n.regionEnd = "end";
+    const dump = n.dump();
+    expect(dump).toContain("[#0001]");
+    expect(dump).toContain("Length=480");
+    expect(dump).toContain("Lyric=あ");
+    expect(dump).toContain("NoteNum=60");
+    expect(dump).toContain("Tempo=120.00");
+    expect(dump).toContain("PreUtterance=1.00");
+    expect(dump).toContain("VoiceOverlap=2.00");
+    expect(dump).toContain("StartPoint=3.00");
+    expect(dump).toContain("Velocity=50");
+    expect(dump).toContain("Intensity=60");
+    expect(dump).toContain("PitchBend=0,0");
+    expect(dump).toContain("PBStart=-15.00");
+    expect(dump).toContain("PBS=-10.0;30.0");
+    expect(dump).toContain("PBY=1.0,2.0,3.0");
+    expect(dump).toContain("PBW=4.0,5.0,6.0");
+    expect(dump).toContain("PBM=,s,r");
+    expect(dump).toContain("Flags=B50");
+    expect(dump).toContain("VBR=65,64,5,20,20,0,0,0");
+    expect(dump).toContain("Envelope=0.00,5.00,35.00,0,100,100,0");
+    expect(dump).toContain("Label=l");
+    expect(dump).toContain("$direct=True");
+    expect(dump).toContain("$region=start");
+    expect(dump).toContain("$region_end=end");
   });
 });

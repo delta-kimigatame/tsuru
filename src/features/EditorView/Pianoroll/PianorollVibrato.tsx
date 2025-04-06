@@ -43,7 +43,7 @@ export const PianorollVibrato: React.FC<PianorollVibratoProps> = (props) => {
       msToPoint(t * 1000, n.tempo, horizontalZoom)
     );
     const yValues = vibratoPitches.map((c) =>
-      deciToneToPoint(c / 10, verticalZoom)
+      deciToneToPoint(-c / 10, verticalZoom)
     );
     if (xAxis.length !== yValues.length) {
       LOG.warn(

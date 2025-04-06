@@ -1,8 +1,13 @@
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RedoIcon from "@mui/icons-material/Redo";
+import SelectAllIcon from "@mui/icons-material/SelectAll";
 import StopIcon from "@mui/icons-material/Stop";
+import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
 import React from "react";
@@ -13,13 +18,14 @@ import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
-import { Ust } from "../../../lib/Ust";
+import { undoManager } from "../../../lib/UndoManager";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { executeBatchProcess } from "../../../utils/batchProcess";
 import { loadBatchProcessClasses } from "../../../utils/loadBatchProcess";
 import { BatchProcessDialog } from "../../BatchProcess/BatchProcessDialog";
 import { FooterBatchProcessMenu } from "./FooterBatchProcessMenu";
+import { FooterProjectMenu } from "./FooterProjectMenu";
 import { FooterZoomMenu } from "./FooterZoomMenu";
 
 /**
@@ -29,10 +35,7 @@ import { FooterZoomMenu } from "./FooterZoomMenu";
  */
 export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const { t } = useTranslation();
-  /** 隠し表示する<input>へのref */
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const { setUst, setNotes, setNote, setUstFlags, setUstTempo, notes, vb } =
-    useMusicProjectStore();
+  const { setNotes, notes, vb } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [ustLoadProgress, setUstLoadProgress] = React.useState<boolean>(false);
   const [batchProcesses, setBatchProcesses] = React.useState<
@@ -47,6 +50,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const [zoomMenuAnchor, handleZoomMenuOpen, handleZoomMenuClose] = useMenu(
     "FooterMenu.ZoomMenu"
   );
+  const [projectMenuAnchor, handleProjectMenuOpen, handleProjectMenuClose] =
+    useMenu("FooterMenu.ProjectMenu");
   const [
     batchProcessMenuAnchor,
     handleBatchProcessMenuOpen,
@@ -63,70 +68,6 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       setBatchProcesses(results);
     });
   }, []);
-
-  /**
-   * inputのファイルを変更した際の動作
-   * nullやファイル数が0の場合何もせず終了する。
-   * ファイルが含まれている場合、1つ目のファイルをreadFileにセットする。
-   * 実際のファイルの読込はloadVBDialogで行う。
-   * @param e
-   */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      LOG.warn("ustの読込がキャンセルされたか失敗しました", "FooterMenu");
-      return;
-    }
-    setUstLoadProgress(true);
-    LOG.info(`ustの選択:${e.target.files[0].name}`, "FooterMenu");
-    LoadUst(e.target.files[0]);
-  };
-
-  /**
-   * ustファイルを非同期で読み込み、グローバルな状態ust,notes,ustTempo,ustFlagsを更新する
-   * @param file 選択されたustファイル
-   */
-  const LoadUst = async (file: File): Promise<void> => {
-    try {
-      LOG.info(`ustの読込開始`, "FooterMenu");
-      const ust = new Ust();
-      const buf = await file.arrayBuffer();
-      await ust.load(buf);
-      LOG.info(
-        `ustの読込完了。ノート数:${ust.notes.length},bpm=:${ust.tempo},flags:${ust.flags}`,
-        "FooterMenu"
-      );
-      setUst(ust);
-      setUstTempo(ust.tempo);
-      setUstFlags(ust.flags);
-      if (vb !== null) {
-        notes.forEach((n) => n.applyOto(vb));
-      } else {
-        LOG.warn(
-          `vbがロードされていません。テスト以外では必ず事前にロードされるはずなので何かがおかしい`,
-          "FooterMenu"
-        );
-      }
-      setNotes(ust.notes);
-      setUstLoadProgress(false);
-    } catch (e) {
-      LOG.warn(`ustの読込失敗。${e}`, "FooterMenu");
-      snackBarStore.setSeverity("error");
-      snackBarStore.setValue(t("editor.footer.ustLoadError"));
-      snackBarStore.setOpen(true);
-      setUstLoadProgress(false);
-    }
-  };
-
-  /**
-   * Projectタブをクリックした際の動作。
-   * 不可視のinputのクリックイベントを発火する
-   */
-  const handleProjectTabClick = () => {
-    LOG.debug("click ProjectTab", "FooterMenu");
-    /** ファイル読み込みの発火 */
-    LOG.info("ustファイルの選択", "FooterMenu");
-    inputRef.current.click();
-  };
 
   /**
    * バッチプロセスを実行するか引数編集用のUIを開く
@@ -153,20 +94,72 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     handleBatchProcessMenuClose();
   };
 
+  const handleSelectClick = () => {
+    LOG.debug("click SelectTab", "FooterMenu");
+    if (props.selectMode === "toggle") {
+      props.setSelectMode("range");
+      snackBarStore.setSeverity("info");
+      snackBarStore.setValue(t("editor.selectRangeBegin")); //範囲の最初のノートを選択してください
+      snackBarStore.setOpen(true);
+    } else if (props.selectMode === "range") {
+      if (props.selectedNotesIndex.length !== 0) {
+        props.setSelectedNotesIndex([]);
+        snackBarStore.setSeverity("info");
+        snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
+        snackBarStore.setOpen(true);
+      } else {
+        props.setSelectMode("toggle");
+      }
+    } else {
+      props.setSelectMode("toggle");
+    }
+  };
+
+  const handleAddClick = () => {
+    LOG.debug("click AddTab", "FooterMenu");
+    if (props.selectMode === "add") {
+      props.setSelectMode("toggle");
+    } else {
+      props.setSelectMode("add");
+    }
+  };
+
+  const handleUndoClick = () => {
+    LOG.debug("click UndoTab", "FooterMenu");
+    const allFlag = undoManager.undoAll;
+    const undoResult = undoManager.undo();
+    if (allFlag) {
+      setNotes(undoResult);
+    } else {
+      const newNotes = notes.slice();
+      undoResult.forEach((un) => {
+        newNotes[un.index] = un;
+      });
+      setNotes(newNotes);
+    }
+  };
+  const handleRedoClick = () => {
+    LOG.debug("click RedoTab", "FooterMenu");
+    const allFlag = undoManager.redoAll;
+    const redoResult = undoManager.redo();
+    if (allFlag) {
+      setNotes(redoResult);
+    } else {
+      const newNotes = notes.slice();
+      redoResult.forEach((un) => {
+        newNotes[un.index] = un;
+      });
+      setNotes(newNotes);
+    }
+  };
+
   return (
     <>
-      <input
-        type="file"
-        onChange={handleFileChange}
-        hidden
-        ref={inputRef}
-        accept=".ust"
-        data-testid="file-input"
-      ></input>
       <Tabs
         orientation={menuVertical ? "vertical" : "horizontal"}
         variant="scrollable"
-        scrollButtons={true}
+        scrollButtons
+        allowScrollButtonsMobile
         sx={{
           display: "flex",
           position: "fixed",
@@ -184,7 +177,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         <Tab
           icon={ustLoadProgress ? <CircularProgress /> : <LibraryMusicIcon />}
           label={t("editor.footer.project")}
-          onClick={handleProjectTabClick}
+          onClick={handleProjectMenuOpen}
           sx={{ flex: 1, p: 0 }}
           value={0}
           disabled={
@@ -198,6 +191,60 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           sx={{ flex: 1, p: 0 }}
           value={0}
           disabled={notes.length === 0 || batchProcessProgress}
+        />
+        <Tab
+          icon={props.selectMode !== "add" ? <AddBoxIcon /> : <ClearIcon />}
+          label={
+            props.selectMode !== "add"
+              ? t("editor.footer.addNote")
+              : t("editor.footer.selectCancel")
+          }
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={batchProcessProgress || props.synthesisProgress}
+          onClick={handleAddClick}
+        />
+        <Tab
+          icon={
+            props.selectMode === "toggle" ? <SelectAllIcon /> : <ClearIcon />
+          }
+          label={
+            props.selectMode === "toggle"
+              ? t("editor.footer.selectRange")
+              : props.selectMode !== "range"
+              ? t("editor.footer.selectCancel")
+              : props.selectedNotesIndex.length !== 0
+              ? t("editor.footer.selectReset")
+              : t("editor.footer.selectCancel")
+          }
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            notes.length === 0 ||
+            batchProcessProgress ||
+            props.synthesisProgress
+          }
+          onClick={handleSelectClick}
+        />
+        <Tab
+          icon={<UndoIcon />}
+          label={t("editor.footer.undo")}
+          onClick={handleUndoClick}
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            undoManager.undoSummary === undefined || props.synthesisProgress
+          }
+        />
+        <Tab
+          icon={<RedoIcon />}
+          label={t("editor.footer.redo")}
+          onClick={handleRedoClick}
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={
+            undoManager.redoSummary === undefined || props.synthesisProgress
+          }
         />
         <Tab
           icon={batchProcessProgress ? <CircularProgress /> : <AutorenewIcon />}
@@ -266,6 +313,11 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
       </Tabs>
+      <FooterProjectMenu
+        anchor={projectMenuAnchor}
+        handleClose={handleProjectMenuClose}
+        setUstLoadProgress={setUstLoadProgress}
+      />
       <FooterZoomMenu
         anchor={zoomMenuAnchor}
         handleClose={handleZoomMenuClose}
@@ -290,6 +342,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
 export interface FooterMenuProps {
   /** 選択されているノートのインデックス 将来的に必須引数にするが開発中のため暫定的にオプショナルとする */
   selectedNotesIndex: number[];
+  /** ノートを選択するためのコールバック */
+  setSelectedNotesIndex: (indexes: number[]) => void;
   /** 再生ボタンを押したときの動作 */
   handlePlay: () => void;
   /** ダウンロードボタンを押したときの動作 */
@@ -302,4 +356,8 @@ export interface FooterMenuProps {
   playing: boolean;
   /** 再生を終了するためのコールバック */
   handlePlayStop: () => void;
+  /** 選択モード */
+  selectMode: "toggle" | "range" | "pitch" | "add";
+  /** 選択モードを更新するためのコールバック */
+  setSelectMode: (mode: "toggle" | "range" | "pitch" | "add") => void;
 }

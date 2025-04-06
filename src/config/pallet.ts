@@ -1,7 +1,7 @@
 /**
  * 仕様策定中。EditorViewの開発にあわせて拡張していく
  */
-interface Pallet {
+export interface Pallet {
   /** ピアノロールの白鍵部分の色 */
   whiteKey: string;
   /** ピアノロールの黒鍵部分の色 */

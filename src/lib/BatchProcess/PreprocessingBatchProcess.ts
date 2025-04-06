@@ -115,6 +115,9 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
       if (options.lyric && options.lyricOptions !== undefined) {
         /** lyricの処理 */
         this.lyricProcess(n, options.lyricOptions);
+        if (this.vb !== undefined) {
+          n.applyOto(this.vb);
+        }
       }
       if (
         options.pitch &&

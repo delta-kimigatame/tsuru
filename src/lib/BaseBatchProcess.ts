@@ -2,6 +2,7 @@ import { PaperGroup, UIProp } from "../types/batchProcess";
 import { LOG, LogLevel } from "./Logging";
 import { Note } from "./Note";
 import { undoManager, UndoRedoCommand } from "./UndoManager";
+import { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 /**
  * batchprocessを作成するための抽象クラス。
@@ -114,4 +115,6 @@ export abstract class BaseBatchProcess<TOptions = any> {
    * optionsの初期値。UIにおいて状態管理をするために定義する必要がある。
    */
   initialOptions: TOptions;
+
+  vb: VoiceBank | undefined;
 }

@@ -74,13 +74,24 @@ describe("musicProjectStore", () => {
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.hasTempo = false;
+    n.tempo = 120;
     const n2 = new Note();
-    n.length = 480;
-    n.index = 0;
-    n.lyric = "あ";
+    n2.length = 480;
+    n2.index = 0;
+    n2.lyric = "あ";
+    n2.hasTempo = false;
+    n2.tempo = 140;
+    const n3 = new Note();
+    n3.length = 480;
+    n3.index = 0;
+    n3.lyric = "あ";
+    n3.hasTempo = true;
+    n3.tempo = 140;
     const initialStore = useMusicProjectStore.getState();
     initialStore.notes.push(n);
     initialStore.notes.push(n2);
+    initialStore.notes.push(n3);
     expect(initialStore.notes[0].lyric).toBe("あ");
     setNoteProperty(0, "lyric", "い");
     const updatedStore = useMusicProjectStore.getState();
@@ -92,9 +103,12 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
     expect(updatedStore.notes[1].index).toBe(1);
     expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
-    expect(updatedStore.notes[1].next).toBe(undefined);
+    expect(updatedStore.notes[1].next).toBe(updatedStore.notes[2]);
+    expect(updatedStore.notes[1].tempo).toBe(120);
     // ust.notesとnotesが同じオブジェクトを参照していることの確認
     expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
+    // hasTempoがあればtempoは更新されない
+    expect(updatedStore.notes[2].tempo).toBe(140);
   });
 
   it("setNote", () => {
@@ -103,17 +117,30 @@ describe("musicProjectStore", () => {
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.hasTempo = false;
+    n.tempo = 120;
     const n2 = new Note();
     n2.length = 480;
     n2.index = 1;
     n2.lyric = "あ";
+    n.hasTempo = false;
+    n.tempo = 140;
+    const n3 = new Note();
+    n3.length = 480;
+    n3.index = 0;
+    n3.lyric = "あ";
+    n3.hasTempo = true;
+    n3.tempo = 140;
     const newNote = new Note();
     newNote.length = 240;
     newNote.index = 0;
     newNote.lyric = "い";
+    newNote.hasTempo = false;
+    newNote.tempo = 150;
     const initialStore = useMusicProjectStore.getState();
     initialStore.notes.push(n);
     initialStore.notes.push(n2);
+    initialStore.notes.push(n3);
     expect(initialStore.notes[0].lyric).toBe("あ");
     expect(initialStore.notes[0].length).toBe(480);
     expect(initialStore.notes[1].lyric).toBe("あ");
@@ -130,9 +157,12 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
     expect(updatedStore.notes[1].index).toBe(1);
     expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
-    expect(updatedStore.notes[1].next).toBe(undefined);
+    expect(updatedStore.notes[1].next).toBe(updatedStore.notes[2]);
+    expect(updatedStore.notes[1].tempo).toBe(150);
     // ust.notesとnotesが同じオブジェクトを参照していることの確認
     expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
+    // hasTempoがあればtempoは更新されない
+    expect(updatedStore.notes[2].tempo).toBe(140);
   });
 
   it("setNotes", () => {
@@ -141,20 +171,34 @@ describe("musicProjectStore", () => {
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.hasTempo = false;
+    n.tempo = 120;
     const n2 = new Note();
     n2.length = 480;
     n2.index = 1;
     n2.lyric = "あ";
+    n2.hasTempo = false;
+    n2.tempo = 140;
+    const n3 = new Note();
+    n2.length = 480;
+    n2.index = 1;
+    n2.lyric = "あ";
+    n3.hasTempo = true;
+    n3.tempo = 140;
     const newNote = new Note();
     newNote.length = 240;
     newNote.index = 0;
     newNote.lyric = "い";
+    newNote.hasTempo = false;
+    newNote.tempo = 150;
     const notes = new Array<Note>();
     notes.push(n);
     notes.push(n2);
+    notes.push(n3);
     const newNotes = new Array<Note>();
     newNotes.push(newNote);
     newNotes.push(n2);
+    newNotes.push(n3);
     /** setNotesが初期化に使えることの確認 */
     setNotes(notes);
     const updatedStore = useMusicProjectStore.getState();
@@ -168,7 +212,9 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[0].next).toBe(updatedStore.notes[1]);
     expect(updatedStore.notes[1].index).toBe(1);
     expect(updatedStore.notes[1].prev).toBe(updatedStore.notes[0]);
-    expect(updatedStore.notes[1].next).toBe(undefined);
+    expect(updatedStore.notes[1].next).toBe(updatedStore.notes[2]);
+    expect(updatedStore.notes[1].tempo).toBe(120);
+    expect(updatedStore.notes[2].tempo).toBe(140);
     // ust.notesとnotesが同じオブジェクトを参照していることの確認
     expect(updatedStore.notes).toBe(updatedStore.ust?.notes);
     /** setNotesが更新に使えることの確認 */
@@ -184,7 +230,9 @@ describe("musicProjectStore", () => {
     expect(updatedStore2.notes[0].next).toBe(updatedStore2.notes[1]);
     expect(updatedStore2.notes[1].index).toBe(1);
     expect(updatedStore2.notes[1].prev).toBe(updatedStore2.notes[0]);
-    expect(updatedStore2.notes[1].next).toBe(undefined);
+    expect(updatedStore2.notes[1].next).toBe(updatedStore2.notes[2]);
+    expect(updatedStore2.notes[1].tempo).toBe(150);
+    expect(updatedStore2.notes[2].tempo).toBe(140);
     // ust.notesとnotesが同じオブジェクトを参照していることの確認
     expect(updatedStore2.notes).toBe(updatedStore2.ust?.notes);
   });

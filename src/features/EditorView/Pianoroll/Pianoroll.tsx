@@ -7,9 +7,15 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
-import { msToPoint, notenumToPoint, PianorollPitch } from "./PianorollPitch";
+import {
+  deciToneToPoint,
+  msToPoint,
+  notenumToPoint,
+  PianorollPitch,
+} from "./PianorollPitch";
 import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollToutch } from "./PianorollTouch";
@@ -30,6 +36,10 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const vertcalMenu = useVerticalFooterMenu();
   const windowSize = useWindowSize();
   const [seekBarX, setSeekBarX] = React.useState<number>(0);
+  const [menuAnchor, setMenuAnchor] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   /**
    * 各ノートのx座標描画位置を予め求めておく
@@ -51,6 +61,48 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     }
     return { notesLeft: lefts, notesLeftMs: leftsMs, totalLength: totalLength };
   }, [notes]);
+
+  const { pitchPoltament } = React.useMemo(() => {
+    LOG.debug("notesかnotesLeftかpitchTargetIndexの更新検知", "Pianoroll");
+    if (props.pitchTargetIndex === undefined) {
+      return { pitchPoltament: [] };
+    }
+    const n = notes[props.pitchTargetIndex];
+    if (n === undefined || n.lyric === "R" || n.pbs === undefined) {
+      return { pitchPoltament: [] };
+    }
+    const points = new Array();
+    let poltamentXOffset = n.pbs.time;
+    // pbsと前のノートに依存する1点目
+    points.push({
+      x:
+        notesLeft[props.pitchTargetIndex] *
+          PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+          horizontalZoom +
+        msToPoint(poltamentXOffset, n.tempo, horizontalZoom),
+      y:
+        n.prev === null || n.prev.lyric === "R"
+          ? notenumToPoint(n.notenum, verticalZoom) -
+            deciToneToPoint(n.pbs.height, verticalZoom)
+          : notenumToPoint(n.prev.notenum, verticalZoom),
+    });
+    n.pbw.forEach((w, i) => {
+      poltamentXOffset += w;
+      points.push({
+        x:
+          notesLeft[props.pitchTargetIndex] *
+            PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+            horizontalZoom +
+          msToPoint(poltamentXOffset, n.tempo, horizontalZoom),
+        y:
+          notenumToPoint(n.notenum, verticalZoom) -
+          (n.pby !== undefined && n.pby.length > i
+            ? deciToneToPoint(n.pby[i], verticalZoom)
+            : 0),
+      });
+    });
+    return { pitchPoltament: points };
+  }, [notes, props.pitchTargetIndex, notesLeft]);
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント、c4Center:${c4Center}`, "Pianoroll");
@@ -92,7 +144,6 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         notes[targetNotesIndex].tempo,
         horizontalZoom
       );
-    console.log(notesOffsetMs, targetNotesIndexOffset, lengthOffset, x);
 
     /** 自動スクロール */
     if (x < containerRef.current.clientWidth / 2) {
@@ -137,7 +188,11 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         </svg>
       </Box>
       <Box
-        sx={{ display: "block", overflowX: "scroll", position: "relative" }}
+        sx={{
+          display: "block",
+          overflowX: "scroll",
+          position: "relative",
+        }}
         ref={containerRef}
       >
         <svg
@@ -167,6 +222,8 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               selectedNotesIndex={props.selectedNotesIndex}
               totalLength={totalLength}
               notesLeft={notesLeft}
+              poltaments={pitchPoltament}
+              targetPoltament={props.targetPoltament}
             />
           </g>
           <g id="vibrato">
@@ -187,9 +244,21 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               setSelectedNotesIndex={props.setSelectedNotesIndes}
               totalLength={totalLength}
               notesLeft={notesLeft}
-              selectMode="toggle"
+              selectMode={props.selectMode}
+              setMenuAnchor={setMenuAnchor}
+              poltaments={pitchPoltament}
+              setTargetPoltament={props.setTargetPoltament}
+              addNoteLength={props.addNoteLength}
+              addNoteLyric={props.addNoteLyric}
             />
           </g>
+          <NoteMenu
+            menuAnchor={menuAnchor}
+            setMenuAnchor={setMenuAnchor}
+            selectedNotesIndex={props.selectedNotesIndex}
+            setSelectedNotesIndex={props.setSelectedNotesIndes}
+            setPitchTargetIndex={props.setPitchTargetIndex}
+          />
         </svg>
       </Box>
       {portraitUrl !== undefined && (
@@ -222,4 +291,16 @@ export interface PianorollProps {
   selectedNotesIndex: Array<number>;
   /** ノートを選択するためのコールバック */
   setSelectedNotesIndes: (indexes: number[]) => void;
+  /** 選択モード */
+  selectMode: "toggle" | "range" | "pitch" | "add";
+  /** ピッチターゲット */
+  pitchTargetIndex?: number | undefined;
+  /** ピッチターゲット更新のためのコールバック */
+  setPitchTargetIndex?: (index: number | undefined) => void;
+  /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
+  setTargetPoltament?: (index: number | undefined) => void;
+  /** ピッチ編集モードで操作するポルタメントのインデックス */
+  targetPoltament?: number | undefined;
+  addNoteLength?: number;
+  addNoteLyric?: string;
 }
