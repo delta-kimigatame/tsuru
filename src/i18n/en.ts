@@ -92,7 +92,10 @@ export const translationEn = {
       length30: "Sixty-fourth note(30)",
     },
     footer: {
-      project: "Load UST",
+      project: "Project",
+      loadUst: "Load UST",
+      saveUst: "Save UST",
+      prjectSetting: "Project Settings",
       zoom: "Zoom",
       batchprocess: "Batch Process",
       addNote: "Add Note",
@@ -114,8 +117,14 @@ export const translationEn = {
     selectRangeBegin: "Select the first note in the range",
     selectRangeEnd: "Select the end note in the range",
     selectReset: "Reset note selection",
+    copySuccess: "Copied to clipboard",
     copyError: "Failed to copy.",
     pasteError: "Failed to paste.",
+    ustSetting: {
+      tempo: "Project's BPM",
+      flags: "Project's Flags",
+      submitButton: "Change",
+    },
     noteDividerDialog: {
       divider: "Note Divider",
       submitButton: "Execute",

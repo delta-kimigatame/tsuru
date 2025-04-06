@@ -92,7 +92,10 @@ export const translationJa = {
       length30: "六十四分音符(30)",
     },
     footer: {
-      project: "ust読込",
+      project: "プロジェクト",
+      loadUst: "ust読込",
+      saveUst: "ust保存",
+      prjectSetting: "プロジェクト設定",
       zoom: "拡大縮小",
       batchprocess: "一括処理",
       addNote: "ノート追加",
@@ -115,8 +118,14 @@ export const translationJa = {
     selectRangeBegin: "範囲の最初のノートを選択してください",
     selectRangeEnd: "範囲の終わりのノートを選択してください",
     selectReset: "ノートの選択解除",
+    copySuccess: "クリップボードにコピーしました",
     copyError: "コピーに失敗しました。",
     pasteError: "張り付けに失敗しました。",
+    ustSetting: {
+      tempo: "プロジェクトのテンポ",
+      flags: "プロジェクトのフラグ",
+      submitButton: "変更",
+    },
     noteDividerDialog: {
       divider: "ノート分割",
       submitButton: "実行",
