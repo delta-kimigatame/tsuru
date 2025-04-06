@@ -257,8 +257,8 @@ export class VoiceBank {
    */
   async getWave(filename: string): Promise<Wave> {
     return new Promise(async (resolve, reject) => {
-      const root = this._root !== undefined ? this._root + "/" : "";
-      console.log(`GETWAVE:${root + filename}`);
+      const root =
+        this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       if (Object.keys(this._zip).includes(root + filename)) {
         const buf = await extractFileFromZip(this._zip[root + filename]);
         resolve(new Wave(buf));
@@ -276,7 +276,8 @@ export class VoiceBank {
    */
   async getFrq(wavFilename: string): Promise<Frq> {
     return new Promise(async (resolve, reject) => {
-      const root = this._root !== undefined ? this._root + "/" : "";
+      const root =
+        this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
       if (Object.keys(this._zip).includes(root + frqFilename)) {
         const buf = await extractFileFromZip(this._zip[root + frqFilename]);
