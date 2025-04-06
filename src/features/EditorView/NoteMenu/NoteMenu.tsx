@@ -9,6 +9,7 @@ import { Note } from "../../../lib/Note";
 import { EnvelopeDialog } from "../EnvelopeDialog/EnvelopeDialog";
 import { NoteDividerDialog } from "../NoteDividerDialog";
 import { NotePropertyDialog } from "../NotePropertyDialog";
+import { VibratoDialog } from "../VibratoDialog";
 import { DividerButton } from "./DividerButton";
 import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
@@ -163,6 +164,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
         open={envelopeTargetNote !== undefined}
         note={envelopeTargetNote}
         handleClose={handleEnvelopeDialogClose}
+      />
+      <VibratoDialog
+        open={vibratoTargetNote !== undefined}
+        note={vibratoTargetNote}
+        handleClose={handleVibratoDialogClose}
       />
     </>
   );

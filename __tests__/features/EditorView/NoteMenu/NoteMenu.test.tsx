@@ -193,4 +193,30 @@ describe("NoteMenu", () => {
       })
     ).not.toBeNull();
   });
+  it("NoteMenu:vibratoEditButtonをクリックすると、VibratoDialogが表示される", async () => {
+    const notes = createNotes();
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(notes);
+    render(
+      <NoteMenu
+        menuAnchor={{ x: 0, y: 0 }}
+        setMenuAnchor={() => {}}
+        selectedNotesIndex={[0]}
+        setSelectedNotesIndex={() => {}}
+      />
+    );
+    expect(
+      screen.queryByRole("button", {
+        name: /editor.vibratoDialog.submitButton/i,
+      })
+    ).toBeNull();
+    const button = await screen.findByTestId("vibratoEditButton");
+    fireEvent.click(button);
+    expect(
+      screen.queryByRole("button", {
+        name: /editor.vibratoDialog.submitButton/i,
+      })
+    ).not.toBeNull();
+  });
 });
