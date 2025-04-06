@@ -100,7 +100,22 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
   setUst: (ust) => set({ ust }),
   setVb: (vb) => set({ vb }),
 
-  setUstTempo: (tempo) => set({ ustTempo: tempo }),
+  setUstTempo: (tempo) =>
+    set((state) => {
+      const updatedNotes = [...state.notes];
+      updatedNotes.forEach((_, i) => {
+        if (i === 0 && !updatedNotes[0].hasTempo) {
+          updatedNotes[i].tempo = tempo;
+        } else if (
+          updatedNotes[i].prev !== undefined &&
+          !updatedNotes[i].hasTempo
+        ) {
+          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+        }
+      });
+
+      return { ustTempo: tempo, notes: updatedNotes };
+    }),
 
   setUstFlags: (flags) => set({ ustFlags: flags }),
 
