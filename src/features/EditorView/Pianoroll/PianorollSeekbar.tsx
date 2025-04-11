@@ -1,12 +1,10 @@
 import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
-import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useCookieStore } from "../../../store/cookieStore";
 
 export const PianorollSeekbar: React.FC<PianorollSeekbarProps> = (props) => {
-  const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
-  const mode = useThemeMode();
+  const { colorTheme, verticalZoom, horizontalZoom, mode } = useCookieStore();
 
   return (
     <svg

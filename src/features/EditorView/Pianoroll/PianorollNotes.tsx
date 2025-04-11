@@ -1,7 +1,6 @@
 import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
-import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 
@@ -10,9 +9,8 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
  * @returns
  */
 export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
-  const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
+  const { colorTheme, verticalZoom, horizontalZoom, mode } = useCookieStore();
   const { notes } = useMusicProjectStore();
-  const mode = useThemeMode();
 
   return (
     <>

@@ -1,7 +1,6 @@
 import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
-import { useThemeMode } from "../../../hooks/useThemeMode";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
 import { useCookieStore } from "../../../store/cookieStore";
@@ -10,9 +9,8 @@ import { makeTimeAxis } from "../../../utils/interp";
 import { deciToneToPoint, msToPoint, notenumToPoint } from "./PianorollPitch";
 
 export const PianorollVibrato: React.FC<PianorollVibratoProps> = (props) => {
-  const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
+  const { colorTheme, verticalZoom, horizontalZoom, mode } = useCookieStore();
   const { notes } = useMusicProjectStore();
-  const mode = useThemeMode();
 
   /**
    * UTAUのビブラート値を使ってボリライン描画用のpointsを取得する
