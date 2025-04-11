@@ -55,8 +55,8 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
     }
   };
   const [formState, dispatch] = React.useReducer(formReducer, initialFormData);
-  LOG.debug(`ノートの変更検知、編集内容の初期化`, "NotePropertyDialog");
   React.useEffect(() => {
+    LOG.debug(`ノートの変更検知、編集内容の初期化`, "NotePropertyDialog");
     if (props.note) {
       dispatch({ type: "RESET", initial: pickNoteFields(props.note) });
     } else {
