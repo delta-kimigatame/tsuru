@@ -287,10 +287,13 @@ export const EditorView: React.FC = () => {
         selectMode={selectMode}
         setSelectMode={setSelectMode}
       />
-      <PitchPortal
-        targetIndex={targetPoltament}
-        note={notes[pitchTargetIndex]}
-      />
+      {selectMode === "pitch" && (
+        <PitchPortal
+          targetIndex={targetPoltament}
+          note={notes[pitchTargetIndex]}
+        />
+      )}
+
       {selectMode === "add" && (
         <AddNotePortal
           addNoteLength={addNoteLength}

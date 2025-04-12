@@ -45,6 +45,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/04/12\r\n [Feature Additions]\r\nAdded dotted quarter note and dotted eighth note to the note addition feature\r\n\r\n[Fixes]\r\nFixed bug where setting consonant velocity and volume to 0 caused the engine to interpret them as 100.\r\nFixed crash bug during pitch manipulation\r\nAdjusted log content for bug diagnosis",
       "2025-04-06\r\n[Added]\r\n- Note parameter editing feature  \r\n- Copy & paste functionality using the clipboard  \r\n- Note deletion feature  \r\n- Envelope editing feature  \r\n- Pitch editing feature  \r\n- Undo/redo functionality  \r\n- Note creation feature  \r\n- Project tempo and flag editing feature  \r\n- UST save functionality  \r\n- Vibrato editing feature  \r\n\r\n[Fixed]\r\n- Fixed bug where vibrato rendering was inverted vertically  \r\n- Fixed bug where crossfade did not work correctly when lyrics were changed via batch processing  \r\n- Fixed bug where the voicebank would not sing correctly if the ZIP root path was an empty string  \r\n- Changed location of the UST load button following addition of UST save functionality  ",
       "2025/03/26\nNotes can now be moved. After selecting a note, please hold your finger on the screen for about one second.",
       "2025/03/25\nAdded range selection functionality",
@@ -83,7 +84,9 @@ export const translationEn = {
       length1920: "Whole note (1,920)",
       length1440: "Dotted half note (1,440)",
       length960: "Half note (960)",
+      length720: "Dotted quarter note(720)",
       length480: "Quarter note (480)",
+      length360: "Dotted eighth note(360)",
       length320: "Half note triplet (320)",
       length240: "Eighth note (240)",
       length160: "Quarter note triplet (160)",

@@ -150,26 +150,34 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
           </ButtonGroup>
         </Menu>
       )}
-      <NotePropertyDialog
-        open={propertyTargetNote !== undefined}
-        note={propertyTargetNote}
-        handleClose={handlePropertyDialogClose}
-      />
-      <NoteDividerDialog
-        open={dividerTargetIndex !== undefined}
-        noteIndex={dividerTargetIndex}
-        handleClose={handleDividerDialogClose}
-      />
-      <EnvelopeDialog
-        open={envelopeTargetNote !== undefined}
-        note={envelopeTargetNote}
-        handleClose={handleEnvelopeDialogClose}
-      />
-      <VibratoDialog
-        open={vibratoTargetNote !== undefined}
-        note={vibratoTargetNote}
-        handleClose={handleVibratoDialogClose}
-      />
+      {propertyTargetNote !== undefined && (
+        <NotePropertyDialog
+          open={propertyTargetNote !== undefined}
+          note={propertyTargetNote}
+          handleClose={handlePropertyDialogClose}
+        />
+      )}
+      {dividerTargetIndex !== undefined && (
+        <NoteDividerDialog
+          open={dividerTargetIndex !== undefined}
+          noteIndex={dividerTargetIndex}
+          handleClose={handleDividerDialogClose}
+        />
+      )}
+      {envelopeTargetNote !== undefined && (
+        <EnvelopeDialog
+          open={envelopeTargetNote !== undefined}
+          note={envelopeTargetNote}
+          handleClose={handleEnvelopeDialogClose}
+        />
+      )}
+      {vibratoTargetNote !== undefined && (
+        <VibratoDialog
+          open={vibratoTargetNote !== undefined}
+          note={vibratoTargetNote}
+          handleClose={handleVibratoDialogClose}
+        />
+      )}
     </>
   );
 };

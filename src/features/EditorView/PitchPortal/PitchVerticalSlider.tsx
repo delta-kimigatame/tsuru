@@ -50,6 +50,9 @@ export const PitchVerticalSlider: React.FC<
             value={
               props.targetIndex === 0
                 ? props.note.pbs.height
+                : props.note.pby === undefined ||
+                  props.note.pby.length <= props.targetIndex - 1
+                ? 0
                 : props.note.pby[props.targetIndex - 1]
             }
             onChange={handleChange}

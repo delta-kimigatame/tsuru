@@ -59,7 +59,7 @@ export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
         undoArgs: oldNote.deepCopy(),
         redo: (newNote: Note): Note[] => [newNote],
         redoArgs: newNote.deepCopy(),
-        summary: `ピッチの編集。ノートインデックス${initialUndoNote},ポルタメントのインデックス:${initialUndoIndex}`,
+        summary: `ピッチの編集。ノートインデックス${initialUndoNote.index},ポルタメントのインデックス:${initialUndoIndex}`,
       });
     }
   };

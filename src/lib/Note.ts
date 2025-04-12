@@ -901,16 +901,21 @@ export class Note {
             ? this._oto.dirpath + "/" + this._oto.filename
             : this._oto.filename,
         targetTone: noteNumToTone(this.notenum),
-        velocity: this.velocity ? this.velocity : defaultValue.velocity,
+        velocity:
+          this.velocity !== undefined ? this.velocity : defaultValue.velocity,
         flags: this.flags ? this.flags : flags,
         offsetMs: this._oto.offset,
         targetMs: this.targetLength,
         fixedMs: this._oto.velocity,
         cutoffMs: this._oto.blank,
-        intensity: this._intensity ? this._intensity : defaultValue.intensity,
-        modulation: this._modulation
-          ? this._modulation
-          : defaultValue.modulation,
+        intensity:
+          this._intensity !== undefined
+            ? this._intensity
+            : defaultValue.intensity,
+        modulation:
+          this._modulation !== undefined
+            ? this._modulation
+            : defaultValue.modulation,
         tempo: `!${this.tempo.toFixed(2)}`,
         pitches: encodePitch(this.getRenderPitch()),
       } as ResampRequest;

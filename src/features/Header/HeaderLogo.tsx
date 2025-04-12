@@ -68,7 +68,7 @@ export const HeaderLogo: React.FC = () => {
           </Typography>
         )}
       </Box>
-      <InfoVBDialog open={open} setOpen={setOpen} />
+      {vb !== null && <InfoVBDialog open={open} setOpen={setOpen} />}
     </>
   );
 };

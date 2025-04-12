@@ -21,13 +21,15 @@ export const LoadVBUnit: React.FC = () => {
         setDialogOpen={setDialogOpen}
         setReadFile={setReadFile}
       />
-      <LoadVBDialog
-        dialogOpen={dialogOpen}
-        readFile={readFile}
-        setProcessing={setProcessing}
-        setDialogOpen={setDialogOpen}
-        setReadFile={setReadFile}
-      />
+      {readFile !== null && (
+        <LoadVBDialog
+          dialogOpen={dialogOpen}
+          readFile={readFile}
+          setProcessing={setProcessing}
+          setDialogOpen={setDialogOpen}
+          setReadFile={setReadFile}
+        />
+      )}
     </>
   );
 };

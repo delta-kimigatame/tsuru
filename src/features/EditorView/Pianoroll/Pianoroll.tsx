@@ -81,7 +81,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           horizontalZoom +
         msToPoint(poltamentXOffset, n.tempo, horizontalZoom),
       y:
-        n.prev === null || n.prev.lyric === "R"
+        n.prev === null || n.prev === undefined || n.prev.lyric === "R"
           ? notenumToPoint(n.notenum, verticalZoom) -
             deciToneToPoint(n.pbs.height, verticalZoom)
           : notenumToPoint(n.prev.notenum, verticalZoom),
