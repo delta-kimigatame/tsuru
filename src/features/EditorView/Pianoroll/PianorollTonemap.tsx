@@ -1,6 +1,7 @@
 import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useCookieStore } from "../../../store/cookieStore";
 import { noteNumToTone } from "../../../utils/Notenum";
 
@@ -8,7 +9,8 @@ import { noteNumToTone } from "../../../utils/Notenum";
  * ピアノロールの左側の音高名を表示する部分
  */
 export const PianorollTonemap: React.FC = () => {
-  const { colorTheme, verticalZoom, horizontalZoom, mode } = useCookieStore();
+  const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
+  const mode = useThemeMode();
 
   return (
     <svg

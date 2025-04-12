@@ -1,6 +1,7 @@
 import React from "react";
 import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { useThemeMode } from "../../../hooks/useThemeMode";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 
@@ -10,7 +11,8 @@ import { useCookieStore } from "../../../store/cookieStore";
 export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
   totalLength,
 }) => {
-  const { colorTheme, verticalZoom, horizontalZoom, mode } = useCookieStore();
+  const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
+  const mode = useThemeMode();
 
   /**
    * notesの実際の拍子数に最も近い4の倍数+8

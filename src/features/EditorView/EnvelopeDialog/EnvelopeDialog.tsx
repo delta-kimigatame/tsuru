@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { EnvelopeTextGroup } from "../../../components/EditorView/EnvelopeDialog/EnvelopeTextGroup";
 import { defaultNote } from "../../../config/note";
 import { COLOR_PALLET } from "../../../config/pallet";
+import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
@@ -38,7 +39,8 @@ const ENVELOPE_POINT_SORT = [0, 1, 4, 2, 3] as const;
 
 export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
   const { t } = useTranslation();
-  const { colorTheme, mode } = useCookieStore();
+  const { colorTheme } = useCookieStore();
+  const mode = useThemeMode();
   const { setNote } = useMusicProjectStore();
   const windowSize = useWindowSize();
   const [points, setPoints] = React.useState<number[]>([]);
