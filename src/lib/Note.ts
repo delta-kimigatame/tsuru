@@ -902,18 +902,26 @@ export class Note {
             : this._oto.filename,
         targetTone: noteNumToTone(this.notenum),
         velocity:
-          this.velocity !== undefined ? this.velocity : defaultValue.velocity,
+          this.velocity !== undefined &&
+          this.velocity !== null &&
+          !Number.isNaN(this.velocity)
+            ? this.velocity
+            : defaultValue.velocity,
         flags: this.flags ? this.flags : flags,
         offsetMs: this._oto.offset,
         targetMs: this.targetLength,
         fixedMs: this._oto.velocity,
         cutoffMs: this._oto.blank,
         intensity:
-          this._intensity !== undefined
+          this._intensity !== undefined &&
+          this._intensity !== null &&
+          !Number.isNaN(this._intensity)
             ? this._intensity
             : defaultValue.intensity,
         modulation:
-          this._modulation !== undefined
+          this._modulation !== undefined &&
+          this._modulation !== null &&
+          !Number.isNaN(this._modulation)
             ? this._modulation
             : defaultValue.modulation,
         tempo: `!${this.tempo.toFixed(2)}`,
