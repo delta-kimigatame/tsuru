@@ -1,5 +1,5 @@
 import { ColorTheme } from "../types/colorTheme";
-import { Language } from "../types/language";
+import { Language, languages } from "../types/language";
 import { Mode } from "../types/mode";
 import { defaultParam } from "../types/note";
 import { defaultNote } from "./note";
@@ -17,6 +17,23 @@ export const COOKIE_KEYS = {
   useCache: "useCache",
   backgroundResamp: "backgroundResamp",
 } as const;
+
+const determineDefaultLocale = (): Language => {
+  const userLangs: string[] =
+    navigator.languages && navigator.languages.length > 0
+      ? [...navigator.languages]
+      : [navigator.language || ""];
+
+  const filtered = userLangs
+    .map((lang) => lang.slice(0, 2))
+    .filter((code) => languages.includes(code as Language)) as Language[];
+
+  if (filtered.length > 0) {
+    return filtered[0];
+  }
+
+  return "en";
+};
 
 export type CookieKey = keyof typeof COOKIE_KEYS;
 
@@ -71,7 +88,7 @@ export const cookieDefaults: {
   backgroundResamp: boolean;
 } = {
   mode: "system",
-  language: "ja",
+  language: determineDefaultLocale(),
   colorTheme: "default",
   defaultNote: defaultNote,
   verticalZoom: 1,
