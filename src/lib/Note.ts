@@ -140,6 +140,10 @@ export class Note {
 
   /** 音高。24(C1)～107(B7)までの整数 */
   set notenum(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._notenum = Math.max(Math.min(Math.floor(value), 107), 24);
   }
 
@@ -160,6 +164,10 @@ export class Note {
 
   /** 先行発声の入力値 */
   set preutter(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._preutter = Math.max(value, 0);
     this.autoFitParam();
   }
@@ -170,6 +178,10 @@ export class Note {
 
   /** オーバーラップの入力値 */
   set overlap(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._overlap = value;
     this.autoFitParam();
   }
@@ -181,6 +193,10 @@ export class Note {
 
   /** stpの入力値。正の数 */
   set stp(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._stp = Math.max(value, 0);
     this.autoFitParam();
   }
@@ -217,6 +233,10 @@ export class Note {
 
   /** 子音速度。0～200の整数 */
   set velocity(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._velocity = Math.max(Math.min(Math.floor(value), 200), 0);
     this.autoFitParam();
   }
@@ -228,6 +248,10 @@ export class Note {
 
   /** 音量。0～200の整数 */
   set intensity(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._intensity = Math.max(Math.min(Math.floor(value), 200), 0);
   }
 
@@ -238,6 +262,10 @@ export class Note {
 
   /** モジュレーション。-200～200の整数 */
   set modulation(value: number) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      // 異常値の場合は何もしない
+      return;
+    }
     this._modulation = Math.max(Math.min(Math.floor(value), 200), -200);
   }
   /** mode1ピッチ列。5tickに1つの間隔で与えられる */
