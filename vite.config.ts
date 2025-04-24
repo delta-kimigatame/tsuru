@@ -61,9 +61,10 @@ export default defineConfig(() => {
                 runtimeCaching: [
                   {
                     urlPattern: /.*\.(js|css|html|png|jpg|jpeg|svg)$/,
-                    handler: "StaleWhileRevalidate",
+                    handler: "NetworkFirst",
                     options: {
                       cacheName: "assets-cache",
+                      networkTimeoutSeconds: 3,
                     },
                   },
                 ],
