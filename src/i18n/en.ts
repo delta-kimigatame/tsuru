@@ -45,6 +45,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/02\r\n[Fixes] Fixed an issue in the TSURU engine where certain sounds would incorrectly resemble death growls. Also fixed a bug in the batch auto-processing where lyrics containing `ゅ` or `ょ` were not converted correctly.",
       "2025/04/23\r\n[Fixes] Fixed a bug where invalid values were injected into the output UST",
       "2025/04/13\r\n[Fixes] Fixed the bug where voicebank names became garbled after 4/12\r\nFixed the bug where the note editing screen became unplayable after 4/12\r\nChanged the default language to reference the browser settings",
       "2025/04/12\r\n [Feature Additions]\r\nAdded dotted quarter note and dotted eighth note to the note addition feature\r\n\r\n[Fixes]\r\nFixed bug where setting consonant velocity and volume to 0 caused the engine to interpret them as 100.\r\nFixed crash bug during pitch manipulation\r\nAdjusted log content for bug diagnosis",
