@@ -69,6 +69,8 @@ export const EditorView: React.FC = () => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+
   React.useEffect(() => {
     LOG.debug("vbかnotesかselectNotesIndexの更新を検知", "EditorView");
     LOG.debug("生成済みwavのクリア", "EditorView");
@@ -82,13 +84,14 @@ export const EditorView: React.FC = () => {
   }, [vb]);
 
   React.useEffect(() => {
-    const timerId = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       LOG.debug("notesかustFlagsかdefaultNoteの更新検知", "EditorView");
       makeCache();
     }, EDITOR_CONFIG.MAKE_CACHE_DELAT);
 
     return () => {
-      clearTimeout(timerId);
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     };
   }, [notes, ustFlags, defaultNote]);
 
@@ -155,6 +158,10 @@ export const EditorView: React.FC = () => {
   /** playとwavdownloadの共通処理 */
   const synthesis = async () => {
     LOG.info("wavファイル生成", "EditorView");
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setSynthesisProgress(true);
     LOG.info("wavファイル生成完了", "EditorView");
     try {
