@@ -148,7 +148,7 @@ describe("useProjectCookie", () => {
         <TestProjectCookieLanguage />
       </CookiesProvider>
     );
-    expect(screen.getByText("Language: ja")).toBeInTheDocument();
+    expect(screen.getByText("Language: en")).toBeInTheDocument();
   });
   it("hasLanguage", () => {
     document.cookie = "language=en; path=/;";

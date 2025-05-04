@@ -7,7 +7,10 @@ import {
   InfoVBDialogProps,
 } from "../../../src/features/InfoVBDialog/InfoVBDialog";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
-import { EncodingOption } from "../../../src/utils/EncodingMapping";
+import {
+  EncodingOption,
+  getFileReaderEncoding,
+} from "../../../src/utils/EncodingMapping";
 // ダミーの vb オブジェクトを作成（必要なプロパティのみ）
 const createDummyVb = (overrides = {}) => ({
   name: "Test VB",
@@ -76,7 +79,9 @@ describe("InfoVBDialog", () => {
 
     // エンコード変更により内部の useEffect が再実行され、vb.initialize が新しい値で呼ばれるのを待つ
     await waitFor(() => {
-      expect(dummyVb.initialize).toHaveBeenCalledWith(EncodingOption.UTF8);
+      expect(dummyVb.initialize).toHaveBeenCalledWith(
+        getFileReaderEncoding(EncodingOption.UTF8)
+      );
     });
   });
   // 3. 利用規約同意ボタンの動作

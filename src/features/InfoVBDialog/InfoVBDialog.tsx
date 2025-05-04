@@ -8,7 +8,10 @@ import { useTranslation } from "react-i18next";
 import { CharacterInfo } from "../../components/InfoVBDialog/CharacterInfo";
 import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
-import { EncodingOption } from "../../utils/EncodingMapping";
+import {
+  EncodingOption,
+  getFileReaderEncoding,
+} from "../../utils/EncodingMapping";
 import { EncodingSelect } from "../common/EncodingSelect";
 import { TextTabs } from "./TextTabs";
 
@@ -53,7 +56,8 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
       return;
     }
     LOG.info(`${encoding}に基づきVBを再度initialize`, "InfoVBDialog");
-    await vb.initialize(encoding);
+    await vb.initialize(getFileReaderEncoding(encoding));
+    console.log(vb);
     LOG.info(`${encoding}に基づきVBをinitialize完了`, "InfoVBDialog");
     setProgress(false);
   };

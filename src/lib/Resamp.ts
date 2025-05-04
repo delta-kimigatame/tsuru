@@ -135,7 +135,7 @@ export class Resamp {
       timeAxis,
       sp.fft_size,
       renderingConfig.frameRate,
-      0.85
+      0
     );
     const stretchParams = this.stretch(
       Array.from(request.frqData),

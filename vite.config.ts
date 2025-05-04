@@ -53,13 +53,18 @@ export default defineConfig(() => {
                 ],
               },
               workbox: {
+                // 新しい SW をスキップ待機せず即アクティブにする
+                skipWaiting: true,
+                // clients.claim() を呼んで、既存タブにもすぐ新 SW を適用
+                clientsClaim: true,
                 maximumFileSizeToCacheInBytes: 4.5 * 1024 * 1024,
                 runtimeCaching: [
                   {
                     urlPattern: /.*\.(js|css|html|png|jpg|jpeg|svg)$/,
-                    handler: "StaleWhileRevalidate",
+                    handler: "NetworkFirst",
                     options: {
                       cacheName: "assets-cache",
+                      networkTimeoutSeconds: 3,
                     },
                   },
                 ],

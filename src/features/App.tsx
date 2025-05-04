@@ -24,6 +24,7 @@ export const App: React.FC = () => {
   );
   React.useMemo(() => {
     i18n.changeLanguage(language);
+    document.documentElement.lang = language;
   }, [language]);
   return (
     <ThemeProvider theme={theme}>
