@@ -22,6 +22,8 @@ export interface Pallet {
   noteBorder: string;
   /** 歌詞の文字色 */
   lyric: string;
+  /** テンポ・ラベルの文字色 */
+  tempo: string;
   /** ピッチ */
   pitch: string;
   /** ピアノロールの白鍵部分の色 */
@@ -54,6 +56,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       selectedNote: "#F090F0",
       noteBorder: "#000000",
       lyric: "#000000",
+      tempo: "#999999",
       pitch: "#FF0000",
       tonemapWhiteKey: "#F0F0F0",
       tonemapBlackKey: "#FFC0FF",
@@ -70,6 +73,7 @@ export const COLOR_PALLET: { [key: string]: ColorPallet } = {
       selectedNote: "#F090F0",
       noteBorder: "#FFFFFF",
       lyric: "#FFFFFF",
+      tempo: "#AAAAAA",
       pitch: "#FF0000",
       tonemapWhiteKey: "#606060",
       tonemapBlackKey: "#C030C0",

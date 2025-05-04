@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
   IconButton,
   InputLabel,
@@ -36,6 +37,8 @@ const initialFormData: NoteState = {
   velocity: undefined,
   intensity: undefined,
   modulation: undefined,
+  tempo: undefined,
+  label: undefined,
 };
 
 export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
@@ -322,6 +325,45 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
             </Box>
           </>
         )}
+        <Divider />
+        <TextField
+          fullWidth
+          variant="outlined"
+          sx={{
+            m: 1,
+          }}
+          type="number"
+          label={t("editor.noteProperty.tempo")}
+          value={formState.tempo}
+          onChange={(e) =>
+            dispatch({
+              type: "UPDATE_FIELD",
+              key: "tempo",
+              value:
+                e.target.value === ""
+                  ? undefined
+                  : Math.max(parseFloat(e.target.value), 0),
+            })
+          }
+        />
+        <TextField
+          fullWidth
+          variant="outlined"
+          sx={{
+            m: 1,
+          }}
+          type="text"
+          label={t("editor.noteProperty.label")}
+          data-testid="propertyLabel"
+          value={formState.label}
+          onChange={(e) =>
+            dispatch({
+              type: "UPDATE_FIELD",
+              key: "label",
+              value: e.target.value,
+            })
+          }
+        />
       </DialogContent>
       <DialogActions>
         <Button
@@ -355,6 +397,8 @@ type NoteState = {
   velocity: number | undefined;
   intensity: number | undefined;
   modulation: number | undefined;
+  tempo: number | undefined;
+  label: string | undefined;
 };
 type NoteFormAction =
   | ({
@@ -380,6 +424,8 @@ const pickNoteFields = (note: Note): NoteState => ({
   velocity: note.velocity,
   intensity: note.intensity,
   modulation: note.modulation,
+  tempo: note.tempo,
+  label: note.label,
 });
 
 /**
@@ -418,6 +464,18 @@ const NoteEditCore = (n: Note, state: NoteState): Note => {
     n.velocity = state.velocity;
     n.intensity = state.intensity;
     n.modulation = state.modulation;
+  }
+  n.label = state.label;
+  if (state.tempo === undefined || state.tempo === null) {
+    n.hasTempo = false;
+  } else if (n.prev === undefined || n.prev === null) {
+    n.tempo = state.tempo;
+  } else if (n.prev.tempo !== state.tempo) {
+    n.tempo = state.tempo;
+    n.hasTempo = true;
+  } else if (n.prev.tempo === state.tempo) {
+    n.tempo = state.tempo;
+    n.hasTempo = false;
   }
   return n;
 };

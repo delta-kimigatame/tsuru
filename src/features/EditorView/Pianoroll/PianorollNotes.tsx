@@ -78,6 +78,54 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
             >
               {n.lyric}
             </text>
+            {(i === 0 || n.hasTempo) && (
+              <text
+                x={
+                  props.notesLeft[i] *
+                    PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+                    horizontalZoom +
+                  PIANOROLL_CONFIG.LYRIC_PADDING_LEFT
+                }
+                y={
+                  PIANOROLL_CONFIG.KEY_HEIGHT *
+                    (107 - n.notenum + 1) *
+                    verticalZoom +
+                  (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom) / 4
+                }
+                fontFamily='"Noto Sans JP", "Roboto", "Helvetica", "Arial", sans-serif'
+                fill={COLOR_PALLET[colorTheme][mode]["tempo"]}
+                fontSize={PIANOROLL_CONFIG.TEMPO_FONT_SIZE}
+                pointerEvents="none"
+                dominantBaseline="middle"
+                style={{ userSelect: "none", pointerEvents: "none" }}
+              >
+                bpm={n.tempo.toFixed(2)}
+              </text>
+            )}
+            {n.label && (
+              <text
+                x={
+                  props.notesLeft[i] *
+                    PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+                    horizontalZoom +
+                  PIANOROLL_CONFIG.LYRIC_PADDING_LEFT
+                }
+                y={
+                  PIANOROLL_CONFIG.KEY_HEIGHT *
+                    (107 - n.notenum + 1) *
+                    verticalZoom +
+                  ((PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom) / 4) * 3
+                }
+                fontFamily='"Noto Sans JP", "Roboto", "Helvetica", "Arial", sans-serif'
+                fill={COLOR_PALLET[colorTheme][mode]["tempo"]}
+                fontSize={PIANOROLL_CONFIG.TEMPO_FONT_SIZE}
+                pointerEvents="none"
+                dominantBaseline="middle"
+                style={{ userSelect: "none", pointerEvents: "none" }}
+              >
+                {n.label}
+              </text>
+            )}
           </>
         ))}
       </svg>

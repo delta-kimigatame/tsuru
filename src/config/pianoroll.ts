@@ -28,6 +28,8 @@ export const PIANOROLL_CONFIG = {
   NOTES_BORDER_WIDTH: 1,
   // 歌詞の文字サイズ
   LYRIC_FONT_SIZE: 14,
+  // テンポやラベルの文字サイズ
+  TEMPO_FONT_SIZE: 10,
   // 歌詞の左パディング
   LYRIC_PADDING_LEFT: 4,
   // 音高名を表示する部分
