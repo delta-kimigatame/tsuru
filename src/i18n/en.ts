@@ -45,6 +45,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/04\r\n[Added] Added tempo and label editing features to individual notes, and enabled displaying tempo and labels.\r\n[Fixes] Fixed an issue where long USTs might not play back correctly.",
       "2025/05/02\r\n[Fixes] Fixed an issue in the TSURU engine where certain sounds would incorrectly resemble death growls. Also fixed a bug in the batch auto-processing where lyrics containing `ゅ` or `ょ` were not converted correctly.",
       "2025/04/23\r\n[Fixes] Fixed a bug where invalid values were injected into the output UST",
       "2025/04/13\r\n[Fixes] Fixed the bug where voicebank names became garbled after 4/12\r\nFixed the bug where the note editing screen became unplayable after 4/12\r\nChanged the default language to reference the browser settings",
@@ -160,6 +161,8 @@ export const translationEn = {
       velocity: "Consonant Velocity",
       intensity: "Intensity",
       modulation: "Modulation",
+      tempo: "BPM",
+      label: "label",
       submitButton: "Change",
     },
   },
