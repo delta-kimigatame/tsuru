@@ -199,11 +199,19 @@ export abstract class BaseVoiceBank {
    * @param color ボイスカラー
    * @returns prefix.mapを反映した指定エイリアスの原音設定データ。それがなければprefix.mapを無視した原音設定データ
    */
-  abstract getOtoRecord(
-    alias: string,
-    notenum: number,
-    color: string
-  ): OtoRecord;
+  getOtoRecord(alias: string, notenum: number, color: string = ""): OtoRecord {
+    const c = Object.keys(this._prefixmaps).includes(color) ? color : "";
+    const p = this._prefixmaps[c].getValue(notenum);
+    if (alias.startsWith("?")) {
+      return this._oto.GetRecordFromAlias(alias.slice(1));
+    }
+    const r = this._oto.GetRecordFromAlias(p.prefix + alias + p.suffix);
+    if (r !== null) {
+      return r;
+    } else {
+      return this._oto.GetRecordFromAlias(alias);
+    }
+  }
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名
