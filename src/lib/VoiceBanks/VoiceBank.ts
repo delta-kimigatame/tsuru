@@ -36,7 +36,7 @@ export class VoiceBank extends BaseVoiceBank {
   /**
    * zipデータ
    */
-  get zip(): { [filename: string]: JSZip.JSZipObject } {
+  override get zip(): { [filename: string]: JSZip.JSZipObject } {
     const root = this._root !== undefined ? this._root + "/" : "";
     return Object.fromEntries(
       Object.entries(this._zip)

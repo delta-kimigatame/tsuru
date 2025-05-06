@@ -24,6 +24,16 @@ export class VoiceBankFiles extends BaseVoiceBank {
     this._files = files;
     this._filenames = files.map((f) => f.webkitRelativePath);
   }
+
+  override get files(): { [filename: string]: File } {
+    const root = this._root !== undefined ? this._root + "/" : "";
+    return Object.fromEntries(
+      this._files
+        .filter((f) => f.webkitRelativePath.startsWith(root))
+        .map((f) => [f.webkitRelativePath.replace(root, ""), f])
+    );
+  }
+
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名

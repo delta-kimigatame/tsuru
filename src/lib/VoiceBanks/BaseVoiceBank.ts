@@ -185,6 +185,16 @@ export abstract class BaseVoiceBank {
   get root(): string {
     return this._root;
   }
+  /**
+   * zipデータ
+   */
+  get zip() {
+    return null;
+  }
+
+  get files() {
+    return null;
+  }
 
   constructor() {
     this._prefixmaps = {};

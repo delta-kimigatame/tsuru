@@ -26,23 +26,36 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
    */
   const textFileList = React.useMemo(() => {
     LOG.debug("zipファイルの更新検知", "TextTabs");
-    if (!props.zipFiles) {
+    if (!props.zipFiles && !props.files) {
       LOG.debug("zipファイルはnull", "TextTabs");
       return undefined;
+    } else if (props.zipFiles) {
+      const fileList = Object.keys(props.zipFiles);
+      /** character.txt,install.txt,readme.txt以外のtxtファイルの相対パス */
+      const filterFileList = fileList.filter((f) => filterRule(f));
+      /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
+      if (fileList.includes("readme.txt")) {
+        filterFileList.unshift("readme.txt");
+      }
+      LOG.info(
+        `zip内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
+        "TextTabs"
+      );
+      return filterFileList;
+    } else if (props.files) {
+      const fileList = Object.keys(props.files);
+      const filterFileList = fileList.filter((f) => filterRule(f));
+      /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
+      if (fileList.includes("readme.txt")) {
+        filterFileList.unshift("readme.txt");
+      }
+      LOG.info(
+        `フォルダ内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
+        "TextTabs"
+      );
+      return filterFileList;
     }
-    const fileList = Object.keys(props.zipFiles);
-    /** character.txt,install.txt,readme.txt以外のtxtファイルの相対パス */
-    const filterFileList = fileList.filter((f) => filterRule(f));
-    /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
-    if (fileList.includes("readme.txt")) {
-      filterFileList.unshift("readme.txt");
-    }
-    LOG.info(
-      `zip内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
-      "TextTabs"
-    );
-    return filterFileList;
-  }, [props.zipFiles]);
+  }, [props.zipFiles, props.files]);
 
   /** タブを変更する操作 */
   const handleChange = (e: React.SyntheticEvent, newValue: number) => {
@@ -70,7 +83,9 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
             {textFileList.map((f, i) => (
               <TabPanel key={f} value={i}>
                 <TextTabContent
-                  textFile={props.zipFiles[f]}
+                  textFile={
+                    props.zipFiles !== null ? props.zipFiles[f] : props.files[f]
+                  }
                   encoding={props.encoding}
                 />
               </TabPanel>
@@ -91,6 +106,7 @@ export interface TextTabsProps {
    * なお、VoiceBank関数はcharacter.txtがあるパスをrootと判定する。
    *  */
   zipFiles: { [key: string]: JSZip.JSZipObject };
+  files: { [key: string]: File };
   /** テキストファイルを読み込むための文字コード */
   encoding: EncodingOption;
 }
