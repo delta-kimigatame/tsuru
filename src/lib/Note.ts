@@ -9,7 +9,7 @@ import type { AppendRequestBase, ResampRequest } from "../types/request";
 import { makeTimeAxis } from "../utils/interp";
 import { noteNumToTone } from "../utils/Notenum";
 import { encodePitch } from "../utils/pitch";
-import type { VoiceBank } from "./VoiceBanks/VoiceBank";
+import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 
 export class Note {
   /** 楽譜の先頭からみたnoteのindex */
@@ -556,7 +556,7 @@ export class Note {
    * @param vb UTAU音源
    * @throws lyricもしくはnotenumが初期化されていない場合
    */
-  applyOto(vb: VoiceBank): void {
+  applyOto(vb: BaseVoiceBank): void {
     if (this._lyric === undefined) {
       throw new Error("lyric is not initial.");
     } else if (this._notenum === undefined) {
@@ -909,7 +909,7 @@ export class Note {
    * @returns エンジンに渡すための値
    */
   getRequestParam(
-    vb: VoiceBank,
+    vb: BaseVoiceBank,
     flags: string,
     defaultValue: defaultParam
   ): {

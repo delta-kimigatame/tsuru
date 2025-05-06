@@ -1,6 +1,6 @@
 import { LOG } from "../lib/Logging";
 import { Note } from "../lib/Note";
-import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
+import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 
 /**
  * バッチプロセスを実行し、結果のノートを更新する共通処理。
@@ -17,7 +17,7 @@ export function executeBatchProcess<TOptions>(
   selectNotesIndex: number[],
   notes: Note[],
   setNotes: (note: Array<Note>) => void,
-  vb: VoiceBank | null,
+  vb: BaseVoiceBank | null,
   processFn: (targetNotes: Note[], options?: TOptions) => Note[],
   options: TOptions
 ) {

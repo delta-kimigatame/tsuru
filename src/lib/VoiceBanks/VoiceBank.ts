@@ -5,17 +5,17 @@
 import yaml from "js-yaml";
 import type JSZip from "jszip";
 
-import { Oto } from "utauoto";
 import type OtoRecord from "utauoto/dist/OtoRecord";
 import { Wave } from "utauwav";
 
 import { extractFileFromZip } from "../../services/extractFileFromZip";
 import { readTextFile } from "../../services/readTextFile";
+import { BaseVoiceBank } from "./BaseVoiceBank";
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
 import { Frq } from "./UtauFrq";
 
-export class VoiceBank {
+export class VoiceBank extends BaseVoiceBank {
   /**
    * UTAU音源として操作するzipファイル
    */
@@ -24,192 +24,14 @@ export class VoiceBank {
   };
 
   /**
-   * zip内のファイル一覧
-   */
-  private _filenames: Array<string>;
-
-  /**
-   * character.txt
-   */
-  private _character: CharacterTxt;
-
-  /**
-   * character.yaml
-   */
-  private _characterYaml: {
-    voice?: string;
-    portrait?: string;
-    portrait_opacity?: number;
-    portrait_height?: number;
-    subbanks?: Array<{
-      color: string;
-      prefix: string;
-      suffix: string;
-      tone_ranges: Array<string>;
-    }>;
-  };
-  /**
-   * prefix.map
-   */
-  private _prefixmaps: { [color: string]: PrefixMap };
-
-  /**
-   * 原音設定データ
-   */
-  private _oto: Oto;
-
-  /**
-   * readme.txt
-   */
-  private _readme: string;
-
-  /**
-   * zipファイル内における音源ルートの相対パス
-   */
-  private _root: string;
-
-  /**
-   * アイコンファイル
-   */
-  private _icon: ArrayBuffer;
-
-  /**
-   * サンプル音声
-   */
-  private _sample: ArrayBuffer;
-
-  /**
-   * 立ち絵
-   */
-  private _portrait: ArrayBuffer;
-
-  /**
-   * 初期化完了済みフラグ
-   */
-  private _initialized: boolean;
-
-  get initialized(): boolean {
-    return this._initialized;
-  }
-
-  /**
    * UTAU音源ライブラリを利用する処理全般を扱う
    * @param zip character.txtを含むzip
    * @throws character.txtが存在しない場合。
    */
   constructor(zip: { [filename: string]: JSZip.JSZipObject }) {
+    super();
     this._zip = zip;
     this._filenames = Object.keys(this._zip);
-    this._prefixmaps = {};
-    this._oto = new Oto();
-    this._initialized = false;
-  }
-
-  /**
-   * character.txtで定義された音源名
-   */
-  get name(): string | undefined {
-    return this._character.name;
-  }
-
-  /**
-   * character.txtで参照するアイコン画像
-   */
-  get image(): ArrayBuffer | undefined {
-    return this._icon;
-  }
-
-  /**
-   * character.txtで参照するサンプル音声
-   */
-  get sample(): ArrayBuffer | undefined {
-    return this._sample;
-  }
-
-  /**
-   * character.txtで定義された管理者名
-   */
-  get author(): string | undefined {
-    return this._character.author;
-  }
-
-  /**
-   * character.txtで定義されたurl
-   */
-  get web(): string | undefined {
-    return this._character.web;
-  }
-
-  /**
-   * character.txtで定義されたバージョン情報
-   */
-  get version(): string | undefined {
-    return this._character.version;
-  }
-
-  /**
-   * character.yamlで定義された音声提供者情報
-   */
-  get voice(): string | undefined {
-    if (this._characterYaml) {
-      return this._characterYaml.voice;
-    } else {
-      return undefined;
-    }
-  }
-
-  /**
-   * character.yamlで参照される立ち絵
-   */
-  get portrait(): ArrayBuffer | undefined {
-    return this._portrait;
-  }
-
-  /**
-   * character.yamlで定義された立ち絵の透過度。デフォルト値は0.67
-   */
-  get portraitOpacity(): number {
-    if (this._characterYaml) {
-      return this._characterYaml.portrait_opacity
-        ? this._characterYaml.portrait_opacity
-        : 0.67;
-    } else {
-      return 0.67;
-    }
-  }
-
-  /**
-   * character.yamlで定義された立ち絵の縦幅。デフォルト値は800
-   */
-  get portraitHeight(): number {
-    if (this._characterYaml) {
-      return this._characterYaml.portrait_height
-        ? this._characterYaml.portrait_height
-        : 800;
-    } else {
-      return 800;
-    }
-  }
-
-  /**
-   * readme.txt
-   */
-  get readme(): string | undefined {
-    return this._readme;
-  }
-
-  /**
-   * 原音設定データ
-   */
-  get oto(): Oto {
-    return this._oto;
-  }
-
-  /**
-   * prefix.mapデータ
-   */
-  get prefixmaps(): { [color: string]: PrefixMap } {
-    return this._prefixmaps;
   }
 
   /**
@@ -222,10 +44,6 @@ export class VoiceBank {
         .filter(([key, value]) => key.startsWith(root))
         .map(([key, value]) => [key.replace(root, ""), value])
     );
-  }
-
-  get root(): string {
-    return this._root;
   }
 
   /**
@@ -445,25 +263,6 @@ export class VoiceBank {
         );
       }
       resolve();
-    });
-  }
-
-  /**
-   * rootフォルダ以下にあるすべてのoto.iniを読み込み、this._otoを更新する
-   * @param encoding oto.ini読み込み時の文字コード
-   */
-  async extractOtoAll(encoding): Promise<void> {
-    return new Promise(async (resolve) => {
-      const otoPaths = this._filenames
-        .filter((f) => f.endsWith("oto.ini"))
-        .filter((f) => f.startsWith(this._root));
-      const asyncs = new Array();
-      otoPaths.forEach(async (p) => {
-        asyncs.push(this.extractOto(p, encoding));
-      });
-      Promise.all(asyncs).then(() => {
-        resolve();
-      });
     });
   }
 

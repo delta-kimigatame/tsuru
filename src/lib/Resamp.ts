@@ -3,8 +3,8 @@ import { renderingConfig } from "../config/rendering";
 import type { ResampRequest, ResampWorkerRequest } from "../types/request";
 import { interp1d, makeTimeAxis } from "../utils/interp";
 import { decodePitch, getFrqFromTone } from "../utils/pitch";
+import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 import { Frq } from "./VoiceBanks/UtauFrq";
-import type { VoiceBank } from "./VoiceBanks/VoiceBank";
 
 /**
  * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
@@ -13,7 +13,7 @@ export class Resamp {
   /**
    *合成するUTAU音源
    */
-  vb: VoiceBank;
+  vb: BaseVoiceBank;
   /**
    * 音声分析合成システムworld
    */
@@ -22,7 +22,7 @@ export class Resamp {
    * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
    * @param vb 合成するUTAU音源
    */
-  constructor(vb: VoiceBank = null) {
+  constructor(vb: BaseVoiceBank = null) {
     this.vb = vb;
   }
 
