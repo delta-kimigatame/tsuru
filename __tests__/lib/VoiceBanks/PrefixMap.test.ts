@@ -153,6 +153,31 @@ describe("prefix.map", () => {
       }
     }
   });
+  it("load_file_with_Charset:utf8", () => {
+    const map = new PrefixMap();
+    map.setRangeValues("C7-B7", "pre", "");
+    map.setRangeValues("C6-B6", "", "su");
+    map.setRangeValues("C5-B5", "testp", "tests");
+    const output = "#Charset:UTF8\r\n" + map.outputMap();
+    const map2 = new PrefixMap(output);
+    for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
+      const valueFromNotenum = map2.getValue(i);
+      expect(valueFromNotenum.tone).toBe(noteNumToTone(i));
+      if (i >= toneToNoteNum("C7")) {
+        expect(valueFromNotenum.prefix).toBe("pre");
+        expect(valueFromNotenum.suffix).toBe("");
+      } else if (i >= toneToNoteNum("C6")) {
+        expect(valueFromNotenum.prefix).toBe("");
+        expect(valueFromNotenum.suffix).toBe("su");
+      } else if (i >= toneToNoteNum("C5")) {
+        expect(valueFromNotenum.prefix).toBe("testp");
+        expect(valueFromNotenum.suffix).toBe("tests");
+      } else {
+        expect(valueFromNotenum.prefix).toBe("");
+        expect(valueFromNotenum.suffix).toBe("");
+      }
+    }
+  });
   it("output_empty_for_OU", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
