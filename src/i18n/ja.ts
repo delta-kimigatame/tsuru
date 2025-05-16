@@ -29,6 +29,9 @@ export const translationJa = {
     selectZipButtonText: "UTAU音源のzipファイルを選択",
     selectZipButtonDescription:
       "「UTAU音源のzipファイルを選択」をクリックすると、利用規約に同意したとみなします。",
+    selectDirButtonText: "(β)UTAU音源のフォルダを選択",
+    selectDirButtonDescription:
+      "「(β)UTAU音源のフォルダを選択」をクリックすると、利用規約に同意したとみなします。",
     rule: "利用規約",
     ruleDescription: "声の権利者から許諾を得た音源のみご利用できます。",
     ruleDescription2:
@@ -45,6 +48,8 @@ export const translationJa = {
       "本サイトで使用されるワーカーは、プライバシーに関わるデータを収集しません。",
     history: "更新履歴",
     changelog: [
+      "2025/05/16\r\n【修正】Charset:UTF8から始まるoto.iniが読み込めない不具合の修正。\r\n【機能追加】zipファイル選択時uarファイルを選択可能にした。",
+      "2025/05/06\r\n【機能追加】フォルダから音源を読み込む機能の追加。character.txtが含まれるフォルダを選択してください。",
       "2025/05/04\r\n【追加】各ノートにテンポとラベルの編集機能を追加、テンポとラベルの表示を追加。\r\n【修正】長いustがうまく再生されないケースがある不具合の修正",
       "2025/05/02\r\n【修正】TSURUエンジンにおいて、一部の音がデスボイスのような声になる不具合の修正、おまかせ一括処理において、`ゅ``ょ`を含む場合正しく歌詞の変換ができなかった不具合の修正。",
       "2025/04/23\r\n【修正】出力するustに不正な値が混入する不具合の修正",
