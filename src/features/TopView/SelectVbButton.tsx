@@ -64,7 +64,7 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
         onChange={handleFileChange}
         hidden
         ref={inputRef}
-        accept="application/zip"
+        accept=".uar,.zip"
         data-testid="file-input"
       ></input>
       <Button
