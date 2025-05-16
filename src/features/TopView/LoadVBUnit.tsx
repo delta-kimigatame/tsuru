@@ -1,6 +1,7 @@
 import * as React from "react";
 import { LoadVBDialog } from "../LoadVBDialog/LoadVBDialog";
 import { SelectVBButton } from "./SelectVbButton";
+import { SelectVBDirButton } from "./SelectVBDirButton";
 
 /**
  * 音源を選択し読み込む一連の処理をまとめたコンポーネント。
@@ -19,6 +20,11 @@ export const LoadVBUnit: React.FC = () => {
         processing={processing}
         setProcessing={setProcessing}
         setDialogOpen={setDialogOpen}
+        setReadFile={setReadFile}
+      />
+      <SelectVBDirButton
+        processing={processing}
+        setProcessing={setProcessing}
         setReadFile={setReadFile}
       />
       {readFile !== null && (

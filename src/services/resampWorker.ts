@@ -10,7 +10,7 @@
 
 import { renderingConfig } from "../config/rendering";
 import { LOG } from "../lib/Logging";
-import type { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
+import type { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import type {
   ResampRequest,
   ResampWorkerRequest,
@@ -34,7 +34,7 @@ export const getWaveData = async (
   inputWav: string,
   offsetMs: number,
   cutoffMs: number,
-  vb: VoiceBank
+  vb: BaseVoiceBank
 ): Promise<number[]> => {
   LOG.info(`wavデータの読込:${inputWav}`, "resampWorker.getWaveData");
   try {
@@ -66,7 +66,7 @@ export const getFrqData = async (
   inputWav: string,
   offsetMs: number,
   wavMs: number,
-  vb: VoiceBank
+  vb: BaseVoiceBank
 ): Promise<{
   frq: number[];
   amp: number[];
@@ -186,7 +186,7 @@ export class ResampWorkerService {
    */
   public async processResamp(
     request: ResampRequest,
-    vb: VoiceBank
+    vb: BaseVoiceBank
   ): Promise<Float64Array> {
     // Worker の初期化が完了していることを保証
     await this.waitUntilReady();

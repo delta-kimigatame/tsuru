@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Note } from "../lib/Note";
 import { Ust } from "../lib/Ust";
-import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
+import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 
 /**
  * MusicProjectStore
@@ -18,7 +18,7 @@ interface MusicProjectStore {
    * 音声ライブラリ（UTAUのVoiceBank）
    * null の場合は未選択
    */
-  vb: VoiceBank | null;
+  vb: BaseVoiceBank | null;
 
   /**
    * 楽譜全体のテンポ（BPM単位）
@@ -46,7 +46,7 @@ interface MusicProjectStore {
    * 音声ライブラリを設定する
    * @param vb VoiceBank のインスタンス
    */
-  setVb: (vb: VoiceBank) => void;
+  setVb: (vb: BaseVoiceBank) => void;
 
   /**
    * 楽譜の BPM を設定する

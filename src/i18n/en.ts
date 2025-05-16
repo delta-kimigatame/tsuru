@@ -30,6 +30,9 @@ export const translationEn = {
     selectZipButtonText: "Agree and Proceed",
     selectZipButtonDescription:
       "By clicking 'Agree and Proceed', you accept the Terms of Use and select the UTAU VoiceBank ZIP file.",
+    selectDirButtonText: "(Beta)Select UTAU VoiceBank Folder",
+    selectDirButtonDescription:
+      "By clicking '(Beta)Select UTAU VoiceBank Folder', you are deemed to have agreed to the Terms of Use.",
     rule: "Terms of service",
     ruleDescription:
       "Only voice sources with permission from the voice rights holder may be used.",
@@ -45,6 +48,8 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/16\r\n[Fixes] Fixed a bug where oto.ini files starting with Charset:UTF8 could not be loaded.\r\n[Feature Additions] Enabled selection of .uar files when choosing ZIP files.",
+      "2025/05/06\r\n[Feature Additions] Added functionality to load voicebanks from a folder. Please select a folder that contains a character.txt file.",
       "2025/05/04\r\n[Added] Added tempo and label editing features to individual notes, and enabled displaying tempo and labels.\r\n[Fixes] Fixed an issue where long USTs might not play back correctly.",
       "2025/05/02\r\n[Fixes] Fixed an issue in the TSURU engine where certain sounds would incorrectly resemble death growls. Also fixed a bug in the batch auto-processing where lyrics containing `ゅ` or `ょ` were not converted correctly.",
       "2025/04/23\r\n[Fixes] Fixed a bug where invalid values were injected into the output UST",

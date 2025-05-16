@@ -131,7 +131,9 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
           />
         </DialogTitle>
         <DialogContent>
-          {vb !== null && <TextTabs zipFiles={vb.zip} encoding={encoding} />}
+          {vb !== null && (
+            <TextTabs zipFiles={vb.zip} files={vb.files} encoding={encoding} />
+          )}
         </DialogContent>
         {!agreed && (
           <DialogActions>

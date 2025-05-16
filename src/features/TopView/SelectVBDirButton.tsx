@@ -3,31 +3,30 @@ import { useTranslation } from "react-i18next";
 
 import { Button, CircularProgress, Typography } from "@mui/material";
 import { LOG } from "../../lib/Logging";
+import { VoiceBankFiles } from "../../lib/VoiceBanks/VoiceBankFiles";
+import { useMusicProjectStore } from "../../store/musicProjectStore";
+import { useSnackBarStore } from "../../store/snackBarStore";
 
-/**
- * このアプリケーションにおける最初のUTAU音源読込処理を実行するためのボタンです。
- * このボタンをクリックすると、OSのファイル選択画面が表示され、ユーザーはUTAU音源形式のzipファイルを選択します。
- * 選択されたzipファイルは、LoadVBDialogで読込処理を行います。
- * 読込処理実行中には、このボタンはdisableとなります。
- * @param props
- * @returns
- */
-export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
+export const SelectVBDirButton: React.FC<SelectVBDirButtonProps> = (props) => {
   /** 隠し表示する<input>へのref */
   const inputRef = React.useRef(null);
   const { t } = useTranslation();
+  /** snackbarの操作 */
+  const snackBarStore = useSnackBarStore();
+
+  const { setVb } = useMusicProjectStore();
 
   /**
    * ボタンをクリックした際の動作。
    * 隠し要素であるinputのクリックイベントを発火する。
    */
   const handleButtonClick = () => {
-    LOG.debug("click", "SelectVBButton");
+    LOG.debug("click", "SelectVBDirButton");
     /** 実行状況の初期化 */
     props.setProcessing(false);
     props.setReadFile(null);
     /** ファイル読み込みの発火 */
-    LOG.info("音源zipファイルの選択", "SelectVBButton");
+    LOG.info("音源フォルダの選択", "SelectVBDirButton");
     inputRef.current.click();
   };
 
@@ -38,23 +37,32 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
    * 実際のファイルの読込はloadVBDialogで行う。
    * @param e
    */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       LOG.warn(
-        "音源zipの選択がキャンセルされたか失敗しました",
-        "SelectVBButton"
+        "音源フォルダの選択がキャンセルされたか失敗しました",
+        "SelectVBDirButton"
       );
       return;
     }
     props.setProcessing(true);
-    LOG.info(`音源zipの選択:${e.target.files[0].name}`, "SelectVBButton");
-    LOG.gtag("selectVb", {
-      filename: e.target.files[0].name,
-      fileSize: e.target.files[0].size,
-    });
-    props.setReadFile(e.target.files[0]);
-    LOG.info(`音源読込ダイアログの表示`, "SelectVBButton");
-    props.setDialogOpen(true);
+    LOG.info(
+      `音源フォルダの選択:${e.target.files[0].webkitRelativePath}`,
+      "SelectVBDirButton"
+    );
+    LOG.gtag("SelectVBDir");
+    const vbdir = new VoiceBankFiles(Array.from(e.target.files));
+    try {
+      await vbdir.initialize();
+      setVb(vbdir);
+    } catch {
+      LOG.error("dirをvoicebankとしてinitialize失敗", "SelectVBDirButton");
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("loadVBDialog.error"));
+      snackBarStore.setOpen(true);
+      props.setProcessing(false);
+    }
+    props.setProcessing(false);
   };
 
   return (
@@ -64,8 +72,10 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
         onChange={handleFileChange}
         hidden
         ref={inputRef}
-        accept=".uar,.zip"
-        data-testid="file-input"
+        data-testid="dir-input"
+        /* @ts-expect-error */
+        directory=""
+        webkitdirectory=""
       ></input>
       <Button
         fullWidth
@@ -78,23 +88,21 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
         {props.processing ? (
           <CircularProgress color="inherit" size={20} />
         ) : (
-          t("top.selectZipButtonText")
+          t("top.selectDirButtonText")
         )}
       </Button>
       <Typography variant="caption">
-        {t("top.selectZipButtonDescription")}
+        {t("top.selectDirButtonDescription")}
       </Typography>
     </>
   );
 };
 
-export interface SelectVBButtonProps {
+export interface SelectVBDirButtonProps {
   /** 音源読込処理の状況を管理するstate。読込中はtrue */
   processing: boolean;
   /** 音源読込処理の状況を更新するためのコールバック */
   setProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   /** 読み込んだファイルを更新するためのコールバック */
   setReadFile: React.Dispatch<React.SetStateAction<File | null>>;
-  /** ダイアログの表示状況を更新するためのコールバック */
-  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }

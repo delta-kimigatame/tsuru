@@ -40,12 +40,13 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
      * テキストファイルを読み込むための非同期処理
      */
     const fetchLines = async () => {
-      LOG.info(
-        `音源zipからテキストファイル読み込み。${props.textFile}`,
-        "TextTabContent"
-      );
+      LOG.info(`テキストファイル読み込み。${props.textFile}`, "TextTabContent");
+      console.log(props.textFile instanceof File);
       try {
-        const buf = await extractFileFromZip(props.textFile);
+        const buf =
+          props.textFile instanceof File
+            ? await (props.textFile as File).arrayBuffer()
+            : await extractFileFromZip(props.textFile as JSZip.JSZipObject);
         const text = await readTextFile(
           buf,
           getFileReaderEncoding(props.encoding)
@@ -53,7 +54,7 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
         const newLines = text.replace(/\r\n/g, "\n").split("\n");
         if (!isCancelled) {
           LOG.info(
-            `音源zipからテキストファイル読み込み完了。${props.textFile}`,
+            `テキストファイル読み込み完了。${props.textFile}`,
             "TextTabContent"
           );
           setLines(newLines);
@@ -61,7 +62,7 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
       } catch {
         if (!isCancelled) {
           LOG.warn(
-            `音源zipからテキストファイル読み込み失敗。${props.textFile}`,
+            `テキストファイル読み込み失敗。${props.textFile}`,
             "TextTabContent"
           );
           setLines([]);
@@ -101,7 +102,7 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
 
 export interface TextTabContentProps {
   /** このコンポーネントで表示するzip内のtextファイル */
-  textFile: JSZip.JSZipObject;
+  textFile: JSZip.JSZipObject | File;
   /** テキストファイルを読み込むための文字コード */
   encoding: EncodingOption;
 }

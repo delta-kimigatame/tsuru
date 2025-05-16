@@ -1,7 +1,7 @@
 import { renderingConfig } from "../config/rendering";
 import { LOG } from "../lib/Logging";
 import { resampCache } from "../lib/ResampCache";
-import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
+import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import { Wavtool } from "../lib/Wavtool";
 import { useCookieStore } from "../store/cookieStore";
 import { useMusicProjectStore } from "../store/musicProjectStore";
@@ -81,7 +81,7 @@ export class SynthesisWorker {
       resamp: ResampRequest | undefined;
       append: AppendRequestBase;
     },
-    vb: VoiceBank,
+    vb: BaseVoiceBank,
     index: number
   ): Promise<Float64Array> => {
     if (param.resamp === undefined) {

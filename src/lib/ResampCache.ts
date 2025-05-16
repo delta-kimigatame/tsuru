@@ -2,7 +2,7 @@ import { WaveProcessing } from "utauwav";
 import { defaultParam } from "../types/note";
 import { ResampRequest } from "../types/request";
 import { Note } from "./Note";
-import { VoiceBank } from "./VoiceBanks/VoiceBank";
+import { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 
 /**
  * resamplerが出力した結果をキャッシュするためのシングルトン
@@ -74,7 +74,7 @@ class ResampCache {
    */
   checkNote = (
     note: Note,
-    vb: VoiceBank,
+    vb: BaseVoiceBank,
     ustFlags: string,
     defaultValue: defaultParam
   ): boolean => {

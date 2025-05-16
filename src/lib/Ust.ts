@@ -7,7 +7,7 @@ import { readTextFile } from "../services/readTextFile";
 import type { defaultParam } from "../types/note";
 import type { AppendRequestBase, ResampRequest } from "../types/request";
 import { Note } from "./Note";
-import type { VoiceBank } from "./VoiceBanks/VoiceBank";
+import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 
 export class Ust {
   /**プロジェクトのbpm */
@@ -160,7 +160,7 @@ export class Ust {
    * @returns 歌唱用パラメータ
    */
   getRequestParam(
-    vb: VoiceBank,
+    vb: BaseVoiceBank,
     defaultValue: defaultParam,
     selectNotes?: Array<number>
   ): Array<{

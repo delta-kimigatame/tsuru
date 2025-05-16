@@ -3,45 +3,34 @@
  */
 
 import yaml from "js-yaml";
-import type JSZip from "jszip";
 
 import { Wave } from "utauwav";
 
-import { extractFileFromZip } from "../../services/extractFileFromZip";
 import { readTextFile } from "../../services/readTextFile";
 import { BaseVoiceBank } from "./BaseVoiceBank";
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
 import { Frq } from "./UtauFrq";
 
-export class VoiceBank extends BaseVoiceBank {
-  /**
-   * UTAU音源として操作するzipファイル
-   */
-  private _zip: {
-    [filename: string]: JSZip.JSZipObject;
-  };
-
+export class VoiceBankFiles extends BaseVoiceBank {
+  private _files: File[];
   /**
    * UTAU音源ライブラリを利用する処理全般を扱う
    * @param zip character.txtを含むzip
    * @throws character.txtが存在しない場合。
    */
-  constructor(zip: { [filename: string]: JSZip.JSZipObject }) {
+  constructor(files: File[]) {
     super();
-    this._zip = zip;
-    this._filenames = Object.keys(this._zip);
+    this._files = files;
+    this._filenames = files.map((f) => f.webkitRelativePath);
   }
 
-  /**
-   * zipデータ
-   */
-  override get zip(): { [filename: string]: JSZip.JSZipObject } {
+  override get files(): { [filename: string]: File } {
     const root = this._root !== undefined ? this._root + "/" : "";
     return Object.fromEntries(
-      Object.entries(this._zip)
-        .filter(([key, value]) => key.startsWith(root))
-        .map(([key, value]) => [key.replace(root, ""), value])
+      this._files
+        .filter((f) => f.webkitRelativePath.startsWith(root))
+        .map((f) => [f.webkitRelativePath.replace(root, ""), f])
     );
   }
 
@@ -55,15 +44,16 @@ export class VoiceBank extends BaseVoiceBank {
     return new Promise(async (resolve, reject) => {
       const root =
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
-      if (Object.keys(this._zip).includes(root + filename)) {
-        const buf = await extractFileFromZip(this._zip[root + filename]);
+      if (this._filenames.includes(root + filename)) {
+        const buf = await this._files[
+          this._filenames.indexOf(root + filename)
+        ].arrayBuffer();
         resolve(new Wave(buf));
       } else {
         reject(`${root + filename} not found.`);
       }
     });
   }
-
   /**
    * 対応するwavのファイル名からfrqを返す
    * @param wavFilename wavのファイル名
@@ -75,8 +65,10 @@ export class VoiceBank extends BaseVoiceBank {
       const root =
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
-      if (Object.keys(this._zip).includes(root + frqFilename)) {
-        const buf = await extractFileFromZip(this._zip[root + frqFilename]);
+      if (this._filenames.includes(root + frqFilename)) {
+        const buf = await this._files[
+          this._filenames.indexOf(root + frqFilename)
+        ].arrayBuffer();
         resolve(new Frq({ buf: buf }));
       } else {
         reject(`${root + frqFilename} not found.`);
@@ -120,7 +112,6 @@ export class VoiceBank extends BaseVoiceBank {
       });
     });
   }
-
   /**
    * character.txtを抽出し、その内容を返す。
    * @param path zipファイル内におけるcharacter.txtのパス。事前にファイルの存在を確認していること
@@ -128,12 +119,13 @@ export class VoiceBank extends BaseVoiceBank {
    */
   async extractCharacterTxt(path: string, encoding): Promise<CharacterTxt> {
     return new Promise(async (resolve) => {
-      const characterBuf = await extractFileFromZip(this._zip[path]);
+      const characterBuf = await this._files[
+        this._filenames.indexOf(path)
+      ].arrayBuffer();
       const character = await readTextFile(characterBuf, encoding);
       resolve(new CharacterTxt({ txt: character }));
     });
   }
-
   /**
    * character.txtにおいてimageで定義されているファイルがzip内にあれば、this._iconを更新する。
    */
@@ -145,11 +137,11 @@ export class VoiceBank extends BaseVoiceBank {
           this._root + "/" + this._character.image.replace(/\\/g, "/")
         )
       ) {
-        this._icon = await extractFileFromZip(
-          this._zip[
+        this._icon = await this._files[
+          this._filenames.indexOf(
             this._root + "/" + this._character.image.replace(/\\/g, "/")
-          ]
-        );
+          )
+        ].arrayBuffer();
       }
       resolve();
     });
@@ -165,11 +157,11 @@ export class VoiceBank extends BaseVoiceBank {
           this._root + "/" + this._character.sample.replace(/\\/g, "/")
         )
       ) {
-        this._sample = await extractFileFromZip(
-          this._zip[
+        this._sample = await this._files[
+          this._filenames.indexOf(
             this._root + "/" + this._character.sample.replace(/\\/g, "/")
-          ]
-        );
+          )
+        ].arrayBuffer();
       }
       resolve();
     });
@@ -181,9 +173,9 @@ export class VoiceBank extends BaseVoiceBank {
   async extractReadme(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/readme.txt")) {
-        const readmeBuf = await extractFileFromZip(
-          this._zip[this._root + "/readme.txt"]
-        );
+        const readmeBuf = await this._files[
+          this._filenames.indexOf(this._root + "/readme.txt")
+        ].arrayBuffer();
         this._readme = await readTextFile(readmeBuf, encoding);
       }
       resolve();
@@ -195,9 +187,9 @@ export class VoiceBank extends BaseVoiceBank {
   async extractCharacterYaml(): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/character.yaml")) {
-        const yamlBuf = await extractFileFromZip(
-          this._zip[this._root + "/character.yaml"]
-        );
+        const yamlBuf = await this._files[
+          this._filenames.indexOf(this._root + "/character.yaml")
+        ].arrayBuffer();
         this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
       }
       resolve();
@@ -217,11 +209,11 @@ export class VoiceBank extends BaseVoiceBank {
           this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
         )
       ) {
-        this._portrait = await extractFileFromZip(
-          this._zip[
+        this._portrait = await this._files[
+          this._filenames.indexOf(
             this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
-          ]
-        );
+          )
+        ].arrayBuffer();
       }
       resolve();
     });
@@ -233,9 +225,9 @@ export class VoiceBank extends BaseVoiceBank {
   async extractPrefixmaps(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/prefix.map")) {
-        const prefixmapBuf = await extractFileFromZip(
-          this._zip[this._root + "/prefix.map"]
-        );
+        const prefixmapBuf = await this._files[
+          this._filenames.indexOf(this._root + "/prefix.map")
+        ].arrayBuffer();
         this._prefixmaps[""] = new PrefixMap(
           await readTextFile(prefixmapBuf, encoding)
         );
@@ -260,30 +252,12 @@ export class VoiceBank extends BaseVoiceBank {
         .join("/")
         .replace(reg, "")
         .replace(/^\//, "");
-      const otoBuf = await extractFileFromZip(this._zip[path]);
+      const otoBuf = await this._files[
+        this._filenames.indexOf(path)
+      ].arrayBuffer();
       readTextFile(otoBuf, encoding).then((otoTxt) => {
         this._oto.ParseOto(dirPath, otoTxt);
         resolve();
-      });
-    });
-  }
-
-  /**
-   * character.yamlにsubbanksが含まれていれば、this._prefixmapを更新する
-   */
-  subbanksToPrefixmaps(): void {
-    if (this._characterYaml === undefined) {
-      return;
-    }
-    if (this._characterYaml.subbanks === undefined) {
-      return;
-    }
-    this._characterYaml.subbanks.forEach((s) => {
-      if (!Object.keys(this._prefixmaps).includes(s.color)) {
-        this._prefixmaps[s.color] = new PrefixMap();
-      }
-      s.tone_ranges.forEach((r) => {
-        this._prefixmaps[s.color].setRangeValues(r, s.prefix, s.suffix);
       });
     });
   }

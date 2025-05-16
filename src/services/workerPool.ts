@@ -1,4 +1,4 @@
-import { VoiceBank } from "../lib/VoiceBanks/VoiceBank";
+import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import { ResampRequest } from "../types/request";
 import { ResampWorkerService } from "./resampWorker";
 
@@ -37,7 +37,7 @@ type ResampTask = {
   /**
    * resampを実行する音声ライブラリ
    */
-  vb: VoiceBank;
+  vb: BaseVoiceBank;
   /**
    * 実行結果を解決するためのオブジェクト
    */
@@ -74,7 +74,7 @@ export class ResampWorkerPool {
    */
   public runResamp(
     request: ResampRequest,
-    vb: VoiceBank,
+    vb: BaseVoiceBank,
     index: number
   ): Promise<Float64Array> {
     const deferred = createDeferred<Float64Array>(index);
