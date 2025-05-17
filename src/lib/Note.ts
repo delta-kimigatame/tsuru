@@ -307,11 +307,14 @@ export class Note {
     if (v.includes(";")) {
       const [time, height] = value.replace(",", ";").split(";");
       this._pbs = {
-        time: parseFloat(time),
+        time: Number.isNaN(time) ? 0 : parseFloat(time),
         height: Math.min(Math.max(parseFloat(height), -200), 200),
       };
     } else {
-      this._pbs = { time: parseFloat(value), height: 0 };
+      this._pbs = {
+        time: Number.isNaN(parseFloat(value)) ? 0 : parseFloat(value),
+        height: 0,
+      };
     }
   }
 

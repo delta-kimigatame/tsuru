@@ -48,6 +48,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/17\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
       "2025/05/16\r\n[Fixes] Fixed a bug where oto.ini files starting with Charset:UTF8 could not be loaded.\r\n[Feature Additions] Enabled selection of .uar files when choosing ZIP files.",
       "2025/05/06\r\n[Feature Additions] Added functionality to load voicebanks from a folder. Please select a folder that contains a character.txt file.",
       "2025/05/04\r\n[Added] Added tempo and label editing features to individual notes, and enabled displaying tempo and labels.\r\n[Fixes] Fixed an issue where long USTs might not play back correctly.",
