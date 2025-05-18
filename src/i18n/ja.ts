@@ -170,6 +170,7 @@ export const translationJa = {
       modulation: "モジュレーション",
       tempo: "BPM",
       label: "ラベル",
+      flags: "フラグ",
       submitButton: "変更",
     },
   },

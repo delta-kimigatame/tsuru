@@ -169,6 +169,7 @@ export const translationEn = {
       modulation: "Modulation",
       tempo: "BPM",
       label: "label",
+      flags: "flags",
       submitButton: "Change",
     },
   },
