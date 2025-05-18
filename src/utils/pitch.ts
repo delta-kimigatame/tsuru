@@ -31,7 +31,7 @@ export const encodeBase64 = (values: Array<number>): Array<string> => {
   values.forEach((v) => {
     const tmp = v < 0 ? v + 4096 : v;
     results.push(
-      encodeBase64Core(Math.floor(tmp / 64)) + encodeBase64Core(tmp % 64),
+      encodeBase64Core(Math.floor(tmp / 64)) + encodeBase64Core(tmp % 64)
     );
   });
   return results;
@@ -83,6 +83,14 @@ export const encodePitch = (values: Array<number>): string => {
  */
 export const getFrqFromTone = (tone: string): number => {
   const notenum = toneToNoteNum(tone);
+  return A4_FRQ * 2 ** ((notenum - A4_NOTENUM) / 12);
+};
+/**
+ * 音高番号を与えて基準ピッチの周波数(Hz)を返す
+ * @param notenum 音高番号
+ * @returns 周波数
+ */
+export const getFrqFromNotenum = (notenum: number): number => {
   return A4_FRQ * 2 ** ((notenum - A4_NOTENUM) / 12);
 };
 

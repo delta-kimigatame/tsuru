@@ -1,8 +1,11 @@
 import { World } from "tsworld";
 import { renderingConfig } from "../config/rendering";
 import type { ResampRequest, ResampWorkerRequest } from "../types/request";
+import { range } from "../utils/array";
 import { interp1d, makeTimeAxis } from "../utils/interp";
-import { decodePitch, getFrqFromTone } from "../utils/pitch";
+import { toneToNoteNum } from "../utils/Notenum";
+import { FlagKeys, parseFlags } from "../utils/parseFlags";
+import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
 import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 import { Frq } from "./VoiceBanks/UtauFrq";
 
@@ -18,6 +21,19 @@ export class Resamp {
    * 音声分析合成システムworld
    */
   world: World;
+
+  /**
+   * フラグ定義
+   */
+  flagKeys: FlagKeys[] = [
+    { name: "G", type: "bool", default: undefined },
+    { name: "g", type: "number", min: -100, max: 100, default: 0 },
+    { name: "B", type: "number", min: 0, max: 100, default: 50 },
+    { name: "t", type: "number", min: -100, max: 100, default: 0 },
+    { name: "P", type: "number", min: 0, max: 100, default: 86 },
+    { name: "e", type: "bool", default: undefined },
+  ];
+
   /**
    * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
    * @param vb 合成するUTAU音源
@@ -102,7 +118,8 @@ export class Resamp {
       console.log(`合成:${Date.now()}`); // プロファイリングの結果：合成は254ms
       const outputData = this.adjustVolume(
         Array.from(synthedData),
-        request.intensity
+        request.intensity,
+        stretchParams.amp
       );
       console.log(`音量適用:${Date.now()}`); // プロファイリングの結果：音量適用は3ms
       resolve(outputData);
@@ -117,7 +134,8 @@ export class Resamp {
         request.inputWavData.length / renderingConfig.frameRate
       )
     );
-    if (!request.withFrq) {
+    const flags = parseFlags(request.flags, this.flagKeys);
+    if (!request.withFrq || flags["G"] !== undefined) {
       const f0 = this.Harvest(request.inputWavData, timeAxis);
       request.frqData = f0.frq;
       request.ampData = f0.amp;
@@ -129,28 +147,37 @@ export class Resamp {
       timeAxis,
       renderingConfig.frameRate
     );
-    const ap = this.world.D4C(
-      request.inputWavData,
-      request.frqData,
-      timeAxis,
-      sp.fft_size,
-      renderingConfig.frameRate,
-      0
-    );
+    // const applyGenderSp = this.applyGender(sp.spectral, flags["g"]);
+    const ap =
+      flags["B"] === 0
+        ? sp.spectral.map((arr) => new Float64Array(arr.length))
+        : flags["B"] === 100
+        ? sp.spectral.map((arr) => new Float64Array(arr.length).fill(1))
+        : this.world.D4C(
+            request.inputWavData,
+            request.frqData,
+            timeAxis,
+            sp.fft_size,
+            renderingConfig.frameRate,
+            0
+          );
+    const breasedAp = this.applyBreath(ap, flags["B"]);
     const stretchParams = this.stretch(
       Array.from(request.frqData),
       sp.spectral,
-      ap,
+      breasedAp,
       Array.from(request.ampData),
       request.targetMs,
       request.fixedMs,
-      request.velocity
+      request.velocity,
+      flags["e"] !== undefined
     );
     const shiftF0 = this.pitchShift(
       stretchParams.f0,
       request.frqAverage,
       request.targetTone,
-      request.modulation
+      request.modulation,
+      flags["t"]
     );
     const applyPitchF0 = this.applyPitch(
       shiftF0,
@@ -168,7 +195,9 @@ export class Resamp {
     );
     const outputData = this.adjustVolume(
       Array.from(synthedData),
-      request.intensity
+      request.intensity,
+      stretchParams.amp,
+      flags["P"]
     );
     return Float64Array.from(outputData);
   }
@@ -304,6 +333,7 @@ export class Resamp {
    * @param targetMs 出力するwavの長さ
    * @param fixedMs 入力における前方固定範囲
    * @param velocity 子音速度
+   * @param eFlag 伸縮方法に関するフラグ
    * @returns
    */
   stretch(
@@ -313,7 +343,8 @@ export class Resamp {
     amp: Array<number>,
     targetMs: number,
     fixedMs: number,
-    velocity: number
+    velocity: number,
+    eFlag: boolean = false
   ): {
     f0: Array<number>;
     sp: Array<Float64Array>;
@@ -336,7 +367,8 @@ export class Resamp {
             f0.slice(0, inputFixedFrames),
             sp.slice(0, inputFixedFrames),
             ap.slice(0, inputFixedFrames),
-            amp.slice(0, inputFixedFrames)
+            amp.slice(0, inputFixedFrames),
+            false
           )
         : {
             f0: f0.slice(0, inputFixedFrames),
@@ -349,7 +381,8 @@ export class Resamp {
       f0.slice(inputFixedFrames),
       sp.slice(inputFixedFrames),
       ap.slice(inputFixedFrames),
-      amp.slice(inputFixedFrames)
+      amp.slice(inputFixedFrames),
+      eFlag
     );
     const timeAxis = makeTimeAxis(
       renderingConfig.worldPeriod,
@@ -371,6 +404,7 @@ export class Resamp {
    * @param f0 基準ピッチ
    * @param sp スペクトラム
    * @param ap 非周期性指標
+   * @param eFlag 伸縮方法に関するフラグ
    * @returns
    */
   worldStretch(
@@ -378,7 +412,8 @@ export class Resamp {
     f0: Array<number>,
     sp: Array<Float64Array>,
     ap: Array<Float64Array>,
-    amp: Array<number>
+    amp: Array<number>,
+    eFlag: boolean = false
   ): {
     f0: Array<number>;
     sp: Array<Float64Array>;
@@ -391,24 +426,45 @@ export class Resamp {
     const newAmp = new Array<number>(targetFrames);
     if (targetFrames > f0.length) {
       /**伸ばす処理 */
-      const multinum = Math.ceil(targetFrames / f0.length);
-      const border = f0.length - (multinum * f0.length - targetFrames);
-      f0.forEach((f, i) => {
-        const start =
-          i <= border
-            ? i * multinum
-            : border * multinum + (i - border) * (multinum - 1);
-        const end =
-          i <= border
-            ? (i + 1) * multinum
-            : border * multinum + (i - border + 1) * (multinum - 1);
-        for (let j = start; j < end; j++) {
-          newF0[j] = f;
-          newSp[j] = sp[i];
-          newAp[j] = ap[i];
-          newAmp[j] = amp[i];
-        }
-      });
+      if (eFlag) {
+        const indexes = [];
+        //末尾フレームが入っているとフェードアウトしてしまう場合がある。
+        const length = f0.length - 2;
+        const multinum = Math.ceil(targetFrames / length);
+        f0.forEach((f, i) => {
+          if (i >= length) return;
+          for (let j = 0; j < multinum; j++) {
+            const index =
+              j % 2 === 0 ? i + j * length : (j + 1) * length - i - 1;
+            if (index < targetFrames) {
+              newF0[index] = f;
+              newSp[index] = sp[i];
+              newAp[index] = ap[i];
+              newAmp[index] = amp[i];
+              indexes.push(index);
+            }
+          }
+        });
+      } else {
+        const multinum = Math.ceil(targetFrames / f0.length);
+        const border = f0.length - (multinum * f0.length - targetFrames);
+        f0.forEach((f, i) => {
+          const start =
+            i <= border
+              ? i * multinum
+              : border * multinum + (i - border) * (multinum - 1);
+          const end =
+            i <= border
+              ? (i + 1) * multinum
+              : border * multinum + (i - border + 1) * (multinum - 1);
+          for (let j = start; j < end; j++) {
+            newF0[j] = f;
+            newSp[j] = sp[i];
+            newAp[j] = ap[i];
+            newAmp[j] = amp[i];
+          }
+        });
+      }
     } else {
       /** 縮める処理 */
       const leaveReat = 1 - targetFrames / f0.length;
@@ -447,9 +503,12 @@ export class Resamp {
     f0: Array<number>,
     frqAverage: number,
     targetTone: string,
-    modulation: number
+    modulation: number,
+    tFlag: number = 0
   ): Array<number> {
-    const targetFrq = getFrqFromTone(targetTone);
+    const targetFrq = getFrqFromNotenum(
+      toneToNoteNum(targetTone) + tFlag / 100
+    );
     if (modulation === 0) {
       return [...Array(f0.length)].fill(targetFrq);
     } else {
@@ -494,16 +553,78 @@ export class Resamp {
    * worldが出力したwavにintensityを適用する
    * @param data worldが出力したwavデータ
    * @param intensity 音量
+   * @param PFlag pフラグ値。0～100でデフォルトは86
    * @returns 音量を適用したwavデータ
    */
-  adjustVolume(data: Array<number>, intensity: number): Array<number> {
-    const maxAmp = data.reduce(
+  adjustVolume(
+    data: Array<number>,
+    intensity: number,
+    amp: Array<number>,
+    PFlag: number = 86
+  ): Array<number> {
+    const maxData = data.reduce(
       (m, current) =>
         Math.max(m, Number.isNaN(current) ? 0 : Math.abs(current)),
       -1
     );
-    return data.map(
-      (v) => ((Number.isNaN(v) ? 0 : v / maxAmp) * 0.5 * intensity) / 100
+    const maxAmp = amp.reduce(
+      (m, current) =>
+        Math.max(m, Number.isNaN(current) ? 0 : Math.abs(current)),
+      -1
     );
+    const ampTimeAxis = makeTimeAxis(
+      renderingConfig.worldPeriod,
+      0,
+      amp.length * renderingConfig.worldPeriod
+    );
+    const dataTimeAxis = makeTimeAxis(
+      1 / renderingConfig.frameRate,
+      0,
+      data.length / renderingConfig.frameRate
+    );
+    const interpAmp = interp1d(amp, ampTimeAxis, dataTimeAxis);
+    const rate = PFlag / 100;
+    return data.map((v, i) => {
+      const value = Number.isNaN(v) ? 0 : v;
+      const inputAmp = (value / maxAmp) * interpAmp[i] * (1 - rate);
+      const outputAmp = (value / maxData) * 0.5 * rate;
+      return ((inputAmp + outputAmp) * intensity) / 100;
+    });
+  }
+
+  applyGender(sp: Array<Float64Array>, gFlag: number): Array<Float64Array> {
+    if (gFlag === 0) {
+      return sp;
+    }
+    const ratio = 1 - gFlag / 100;
+    const fft_size = sp[0].length;
+    const freq_axis1 = range(0, Math.floor(fft_size / 2)).map(
+      (i) => ((ratio * i) / fft_size) * 44100
+    );
+    const freq_axis2 = range(0, Math.floor(fft_size / 2)).map(
+      (i) => (i / fft_size) * 44100
+    );
+    const new_sp: Array<Float64Array> = [];
+    sp.forEach((s) => {});
+  }
+
+  /**
+   * Bフラグを非周期性指標に反映する
+   * @param ap 非周期性指標
+   * @param BFlag Bフラグ値。0～100の整数
+   * @returns 反映後の非周期性指標。BFlagが0,5,100のときそのまま返す。0～50の時は、0の時全ての値が0になるように減算する。50～100のときは100ですべての値が1となるように増加する。
+   */
+  applyBreath(ap: Array<Float64Array>, BFlag: number): Array<Float64Array> {
+    if (BFlag === 0 || BFlag === 100 || BFlag === 50) return ap;
+    else if (BFlag < 50) {
+      return ap.map((arr) => arr.map((value) => (value * BFlag * 2) / 100));
+    } else if (BFlag > 50) {
+      return ap.map((arr) =>
+        arr.map((value) => {
+          const rate = (BFlag * 2 - 100) / 100;
+          return value * (1 - rate) + rate;
+        })
+      );
+    }
   }
 }
