@@ -147,7 +147,7 @@ export class Resamp {
       timeAxis,
       renderingConfig.frameRate
     );
-    // const applyGenderSp = this.applyGender(sp.spectral, flags["g"]);
+    const applyGenderSp = this.applyGender(sp.spectral, flags["g"]);
     const ap =
       flags["B"] === 0
         ? sp.spectral.map((arr) => new Float64Array(arr.length))
@@ -164,7 +164,7 @@ export class Resamp {
     const breasedAp = this.applyBreath(ap, flags["B"]);
     const stretchParams = this.stretch(
       Array.from(request.frqData),
-      sp.spectral,
+      applyGenderSp,
       breasedAp,
       Array.from(request.ampData),
       request.targetMs,
@@ -598,14 +598,81 @@ export class Resamp {
     }
     const ratio = 1 - gFlag / 100;
     const fft_size = sp[0].length;
-    const freq_axis1 = range(0, Math.floor(fft_size / 2)).map(
+    const half_fft = Math.floor(fft_size / 2);
+    const freq_axis1 = range(0, half_fft).map(
       (i) => ((ratio * i) / fft_size) * 44100
     );
-    const freq_axis2 = range(0, Math.floor(fft_size / 2)).map(
-      (i) => (i / fft_size) * 44100
-    );
-    const new_sp: Array<Float64Array> = [];
-    sp.forEach((s) => {});
+    const freq_axis2 = range(0, half_fft).map((i) => (i / fft_size) * 44100);
+    const new_sp: Array<Float64Array> = sp.map((arr) => new Float64Array(arr));
+    sp.forEach((s, i) => {
+      const spectrum1 = s.map((v) => Math.log(v));
+      const spectrum2 = this.gFlagInterp(
+        freq_axis1,
+        spectrum1,
+        half_fft + 1,
+        freq_axis2,
+        half_fft + 1,
+        new Array(half_fft + 1).fill(0)
+      );
+      for (let j = 0; j < half_fft; j++) {
+        new_sp[i][j] = Math.exp(spectrum2[j]);
+      }
+      if (ratio >= 1.0) {
+        return;
+      }
+      let j = Math.floor((fft_size / 2) * ratio);
+      while (j <= fft_size / 2) {
+        new_sp[i][j] = sp[i][Math.floor((fft_size / 2) * ratio) - 1];
+        j = j + 1;
+      }
+    });
+    return new_sp;
+  }
+
+  gFlagInterp(x, y, x_length, xi, xi_length, yi) {
+    const h = new Array(x_length).fill(0);
+    const k = new Int32Array(xi_length).fill(0);
+    for (let i = 0; i < x_length - 1; i++) {
+      h[i] = x[i + 1] - x[i];
+    }
+    //kの値が変更される。
+    this.gFlagHitsc(x, x_length, xi, xi_length, k);
+    for (let i = 0; i < xi_length; i++) {
+      const s = (xi[i] - x[k[i] - 1]) / h[k[i] - 1];
+      yi[i] = y[k[i] - 1] + s * (y[k[i]] - y[k[i] - 1]);
+    }
+    return yi;
+  }
+
+  gFlagHitsc(x, x_length, edges, edges_length, index) {
+    let count = 1;
+    let i = 0;
+    for (i = 0; i < edges_length; i++) {
+      index[i] = 1;
+      if (edges[i] >= x[0]) {
+        break;
+      }
+    }
+    while (i < edges_length) {
+      if (edges[i] < x[count]) {
+        index[i] = count;
+      } else {
+        i = i - 1;
+        index[i] = count;
+        count = count + 1;
+      }
+      if (count == x_length) {
+        break;
+      }
+      i = i + 1;
+    }
+    count = count - 1;
+    i = i + 1;
+    while (i < edges_length) {
+      index[i] = count;
+      i = i + 1;
+    }
+    return index;
   }
 
   /**
