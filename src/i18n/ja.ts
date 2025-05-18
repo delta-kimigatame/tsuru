@@ -268,10 +268,9 @@ export const translationJa = {
         value: "モジュレーション(原音の音程のゆれ、理由がなければ0推奨)",
       },
       flags: {
-        title: "フラグ(UTAletではフラグ未対応)",
+        title: "フラグ",
         flags: "フラグを一括設定する",
-        value:
-          "フラグ(エンジンによって異なります。UTAlet標準エンジンでは未対応)",
+        value: "フラグ(エンジンによって異なります。)",
       },
     },
     process: "実行",

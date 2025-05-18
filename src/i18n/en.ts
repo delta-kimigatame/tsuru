@@ -253,10 +253,9 @@ export const translationEn = {
         value: "Modulation (pitch fluctuation; if unsure, set to 0)",
       },
       flags: {
-        title: "Flags (Not supported in UTAlet)",
+        title: "Flags",
         flags: "Set flags in batch",
-        value:
-          "Flags (varies by engine; not supported in UTAlet standard engine)",
+        value: "Flags (varies by engine)",
       },
     },
     process: "Execute",
