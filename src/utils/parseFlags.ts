@@ -3,6 +3,7 @@ export interface FlagKeys {
   min?: number;
   max?: number;
   type: "number" | "bool";
+  default: number | undefined;
 }
 export const parseFlags = (
   value: string,
@@ -16,7 +17,7 @@ export const parseFlags = (
         result[f.name] = 0;
         value = value.replace(f.name, "");
       } else {
-        result[f.name] = undefined;
+        result[f.name] = f.default;
       }
     });
   flagKeys
@@ -33,7 +34,7 @@ export const parseFlags = (
           f.max === undefined ? flagValue_ : Math.min(f.max, flagValue_);
         result[f.name] = flagValue;
       } else {
-        result[f.name] = undefined;
+        result[f.name] = f.default;
       }
     });
 
