@@ -9,6 +9,9 @@ export const parseFlags = (
   value: string,
   flagKeys: FlagKeys[]
 ): { [key: string]: number | undefined } => {
+  if (value === undefined) {
+    value = "";
+  }
   const result = {};
   flagKeys
     .filter((f) => f.type === "bool")
