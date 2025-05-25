@@ -9,6 +9,9 @@ export default defineConfig(() => {
   const isStorybook = !!process.env.STORYBOOK;
 
   return {
+    define: {
+      __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
+    },
     base: "./",
     plugins: [
       react(),
