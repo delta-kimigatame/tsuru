@@ -50,6 +50,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/23_2\r\n[Feature Addition] Added functionality to automatically continue the project that was being edited previously\r\nAdded a project initialization button\r\nAdded new links",
       "2025/05/25\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
       "2025/05/18\r\n[Feature Added] Flag functionality has been implemented.\r\ng flag, default: 0, range: -100 to 100 — controls voice gender\r\nB flag, default: 50, range: 0 to 100 — controls breathiness; setting it to 0 or 100 speeds up synthesis\r\nt flag, default: 0, range: -100 to 100 — pitch correction in cents\r\nP flag, default: 86, range: 0 to 100 — adjusts peak compressor intensity\r\nG flag, no value — regenerates the frequency table at each playback\r\ne flag, no value — switches the engine's time-stretching method to loop-based",
       "2025/05/17\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
