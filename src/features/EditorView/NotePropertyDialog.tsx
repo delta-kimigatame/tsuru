@@ -39,6 +39,7 @@ const initialFormData: NoteState = {
   modulation: undefined,
   tempo: undefined,
   label: undefined,
+  flags: undefined,
 };
 
 export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
@@ -323,6 +324,24 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
                 sx={{ mx: 1 }}
               />
             </Box>
+            <TextField
+              fullWidth
+              variant="outlined"
+              sx={{
+                m: 1,
+              }}
+              type="text"
+              label={t("editor.noteProperty.flags")}
+              data-testid="propertyFlags"
+              value={formState.flags}
+              onChange={(e) =>
+                dispatch({
+                  type: "UPDATE_FIELD",
+                  key: "flags",
+                  value: e.target.value,
+                })
+              }
+            />
           </>
         )}
         <Divider />
@@ -399,6 +418,7 @@ type NoteState = {
   modulation: number | undefined;
   tempo: number | undefined;
   label: string | undefined;
+  flags: string | undefined;
 };
 type NoteFormAction =
   | ({
@@ -426,6 +446,7 @@ const pickNoteFields = (note: Note): NoteState => ({
   modulation: note.modulation,
   tempo: note.tempo,
   label: note.label,
+  flags: note.flags,
 });
 
 /**
@@ -464,6 +485,7 @@ const NoteEditCore = (n: Note, state: NoteState): Note => {
     n.velocity = state.velocity;
     n.intensity = state.intensity;
     n.modulation = state.modulation;
+    n.flags = state.flags;
   }
   n.label = state.label;
   if (state.tempo === undefined || state.tempo === null) {

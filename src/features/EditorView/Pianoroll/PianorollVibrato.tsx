@@ -35,6 +35,7 @@ export const PianorollVibrato: React.FC<PianorollVibratoProps> = (props) => {
       );
       return;
     }
+    if (n.targetLength < 0) return;
     /** 5tick毎のピッチ点をms単位に変換したもの */
     const timeAxis = makeTimeAxis(n.pitchSpan, 0, n.targetLength / 1000);
     /** timeAxisに沿ったピッチ列。単位はcentTone */

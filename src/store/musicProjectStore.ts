@@ -117,7 +117,11 @@ export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
       return { ustTempo: tempo, notes: updatedNotes };
     }),
 
-  setUstFlags: (flags) => set({ ustFlags: flags }),
+  setUstFlags: (flags) =>
+    set((state) => {
+      state.ust.flags = flags;
+      return { ustFlags: flags };
+    }),
 
   setNoteProperty: (index, key, value) =>
     set((state) => {

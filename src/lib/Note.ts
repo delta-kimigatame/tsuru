@@ -938,7 +938,10 @@ export class Note {
           !Number.isNaN(this.velocity)
             ? this.velocity
             : defaultValue.velocity,
-        flags: this.flags ? this.flags : flags,
+        flags:
+          this.flags !== null && this.flags !== undefined && this.flags !== ""
+            ? this.flags
+            : flags,
         offsetMs: this._oto.offset,
         targetMs: this.targetLength,
         fixedMs: this._oto.velocity,
