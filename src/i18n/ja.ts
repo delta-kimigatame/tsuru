@@ -17,6 +17,7 @@ export const translationJa = {
     changeLanguage: "言語設定",
     showLog: "操作ログ表示",
     clearAppCache: "アプリのキャッシュクリア",
+    clearProject: "プロジェクト初期化",
     logAttention:
       "ログは自動では送信されません。必要に応じて開発者に送付してください。",
   },
@@ -114,6 +115,7 @@ export const translationJa = {
       loadUst: "ust読込",
       saveUst: "ust保存",
       prjectSetting: "プロジェクト設定",
+      clearProject: "プロジェクト初期化",
       zoom: "拡大縮小",
       batchprocess: "一括処理",
       addNote: "ノート追加",

@@ -18,6 +18,7 @@ export const translationEn = {
     changeLanguage: "Language setting",
     showLog: "Show Log",
     clearAppCache: "Clear this app caches",
+    clearProject: "Project Initialize",
     logAttention:
       "Logs are not sent automatically, so please send them to the developer if necessary.",
   },
@@ -113,6 +114,7 @@ export const translationEn = {
       loadUst: "Load UST",
       saveUst: "Save UST",
       prjectSetting: "Project Settings",
+      clearProject: "Project Initialize",
       zoom: "Zoom",
       batchprocess: "Batch Process",
       addNote: "Add Note",

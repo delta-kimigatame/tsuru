@@ -1,3 +1,4 @@
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -30,6 +31,7 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     setNotes,
     ustFlags,
     ustTempo,
+    clearUst,
   } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [dialogOpen, setDialogOpen] = React.useState<boolean>(false);
@@ -132,6 +134,13 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     setDialogOpen(false);
   };
 
+  /** ustを初期化する処理 */
+  const handleClearProjectClick = () => {
+    LOG.debug("click Clear Project", "FooterProjectMenu");
+    clearUst();
+    handleClose();
+  };
+
   return (
     <>
       <input
@@ -165,6 +174,12 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
             <SettingsIcon />
           </ListItemIcon>
           <ListItemText>{t("editor.footer.prjectSetting")}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleClearProjectClick} disabled={ust === null}>
+          <ListItemIcon>
+            <DeleteForeverIcon />
+          </ListItemIcon>
+          <ListItemText>{t("editor.footer.clearProject")}</ListItemText>
         </MenuItem>
       </Menu>
       <ProjectSettingDialog open={dialogOpen} handleClose={handleDialogClose} />

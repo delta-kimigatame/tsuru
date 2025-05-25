@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { Note } from "../lib/Note";
+import { persist } from "zustand/middleware";
+import { dumpNotes, Note } from "../lib/Note";
 import { Ust } from "../lib/Ust";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 
@@ -86,96 +87,153 @@ interface MusicProjectStore {
    * @param newNotes 新しいノート列
    */
   setNotes: (newNotes: Array<Note>) => void;
+
+  clearUst: () => void;
 }
 
 /**
  * MusicProjectStore の Zustand ストア
  */
-export const useMusicProjectStore = create<MusicProjectStore>((set) => ({
-  ust: null,
-  vb: null,
-  ustTempo: 120,
-  ustFlags: "",
-  notes: [],
-  setUst: (ust) => set({ ust }),
-  setVb: (vb) => set({ vb }),
+export const useMusicProjectStore = create<MusicProjectStore>()(
+  persist(
+    (set, get) => ({
+      ust: null,
+      vb: null,
+      ustTempo: 120,
+      ustFlags: "",
+      notes: [],
+      setUst: (ust) => set({ ust }),
+      setVb: (vb) => set({ vb }),
 
-  setUstTempo: (tempo) =>
-    set((state) => {
-      const updatedNotes = [...state.notes];
-      updatedNotes.forEach((_, i) => {
-        if (i === 0 && !updatedNotes[0].hasTempo) {
-          updatedNotes[i].tempo = tempo;
-        } else if (
-          updatedNotes[i].prev !== undefined &&
-          !updatedNotes[i].hasTempo
-        ) {
-          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+      setUstTempo: (tempo) =>
+        set((state) => {
+          const updatedNotes = [...state.notes];
+          updatedNotes.forEach((_, i) => {
+            if (i === 0 && !updatedNotes[0].hasTempo) {
+              updatedNotes[i].tempo = tempo;
+            } else if (
+              updatedNotes[i].prev !== undefined &&
+              !updatedNotes[i].hasTempo
+            ) {
+              updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+            }
+          });
+          //ustの更新は通知しなくていいので直接更新
+          state.ust.tempo = tempo;
+          return { ustTempo: tempo, notes: updatedNotes };
+        }),
+
+      setUstFlags: (flags) =>
+        set((state) => {
+          //ustの更新は通知しなくていいので直接更新
+          state.ust.flags = flags;
+          return { ustFlags: flags };
+        }),
+
+      setNoteProperty: (index, key, value) =>
+        set((state) => {
+          if (index < 0 || index >= state.notes.length) return state;
+
+          const updatedNotes = [...state.notes];
+          const updatedNote = updatedNotes[index].deepCopy();
+          updatedNote[key] = value;
+
+          updatedNotes[index] = updatedNote;
+          updatedNotes.forEach((_, i) => {
+            updatedNotes[i].index = i;
+            updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+            if (
+              updatedNotes[i].prev !== undefined &&
+              !updatedNotes[i].hasTempo
+            ) {
+              updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+            }
+            updatedNotes[i].next =
+              i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+          });
+          //ustの更新は通知しなくていいので直接更新
+          state.ust.notes = updatedNotes;
+          return { notes: updatedNotes };
+        }),
+
+      setNote: (index, value) =>
+        set((state) => {
+          if (index < 0 || index >= state.notes.length) return state;
+
+          const updatedNotes = [...state.notes];
+          updatedNotes[index] = value;
+          updatedNotes.forEach((_, i) => {
+            updatedNotes[i].index = i;
+            updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
+            if (
+              updatedNotes[i].prev !== undefined &&
+              !updatedNotes[i].hasTempo
+            ) {
+              updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
+            }
+            updatedNotes[i].next =
+              i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+          });
+          //ustの更新は通知しなくていいので直接更新
+          state.ust.notes = updatedNotes;
+          return { notes: updatedNotes };
+        }),
+
+      setNotes: (newNotes) =>
+        set((state) => {
+          newNotes.forEach((_, i) => {
+            newNotes[i].index = i;
+            newNotes[i].prev = i === 0 ? undefined : newNotes[i - 1];
+            if (newNotes[i].prev !== undefined && !newNotes[i].hasTempo) {
+              newNotes[i].tempo = newNotes[i].prev.tempo;
+            }
+            newNotes[i].next =
+              i === newNotes.length - 1 ? undefined : newNotes[i + 1];
+          });
+          //ustの更新は通知しなくていいので直接更新
+          state.ust.notes = newNotes;
+          return { notes: newNotes };
+        }),
+      clearUst: () =>
+        set((state) => {
+          return { notes: [], ustTempo: 120, ustFlags: "", ust: null };
+        }),
+    }),
+    {
+      name: "music-project", // localStorage のキー
+      partialize: (state) => {
+        if (!state.ust) return {};
+        if (!state.ust.notes) return {};
+        if (state.ust.notes.length === 0) return {};
+        return {
+          ustText: dumpNotes(state.ust.notes, state.ust.tempo, state.ust.flags),
+        };
+      },
+      // 初期化時に復元
+      onRehydrateStorage: () => (state) => {
+        const raw = localStorage.getItem("music-project");
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.state?.ustText) {
+            const restoredUst = new Ust();
+            restoredUst.loadText(
+              parsed.state.ustText.replace(/\r/g, "").split("\n")
+            );
+            if (restoredUst.notes.length !== 0) {
+              state.setUst(restoredUst);
+              state.setUstTempo(restoredUst.tempo);
+              state.setUstFlags(restoredUst.flags);
+              state.setNotes(restoredUst.notes);
+            }
+          }
+        } catch (e) {
+          state.setUst(null);
+          state.setUstTempo(120);
+          state.setUstFlags("");
+          state.setNotes([]);
         }
-      });
-
-      return { ustTempo: tempo, notes: updatedNotes };
-    }),
-
-  setUstFlags: (flags) =>
-    set((state) => {
-      state.ust.flags = flags;
-      return { ustFlags: flags };
-    }),
-
-  setNoteProperty: (index, key, value) =>
-    set((state) => {
-      if (index < 0 || index >= state.notes.length) return state;
-
-      const updatedNotes = [...state.notes];
-      const updatedNote = updatedNotes[index].deepCopy();
-      updatedNote[key] = value;
-
-      updatedNotes[index] = updatedNote;
-      updatedNotes.forEach((_, i) => {
-        updatedNotes[i].index = i;
-        updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
-        if (updatedNotes[i].prev !== undefined && !updatedNotes[i].hasTempo) {
-          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
-        }
-        updatedNotes[i].next =
-          i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
-      });
-      state.ust.notes = updatedNotes;
-      return { notes: updatedNotes };
-    }),
-
-  setNote: (index, value) =>
-    set((state) => {
-      if (index < 0 || index >= state.notes.length) return state;
-
-      const updatedNotes = [...state.notes];
-      updatedNotes[index] = value;
-      updatedNotes.forEach((_, i) => {
-        updatedNotes[i].index = i;
-        updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
-        if (updatedNotes[i].prev !== undefined && !updatedNotes[i].hasTempo) {
-          updatedNotes[i].tempo = updatedNotes[i].prev.tempo;
-        }
-        updatedNotes[i].next =
-          i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
-      });
-      state.ust.notes = updatedNotes;
-      return { notes: updatedNotes };
-    }),
-
-  setNotes: (newNotes) =>
-    set((state) => {
-      newNotes.forEach((_, i) => {
-        newNotes[i].index = i;
-        newNotes[i].prev = i === 0 ? undefined : newNotes[i - 1];
-        if (newNotes[i].prev !== undefined && !newNotes[i].hasTempo) {
-          newNotes[i].tempo = newNotes[i].prev.tempo;
-        }
-        newNotes[i].next =
-          i === newNotes.length - 1 ? undefined : newNotes[i + 1];
-      });
-      state.ust.notes = newNotes;
-      return { notes: newNotes };
-    }),
-}));
+      },
+    }
+  )
+);
