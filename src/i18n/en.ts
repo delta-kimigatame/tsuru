@@ -17,6 +17,7 @@ export const translationEn = {
     toLightMode: "to Light Mode",
     changeLanguage: "Language setting",
     showLog: "Show Log",
+    clearAppCache: "Clear this app caches",
     logAttention:
       "Logs are not sent automatically, so please send them to the developer if necessary.",
   },
@@ -48,6 +49,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/05/25\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
       "2025/05/18\r\n[Feature Added] Flag functionality has been implemented.\r\ng flag, default: 0, range: -100 to 100 — controls voice gender\r\nB flag, default: 50, range: 0 to 100 — controls breathiness; setting it to 0 or 100 speeds up synthesis\r\nt flag, default: 0, range: -100 to 100 — pitch correction in cents\r\nP flag, default: 86, range: 0 to 100 — adjusts peak compressor intensity\r\nG flag, no value — regenerates the frequency table at each playback\r\ne flag, no value — switches the engine's time-stretching method to loop-based",
       "2025/05/17\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
       "2025/05/16\r\n[Fixes] Fixed a bug where oto.ini files starting with Charset:UTF8 could not be loaded.\r\n[Feature Additions] Enabled selection of .uar files when choosing ZIP files.",

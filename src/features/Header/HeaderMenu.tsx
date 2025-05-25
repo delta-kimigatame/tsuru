@@ -2,6 +2,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Divider, IconButton, Menu } from "@mui/material";
 import React from "react";
 import { LOG } from "../../lib/Logging";
+import { HeaderMenuClearCache } from "./Menu/HeaderMenuClearCache";
 import { HeaderMenuLanguage } from "./Menu/HeaderMenuLanguage";
 import { HeaderMenuLog } from "./Menu/HeaderMenuLog";
 import { HeaderMenuTheme } from "./Menu/HeaderMenuTheme";
@@ -36,6 +37,8 @@ export const HeaderMenu: React.FC = () => {
         <HeaderMenuTheme onMenuClose={handleClose} />
         <Divider />
         <HeaderMenuLog onMenuClose={handleClose} />
+        <Divider />
+        <HeaderMenuClearCache onMenuClose={handleClose} />
       </Menu>
     </>
   );
