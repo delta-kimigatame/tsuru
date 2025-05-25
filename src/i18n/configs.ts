@@ -15,6 +15,11 @@ const resources = {
 
 i18n
   .use(initReactI18next)
-  .init({ resources, lng: "ja", interpolation: { escapeValue: false } });
+  .init({
+    resources,
+    lng: "ja",
+    fallbackLng: "en",
+    interpolation: { escapeValue: false },
+  });
 
 export default i18n;
