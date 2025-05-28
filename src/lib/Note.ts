@@ -1155,7 +1155,7 @@ export const dumpEnvelope = (envelope: {
       output += `,${envelope.value[3].toFixed(0)}`;
       if (envelope.point.length >= 4) {
         output += `,%,${envelope.point[3].toFixed(2)}`;
-        if (envelope.point.length === 5) {
+        if (envelope.point.length === 5 && envelope.value.length === 5) {
           output += `,${envelope.point[4].toFixed(
             2
           )},${envelope.value[4].toFixed(0)}`;
