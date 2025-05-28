@@ -19,6 +19,7 @@ export const PianorollPitch: React.FC<PianorollPitchProps> = (props) => {
     horizontalZoom
   ) => {
     const offset = n.pbs.time === undefined ? 0 : n.pbs.time;
+    if (n.msLength - offset <= offset) return;
     /** 5tick毎のピッチ点をms単位に変換したもの */
     const timeAxis = makeTimeAxis(
       n.pitchSpan,
