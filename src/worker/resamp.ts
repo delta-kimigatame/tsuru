@@ -27,9 +27,17 @@ let resamp: Resamp;
  */
 const initializeWorker = async (): Promise<void> => {
   postMessage({ type: "init-started" });
-  resamp = new Resamp();
-  await resamp.initialize();
-  postMessage({ type: "ready" });
+  try {
+    postMessage({ type: "debug", data: "creating Resamp instance" });
+    resamp = new Resamp();
+
+    postMessage({ type: "debug", data: "calling resamp.initialize" });
+    await resamp.initialize();
+
+    postMessage({ type: "ready" });
+  } catch (e) {
+    postMessage({ type: "error", error: String(e) });
+  }
 };
 
 /**
