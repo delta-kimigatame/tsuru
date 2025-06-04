@@ -192,6 +192,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           display: "block",
           overflowX: "scroll",
           position: "relative",
+          userSelect: "none",
         }}
         ref={containerRef}
       >
@@ -205,6 +206,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           style={{
             display: "block",
             position: "relative",
+            userSelect: "none",
           }}
         >
           <g id="background">
