@@ -81,6 +81,7 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
             left: props.menuAnchor.x - 80,
           }}
           onClose={handleMenuClose}
+          sx={{ userSelect: "none" }}
         >
           <ButtonGroup variant="contained">
             <NotesLeftButton

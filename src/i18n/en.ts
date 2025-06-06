@@ -50,6 +50,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/06/05\n[Fix] Fixed an issue where a long press on the editor unintentionally enabled selection.",
       "2025/06/04\n[Fix] Fixed an issue where a long press on the editor unintentionally enabled selection.",
       "2025/05/28\r\n[Fix] Improved compatibility with UST files containing invalid parameters",
       "2025/05/23_2\r\n[Feature Addition] Added functionality to automatically continue the project that was being edited previously\r\nAdded a project initialization button\r\nAdded new links",

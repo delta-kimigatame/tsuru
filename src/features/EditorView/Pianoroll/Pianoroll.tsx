@@ -173,6 +173,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         overflowY: "auto",
         m: 0,
         p: 0,
+        userSelect: "none",
       }}
     >
       <Box sx={{ display: "block", width: PIANOROLL_CONFIG.TONEMAP_WIDTH }}>
@@ -182,6 +183,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           style={{
             display: "block",
             position: "relative",
+            userSelect: "none",
           }}
         >
           <PianorollTonemap />
