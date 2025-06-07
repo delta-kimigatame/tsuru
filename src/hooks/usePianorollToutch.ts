@@ -4,7 +4,7 @@ import { LOG } from "../lib/Logging";
 export interface UsePianorollTouchOptions {
   selectMode?: "toggle" | "range" | "pitch" | "add";
   holdThreshold?: number;
-  onTap?: (svgPoint: DOMPoint) => void;
+  onTap?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
   onHold?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
 }
 export interface UsePianorollTouchReturn {
@@ -81,7 +81,7 @@ export const usePianorollTouch = (
     // タッチ開始時刻がなければ tap として処理（基本は起こらない）
     if (touchStart === undefined || Date.now() - touchStart < holdThreshold) {
       if (onTap) {
-        onTap(svgPoint);
+        onTap({ x: event.clientX, y: event.clientY }, svgPoint);
       }
     }
     setTouchStart(undefined);

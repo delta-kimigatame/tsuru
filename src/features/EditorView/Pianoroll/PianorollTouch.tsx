@@ -28,13 +28,17 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { ust, notes, setNotes, ustTempo, setUst } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
+  const [lastTapTime, setLastTapTime] = React.useState<number>(0);
+  const [lastTapNoteIndex, setLastTapNoteIndex] = React.useState<
+    number | undefined
+  >(undefined);
 
   /**
    * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
    * @param svgPoint
    * @returns
    */
-  const handleTap = (svgPoint: DOMPoint) => {
+  const handleTap = (coords: { x: number; y: number }, svgPoint: DOMPoint) => {
     const targetPoltamentIndex =
       props.selectMode !== "pitch" || props.poltaments === undefined
         ? undefined
@@ -46,6 +50,13 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       horizontalZoom,
       verticalZoom
     );
+    const tapTime = Date.now();
+    const isDoubleTap =
+      targetNoteIndex !== undefined &&
+      targetNoteIndex === lastTapNoteIndex &&
+      tapTime - lastTapTime <= EDITOR_CONFIG.DOUBLE_TAP_MS;
+    setLastTapTime(tapTime);
+    setLastTapNoteIndex(targetNoteIndex);
     if (
       targetNoteIndex === undefined &&
       targetPoltamentIndex === undefined &&
@@ -66,6 +77,8 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         props.setTargetPoltament,
         props.setSelectedNotesIndex
       );
+    } else if (isDoubleTap) {
+      handleDoubleTap(coords, targetNoteIndex);
     } else if (props.selectMode === "toggle") {
       handleToggleModeTap(
         props.selectedNotesIndex,
@@ -131,6 +144,16 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       props.setMenuAnchor({ x: coords.x, y: coords.y });
     }
   };
+
+  const handleDoubleTap = (
+    coords: { x: number; y: number },
+    targetNoteIndex: number
+  ) => {
+    console.log(coords);
+    props.setLyricAnchor({ x: coords.x, y: coords.y });
+    props.setLyricTargetIndex(targetNoteIndex);
+  };
+
   const {
     handlePointerDown,
     handlePointerUp,
@@ -275,9 +298,12 @@ export interface PianorollToutchProps {
   totalLength: number;
   selectMode?: "toggle" | "range" | "pitch" | "add";
   setMenuAnchor: (anchor: { x: number; y: number }) => void;
+  setLyricAnchor: (anchor: { x: number; y: number }) => void;
   poltaments?: Array<{ x: number; y: number }>;
   /** ピッチ編集モードで操作するポルタメントのインデックスを更新するためのコールバック */
   setTargetPoltament?: (index: number | undefined) => void;
+  /** 歌詞編集更新のためのコールバック */
+  setLyricTargetIndex: (index: number | undefined) => void;
   addNoteLength?: number;
   addNoteLyric?: string;
 }

@@ -66,6 +66,10 @@ export const EditorView: React.FC = () => {
   const [addNoteLength, setAddNoteLength] = React.useState<number>(480);
   /** ノート追加モードで追加するノートの歌詞 */
   const [addNoteLyric, setAddNoteLyric] = React.useState<string>("あ");
+  /** 歌詞編集モードの対象ノート */
+  const [lyricTargetIndex, setLyricTargetIndex] = React.useState<
+    number | undefined
+  >(undefined);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
@@ -275,6 +279,8 @@ export const EditorView: React.FC = () => {
         selectMode={selectMode}
         pitchTargetIndex={pitchTargetIndex}
         setPitchTargetIndex={setPitchTargetIndex}
+        lyricTargetIndex={lyricTargetIndex}
+        setLyricTargetIndex={setLyricTargetIndex}
         setTargetPoltament={setTargetPoltament}
         targetPoltament={targetPoltament}
         addNoteLength={addNoteLength}

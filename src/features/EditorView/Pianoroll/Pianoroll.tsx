@@ -7,6 +7,7 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { LyricTextBox } from "../LyricTextBox";
 import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
 import { PianorollNotes } from "./PianorollNotes";
@@ -37,6 +38,10 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const windowSize = useWindowSize();
   const [seekBarX, setSeekBarX] = React.useState<number>(0);
   const [menuAnchor, setMenuAnchor] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [lyricAnchor, setLyricAnchor] = React.useState<{
     x: number;
     y: number;
   } | null>(null);
@@ -250,8 +255,10 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               notesLeft={notesLeft}
               selectMode={props.selectMode}
               setMenuAnchor={setMenuAnchor}
+              setLyricAnchor={setLyricAnchor}
               poltaments={pitchPoltament}
               setTargetPoltament={props.setTargetPoltament}
+              setLyricTargetIndex={props.setLyricTargetIndex}
               addNoteLength={props.addNoteLength}
               addNoteLyric={props.addNoteLyric}
             />
@@ -262,6 +269,11 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             selectedNotesIndex={props.selectedNotesIndex}
             setSelectedNotesIndex={props.setSelectedNotesIndes}
             setPitchTargetIndex={props.setPitchTargetIndex}
+          />
+          <LyricTextBox
+            targetNoteIndex={props.lyricTargetIndex}
+            setTargetNoteIndex={props.setLyricTargetIndex}
+            lyricAnchor={lyricAnchor}
           />
         </svg>
       </Box>
@@ -305,6 +317,10 @@ export interface PianorollProps {
   setTargetPoltament?: (index: number | undefined) => void;
   /** ピッチ編集モードで操作するポルタメントのインデックス */
   targetPoltament?: number | undefined;
+  /** 歌詞編集ターゲット */
+  lyricTargetIndex: number | undefined;
+  /** 歌詞編集更新のためのコールバック */
+  setLyricTargetIndex: (index: number | undefined) => void;
   addNoteLength?: number;
   addNoteLyric?: string;
 }
