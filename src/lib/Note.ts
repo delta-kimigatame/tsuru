@@ -579,7 +579,7 @@ export class Note {
       this._oto = record;
       this.otoPreutter = record.pre;
       this.otoOverlap = record.overlap;
-      this._atAlias = record.alias;
+      this._atAlias = record.alias !== "" ? record.alias : this._lyric;
       this._atFilename =
         record.dirpath + (record.dirpath !== "" ? "/" : "") + record.filename;
     }
