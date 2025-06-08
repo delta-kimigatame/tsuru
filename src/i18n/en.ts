@@ -50,6 +50,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/06/09\n[Fix] Fixed an issue where files in the top-level folder could not be loaded correctly.\nFlags containing '+' are now supported.",
       "2025/06/08\n[Fix] Fixed an issue where certain WAV files could not be loaded.\nFixed an issue where a '?' indicator was always shown on rests.",
       "2025/06/07\n[Feature Added] Added a '?' indicator when an alias does not exist.\nEnabled lyric editing by double-tapping a note.",
       "2025/06/05\n[Fix] Fixed an issue where a long press on the editor unintentionally enabled selection.",
