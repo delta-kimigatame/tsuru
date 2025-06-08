@@ -12,6 +12,7 @@ export const parseFlags = (
   if (value === undefined) {
     value = "";
   }
+  value = value.replace(/\+/g, "");
   const result = {};
   flagKeys
     .filter((f) => f.type === "bool")
