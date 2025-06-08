@@ -78,7 +78,7 @@ export const PianorollNotes: React.FC<PianorollNotesProps> = (props) => {
             >
               {n.lyric}
             </text>
-            {n.atFilename === "" && (
+            {n.atFilename === "" && n.lyric !== "R" && (
               <text
                 x={
                   props.notesLeft[i] *
