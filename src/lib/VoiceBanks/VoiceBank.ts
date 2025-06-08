@@ -38,11 +38,15 @@ export class VoiceBank extends BaseVoiceBank {
    */
   override get zip(): { [filename: string]: JSZip.JSZipObject } {
     const root = this._root !== undefined ? this._root + "/" : "";
-    return Object.fromEntries(
-      Object.entries(this._zip)
-        .filter(([key, value]) => key.startsWith(root))
-        .map(([key, value]) => [key.replace(root, ""), value])
-    );
+    if (this._root === "") {
+      return Object.fromEntries(Object.entries(this._zip));
+    } else {
+      return Object.fromEntries(
+        Object.entries(this._zip)
+          .filter(([key, value]) => key.startsWith(root))
+          .map(([key, value]) => [key.replace(root, ""), value])
+      );
+    }
   }
 
   /**
@@ -138,17 +142,17 @@ export class VoiceBank extends BaseVoiceBank {
    * character.txtにおいてimageで定義されているファイルがzip内にあれば、this._iconを更新する。
    */
   async extractIcon(): Promise<void> {
+    const root =
+      this._root !== undefined && this._root !== "" ? this._root + "/" : "";
     return new Promise(async (resolve) => {
       if (
         this._character.image !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._character.image.replace(/\\/g, "/")
+          root + this._character.image.replace(/\\/g, "/")
         )
       ) {
         this._icon = await extractFileFromZip(
-          this._zip[
-            this._root + "/" + this._character.image.replace(/\\/g, "/")
-          ]
+          this._zip[root + this._character.image.replace(/\\/g, "/")]
         );
       }
       resolve();
@@ -158,17 +162,17 @@ export class VoiceBank extends BaseVoiceBank {
    * character.txtにおいてsampleで定義されているファイルがzip内にあれば、this._sampleを更新する。
    */
   async extractSample(): Promise<void> {
+    const root =
+      this._root !== undefined && this._root !== "" ? this._root + "/" : "";
     return new Promise(async (resolve) => {
       if (
         this._character.sample !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._character.sample.replace(/\\/g, "/")
+          root + this._character.sample.replace(/\\/g, "/")
         )
       ) {
         this._sample = await extractFileFromZip(
-          this._zip[
-            this._root + "/" + this._character.sample.replace(/\\/g, "/")
-          ]
+          this._zip[root + this._character.sample.replace(/\\/g, "/")]
         );
       }
       resolve();
