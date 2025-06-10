@@ -178,4 +178,15 @@ export class SynthesisWorker {
   clearTask = (index: number) => {
     this.workersPool.clearTask(index);
   };
+
+  reload = () => {
+    const { workersCount } = useCookieStore.getState();
+    LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
+    this.workersPool = new ResampWorkerPool(workersCount);
+    LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
+  };
+
+  isReady = (): boolean => {
+    return this.workersPool.workers.every((w) => w.worker.isReady === true);
+  };
 }

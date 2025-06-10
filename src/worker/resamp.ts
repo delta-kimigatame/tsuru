@@ -27,6 +27,7 @@ let resamp: Resamp;
  */
 const initializeWorker = async (): Promise<void> => {
   postMessage({ type: "init-started" });
+  postMessage({ type: "debug", data: "init-started" });
   try {
     postMessage({ type: "debug", data: "creating Resamp instance" });
     resamp = new Resamp();

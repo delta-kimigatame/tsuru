@@ -136,6 +136,17 @@ export const EditorView: React.FC = () => {
    */
   const makeCache = () => {
     if (vb === null) return;
+    if (
+      synthesisWorker.workersPool.workers.every(
+        (w) => w.worker.isReady !== true
+      )
+    ) {
+      LOG.debug(
+        `キャッシュ生成を試みましたが、workerが読み込まれていません。`,
+        "EditorView"
+      );
+      return;
+    }
     notes.forEach((n) => {
       const request = n.getRequestParam(vb, ustFlags, defaultNote);
       if (request.resamp === undefined) return;
@@ -161,6 +172,14 @@ export const EditorView: React.FC = () => {
 
   /** playとwavdownloadの共通処理 */
   const synthesis = async () => {
+    if (!synthesisWorker.isReady) {
+      LOG.error("エンジンが起動していません", "EditorView");
+      synthesisWorker.reload();
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.workerError"));
+      snackBarStore.setOpen(true);
+      return;
+    }
     LOG.info("wavファイル生成", "EditorView");
     if (timerRef.current) {
       clearTimeout(timerRef.current);

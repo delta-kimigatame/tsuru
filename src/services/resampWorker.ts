@@ -122,7 +122,7 @@ export const getFrqData = async (
  */
 export class ResampWorkerService {
   private worker: Worker;
-  private isReady: boolean = false;
+  public isReady: boolean = false;
   private readyPromise: Promise<void>;
 
   constructor() {
