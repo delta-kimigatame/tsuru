@@ -6,6 +6,7 @@ export const translationEn = {
   language: {
     ja: "JA",
     en: "EN",
+    zh: "ZH",
   },
   theme: {
     system: "Follow system settings",
@@ -50,6 +51,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/06/20\r\n[Added] Support for Chinese display and character encoding.",
       "2025/06/10\n[Fix] Added automatic restart feature when engine startup fails",
       "2025/06/09\n[Fix] Fixed an issue where files in the top-level folder could not be loaded correctly.\nFlags containing '+' are now supported.",
       "2025/06/08\n[Fix] Fixed an issue where certain WAV files could not be loaded.\nFixed an issue where a '?' indicator was always shown on rests.",

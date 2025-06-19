@@ -40,6 +40,9 @@ export const EncodingSelect: React.FC<EncodingSelectProps> = (props) => {
       >
         <MenuItem value={EncodingOption.UTF8}>UTF-8</MenuItem>
         <MenuItem value={EncodingOption.SHIFT_JIS}>Shift-JIS</MenuItem>
+        <MenuItem value={EncodingOption.GB18030}>GB18030</MenuItem>
+        <MenuItem value={EncodingOption.GBK}>GBK</MenuItem>
+        <MenuItem value={EncodingOption.BIG5}>BIG5</MenuItem>
       </Select>
     </FormControl>
   );
