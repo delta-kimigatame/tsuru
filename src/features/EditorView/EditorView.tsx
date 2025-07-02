@@ -195,6 +195,7 @@ export const EditorView: React.FC = () => {
         setSynthesisCount
       );
       LOG.gtag("synthesis", {
+        synthesisName: vb.name,
         wavSize: wavBuf.byteLength,
         synthesisTime: Date.now() - synthesisStartTime,
       });
@@ -227,7 +228,7 @@ export const EditorView: React.FC = () => {
     const dataUrl = wavUrl ?? (await synthesis());
     setSynthesisProgress(false);
     if (dataUrl !== undefined) {
-      LOG.gtag("download");
+      LOG.gtag("download", { downloadName: vb.name });
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -247,9 +248,9 @@ export const EditorView: React.FC = () => {
       );
       return;
     }
+    LOG.gtag("play", { playName: vb.name });
     if (wavUrl !== undefined) {
       LOG.info("再生開始", "EditorView");
-      LOG.gtag("play");
       setPlaying(true);
       audioRef.current.play();
     } else {
