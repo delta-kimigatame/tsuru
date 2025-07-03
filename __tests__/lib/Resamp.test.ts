@@ -384,11 +384,15 @@ describe("Resamp", () => {
 
   it("adjustIntensity", () => {
     const d = [0.5, 0.3, -0.3, -0.5, 0];
-    expect(resamp.adjustVolume(d, 100)).toEqual([0.5, 0.3, -0.3, -0.5, 0]);
-    expect(resamp.adjustVolume(d, 200)).toEqual([1, 0.6, -0.6, -1, 0]);
-    expect(resamp.adjustVolume(d, 0).map((v) => (v === 0 ? 0 : v))).toEqual([
-      0, 0, 0, 0, 0,
+    expect(resamp.adjustVolume(d, 100, [1, 1, 1, 1, 1])).toEqual([
+      0.5, 0.3, -0.3, -0.5, 0,
     ]);
+    expect(resamp.adjustVolume(d, 200, [1, 1, 1, 1, 1])).toEqual([
+      1, 0.6, -0.6, -1, 0,
+    ]);
+    expect(
+      resamp.adjustVolume(d, 0, [1, 1, 1, 1, 1]).map((v) => (v === 0 ? 0 : v))
+    ).toEqual([0, 0, 0, 0, 0]);
   });
 
   it("resamp", async () => {

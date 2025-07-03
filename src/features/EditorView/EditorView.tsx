@@ -12,7 +12,11 @@ import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
 import { PitchPortal } from "./PitchPortal/PitchPortal";
 
-export const EditorView: React.FC = () => {
+export const EditorView: React.FC<{
+  checkWorkerReady?: (synthesisWorker: SynthesisWorker) => boolean;
+}> = ({
+  checkWorkerReady = CheckWorkerReady, // デフォルト値として元の関数を使用
+}) => {
   const { t } = useTranslation();
   const { vb, notes, ustFlags, setNote } = useMusicProjectStore();
   const { defaultNote } = useCookieStore();
@@ -136,11 +140,7 @@ export const EditorView: React.FC = () => {
    */
   const makeCache = () => {
     if (vb === null) return;
-    if (
-      synthesisWorker.workersPool.workers.every(
-        (w) => w.worker.isReady !== true
-      )
-    ) {
+    if (checkWorkerReady(synthesisWorker)) {
       LOG.debug(
         `キャッシュ生成を試みましたが、workerが読み込まれていません。`,
         "EditorView"
@@ -347,5 +347,11 @@ export const EditorView: React.FC = () => {
         </>
       )}
     </>
+  );
+};
+
+export const CheckWorkerReady = (synthesisWorker: SynthesisWorker): boolean => {
+  return synthesisWorker.workersPool.workers.every(
+    (w) => w.worker.isReady !== true
   );
 };

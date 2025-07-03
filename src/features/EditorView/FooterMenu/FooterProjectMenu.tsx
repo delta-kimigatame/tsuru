@@ -107,7 +107,9 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
    */
   const handleSaveUstClick = () => {
     LOG.debug("click Save Ust", "FooterProjectMenu");
-    LOG.gtag("SaveUst", { ustName: vb.name });
+    if (vb) {
+      LOG.gtag("SaveUst", { ustName: vb.name });
+    }
     const outputUst = dumpNotes(notes, ustTempo, ustFlags);
     const ustFile = new File([outputUst], `output_${new Date().toJSON()}.ust`, {
       type: "text/plane;charset=utf-8",

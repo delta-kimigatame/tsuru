@@ -33,6 +33,7 @@ const createMinimumNote = (): Note => {
   n.notenum = 60;
   return n;
 };
+const mockCheckWorkerReady = vi.fn().mockReturnValue(false);
 
 describe("EditorView", () => {
   const getRequestParamSpy = vi
@@ -139,7 +140,7 @@ describe("EditorView", () => {
   });
 
   it("vbの更新でキャッシュクリア用のuseEffectとmakeCacheが呼ばれるはず", async () => {
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // vb更新により、'vbの更新を検知。全てのキャッシュクリア' のログが出力されるはず
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
@@ -155,7 +156,7 @@ describe("EditorView", () => {
   });
 
   it("notesの更新でmakeCache用のuseEffectが呼ばれる", async () => {
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // notes更新により、'notesかustFlagsかdefaultNoteの更新検知' のログが出力されるはず
     const dummyNotes = [
       createMinimumNote(),
@@ -178,7 +179,7 @@ describe("EditorView", () => {
     vi.useRealTimers();
   });
   it("ustFlagsの更新でmakeCache用のuseEffectが呼ばれる", async () => {
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     vi.useFakeTimers();
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
@@ -195,7 +196,7 @@ describe("EditorView", () => {
     vi.useRealTimers();
   });
   it("defaultNoteの更新でmakeCache用のuseEffectが呼ばれる", async () => {
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     vi.useFakeTimers();
     act(() => {
       LOG.clear(); //初回レンダリング時に検証対象のログが出るためいったん削除
@@ -213,7 +214,7 @@ describe("EditorView", () => {
   });
 
   it("WAV保存タブをクリックすると、合成進捗が '0/2' と表示されるタブが2つ見つかる", async () => {
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // "editor.footer.wav" タブ（WAV保存タブ）を探してクリックする
     const wavTab = await screen.findByRole("tab", {
       name: /editor\.footer\.wav/i,
@@ -250,7 +251,7 @@ describe("EditorView", () => {
       });
 
     // EditorView をレンダリングする
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
 
     // "WAV保存" タブ（ラベルが "editor.footer.wav"）をクリックする
     const downloadTab = await screen.findByRole("tab", {
@@ -301,7 +302,7 @@ describe("EditorView", () => {
       });
 
     // EditorViewをレンダリングする
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
 
     // "WAV保存"タブを探してクリックする（handleDownloadが呼ばれる）
     const downloadTab = await screen.findByRole("tab", {
@@ -340,7 +341,7 @@ describe("EditorView", () => {
       .mockResolvedValue(dummyWavBuf);
 
     // EditorViewをレンダリング
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
 
     // 初回、"editor.footer.play"タブをクリック
     const playTabBefore = await screen.findByRole("tab", {
@@ -411,7 +412,7 @@ describe("EditorView", () => {
       .mockResolvedValue(dummyWavBuf);
 
     // グローバル状態はbeforeEachで初期化済みとする（notes.length===2等）
-    render(<EditorView />);
+    render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
 
     // "editor.footer.play"タブを取得してクリック（handlePlayが呼ばれる）
     const playTab = await screen.findByRole("tab", {
