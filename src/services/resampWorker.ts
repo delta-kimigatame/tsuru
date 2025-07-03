@@ -155,7 +155,7 @@ export class ResampWorkerService {
           `resamp workerの初期化タイムアウト`,
           "resampWorker.ResampWorkerService"
         );
-        reject(new Error("resamp workerの初期化がタイムアウトしました"));
+        // reject(new Error("resamp workerの初期化がタイムアウトしました"));
       }, 30000);
       const handler = (event: MessageEvent) => {
         if (event.data && event.data.type === "ready") {
@@ -172,7 +172,7 @@ export class ResampWorkerService {
             )}`,
             "resampWorker.ResampWorkerService"
           );
-          reject(new Error("resamp workerでエラーが発生しました"));
+          // reject(new Error("resamp workerでエラーが発生しました"));
         }
       };
       this.worker.addEventListener("message", handler);
