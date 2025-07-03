@@ -65,7 +65,7 @@ describe("ResampCache", () => {
   it("checkNoteはresampが存在しない場合falseを返す", () => {
     const note = new Note();
     // simulate getRequestParam returning resamp: undefined
-    note.getRequestParam = () => ({ resamp: undefined });
+    note.getRequestParam = () => [{ resamp: undefined }];
     const dummyVB = {} as VoiceBank;
     const dummyDefault = {} as any;
     expect(resampCache.checkNote(note, dummyVB, "", dummyDefault)).toBe(false);

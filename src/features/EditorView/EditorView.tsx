@@ -148,25 +148,27 @@ export const EditorView: React.FC<{
       return;
     }
     notes.forEach((n) => {
-      const request = n.getRequestParam(vb, ustFlags, defaultNote);
-      if (request.resamp === undefined) return;
-      const key = resampCache.createKey(request.resamp);
-      if (!resampCache.checkKey(n.index, key)) {
-        LOG.debug(
-          `キャッシュ生成のために、既存のタスクのキャンセル。index:${n.index}`,
-          "EditorView"
-        );
-        synthesisWorker.clearTask(n.index);
-        LOG.debug(`キャッシュ生成開始。index:${n.index}`, "EditorView");
-        synthesisWorker.resamp(request, vb, n.index).catch((error) => {
-          LOG.error(
-            `キャッシュ生成の失敗。input:${JSON.stringify(
-              request.resamp
-            )},error:${error.message}\n${error.stack}}`,
+      const requests = n.getRequestParam(vb, ustFlags, defaultNote);
+      requests.forEach((request) => {
+        if (request.resamp === undefined) return;
+        const key = resampCache.createKey(request.resamp);
+        if (!resampCache.checkKey(n.index, key)) {
+          LOG.debug(
+            `キャッシュ生成のために、既存のタスクのキャンセル。index:${n.index}`,
             "EditorView"
           );
-        });
-      }
+          synthesisWorker.clearTask(n.index);
+          LOG.debug(`キャッシュ生成開始。index:${n.index}`, "EditorView");
+          synthesisWorker.resamp(request, vb, n.index).catch((error) => {
+            LOG.error(
+              `キャッシュ生成の失敗。input:${JSON.stringify(
+                request.resamp
+              )},error:${error.message}\n${error.stack}}`,
+              "EditorView"
+            );
+          });
+        }
+      });
     });
   };
 

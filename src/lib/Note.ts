@@ -918,15 +918,15 @@ export class Note {
   ): {
     resamp: ResampRequest | undefined;
     append: AppendRequestBase;
-  } {
+  }[] {
     if (this._oto === undefined) {
       this.applyOto(vb);
     } else {
       this.autoFitParam();
     }
-    const params = { resamp: undefined, append: undefined };
+    const params = [{ resamp: undefined, append: undefined }];
     if (this._oto !== undefined && !this.direct) {
-      params["resamp"] = {
+      params[0]["resamp"] = {
         inputWav:
           this._oto.dirpath !== ""
             ? this._oto.dirpath + "/" + this._oto.filename
@@ -963,7 +963,7 @@ export class Note {
       } as ResampRequest;
     }
     if (this._oto !== undefined && this.direct) {
-      params["append"] = {
+      params[0]["append"] = {
         inputWav:
           this._oto.dirpath !== ""
             ? this._oto.dirpath + "/" + this._oto.filename
@@ -974,14 +974,14 @@ export class Note {
         overlap: this.atOverlap,
       } as AppendRequestBase;
     } else if (this._oto !== undefined) {
-      params["append"] = {
+      params[0]["append"] = {
         stp: this.atStp,
         length: this.outputMs,
         envelope: this.envelope ? this.envelope : defaultValue.envelope,
         overlap: this.atOverlap,
       } as AppendRequestBase;
     } else {
-      params["append"] = {
+      params[0]["append"] = {
         stp: 0,
         length: this.outputMs,
         envelope: { point: [0, 0], value: [] },

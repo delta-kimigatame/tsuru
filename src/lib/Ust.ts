@@ -173,7 +173,7 @@ export class Ust {
       selectNotes && selectNotes.length > 0
         ? selectNotes.map((idx) => this.notes[idx])
         : this.notes;
-    const params = targetNotes.map((n) =>
+    const params = targetNotes.flatMap((n) =>
       n.getRequestParam(vb, this.flags, defaultValue)
     );
     return params;

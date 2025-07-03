@@ -78,7 +78,7 @@ class ResampCache {
     ustFlags: string,
     defaultValue: defaultParam
   ): boolean => {
-    const request = note.getRequestParam(vb, ustFlags, defaultValue).resamp;
+    const request = note.getRequestParam(vb, ustFlags, defaultValue)[0].resamp;
     if (request === undefined) return false;
     return this.checkKey(note.index, this.createKey(request));
   };
