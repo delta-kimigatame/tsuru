@@ -45,7 +45,7 @@
     "styled-components": "^6.1.14",
     "tsworld": "^0.0.7",
     "utauoto": "^0.6.5",
-    "utauwav": "^0.6.3",
+    "utauwav": "^0.6.4",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

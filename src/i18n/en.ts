@@ -51,6 +51,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/07/04\r\n[Fix] Fixed an issue where certain WAV files could not be loaded.",
       "2025/07/03\r\n[Fix] Disabled translation functionality to prevent app crashes caused by browser auto-translation tools.",
       "2025/06/20\r\n[Added] Support for Chinese display and character encoding.",
       "2025/06/10\n[Fix] Added automatic restart feature when engine startup fails",
