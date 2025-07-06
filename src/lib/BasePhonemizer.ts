@@ -96,7 +96,7 @@ export abstract class BasePhonemizer {
    * @param note 対象ノート
    * @returns phoneme
    */
-  public getLastPhoneme(note: Note): string {
+  public getLastPhoneme(note: Note | undefined): string {
     return this._getLastPhoneme(note);
   }
 
