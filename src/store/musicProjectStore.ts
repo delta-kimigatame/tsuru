@@ -161,8 +161,6 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
             updatedNotes[i].next =
               i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
-            updatedNotes[i].phonemizer = state.phonemizer;
-            updatedNotes[i].applyOto(state.vb);
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = updatedNotes;
@@ -186,8 +184,6 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
             updatedNotes[i].next =
               i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
-            updatedNotes[i].phonemizer = state.phonemizer;
-            updatedNotes[i].applyOto(state.vb);
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = updatedNotes;
@@ -205,7 +201,10 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             newNotes[i].next =
               i === newNotes.length - 1 ? undefined : newNotes[i + 1];
             newNotes[i].phonemizer = state.phonemizer;
-            newNotes[i].applyOto(state.vb);
+            if (state.vb !== null && "getOtoRecord" in state.vb) {
+              //test時以外は常にtrueのはず
+              newNotes[i].applyOto(state.vb);
+            }
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = newNotes;
