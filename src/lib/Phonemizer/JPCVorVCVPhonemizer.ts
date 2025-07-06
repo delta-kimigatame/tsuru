@@ -1,4 +1,5 @@
 import OtoRecord from "utauoto/dist/OtoRecord";
+import { defaultNote } from "../../config/note";
 import { defaultParam } from "../../types/note";
 import { AppendRequestBase, ResampRequest } from "../../types/request";
 import { noteNumToTone } from "../../utils/Notenum";
@@ -170,6 +171,21 @@ export class JPCVorVCVPhonemizer extends BasePhonemizer {
       note.atPreutter = realPreutter;
       note.atOverlap = realOverlap;
       note.atStp = realStp;
+    }
+
+    /**自動クロスフェード */
+    if (note.prev.lyric !== "R" && note.atOverlap >= 20) {
+      if (note.prev.envelope === undefined)
+        note.prev.setEnvelope(defaultNote.envelope);
+      if (note.envelope === undefined) note.setEnvelope(defaultNote.envelope);
+      note.prev.envelope.point[2] = note.atOverlap;
+      note.prev.envelope.value[2] = 100;
+      note.prev.envelope.point[3] = 0;
+      note.prev.envelope.value[3] = 0;
+      note.envelope.point[1] = note.atOverlap;
+      note.envelope.value[1] = 100;
+      note.envelope.point[0] = 0;
+      note.envelope.value[0] = 0;
     }
   }
 
