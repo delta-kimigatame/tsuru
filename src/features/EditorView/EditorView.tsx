@@ -18,7 +18,7 @@ export const EditorView: React.FC<{
   checkWorkerReady = CheckWorkerReady, // デフォルト値として元の関数を使用
 }) => {
   const { t } = useTranslation();
-  const { vb, notes, ustFlags, setNote } = useMusicProjectStore();
+  const { vb, notes, ustFlags, phonemizer, setNote } = useMusicProjectStore();
   const { defaultNote } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   /**
@@ -83,13 +83,19 @@ export const EditorView: React.FC<{
     LOG.debug("vbかnotesかselectNotesIndexの更新を検知", "EditorView");
     LOG.debug("生成済みwavのクリア", "EditorView");
     setWavUrl(undefined);
-  }, [vb, notes, selectNotesIndex]);
+  }, [vb, notes, selectNotesIndex, phonemizer]);
 
   React.useEffect(() => {
     LOG.debug("vbの更新を検知。全てのキャッシュクリア", "EditorView");
     resampCache.clear();
     makeCache();
   }, [vb]);
+
+  React.useEffect(() => {
+    LOG.debug("phonemizerの更新を検知。全てのキャッシュクリア", "EditorView");
+    resampCache.clear();
+    makeCache();
+  }, [phonemizer]);
 
   React.useEffect(() => {
     timerRef.current = setTimeout(() => {

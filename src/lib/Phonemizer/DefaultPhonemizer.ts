@@ -21,6 +21,7 @@ export class DefaultPhonemizer extends BasePhonemizer {
       note.voiceColor ? note.voiceColor : ""
     );
     if (record === null) {
+      note.oto = undefined;
       note.otoPreutter = 0;
       note.otoOverlap = 0;
       note.atAlias = "R";

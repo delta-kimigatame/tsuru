@@ -2,9 +2,11 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
+import TranslateIcon from "@mui/icons-material/Translate";
 import { ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useMenu } from "../../../hooks/useMenu";
 import { LOG } from "../../../lib/Logging";
 import { dumpNotes } from "../../../lib/Note";
 import { undoManager } from "../../../lib/UndoManager";
@@ -12,6 +14,7 @@ import { Ust } from "../../../lib/Ust";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { ProjectSettingDialog } from "../ProjectSettingDialog";
+import { FooterPhonemizerMenu } from "./FooterPhonemizerMenu";
 
 export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
   anchor,
@@ -35,6 +38,11 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
   } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
   const [dialogOpen, setDialogOpen] = React.useState<boolean>(false);
+  const [
+    phonemizerMenuAnchor,
+    handlePhonemizerMenuOpen,
+    handlePhonemizerMenuClose,
+  ] = useMenu("FooterMenu.PhonemizerMenu");
 
   /**
    * inputのファイルを変更した際の動作
@@ -143,6 +151,11 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     handleClose();
   };
 
+  const _handlePhonemizerMenuClose = () => {
+    handlePhonemizerMenuClose();
+    handleClose();
+  };
+
   return (
     <>
       <input
@@ -177,6 +190,12 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
           </ListItemIcon>
           <ListItemText>{t("editor.footer.prjectSetting")}</ListItemText>
         </MenuItem>
+        <MenuItem onClick={handlePhonemizerMenuOpen} disabled={ust === null}>
+          <ListItemIcon>
+            <TranslateIcon />
+          </ListItemIcon>
+          <ListItemText>{t("editor.footer.phonemizer")}</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleClearProjectClick} disabled={ust === null}>
           <ListItemIcon>
             <DeleteForeverIcon />
@@ -185,6 +204,10 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
         </MenuItem>
       </Menu>
       <ProjectSettingDialog open={dialogOpen} handleClose={handleDialogClose} />
+      <FooterPhonemizerMenu
+        anchor={phonemizerMenuAnchor}
+        handleClose={_handlePhonemizerMenuClose}
+      />
     </>
   );
 };
