@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { BasePhonemizer } from "../lib/BasePhonemizer";
 import { dumpNotes, Note } from "../lib/Note";
+import { DefaultPhonemizer } from "../lib/Phonemizer/DefaultPhonemizer";
 import { Ust } from "../lib/Ust";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 
@@ -36,6 +38,11 @@ interface MusicProjectStore {
    * 楽譜内のノートリスト
    */
   notes: Note[];
+
+  /**
+   * Phonemizer
+   */
+  phonemizer: BasePhonemizer;
 
   /**
    * 楽譜を設定する
@@ -88,6 +95,8 @@ interface MusicProjectStore {
    */
   setNotes: (newNotes: Array<Note>) => void;
 
+  setPhonemizer: (newPhonemizer: BasePhonemizer) => void;
+
   clearUst: () => void;
 }
 
@@ -102,6 +111,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       ustTempo: 120,
       ustFlags: "",
       notes: [],
+      phonemizer: new DefaultPhonemizer(),
+      // phonemizer: new JPCVorVCVPhonemizer(),
       setUst: (ust) => set({ ust }),
       setVb: (vb) => set({ vb }),
 
@@ -150,6 +161,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
             updatedNotes[i].next =
               i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+            updatedNotes[i].phonemizer = state.phonemizer;
+            updatedNotes[i].applyOto(state.vb);
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = updatedNotes;
@@ -173,6 +186,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
             updatedNotes[i].next =
               i === updatedNotes.length - 1 ? undefined : updatedNotes[i + 1];
+            updatedNotes[i].phonemizer = state.phonemizer;
+            updatedNotes[i].applyOto(state.vb);
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = updatedNotes;
@@ -189,10 +204,22 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
             newNotes[i].next =
               i === newNotes.length - 1 ? undefined : newNotes[i + 1];
+            newNotes[i].phonemizer = state.phonemizer;
+            newNotes[i].applyOto(state.vb);
           });
           //ustの更新は通知しなくていいので直接更新
           state.ust.notes = newNotes;
           return { notes: newNotes };
+        }),
+      setPhonemizer: (newPhonemizer) =>
+        set((state) => {
+          const updatedNotes = [...state.notes];
+          updatedNotes.forEach((n) => {
+            n.phonemizer = newPhonemizer;
+            n.applyOto(state.vb);
+          });
+          state.ust.notes = updatedNotes;
+          return { phonemizer: newPhonemizer, notes: updatedNotes };
         }),
       clearUst: () =>
         set((state) => {
