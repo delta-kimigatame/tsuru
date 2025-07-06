@@ -48,6 +48,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2025/07/07\r\n【功能新增】新增日语自动连续音模式。将观察一段时间，如果问题较少，将成为标准功能。",
       "2025/07/04\r\n【修复】修复部分 wav 文件无法读取的问题",
       "2025/07/03\r\n【修复】禁用了翻译功能，以防止因浏览器自动翻译工具导致的应用崩溃。",
       "2025/06/20\r\n【新增】支持中文显示和字符编码。",
@@ -134,6 +135,7 @@ export const translationZh = {
       loadUst: "加载 ust",
       saveUst: "保存 ust",
       prjectSetting: "项目设置",
+      phonemizer: "歌词自动转换设置",
       clearProject: "初始化项目",
       zoom: "缩放",
       batchprocess: "批量处理",
@@ -283,6 +285,10 @@ export const translationZh = {
       },
     },
     process: "执行",
+  },
+  phonemizer: {
+    default: "无转换",
+    JPCVorVCVPhonemizer: "（日语）自动连续音",
   },
   footer: {
     disclaimer:

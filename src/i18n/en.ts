@@ -51,6 +51,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/07/07\r\n[Feature Added] Added Japanese automatic VCV mode. It will be monitored for a while, and if there are few issues, it will become a standard feature.",
       "2025/07/04\r\n[Fix] Fixed an issue where certain WAV files could not be loaded.",
       "2025/07/03\r\n[Fix] Disabled translation functionality to prevent app crashes caused by browser auto-translation tools.",
       "2025/06/20\r\n[Added] Support for Chinese display and character encoding.",
@@ -136,6 +137,7 @@ export const translationEn = {
       loadUst: "Load UST",
       saveUst: "Save UST",
       prjectSetting: "Project Settings",
+      phonemizer: "Phonemizer",
       clearProject: "Project Initialize",
       zoom: "Zoom",
       batchprocess: "Batch Process",
@@ -288,6 +290,10 @@ export const translationEn = {
       },
     },
     process: "Execute",
+  },
+  phonemizer: {
+    default: "No Conversion",
+    JPCVorVCVPhonemizer: "(Japanese) Automatic VCV",
   },
   footer: {
     disclaimer:

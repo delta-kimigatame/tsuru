@@ -51,6 +51,7 @@ export const translationJa = {
       "本サイトで使用されるワーカーは、プライバシーに関わるデータを収集しません。",
     history: "更新履歴",
     changelog: [
+      "2025/07/07\r\n【機能追加】日本語自動連続音モードを追加。しばらく様子を見て不具合が少なければ標準機能にします。",
       "2025/07/04\r\n【修正】一部のwavファイルが読み込めない不具合の修正",
       "2025/07/03\r\n【修正】ブラウザの自動翻訳ツール使用時にアプリがクラッシュすることを踏まえて、翻訳機能を使用不可にしました。",
       "2025/06/20\r\n【追加】中国語表示と文字コードに対応しました。",
@@ -137,6 +138,7 @@ export const translationJa = {
       loadUst: "ust読込",
       saveUst: "ust保存",
       prjectSetting: "プロジェクト設定",
+      phonemizer: "歌詞自動変換設定",
       clearProject: "プロジェクト初期化",
       zoom: "拡大縮小",
       batchprocess: "一括処理",
@@ -304,6 +306,10 @@ export const translationJa = {
       },
     },
     process: "実行",
+  },
+  phonemizer: {
+    default: "変換無し",
+    JPCVorVCVPhonemizer: "(日本語)自動連続音",
   },
   footer: {
     disclaimer:
