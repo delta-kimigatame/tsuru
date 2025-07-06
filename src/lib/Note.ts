@@ -7,8 +7,8 @@ import type OtoRecord from "utauoto/dist/OtoRecord";
 import type { defaultParam } from "../types/note";
 import type { AppendRequestBase, ResampRequest } from "../types/request";
 import { makeTimeAxis } from "../utils/interp";
-import { noteNumToTone } from "../utils/Notenum";
-import { encodePitch } from "../utils/pitch";
+import { BasePhonemizer } from "./BasePhonemizer";
+import { DefaultPhonemizer } from "./Phonemizer/DefaultPhonemizer";
 import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 
 export class Note {
@@ -31,9 +31,9 @@ export class Note {
   /** オーバーラップ */
   private _overlap: number;
   /** 原音設定から読み込んだ先行発声 */
-  private otoPreutter: number;
+  private _otoPreutter: number;
   /** 原音設定から読み込んだオーバーラップ */
-  private otoOverlap: number;
+  private _otoOverlap: number;
   /** stp */
   private _stp: number;
   /** 自動調整適用後の先行発声 */
@@ -104,6 +104,16 @@ export class Note {
   prev: Note;
   /** 1つ次のノートへの参照 */
   next: Note;
+
+  private _phonemizer: BasePhonemizer;
+
+  set phonemizer(phonemizer: BasePhonemizer) {
+    this._phonemizer = phonemizer;
+  }
+
+  get phonemizer(): BasePhonemizer {
+    return this._phonemizer;
+  }
 
   /** tick値で与えられるノートの長さ */
   get length(): number {
@@ -205,10 +215,16 @@ export class Note {
   get atPreutter(): number {
     return this._atPreutter;
   }
+  set atPreutter(atPreutter: number) {
+    this._atPreutter = atPreutter;
+  }
 
   /** 自動調整や子音速度適用後の実際のオーバーラップ */
   get atOverlap(): number {
     return this._atOverlap;
+  }
+  set atOverlap(atOverlap: number) {
+    this._atOverlap = atOverlap;
   }
 
   /** 自動調整や子音速度適用後の実際のstp */
@@ -216,14 +232,26 @@ export class Note {
     return this._atStp;
   }
 
+  set atStp(atStp: number) {
+    this._atStp = atStp;
+  }
+
   /** prefix.map適用後のエイリアス */
   get atAlias(): string {
     return this._atAlias;
   }
 
+  set atAlias(atAlias: string) {
+    this._atAlias = atAlias;
+  }
+
   /** ファイル名 */
   get atFilename(): string {
     return this._atFilename;
+  }
+
+  set atFilename(atFilename: string) {
+    this._atFilename = atFilename;
   }
 
   /** 子音速度 */
@@ -552,7 +580,9 @@ export class Note {
    * ustにおけるNoteを扱う。
    * 極力本家UTAUに沿った実装とするが、Voice Colorを活用するための拡張を行う。
    */
-  constructor() {}
+  constructor() {
+    this.phonemizer = new DefaultPhonemizer();
+  }
 
   /**
    * 原音設定値を読み込んでatPre,atOve,atStp,atAlias,atFileNameを更新する。
@@ -560,30 +590,32 @@ export class Note {
    * @throws lyricもしくはnotenumが初期化されていない場合
    */
   applyOto(vb: BaseVoiceBank): void {
-    if (this._lyric === undefined) {
-      throw new Error("lyric is not initial.");
-    } else if (this._notenum === undefined) {
-      throw new Error("notenum is not initial.");
-    }
-    const record = vb.getOtoRecord(
-      this._lyric,
-      this.notenum,
-      this.voiceColor ? this.voiceColor : ""
-    );
-    if (record === null) {
-      this.otoPreutter = 0;
-      this.otoOverlap = 0;
-      this._atAlias = "R";
-      this._atFilename = "";
-    } else {
-      this._oto = record;
-      this.otoPreutter = record.pre;
-      this.otoOverlap = record.overlap;
-      this._atAlias = record.alias !== "" ? record.alias : this._lyric;
-      this._atFilename =
-        record.dirpath + (record.dirpath !== "" ? "/" : "") + record.filename;
-    }
+    this.phonemizer.applyOto(this, vb);
     this.autoFitParam();
+  }
+
+  get oto(): OtoRecord {
+    return this._oto;
+  }
+
+  set oto(oto: OtoRecord) {
+    this._oto = oto;
+  }
+
+  set otoPreutter(otoPreutter: number) {
+    this._otoPreutter = otoPreutter;
+  }
+
+  get otoPreutter(): number {
+    return this._otoPreutter;
+  }
+
+  set otoOverlap(otoOverlap: number) {
+    this._otoOverlap = otoOverlap;
+  }
+
+  get otoOverlap(): number {
+    return this._otoOverlap;
   }
 
   /**
@@ -591,49 +623,7 @@ export class Note {
    * @throws prev.length,prev.lyric,prev.tempoのいずれかが未定義の場合
    */
   autoFitParam(): void {
-    const rate = this.velocityRate;
-    if (this.prev === undefined) {
-      this._atPreutter =
-        this._preutter !== undefined
-          ? this._preutter * rate
-          : this.otoPreutter !== undefined
-          ? this.otoPreutter * rate
-          : undefined;
-      this._atOverlap =
-        this._overlap !== undefined
-          ? this._overlap * rate
-          : this.otoOverlap !== undefined
-          ? this.otoOverlap * rate
-          : undefined;
-      this._atStp = this.stp !== undefined ? this.stp : 0;
-      return;
-    }
-    if (this.prev.length === undefined) {
-      throw new Error("prev length is not initial.");
-    } else if (this.prev.tempo === undefined) {
-      throw new Error("prev tempo is not initial.");
-    } else if (this.prev._lyric === undefined) {
-      throw new Error("prev lyric is not initial.");
-    }
-    const prevMsLength =
-      this.prev.msLength * (this.prev._lyric === "R" ? 1 : 0.5);
-    const realPreutter =
-      (this._preutter !== undefined ? this._preutter : this.otoPreutter) * rate;
-    const realOverlap =
-      (this._overlap !== undefined ? this._overlap : this.otoOverlap) * rate;
-    const realStp = this.stp !== undefined ? this.stp : 0;
-    if (Number.isNaN(realPreutter) || Number.isNaN(realOverlap)) {
-    } else if (prevMsLength < realPreutter - realOverlap) {
-      this._atPreutter =
-        (realPreutter / (realPreutter - realOverlap)) * prevMsLength;
-      this._atOverlap =
-        (realOverlap / (realPreutter - realOverlap)) * prevMsLength;
-      this._atStp = realPreutter - this._atPreutter + realStp;
-    } else {
-      this._atPreutter = realPreutter;
-      this._atOverlap = realOverlap;
-      this._atStp = realStp;
-    }
+    this.phonemizer.autoFitParam(this);
   }
 
   /**
@@ -919,76 +909,7 @@ export class Note {
     resamp: ResampRequest | undefined;
     append: AppendRequestBase;
   }[] {
-    if (this._oto === undefined) {
-      this.applyOto(vb);
-    } else {
-      this.autoFitParam();
-    }
-    const params = [{ resamp: undefined, append: undefined }];
-    if (this._oto !== undefined && !this.direct) {
-      params[0]["resamp"] = {
-        inputWav:
-          this._oto.dirpath !== ""
-            ? this._oto.dirpath + "/" + this._oto.filename
-            : this._oto.filename,
-        targetTone: noteNumToTone(this.notenum),
-        velocity:
-          this.velocity !== undefined &&
-          this.velocity !== null &&
-          !Number.isNaN(this.velocity)
-            ? this.velocity
-            : defaultValue.velocity,
-        flags:
-          this.flags !== null && this.flags !== undefined && this.flags !== ""
-            ? this.flags
-            : flags,
-        offsetMs: this._oto.offset,
-        targetMs: this.targetLength,
-        fixedMs: this._oto.velocity,
-        cutoffMs: this._oto.blank,
-        intensity:
-          this._intensity !== undefined &&
-          this._intensity !== null &&
-          !Number.isNaN(this._intensity)
-            ? this._intensity
-            : defaultValue.intensity,
-        modulation:
-          this._modulation !== undefined &&
-          this._modulation !== null &&
-          !Number.isNaN(this._modulation)
-            ? this._modulation
-            : defaultValue.modulation,
-        tempo: `!${this.tempo.toFixed(2)}`,
-        pitches: encodePitch(this.getRenderPitch()),
-      } as ResampRequest;
-    }
-    if (this._oto !== undefined && this.direct) {
-      params[0]["append"] = {
-        inputWav:
-          this._oto.dirpath !== ""
-            ? this._oto.dirpath + "/" + this._oto.filename
-            : this._oto.filename,
-        stp: this.atStp + this._oto.offset,
-        length: this.outputMs,
-        envelope: this.envelope ? this.envelope : defaultValue.envelope,
-        overlap: this.atOverlap,
-      } as AppendRequestBase;
-    } else if (this._oto !== undefined) {
-      params[0]["append"] = {
-        stp: this.atStp,
-        length: this.outputMs,
-        envelope: this.envelope ? this.envelope : defaultValue.envelope,
-        overlap: this.atOverlap,
-      } as AppendRequestBase;
-    } else {
-      params[0]["append"] = {
-        stp: 0,
-        length: this.outputMs,
-        envelope: { point: [0, 0], value: [] },
-        overlap: 0,
-      } as AppendRequestBase;
-    }
-    return params;
+    return this.phonemizer.getRequestParam(vb, this, flags, defaultValue);
   }
 
   /**
@@ -1004,8 +925,8 @@ export class Note {
     copiedNote.hasTempo = this.hasTempo;
     copiedNote._preutter = this._preutter;
     copiedNote._overlap = this._overlap;
-    copiedNote.otoPreutter = this.otoPreutter;
-    copiedNote.otoOverlap = this.otoOverlap;
+    copiedNote._otoPreutter = this._otoPreutter;
+    copiedNote._otoOverlap = this._otoOverlap;
     copiedNote._stp = this._stp;
     copiedNote._atPreutter = this._atPreutter;
     copiedNote._atOverlap = this._atOverlap;
