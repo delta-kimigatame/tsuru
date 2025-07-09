@@ -22,15 +22,18 @@ export class VoiceBankFiles extends BaseVoiceBank {
   constructor(files: File[]) {
     super();
     this._files = files;
-    this._filenames = files.map((f) => f.webkitRelativePath);
+    this._filenames = files.map((f) => f.webkitRelativePath.normalize("NFC"));
   }
 
   override get files(): { [filename: string]: File } {
     const root = this._root !== undefined ? this._root + "/" : "";
     return Object.fromEntries(
       this._files
-        .filter((f) => f.webkitRelativePath.startsWith(root))
-        .map((f) => [f.webkitRelativePath.replace(root, ""), f])
+        .filter((f) => f.webkitRelativePath.normalize("NFC").startsWith(root))
+        .map((f) => [
+          f.webkitRelativePath.normalize("NFC").replace(root, ""),
+          f,
+        ])
     );
   }
 
