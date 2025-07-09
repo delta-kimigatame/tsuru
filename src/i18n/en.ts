@@ -52,6 +52,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/07/09\r\n[Feature Added] You can now change the number of resamplers from the header.\r\nIn mobile environments, 3 is usually optimal.\r\nFor low-spec environments, try 1 or 2.\r\nConversely, increasing the number speeds up processing on PC environments.\r\n[Fix] Fixed an issue where sounds containing voiced marks did not play correctly when selecting a sound source folder on macOS or iOS environments.",
       "2025/07/07\r\n[Feature Added] Added Japanese automatic VCV mode. It will be monitored for a while, and if there are few issues, it will become a standard feature.",
       "2025/07/04\r\n[Fix] Fixed an issue where certain WAV files could not be loaded.",
       "2025/07/03\r\n[Fix] Disabled translation functionality to prevent app crashes caused by browser auto-translation tools.",
