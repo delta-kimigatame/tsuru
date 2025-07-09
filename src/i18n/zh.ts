@@ -16,6 +16,7 @@ export const translationZh = {
     toDarkMode: "切换到深色模式",
     toLightMode: "切换到浅色模式",
     changeLanguage: "语言设置",
+    workers: "引擎数量",
     showLog: "显示操作日志",
     clearAppCache: "清除应用缓存",
     clearProject: "初始化项目",

@@ -17,6 +17,7 @@ export const translationEn = {
     toDarkMode: "to Dark Mode",
     toLightMode: "to Light Mode",
     changeLanguage: "Language setting",
+    workers: "Number of resamplers",
     showLog: "Show Log",
     clearAppCache: "Clear this app caches",
     clearProject: "Project Initialize",

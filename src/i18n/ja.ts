@@ -16,6 +16,7 @@ export const translationJa = {
     toDarkMode: "ダークモードにする",
     toLightMode: "ライトモードにする",
     changeLanguage: "言語設定",
+    workers: "エンジンの数",
     showLog: "操作ログ表示",
     clearAppCache: "アプリのキャッシュクリア",
     clearProject: "プロジェクト初期化",

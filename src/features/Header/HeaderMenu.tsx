@@ -2,15 +2,18 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Divider, IconButton, Menu } from "@mui/material";
 import React from "react";
 import { LOG } from "../../lib/Logging";
+import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { HeaderMenuClearCache } from "./Menu/HeaderMenuClearCache";
 import { HeaderMenuClearProject } from "./Menu/HeaderMenuClearProject";
 import { HeaderMenuLanguage } from "./Menu/HeaderMenuLanguage";
 import { HeaderMenuLog } from "./Menu/HeaderMenuLog";
 import { HeaderMenuTheme } from "./Menu/HeaderMenuTheme";
+import { HeaderMenuWorkers } from "./Menu/HeaderMenuWorkers";
 
 export const HeaderMenu: React.FC = () => {
   /** メニューの表示を制御するアンカー */
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
+  const { vb } = useMusicProjectStore();
 
   /**
    * メニューを開く動作
@@ -36,6 +39,7 @@ export const HeaderMenu: React.FC = () => {
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={handleClose}>
         <HeaderMenuLanguage onMenuClose={handleClose} />
         <HeaderMenuTheme onMenuClose={handleClose} />
+        {vb === null && <HeaderMenuWorkers onMenuClose={handleClose} />}
         <Divider />
         <HeaderMenuLog onMenuClose={handleClose} />
         <Divider />
