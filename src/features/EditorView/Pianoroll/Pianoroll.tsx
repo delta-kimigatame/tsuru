@@ -298,11 +298,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             lyricAnchor={lyricAnchor}
           />
         </svg>
-        <PianorollWavForm
-          totalLength={totalLength}
-          notesLeft={notesLeft}
-          scrollLeft={scrollLeft}
-        />
+        <PianorollWavForm notesLeft={notesLeft} scrollLeft={scrollLeft} />
       </Box>
       {portraitUrl !== undefined && (
         <img

@@ -6,6 +6,7 @@ import { renderingConfig } from "../../../config/rendering";
 import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
 import { useWindowSize } from "../../../hooks/useWindowSize";
+import { Note } from "../../../lib/Note";
 import { resampCache } from "../../../lib/ResampCache";
 import { Wavtool } from "../../../lib/Wavtool";
 import { useCookieStore } from "../../../store/cookieStore";
@@ -23,47 +24,13 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
   // svgにおいてポリラインを描画するためのpointsを格納するための状態
   const [points, setPoints] = React.useState<string>("");
 
-  /**
-   * 画面の左端から右端に収まっているノートを求める
-   */
-  const showRangeIndex = (
-    /** tick単位 */
-    notesLeft: Array<number>,
-    /** pixel単位 */
-    scrollLeft: number
-  ): Array<number> => {
-    /** pixel単位 */
-    const left = scrollLeft;
-    /** pixel単位 */
-    const right =
-      scrollLeft + windowSize.width - PIANOROLL_CONFIG.TONEMAP_WIDTH;
-
-    /** tick単位の左端 */
-    const leftTick = Math.floor(
-      left / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
-    );
-    /**tick単位の右端 */
-    const rightTick = Math.ceil(
-      right / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
-    );
-    /** 最初のindex値、notesLeftの内、leftTicksより小さいものの中で最大 */
-    const startIndex = Math.max(
-      notesLeft.findIndex((n) => n > leftTick) - 1,
-      0
-    );
-    /** 最後のindex値、notesLeftの内、rightTicksより大きいものの中で最小 */
-    const endIndex = notesLeft.findIndex((n) => n > rightTick);
-    return range(
-      startIndex,
-      Math.min(
-        endIndex === -1 ? notesLeft.length : endIndex,
-        notesLeft.length - 1
-      )
-    );
-  };
-
   React.useEffect(() => {
-    const rangeIndex = showRangeIndex(props.notesLeft, props.scrollLeft);
+    const rangeIndex = showRangeIndex(
+      props.notesLeft,
+      props.scrollLeft,
+      windowSize.width,
+      horizontalZoom
+    );
     const wavtool = new Wavtool();
     const requests: Array<AppendRequest> = rangeIndex.map((i) => {
       const params = notes[i].getRequestParam(vb, ustFlags, defaultNote);
@@ -96,49 +63,14 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
       (notes[rangeIndex[0]].atPreutter / 1000) * renderingConfig.frameRate
     );
     const wavData = wavtool.data.slice(offsetFrame + preutterOffsetFrame);
-    let startFrame = 0;
-    const poltaments = new Array<{ max: number; min: number }>(
-      windowSize.width
+    const points = calculatePolylinePoints(
+      wavData,
+      windowSize.width,
+      props.scrollLeft,
+      props.notesLeft,
+      notes,
+      horizontalZoom
     );
-    const amp = PIANOROLL_CONFIG.WAVFORM_HEIGHT / 2;
-    // 0～windowSize.widthまでをループし、ポリラインの各点を求める。
-    for (let i = 0; i < windowSize.width; i++) {
-      // 現在参照しているpixelのtick数を求める
-      const refTick = Math.floor(
-        props.scrollLeft +
-          i / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
-      );
-      // 現在参照しているpixelが何番目のノートの範囲に収まるか求める
-      const noteIndex = props.notesLeft.findIndex((n) => n > refTick) - 1;
-      const tempo = notes[noteIndex].tempo;
-      // 現在参照している座標における、1ピクセル当たりのwavフレーム数を求める。
-      const framePerPixel = calcFramePerPixel(
-        renderingConfig.frameRate,
-        tempo,
-        horizontalZoom
-      );
-      const endFrame = startFrame + Math.ceil(framePerPixel);
-      // 元の値がInt16Arrayであることを踏まえて、startFrameからendFrameの間のmaxとminを-PIANOROLL_CONFIG.WAVFORM_HEIGHT/2 ～ PIANOROLL_CONFIG.WAVFORM_HEIGHT/2の範囲に変換史求める。
-      const segment = wavData.slice(startFrame, endFrame);
-      const poltament = {
-        max: isFinite(Math.max(...segment))
-          ? (Math.max(...segment) / 32768) * amp
-          : 0,
-        min: isFinite(Math.min(...segment))
-          ? (Math.min(...segment) / 32768) * amp
-          : 0,
-      };
-      startFrame = endFrame;
-      poltaments[i] = poltament;
-    }
-    const points = poltaments
-      .map((p, i) => {
-        const x = i;
-        const yMax = amp - p.max;
-        const yMin = amp - p.min;
-        return `${x},${yMax} ${x},${yMin}`;
-      })
-      .join(" ");
     setPoints(points);
   }, [props.notesLeft, props.scrollLeft, windowSize.width]);
 
@@ -167,7 +99,6 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
 };
 
 interface PianorollWavFormProps {
-  totalLength: number;
   notesLeft: Array<number>;
   scrollLeft: number;
 }
@@ -196,4 +127,156 @@ export const calcFramePerPixel = (
 
   // 1pixelあたりのwavフレーム数を計算
   return framesPerTick / pixelsPerTick;
+};
+
+/**
+ * ポリラインの各点を計算する
+ * @param wavData 波形データ (Int16Array)
+ * @param windowWidth 画面の幅 (pixel単位)
+ * @param scrollLeft スクロール位置 (pixel単位)
+ * @param notesLeft ノートの左端位置 (tick単位)
+ * @param notes ノートデータ
+ * @param horizontalZoom 水平方向の拡大率
+ * @returns ポリラインの描画用points文字列
+ */
+export const calculatePolylinePoints = (
+  wavData: Array<number>,
+  windowWidth: number,
+  scrollLeft: number,
+  notesLeft: Array<number>,
+  notes: Array<Note>,
+  horizontalZoom: number
+): string => {
+  let startFrame = 0;
+  const poltaments = new Array<{ max: number; min: number }>(windowWidth);
+  const amp = PIANOROLL_CONFIG.WAVFORM_HEIGHT / 2;
+
+  for (let i = 0; i < windowWidth; i++) {
+    const refTick = Math.floor(
+      scrollLeft + i / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
+    );
+    const noteIndex = notesLeft.findIndex((n) => n > refTick) - 1;
+
+    const tempo = notes[noteIndex].tempo;
+
+    const framePerPixel = calcFramePerPixel(
+      renderingConfig.frameRate,
+      tempo,
+      horizontalZoom
+    );
+    const endFrame = startFrame + Math.ceil(framePerPixel);
+    const segment = wavData.slice(startFrame, endFrame);
+
+    startFrame = endFrame;
+    poltaments[i] = calculatePoltament(segment, amp);
+  }
+
+  return generatePolylinePoints(poltaments, amp);
+};
+
+/**
+ * 波形データのセグメントから最大値と最小値を計算する
+ * @param segment 波形データのセグメント
+ * @param amp 振幅のスケール
+ * @returns 最大値と最小値
+ */
+const calculatePoltament = (
+  segment: Array<number>,
+  amp: number
+): { max: number; min: number } => {
+  return {
+    max: isFinite(Math.max(...segment))
+      ? (Math.max(...segment) / 32768) * amp
+      : 0,
+    min: isFinite(Math.min(...segment))
+      ? (Math.min(...segment) / 32768) * amp
+      : 0,
+  };
+};
+
+/**
+ * ポリラインの各点を文字列として生成する
+ * @param poltaments ポリラインの点データ
+ * @param amp 振幅のスケール
+ * @returns ポリラインの描画用points文字列
+ */
+const generatePolylinePoints = (
+  poltaments: Array<{ max: number; min: number }>,
+  amp: number
+): string => {
+  return poltaments
+    .map((p, i) => {
+      const x = i;
+      const yMax = amp - p.max;
+      const yMin = amp - p.min;
+      return `${x},${yMax} ${x},${yMin}`;
+    })
+    .join(" ");
+};
+
+/**
+ * 画面の左端から右端に収まっているノートを求める
+ */
+export const showRangeIndex = (
+  /** tick単位 */
+  notesLeft: Array<number>,
+  /** pixel単位 */
+  scrollLeft: number,
+  windowWidth: number,
+  horizontalZoom: number
+): Array<number> => {
+  const { leftTick, rightTick } = calculateTickRange(
+    scrollLeft,
+    windowWidth,
+    horizontalZoom
+  );
+  return calculateRangeIndex(notesLeft, leftTick, rightTick);
+};
+
+/**
+ * ピクセル単位のスクロール位置からtick単位の範囲を計算する
+ * @param scrollLeft スクロール位置 (pixel単位)
+ * @param windowWidth 画面の幅 (pixel単位)
+ * @param horizontalZoom 水平方向の拡大率
+ * @returns 左端と右端のtick値
+ */
+const calculateTickRange = (
+  scrollLeft: number,
+  windowWidth: number,
+  horizontalZoom: number
+): { leftTick: number; rightTick: number } => {
+  const left = scrollLeft;
+  const right = scrollLeft + windowWidth - PIANOROLL_CONFIG.TONEMAP_WIDTH;
+
+  return {
+    leftTick: Math.floor(
+      left / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
+    ),
+    rightTick: Math.ceil(
+      right / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
+    ),
+  };
+};
+
+/**
+ * notesLeft配列から範囲内のインデックスを計算する
+ * @param notesLeft ノートの左端位置 (tick単位)
+ * @param leftTick 左端のtick値
+ * @param rightTick 右端のtick値
+ * @returns 範囲内のインデックス配列
+ */
+const calculateRangeIndex = (
+  notesLeft: Array<number>,
+  leftTick: number,
+  rightTick: number
+): Array<number> => {
+  const startIndex = Math.max(notesLeft.findIndex((n) => n > leftTick) - 1, 0);
+  const endIndex = notesLeft.findIndex((n) => n > rightTick);
+  return range(
+    startIndex,
+    Math.min(
+      endIndex === -1 ? notesLeft.length : endIndex,
+      notesLeft.length - 1
+    )
+  );
 };
