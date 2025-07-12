@@ -37,5 +37,5 @@ export const PIANOROLL_CONFIG = {
   // シークバーの太さ
   SEEKBAR_WIDTH: 1,
   // ピアノロールの波形の高さ
-  WAVFORM_HEIGHT: 50,
+  WAVFORM_HEIGHT: 100,
 };
