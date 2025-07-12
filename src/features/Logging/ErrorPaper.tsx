@@ -14,6 +14,7 @@ import { Footer } from "../../components/Footer/Footer";
 import { LogPaper } from "../../components/Logging/LogPaper";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import { LOG } from "../../lib/Logging";
+import { useCookieStore } from "../../store/cookieStore";
 
 /**
  * エラー時に表示される画面。
@@ -25,9 +26,10 @@ export const ErrorPaper: React.FC<FallbackProps> = ({
 }) => {
   const { t } = useTranslation();
   const mode_ = useThemeMode();
+  const { colorTheme } = useCookieStore();
   const theme = React.useMemo(
-    () => createTheme(getDesignTokens(mode_)),
-    [mode_]
+    () => createTheme(getDesignTokens(mode_, colorTheme)),
+    [mode_, colorTheme]
   );
   /**
    * ダウンロードボタンを押した際の動作

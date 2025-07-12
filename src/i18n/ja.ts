@@ -7,6 +7,18 @@ export const translationJa = {
     en: "英語",
     zh: "中国語",
   },
+  colorTheme: {
+    default: "UTAUパープル",
+    red: "赤",
+    orange: "オレンジ",
+    yellow: "黄色",
+    lightgreen: "黄緑",
+    green: "緑",
+    blue: "青",
+    aqua: "水色",
+    pink: "ピンク",
+    brown: "茶色",
+  },
   theme: {
     system: "端末設定にあわせる",
     light: "ライトモード",

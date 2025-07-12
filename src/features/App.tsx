@@ -16,11 +16,11 @@ import { EditorView } from "./EditorView/EditorView";
 export const App: React.FC = () => {
   useInitializeApp();
   const mode_ = useThemeMode();
-  const { language } = useCookieStore();
+  const { language, colorTheme } = useCookieStore();
   const { vb } = useMusicProjectStore();
   const theme = React.useMemo(
-    () => createTheme(getDesignTokens(mode_)),
-    [mode_]
+    () => createTheme(getDesignTokens(mode_, colorTheme)),
+    [mode_, colorTheme]
   );
   React.useMemo(() => {
     i18n.changeLanguage(language);

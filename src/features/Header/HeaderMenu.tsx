@@ -5,6 +5,7 @@ import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { HeaderMenuClearCache } from "./Menu/HeaderMenuClearCache";
 import { HeaderMenuClearProject } from "./Menu/HeaderMenuClearProject";
+import { HeaderMenuColorTheme } from "./Menu/HeaderMenuColorTheme";
 import { HeaderMenuLanguage } from "./Menu/HeaderMenuLanguage";
 import { HeaderMenuLog } from "./Menu/HeaderMenuLog";
 import { HeaderMenuTheme } from "./Menu/HeaderMenuTheme";
@@ -39,6 +40,7 @@ export const HeaderMenu: React.FC = () => {
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={handleClose}>
         <HeaderMenuLanguage onMenuClose={handleClose} />
         <HeaderMenuTheme onMenuClose={handleClose} />
+        <HeaderMenuColorTheme onMenuClose={handleClose} />
         {vb === null && <HeaderMenuWorkers onMenuClose={handleClose} />}
         <Divider />
         <HeaderMenuLog onMenuClose={handleClose} />

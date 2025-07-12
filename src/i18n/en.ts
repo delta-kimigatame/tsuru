@@ -8,6 +8,18 @@ export const translationEn = {
     en: "EN",
     zh: "ZH",
   },
+  colorTheme: {
+    default: "UTAU Purple",
+    red: "Red",
+    orange: "Orange",
+    yellow: "Yellow",
+    lightgreen: "Light Green",
+    green: "Green",
+    blue: "Blue",
+    aqua: "Aqua",
+    pink: "Pink",
+    brown: "Brown",
+  },
   theme: {
     system: "Follow system settings",
     light: "Light mode",

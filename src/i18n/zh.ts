@@ -7,6 +7,18 @@ export const translationZh = {
     en: "英语",
     zh: "中文",
   },
+  colorTheme: {
+    default: "UTAU 紫色",
+    red: "红色",
+    orange: "橙色",
+    yellow: "黄色",
+    lightgreen: "浅绿色",
+    green: "绿色",
+    blue: "蓝色",
+    aqua: "水色",
+    pink: "粉色",
+    brown: "棕色",
+  },
   theme: {
     system: "跟随系统设置",
     light: "浅色模式",
