@@ -20,7 +20,7 @@ export const PianorollSeekbar: React.FC<PianorollSeekbarProps> = (props) => {
         position: "absolute",
         top: 0,
         left: 0,
-        zIndex: 4,
+        zIndex: 8,
       }}
       data-testid="pianoroll-seekbar"
     >

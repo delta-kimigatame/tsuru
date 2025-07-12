@@ -21,6 +21,7 @@ import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
 import { PianorollToutch } from "./PianorollTouch";
 import { PianorollVibrato } from "./PianorollVibrato";
+import { PianorollWavForm } from "./PianorollWavForm";
 
 export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
@@ -45,6 +46,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     x: number;
     y: number;
   } | null>(null);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
 
   /**
    * 各ノートのx座標描画位置を予め求めておく
@@ -168,6 +170,26 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
     setSeekBarX(x);
   }, [horizontalZoom, props.playingMs]);
 
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    let scrollTimeout: NodeJS.Timeout | null = null;
+    const handleScroll = () => {
+      // 既存のタイマーをクリア
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+
+      // スクロール停止後に値を更新
+      scrollTimeout = setTimeout(() => {
+        setScrollLeft(el.scrollLeft);
+      }, 100); // 100msの遅延を設定
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [containerRef]);
+
   return (
     <Box
       sx={{
@@ -276,6 +298,11 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             lyricAnchor={lyricAnchor}
           />
         </svg>
+        <PianorollWavForm
+          totalLength={totalLength}
+          notesLeft={notesLeft}
+          scrollLeft={scrollLeft}
+        />
       </Box>
       {portraitUrl !== undefined && (
         <img

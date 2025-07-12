@@ -89,6 +89,16 @@ class ResampCache {
   clear = () => {
     this.cache = {};
   };
+
+  /**
+   * indexを指定してキャッシュのデータを返す
+   * @param index noteのインデックス
+   * @returns キャッシュのデータ。indexが未定義の場合undefinedを返す
+   */
+  getByIndex = (index: number): Int16Array | undefined => {
+    if (!(index in this.cache)) return undefined;
+    return this.cache[index].data;
+  };
 }
 
 export const resampCache = new ResampCache();
