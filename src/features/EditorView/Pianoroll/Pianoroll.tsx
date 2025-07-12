@@ -183,7 +183,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
       // スクロール停止後に値を更新
       scrollTimeout = setTimeout(() => {
         setScrollLeft(el.scrollLeft);
-      }, 100); // 100msの遅延を設定
+      }, 50); // 50msの遅延を設定
     };
 
     el.addEventListener("scroll", handleScroll);

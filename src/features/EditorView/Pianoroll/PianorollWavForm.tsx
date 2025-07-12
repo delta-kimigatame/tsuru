@@ -12,7 +12,7 @@ import { Wavtool } from "../../../lib/Wavtool";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { AppendRequest } from "../../../types/request";
-import { range } from "../../../utils/array";
+import { last, range } from "../../../utils/array";
 
 export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
   const { vb, notes, ustFlags, ustTempo } = useMusicProjectStore();
@@ -31,15 +31,26 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
       windowSize.width,
       horizontalZoom
     );
+    if (rangeIndex.length === 0) {
+      setPoints("");
+      return;
+    }
+    if (last(rangeIndex) >= notes.length) {
+      setPoints("");
+      return;
+    }
     const wavtool = new Wavtool();
     const requests: Array<AppendRequest> = rangeIndex.map((i) => {
       const params = notes[i].getRequestParam(vb, ustFlags, defaultNote);
       return {
         inputData: Array.from(
-          resampCache.getByIndex(i) ||
-            new Int16Array(
-              (params[0].append.length / 1000) * renderingConfig.frameRate
-            )
+          notes[i].lyric === "R" || resampCache.getByIndex(i) === undefined
+            ? new Int16Array(
+                Math.ceil(
+                  (params[0].append.length / 1000) * renderingConfig.frameRate
+                )
+              )
+            : resampCache.getByIndex(i)
         ),
         ...params[0].append,
       };
@@ -69,10 +80,11 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
       props.scrollLeft,
       props.notesLeft,
       notes,
-      horizontalZoom
+      horizontalZoom,
+      ustTempo
     );
     setPoints(points);
-  }, [props.notesLeft, props.scrollLeft, windowSize.width]);
+  }, [notes, props.notesLeft, props.scrollLeft, windowSize.width]);
 
   return (
     <svg
@@ -145,20 +157,23 @@ export const calculatePolylinePoints = (
   scrollLeft: number,
   notesLeft: Array<number>,
   notes: Array<Note>,
-  horizontalZoom: number
+  horizontalZoom: number,
+  ustTempo: number
 ): string => {
   let startFrame = 0;
   const poltaments = new Array<{ max: number; min: number }>(windowWidth);
   const amp = PIANOROLL_CONFIG.WAVFORM_HEIGHT / 2;
+  let tempo = ustTempo;
 
   for (let i = 0; i < windowWidth; i++) {
     const refTick = Math.floor(
-      scrollLeft + i / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
+      (scrollLeft + i) / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom
     );
-    const noteIndex = notesLeft.findIndex((n) => n > refTick) - 1;
-
-    const tempo = notes[noteIndex].tempo;
-
+    const noteIndex_ = notesLeft.findIndex((n) => n > refTick) - 1;
+    const noteIndex = noteIndex_ === -1 ? notesLeft.length : noteIndex_;
+    if (notes[noteIndex] && tempo !== notes[noteIndex].tempo) {
+      tempo = notes[noteIndex].tempo;
+    }
     const framePerPixel = calcFramePerPixel(
       renderingConfig.frameRate,
       tempo,
@@ -167,8 +182,8 @@ export const calculatePolylinePoints = (
     const endFrame = startFrame + Math.ceil(framePerPixel);
     const segment = wavData.slice(startFrame, endFrame);
 
-    startFrame = endFrame;
     poltaments[i] = calculatePoltament(segment, amp);
+    startFrame = endFrame;
   }
 
   return generatePolylinePoints(poltaments, amp);
@@ -230,7 +245,9 @@ export const showRangeIndex = (
     windowWidth,
     horizontalZoom
   );
-  return calculateRangeIndex(notesLeft, leftTick, rightTick);
+  return calculateRangeIndex(notesLeft, leftTick, rightTick).filter(
+    (i) => i >= 0
+  );
 };
 
 /**
@@ -274,9 +291,12 @@ const calculateRangeIndex = (
   const endIndex = notesLeft.findIndex((n) => n > rightTick);
   return range(
     startIndex,
-    Math.min(
-      endIndex === -1 ? notesLeft.length : endIndex,
-      notesLeft.length - 1
+    Math.max(
+      Math.min(
+        endIndex === -1 ? notesLeft.length : endIndex,
+        notesLeft.length - 1
+      ),
+      startIndex
     )
   );
 };
