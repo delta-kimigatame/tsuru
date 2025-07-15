@@ -26,7 +26,7 @@ const CVVowels = /^[あいうえおん]$/;
 export class JPCVorVCVPhonemizer extends BasePhonemizer {
   name = "phonemizer.JPCVorVCVPhonemizer";
 
-  private getOtoRecord(
+  protected getOtoRecord(
     vb,
     prevPhoneme,
     lyric,

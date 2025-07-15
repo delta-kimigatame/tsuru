@@ -304,6 +304,7 @@ export const translationZh = {
   phonemizer: {
     default: "无转换",
     JPCVorVCVPhonemizer: "（日语）自动连续音",
+    RomajiJPCVorVCVPhonemizer: "（日语）罗马字自动连续音",
   },
   footer: {
     disclaimer:

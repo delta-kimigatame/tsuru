@@ -309,6 +309,7 @@ export const translationEn = {
   phonemizer: {
     default: "No Conversion",
     JPCVorVCVPhonemizer: "(Japanese) Automatic VCV",
+    RomajiJPCVorVCVPhonemizer: "(Japanese) Romaji Automatic VCV",
   },
   footer: {
     disclaimer:
