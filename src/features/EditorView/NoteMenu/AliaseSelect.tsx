@@ -17,6 +17,9 @@ export const AliaseSelect: React.FC<AliasSelectProps> = (props) => {
 
   const aliases: string[] = React.useMemo(() => {
     if (props.selectedNotesIndex.length === 1) {
+      if (!notes[props.selectedNotesIndex[0]]) {
+        return [];
+      }
       const match = reg.exec(notes[props.selectedNotesIndex[0]].lyric);
       const targetLyric = match
         ? match[1] + match[2]

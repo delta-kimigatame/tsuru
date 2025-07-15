@@ -1,6 +1,5 @@
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { ButtonGroup, IconButton, Menu } from "@mui/material";
-import { SelectChangeEvent } from "@mui/material/Select";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
@@ -70,28 +69,6 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   const handleVibratoDialogClose = () => {
     LOG.debug("ビブラートダイアログを閉じる", "NoteMenu");
     setVibratoTargetNote(undefined);
-  };
-
-  const aliases: string[] = React.useMemo(() => {
-    if (props.selectedNotesIndex.length === 1) {
-      setAliasValue(notes[props.selectedNotesIndex[0]].lyric);
-      return vb.oto
-        .SearchAliases(notes[props.selectedNotesIndex[0]].lyric)
-        .sort();
-    } else {
-      [];
-    }
-  }, [props.selectedNotesIndex, notes]);
-
-  const handleChange = (e: SelectChangeEvent) => {
-    LOG.debug("alias変更", "NoteMenu");
-    LOG.info(`エイリアスの変更：${e.target.value}`, "NoteMenu");
-    setAliasValue(e.target.value);
-    if (props.selectedNotesIndex.length === 1) {
-      const targetNote = notes[props.selectedNotesIndex[0]].deepCopy();
-      targetNote.lyric = e.target.value;
-      setNote(props.selectedNotesIndex[0], targetNote);
-    }
   };
 
   return (

@@ -173,6 +173,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
 
           const updatedNotes = [...state.notes];
           updatedNotes[index] = value;
+          updatedNotes[index].phonemizer = state.phonemizer;
+          updatedNotes[index].applyOto(state.vb);
           updatedNotes.forEach((_, i) => {
             updatedNotes[i].index = i;
             updatedNotes[i].prev = i === 0 ? undefined : updatedNotes[i - 1];
