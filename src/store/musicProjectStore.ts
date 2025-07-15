@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { BasePhonemizer } from "../lib/BasePhonemizer";
 import { dumpNotes, Note } from "../lib/Note";
-import { DefaultPhonemizer } from "../lib/Phonemizer/DefaultPhonemizer";
+import { JPCVorVCVPhonemizer } from "../lib/Phonemizer/JPCVorVCVPhonemizer";
 import { Ust } from "../lib/Ust";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 
@@ -111,8 +111,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       ustTempo: 120,
       ustFlags: "",
       notes: [],
-      phonemizer: new DefaultPhonemizer(),
-      // phonemizer: new JPCVorVCVPhonemizer(),
+      // phonemizer: new DefaultPhonemizer(),
+      phonemizer: new JPCVorVCVPhonemizer(),
       setUst: (ust) => set({ ust }),
       setVb: (vb) => set({ vb }),
 
