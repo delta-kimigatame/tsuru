@@ -1,15 +1,18 @@
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { ButtonGroup, IconButton, Menu } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material/Select";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
+import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { EnvelopeDialog } from "../EnvelopeDialog/EnvelopeDialog";
 import { NoteDividerDialog } from "../NoteDividerDialog";
 import { NotePropertyDialog } from "../NotePropertyDialog";
 import { VibratoDialog } from "../VibratoDialog";
+import { AliaseSelect } from "./AliaseSelect";
 import { DividerButton } from "./DividerButton";
 import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
@@ -24,6 +27,7 @@ import { PitchEditButton } from "./PitchEditButton";
 import { VibratoEditButton } from "./VibratoEditButton";
 
 export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
+  const { vb, notes, setNote } = useMusicProjectStore();
   const { t } = useTranslation();
   const windowSize = useWindowSize();
   const [propertyTargetNote, setPropertyTargetNote] = React.useState<
@@ -38,11 +42,14 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   const [vibratoTargetNote, setVibratoTargetNote] = React.useState<
     Note | undefined
   >(undefined);
+
+  const [aliasValue, setAliasValue] = React.useState<string>("");
   /**
    * メニューを閉じる動作
    */
   const handleMenuClose = () => {
     props.setMenuAnchor(null);
+    setAliasValue("");
   };
 
   const handlePropertyDialogClose = () => {
@@ -65,6 +72,28 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
     setVibratoTargetNote(undefined);
   };
 
+  const aliases: string[] = React.useMemo(() => {
+    if (props.selectedNotesIndex.length === 1) {
+      setAliasValue(notes[props.selectedNotesIndex[0]].lyric);
+      return vb.oto
+        .SearchAliases(notes[props.selectedNotesIndex[0]].lyric)
+        .sort();
+    } else {
+      [];
+    }
+  }, [props.selectedNotesIndex, notes]);
+
+  const handleChange = (e: SelectChangeEvent) => {
+    LOG.debug("alias変更", "NoteMenu");
+    LOG.info(`エイリアスの変更：${e.target.value}`, "NoteMenu");
+    setAliasValue(e.target.value);
+    if (props.selectedNotesIndex.length === 1) {
+      const targetNote = notes[props.selectedNotesIndex[0]].deepCopy();
+      targetNote.lyric = e.target.value;
+      setNote(props.selectedNotesIndex[0], targetNote);
+    }
+  };
+
   return (
     <>
       {props.menuAnchor !== null && (
@@ -76,7 +105,7 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
               props.menuAnchor.y * 2 >= windowSize.height
                 ? props.menuAnchor.y -
                   PIANOROLL_CONFIG.KEY_HEIGHT *
-                    (props.selectedNotesIndex.length === 1 ? 4 : 3)
+                    (props.selectedNotesIndex.length === 1 ? 5 : 3)
                 : props.menuAnchor.y + PIANOROLL_CONFIG.KEY_HEIGHT,
             left: props.menuAnchor.x - 80,
           }}
@@ -149,6 +178,15 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
               handleMenuClose={handleMenuClose}
             />
           </ButtonGroup>
+          <br />
+          {props.selectedNotesIndex.length === 1 && (
+            <AliaseSelect
+              selectedNotesIndex={props.selectedNotesIndex}
+              handleClose={handleMenuClose}
+              aliasValue={aliasValue}
+              setAliasValue={setAliasValue}
+            />
+          )}
         </Menu>
       )}
       {propertyTargetNote !== undefined && (
