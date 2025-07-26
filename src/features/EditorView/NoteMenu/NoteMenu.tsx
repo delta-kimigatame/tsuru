@@ -224,6 +224,8 @@ export interface NoteMenuProps {
   setSelectedNotesIndex: (indexes: number[]) => void;
   /** ピッチターゲット更新のためのコールバック */
   setPitchTargetIndex?: (index: number | undefined) => void;
+  /** 選択モード */
+  selectMode: "toggle" | "range" | "pitch" | "add";
 }
 
 export interface NoteMoveButtonProps {

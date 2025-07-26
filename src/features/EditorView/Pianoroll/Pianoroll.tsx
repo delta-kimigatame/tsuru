@@ -291,6 +291,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             selectedNotesIndex={props.selectedNotesIndex}
             setSelectedNotesIndex={props.setSelectedNotesIndes}
             setPitchTargetIndex={props.setPitchTargetIndex}
+            selectMode={props.selectMode}
           />
           <LyricTextBox
             targetNoteIndex={props.lyricTargetIndex}
