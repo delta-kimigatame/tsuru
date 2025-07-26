@@ -7,6 +7,7 @@ export enum EncodingOption {
   GB18030 = "gb18030",
   GBK = "gbk",
   BIG5 = "big5",
+  WINDOWS_1252 = "windows1252",
 }
 
 interface EncodingMapping {
@@ -20,6 +21,10 @@ export const encodingMappings: Record<EncodingOption, EncodingMapping> = {
   [EncodingOption.GB18030]: { textDecoder: "gb18030", fileReader: "GB18030" },
   [EncodingOption.GBK]: { textDecoder: "gbk", fileReader: "GBK" },
   [EncodingOption.BIG5]: { textDecoder: "big5", fileReader: "Big5" },
+  [EncodingOption.WINDOWS_1252]: {
+    textDecoder: "windows-1252",
+    fileReader: "windows-1252",
+  },
 };
 
 export const getTextDecoderEncoding = (option: EncodingOption): string => {
