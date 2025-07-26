@@ -6,6 +6,7 @@ export const translationJa = {
     ja: "日本語",
     en: "英語",
     zh: "中国語",
+    pt: "ポルトガル語",
   },
   colorTheme: {
     default: "UTAUパープル",

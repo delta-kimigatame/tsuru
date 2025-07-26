@@ -6,6 +6,7 @@ export const translationZh = {
     ja: "日语",
     en: "英语",
     zh: "中文",
+    pt: "葡萄牙语",
   },
   colorTheme: {
     default: "UTAU 紫色",

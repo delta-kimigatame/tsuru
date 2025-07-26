@@ -7,6 +7,7 @@ export const translationEn = {
     ja: "JA",
     en: "EN",
     zh: "ZH",
+    pt: "PT",
   },
   colorTheme: {
     default: "UTAU Purple",

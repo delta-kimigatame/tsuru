@@ -3,8 +3,8 @@ import { initReactI18next } from "react-i18next";
 
 import { translationEn } from "./en";
 import { translationJa } from "./ja";
+import { translationPt } from "./pt";
 import { translationZh } from "./zh";
-
 const resources = {
   ja: {
     translation: translationJa,
@@ -14,6 +14,9 @@ const resources = {
   },
   zh: {
     translation: translationZh,
+  },
+  pt: {
+    translation: translationPt,
   },
 };
 
