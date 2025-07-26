@@ -67,6 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/07/26\r\n[Adição] Suporte ao idioma português e codificação de caracteres.",
       "2025/07/15\r\n[Adição de função] Adicionada a função de seleção de alias no menu de pressionamento longo da nota.\r\nImplementado o modo automático de VCV japonês compatível com entrada em romaji.\r\nO modo automático de VCV japonês agora é um recurso padrão.",
       "2025/07/13\r\n[Adição de função] Adicionada a função de exibição de forma de onda.\r\nAgora é possível alterar a cor do tema.",
       "2025/07/09\r\n[Adição de função] Agora é possível alterar o número de motores de síntese a partir do cabeçalho.\r\nEm ambientes móveis, normalmente 3 é o ideal.\r\nEm ambientes de baixo desempenho, tente 1 ou 2.\r\nEm PCs, aumentar o número acelera o processamento.\r\n[Correção] Corrigido um problema em que sons com dakuten não eram reproduzidos corretamente ao escolher a pasta da fonte de voz em ambientes mac ou iOS.",

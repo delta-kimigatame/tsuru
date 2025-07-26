@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/07/26\r\n[Feature Added] Added support for Portuguese display and character encoding.",
       "2025/07/15\r\n[Feature Added] Added alias selection functionality to the long-press menu for notes.\r\nImplemented Japanese automatic VCV mode with Romaji input support.\r\nJapanese automatic VCV mode is now a standard feature.",
       "2025/07/13\r\n[Feature Added] Added waveform display functionality.\r\nTheme colors can now be changed.",
       "2025/07/09\r\n[Feature Added] You can now change the number of resamplers from the header.\r\nIn mobile environments, 3 is usually optimal.\r\nFor low-spec environments, try 1 or 2.\r\nConversely, increasing the number speeds up processing on PC environments.\r\n[Fix] Fixed an issue where sounds containing voiced marks did not play correctly when selecting a sound source folder on macOS or iOS environments.",
