@@ -67,6 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/08/03\r\n[Adição de função] Função de flags adicionada.\r\nFlag w, padrão: 0, intervalo: 0–100, intensidade do growl.",
       "2025/07/26\r\n[Adição] Suporte ao idioma português e codificação de caracteres.",
       "2025/07/15\r\n[Adição de função] Adicionada a função de seleção de alias no menu de pressionamento longo da nota.\r\nImplementado o modo automático de VCV japonês compatível com entrada em romaji.\r\nO modo automático de VCV japonês agora é um recurso padrão.",
       "2025/07/13\r\n[Adição de função] Adicionada a função de exibição de forma de onda.\r\nAgora é possível alterar a cor do tema.",

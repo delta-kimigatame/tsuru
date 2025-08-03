@@ -32,6 +32,7 @@ export class Resamp {
     { name: "t", type: "number", min: -100, max: 100, default: 0 },
     { name: "P", type: "number", min: 0, max: 100, default: 86 },
     { name: "e", type: "bool", default: undefined },
+    { name: "w", type: "number", min: 0, max: 100, default: 0 },
   ];
 
   /**
@@ -185,6 +186,14 @@ export class Resamp {
       request.pitches,
       request.tempo
     );
+    if (flags["w"] > 0) {
+      const tempo: number = parseFloat(request.tempo.replace("!", ""));
+      const utauPeriod = (60 / tempo / 480) * 5 * 1000;
+      applyPitchF0.forEach((f0, i) => {
+        applyPitchF0[i] =
+          f0 * (1 + Math.sin(i * 3 * utauPeriod) * (flags["w"] / 100));
+      });
+    }
     const synthedData = this.world.Synthesis(
       Float64Array.from(applyPitchF0),
       stretchParams.sp,
