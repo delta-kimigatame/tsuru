@@ -1,5 +1,10 @@
 import CloseIcon from "@mui/icons-material/Close";
-import { Button, DialogActions, IconButton } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  DialogActions,
+  IconButton,
+} from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -25,6 +30,9 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   const [agreed, setAgreed] = React.useState<boolean>(false);
   /** 音源の読込処理中か */
   const [progress, setProgress] = React.useState<boolean>(false);
+  const prevEncodingRef = React.useRef<EncodingOption>(
+    EncodingOption.SHIFT_JIS
+  );
   /** UTAU音源 */
   const { vb, setVb } = useMusicProjectStore();
 
@@ -57,16 +65,18 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
     }
     LOG.info(`${encoding}に基づきVBを再度initialize`, "InfoVBDialog");
     await vb.initialize(getFileReaderEncoding(encoding));
-    console.log(vb);
-    LOG.info(`${encoding}に基づきVBをinitialize完了`, "InfoVBDialog");
     setProgress(false);
+    LOG.info(`${encoding}に基づきVBをinitialize完了`, "InfoVBDialog");
   };
 
   /** 文字コードが変更された際の処理 */
   React.useEffect(() => {
-    LOG.debug("文字コードの変更検知", "InfoVBDialog");
-    setProgress(true);
-    ReInitializeVb();
+    if (prevEncodingRef.current !== encoding) {
+      LOG.debug("文字コードの変更検知", "InfoVBDialog");
+      setProgress(true);
+      ReInitializeVb();
+    }
+    prevEncodingRef.current = encoding;
   }, [encoding]);
 
   /**
@@ -133,9 +143,16 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
           />
         </DialogTitle>
         <DialogContent>
-          {vb !== null && (
-            <TextTabs zipFiles={vb.zip} files={vb.files} encoding={encoding} />
-          )}
+          {vb !== null &&
+            (!progress ? (
+              <TextTabs
+                zipFiles={vb.zip}
+                files={vb.files}
+                encoding={encoding}
+              />
+            ) : (
+              <CircularProgress />
+            ))}
         </DialogContent>
         {!agreed && (
           <DialogActions>
@@ -146,8 +163,13 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
               onClick={handleButtonClick}
               size="large"
               sx={{ mx: 1 }}
+              disabled={progress}
             >
-              {t("infoVBDialog.agreeButton")}
+              {!progress ? (
+                t("infoVBDialog.agreeButton")
+              ) : (
+                <CircularProgress size={24} color="inherit" />
+              )}
             </Button>
           </DialogActions>
         )}
