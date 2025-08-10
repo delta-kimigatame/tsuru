@@ -26,7 +26,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   /** 音源の読込処理中か */
   const [progress, setProgress] = React.useState<boolean>(false);
   /** UTAU音源 */
-  const { vb } = useMusicProjectStore();
+  const { vb, setVb } = useMusicProjectStore();
 
   /**
    * UTAU音源が更新された際の処理。
@@ -83,6 +83,8 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   const handleButtonClick = () => {
     LOG.info("音源利用規約に同意しました", "InfoVBDialog");
     setAgreed(true);
+    vb.agree = true;
+    setVb(vb);
     // 利用規約に同意してダイアログを閉じるときにはファイル読込内容が確定している
     LOG.gtag("vbInfo", {
       name: vb.name,

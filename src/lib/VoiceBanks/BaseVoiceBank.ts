@@ -72,6 +72,8 @@ export abstract class BaseVoiceBank {
    */
   protected _initialized: boolean;
 
+  agree: boolean = false;
+
   get initialized(): boolean {
     return this._initialized;
   }

@@ -30,7 +30,7 @@ export const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Header />
-      {vb !== null ? (
+      {vb !== null && vb.agree ? (
         <EditorView />
       ) : (
         <>
