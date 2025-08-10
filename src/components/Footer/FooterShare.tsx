@@ -22,7 +22,10 @@ const FooterShare: React.FC<{ matches: boolean }> = ({ matches }) => {
     >
       <Typography variant="body2">
         icon/logo/imgae:浅岬透(
-        <Link href="mailto:ngsg.ngs@gmail.com">ngsg.ngs@gmail.com</Link>)
+        <Link href="https://ripask.stars.ne.jp/link/">
+          https://ripask.stars.ne.jp/link/
+        </Link>
+        )
         <br />
         <br />
         きみがため
