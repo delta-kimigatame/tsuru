@@ -29,6 +29,7 @@ export const HeaderMenuClearCache: React.FC<HeaderMenuItemProps> = (props) => {
     }
     LOG.info("アプリのキャッシュクリア完了", "HeaderMenuClearCache");
     props.onMenuClose();
+    window.location.reload();
   };
   return (
     <>
