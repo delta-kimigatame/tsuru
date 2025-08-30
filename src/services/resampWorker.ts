@@ -156,7 +156,7 @@ export class ResampWorkerService {
           "resampWorker.ResampWorkerService"
         );
         // reject(new Error("resamp workerの初期化がタイムアウトしました"));
-      }, 30000);
+      }, 60000);
       const handler = (event: MessageEvent) => {
         if (event.data && event.data.type === "ready") {
           clearTimeout(timeout);
