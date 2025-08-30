@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/08/20\r\n[Fix] Improved engine and voice library loading process",
       "2025/08/03\r\n[Feature Added] Added flag feature.\r\nw flag, default: 0, range: 0–100, growl strength",
       "2025/07/26\r\n[Feature Added] Added support for Portuguese display and character encoding.",
       "2025/07/15\r\n[Feature Added] Added alias selection functionality to the long-press menu for notes.\r\nImplemented Japanese automatic VCV mode with Romaji input support.\r\nJapanese automatic VCV mode is now a standard feature.",
