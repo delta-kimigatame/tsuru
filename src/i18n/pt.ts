@@ -67,6 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/10/29\r\n[Correção] Corrigido um problema onde projetos não podiam ser reabertos quando os dados da partitura da sessão anterior continham pausas mais curtas que o preutter da nota seguinte",
       "2025/08/20\r\n[Correção] Melhoria no processo de carregamento do motor e biblioteca de voz",
       "2025/08/03\r\n[Adição de função] Função de flags adicionada.\r\nFlag w, padrão: 0, intervalo: 0–100, intensidade do growl.",
       "2025/07/26\r\n[Adição] Suporte ao idioma português e codificação de caracteres.",

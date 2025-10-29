@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/10/29\r\n[Fix] Fixed an issue where projects could not be reopened when the score data from the previous session contained rests shorter than the preutter of the following note",
       "2025/08/20\r\n[Fix] Improved engine and voice library loading process",
       "2025/08/03\r\n[Feature Added] Added flag feature.\r\nw flag, default: 0, range: 0–100, growl strength",
       "2025/07/26\r\n[Feature Added] Added support for Portuguese display and character encoding.",

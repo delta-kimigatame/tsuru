@@ -45,11 +45,13 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
       return {
         inputData: Array.from(
           notes[i].lyric === "R" || resampCache.getByIndex(i) === undefined
-            ? new Int16Array(
-                Math.ceil(
-                  (params[0].append.length / 1000) * renderingConfig.frameRate
+            ? params[0].append.length >= 0
+              ? new Int16Array(
+                  Math.ceil(
+                    (params[0].append.length / 1000) * renderingConfig.frameRate
+                  )
                 )
-              )
+              : new Int16Array(0)
             : resampCache.getByIndex(i)
         ),
         ...params[0].append,
