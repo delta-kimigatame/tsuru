@@ -11,6 +11,7 @@ import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { last, range } from "../../../utils/array";
+import { getFrqFromNotenum } from "../../../utils/pitch";
 
 /**
  * ピアノロール全体のタップイベントを検知するレイヤー
@@ -504,4 +505,31 @@ export const handleAddModeTap = (
     ustTempo
   );
   setNotes(newNotes);
+  playPreviewTone(clickNotenum);
+};
+/**
+ * 440Hz 1秒のサイン波を再生する
+ */
+const playPreviewTone = (notenum: number) => {
+  const frequency = getFrqFromNotenum(notenum);
+  const audioContext = new (window.AudioContext ||
+    (window as any).webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+  oscillator.type = "sine";
+
+  gainNode.gain.setValueAtTime(
+    PIANOROLL_CONFIG.PREVIEW_TONE_VOLUME,
+    audioContext.currentTime
+  );
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(
+    audioContext.currentTime + PIANOROLL_CONFIG.PREVIEW_TONE_DURATION
+  );
 };

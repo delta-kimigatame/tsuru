@@ -38,4 +38,8 @@ export const PIANOROLL_CONFIG = {
   SEEKBAR_WIDTH: 1,
   // ピアノロールの波形の高さ
   WAVFORM_HEIGHT: 100,
+  // 再生時間（秒）のプレビュー音の長さ
+  PREVIEW_TONE_DURATION: 0.2,
+  // プレビュー音の音量(0.0～1.0)
+  PREVIEW_TONE_VOLUME: 0.3,
 };
