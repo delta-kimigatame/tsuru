@@ -505,7 +505,9 @@ export const handleAddModeTap = (
     ustTempo
   );
   setNotes(newNotes);
-  playPreviewTone(clickNotenum);
+  if (addNoteLyric !== "R") {
+    playPreviewTone(clickNotenum);
+  }
 };
 /**
  * 440Hz 1秒のサイン波を再生する
