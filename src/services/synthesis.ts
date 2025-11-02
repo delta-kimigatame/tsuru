@@ -6,6 +6,7 @@ import { Wavtool } from "../lib/Wavtool";
 import { useCookieStore } from "../store/cookieStore";
 import { useMusicProjectStore } from "../store/musicProjectStore";
 import { AppendRequestBase, ResampRequest } from "../types/request";
+import { getWaveData } from "./resampWorker";
 import { ResampWorkerPool } from "./workerPool";
 
 export class SynthesisWorker {
@@ -84,6 +85,21 @@ export class SynthesisWorker {
     vb: BaseVoiceBank,
     index: number
   ): Promise<Float64Array> => {
+    if (param.resamp === undefined && param.append.inputWav !== undefined) {
+      LOG.debug(
+        `$direct_true。index:${index},request:${JSON.stringify(param.append)}`,
+        "synthesis,SynthesisWorker"
+      );
+      const promise = getWaveData(
+        param.append.inputWav,
+        param.append.stp,
+        param.append.length,
+        vb
+      ).then((result) => {
+        return Float64Array.from(result);
+      });
+      return promise;
+    }
     if (param.resamp === undefined) {
       /** 休符の場合0埋めで返す */
       const requireLength = Math.ceil(
