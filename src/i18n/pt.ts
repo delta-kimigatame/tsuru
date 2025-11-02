@@ -225,6 +225,7 @@ export const translationPt = {
       tempo: "BPM",
       label: "Rótulo",
       flags: "Flags",
+      direct: "Não usar mecanismo ($direct=True)",
       submitButton: "Alterar",
     },
   },

@@ -2,12 +2,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
@@ -40,6 +42,7 @@ const initialFormData: NoteState = {
   tempo: undefined,
   label: undefined,
   flags: undefined,
+  direct: false,
 };
 
 export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
@@ -342,6 +345,23 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
                 })
               }
             />
+            <Box sx={{ mx: 1 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formState.direct ?? false}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      dispatch({
+                        type: "UPDATE_FIELD",
+                        key: "direct",
+                        value: e.target.checked,
+                      });
+                    }}
+                  />
+                }
+                label={t("editor.noteProperty.direct")}
+              />
+            </Box>
           </>
         )}
         <Divider />
@@ -419,6 +439,7 @@ type NoteState = {
   tempo: number | undefined;
   label: string | undefined;
   flags: string | undefined;
+  direct: boolean | undefined;
 };
 type NoteFormAction =
   | ({
@@ -447,6 +468,7 @@ const pickNoteFields = (note: Note): NoteState => ({
   tempo: note.tempo,
   label: note.label,
   flags: note.flags,
+  direct: note.direct,
 });
 
 /**
@@ -486,6 +508,7 @@ const NoteEditCore = (n: Note, state: NoteState): Note => {
     n.intensity = state.intensity;
     n.modulation = state.modulation;
     n.flags = state.flags;
+    n.direct = state.direct;
   }
   n.label = state.label;
   if (state.tempo === undefined || state.tempo === null) {

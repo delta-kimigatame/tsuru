@@ -224,6 +224,7 @@ export const translationJa = {
       tempo: "BPM",
       label: "ラベル",
       flags: "フラグ",
+      direct: "エンジンを使用しない($direct=True)",
       submitButton: "変更",
     },
   },

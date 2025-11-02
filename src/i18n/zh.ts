@@ -219,6 +219,7 @@ export const translationZh = {
       tempo: "BPM",
       label: "标签",
       flags: "Flags",
+      direct: "不使用引擎 ($direct=True)",
       submitButton: "更改",
     },
   },

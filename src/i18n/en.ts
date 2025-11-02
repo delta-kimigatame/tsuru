@@ -222,6 +222,7 @@ export const translationEn = {
       tempo: "BPM",
       label: "label",
       flags: "flags",
+      direct: "Skip resampler ($direct=True)",
       submitButton: "Change",
     },
   },
