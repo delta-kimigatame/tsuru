@@ -231,6 +231,10 @@ export const translationEn = {
     octaveUp: "Raise by 1 Octave",
     octaveDown: "Lower by 1 Octave",
     envelopeNormalize: "Envelope Normalization",
+    lyricBatchProcess: {
+      title: "Batch Change Lyrics",
+      lyricsValue: "Lyrics",
+    },
     resetEdit: {
       title: "Edit Voice Reset",
       info: "Reset Labels",

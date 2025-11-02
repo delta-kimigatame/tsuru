@@ -234,6 +234,10 @@ export const translationPt = {
     octaveUp: "1 oitava acima",
     octaveDown: "1 oitava abaixo",
     envelopeNormalize: "Normalizar envelope",
+    lyricBatchProcess: {
+      title: "Alterar Letras em Lote",
+      lyricsValue: "Letra",
+    },
     resetEdit: {
       title: "Redefinir ajuste",
       info: "Redefinir rótulo",

@@ -228,6 +228,10 @@ export const translationZh = {
     octaveUp: "升高 1 个八度",
     octaveDown: "降低 1 个八度",
     envelopeNormalize: "包络线归一化",
+    lyricBatchProcess: {
+      title: "批量更改歌词",
+      lyricsValue: "歌词",
+    },
     resetEdit: {
       title: "调声重置",
       info: "标签重置",

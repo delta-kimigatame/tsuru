@@ -39,11 +39,19 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
         return state;
     }
   };
-  /** フォーム全体の状態 */
-  const [formState, dispatch] = React.useReducer(
-    formReducer,
-    props.batchprocess.initialOptions
+
+  const filteredSelectNotesIndex = props.selectedNotesIndex.filter(
+    (idx) => idx >= 0 && idx < notes.length
   );
+  const targetNotes =
+    filteredSelectNotesIndex.length > 0
+      ? filteredSelectNotesIndex.map((idx) => notes[idx])
+      : notes;
+  const initialOptions =
+    props.batchprocess.initializeOptions?.(targetNotes) ??
+    props.batchprocess.initialOptions;
+  /** フォーム全体の状態 */
+  const [formState, dispatch] = React.useReducer(formReducer, initialOptions);
 
   /**
    * フォーム要素を更新する際の処理

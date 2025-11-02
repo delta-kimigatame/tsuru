@@ -233,6 +233,10 @@ export const translationJa = {
     octaveUp: "1オクターブ上げる",
     octaveDown: "1オクターブ下げる",
     envelopeNormalize: "エンベロープ正規化",
+    lyricBatchProcess: {
+      title: "歌詞一括変更",
+      lyricsValue: "歌詞",
+    },
     resetEdit: {
       title: "調声リセット",
       info: "ラベルをリセット",
