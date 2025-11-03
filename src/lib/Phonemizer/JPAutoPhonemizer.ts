@@ -688,11 +688,17 @@ export class JPAutoPhonemizer extends BasePhonemizer {
       if (vcOtoRecord.blank < 0) {
         return vcOtoRecord.blank * -1 - vcOtoRecord.pre;
       } else {
+        if (note.next && note.next.oto.overlap < 0) {
+          return note.next.oto.pre - note.next.oto.overlap;
+        }
         /** blankが正の場合、blankはwavファイル末尾から左方向にブランクの位置をmsで表すが、wavの読込とかをここでするのは計算量的に好ましくないので、preutterの場合の設定を用いる */
         return note.next ? note.next.oto.pre : consonantParam.lengthValue;
       }
     } else if (consonantParam.type === "preutter") {
-      /** preutterの場合、次のノートの原音設定上のpreutterを返す。nextがnullの場合はlengthValueを返す */
+      /** preutterの場合、次のノートの原音設定上のpreutterを返す。nextがnullの場合はlengthValueを返す。更にnote.nextが存在し、note.next.oto.overlapが負の数の場合に限って、overlapを減ずる */
+      if (note.next && note.next.oto.overlap < 0) {
+        return note.next.oto.pre - note.next.oto.overlap;
+      }
       return note.next ? note.next.oto.pre : consonantParam.lengthValue;
     } else {
       /** その他の場合は、consonantParamのlengthValueを返す */
