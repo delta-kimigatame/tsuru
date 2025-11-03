@@ -339,6 +339,7 @@ export const translationJa = {
     default: "変換無し",
     JPCVorVCVPhonemizer: "(日本語)自動連続音",
     RomajiJPCVorVCVPhonemizer: "(日本語)ローマ字自動連続音",
+    JPAutoPhonemizer: "(日本語)自動連続音(CVVC対応)",
   },
   footer: {
     disclaimer:

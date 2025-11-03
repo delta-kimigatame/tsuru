@@ -341,6 +341,7 @@ export const translationPt = {
     default: "Sem conversão",
     JPCVorVCVPhonemizer: "(Japonês) VCV automático",
     RomajiJPCVorVCVPhonemizer: "(Japonês) VCV automático em romaji",
+    JPAutoPhonemizer: "(Japonês) CVVC automático (com suporte a CVVC)",
   },
   footer: {
     disclaimer:

@@ -323,6 +323,7 @@ export const translationEn = {
     default: "No Conversion",
     JPCVorVCVPhonemizer: "(Japanese) Automatic VCV",
     RomajiJPCVorVCVPhonemizer: "(Japanese) Romaji Automatic VCV",
+    JPAutoPhonemizer: "(Japanese) Automatic VCV(with CVVC)",
   },
   footer: {
     disclaimer:
