@@ -65,7 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
-      "2025/11/03\r\n[Added] Added batch lyric change feature to batch processing. Hiragana input is split by syllable, alphanumeric input is split by space.",
+      "2025/11/03\r\n[Added] Added batch lyric change feature to batch processing. Hiragana input is split by syllable, alphanumeric input is split by space.\r\n[Added] Experimental support for Japanese automatic mode (CVVC). It will be monitored for a while, and if there are few issues, it will become a standard feature.",
       "2025/11/02\r\n[Added] Added sine wave sound when placing notes.\r\n$direct=true can now be set in the note properties.",
       "2025/10/29\r\n[Fix] Fixed an issue where projects could not be reopened when the score data from the previous session contained rests shorter than the preutter of the following note",
       "2025/08/20\r\n[Fix] Improved engine and voice library loading process",

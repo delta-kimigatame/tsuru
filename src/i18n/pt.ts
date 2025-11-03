@@ -67,7 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
-      "2025/11/03\r\n[Adição] Adicionada função de alteração de letras em lote no processamento em lote. Hiragana é dividido por sílaba, alfanuméricos são divididos por espaço.",
+      "2025/11/03\r\n[Adição] Adicionada função de alteração de letras em lote no processamento em lote. Hiragana é dividido por sílaba, alfanuméricos são divididos por espaço.\r\n[Adição] Suporte experimental ao modo automático japonês (CVVC). Será monitorado por um tempo e, se houver poucos problemas, se tornará um recurso padrão.",
       "2025/11/02\r\n[Adição] Adicionado som de onda senoidal ao posicionar notas.\r\nAgora é possível definir $direct=true nas propriedades da nota.",
       "2025/10/29\r\n[Correção] Corrigido um problema onde projetos não podiam ser reabertos quando os dados da partitura da sessão anterior continham pausas mais curtas que o preutter da nota seguinte",
       "2025/08/20\r\n[Correção] Melhoria no processo de carregamento do motor e biblioteca de voz",
