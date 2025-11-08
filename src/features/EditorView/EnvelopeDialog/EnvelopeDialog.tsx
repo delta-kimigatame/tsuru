@@ -43,8 +43,13 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
   const mode = useThemeMode();
   const { setNote } = useMusicProjectStore();
   const windowSize = useWindowSize();
+  // バリデーション済みの値（SVG描画用）
   const [points, setPoints] = React.useState<number[]>([]);
   const [values, setValues] = React.useState<number[]>([]);
+
+  // 生の入力値（テキストボックス表示用）
+  const [rawPoints, setRawPoints] = React.useState<string[]>([]);
+  const [rawValues, setRawValues] = React.useState<string[]>([]);
   const [svgSize, setSvgSize] = React.useState<{
     width: number;
     height: number;
@@ -63,6 +68,8 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
     const { p, v } = envelopeToPoint(envelope, props.note.outputMs);
     setPoints(p);
     setValues(v);
+    setRawPoints(p.map((val) => val.toString()));
+    setRawValues(v.map((val) => val.toString()));
   }, [props.note]);
 
   const pointX = React.useMemo(() => {
@@ -85,6 +92,9 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
   }, [windowSize]);
 
   const setPoint = (index: number, value: string) => {
+    const newRawPoints = [...rawPoints];
+    newRawPoints[index] = value;
+    setRawPoints(newRawPoints);
     const { p, v } = validationX(
       index,
       value,
@@ -94,11 +104,15 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
     );
     if (v.length !== values.length) {
       setValues(v);
+      setRawValues(v.map((val) => val.toString()));
     }
     setPoints(p);
   };
 
   const setValue = (index: number, value: string) => {
+    const newRawValues = [...rawValues];
+    newRawValues[index] = value;
+    setRawValues(newRawValues);
     const { p, v } = validationY(
       index,
       value,
@@ -108,8 +122,23 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
     );
     if (p.length !== points.length) {
       setPoints(p);
+      setRawPoints(p.map((val) => val.toString()));
     }
     setValues(v);
+  };
+  /**
+   * フォーカス離脱時の処理：バリデーション済みの値を生の値に反映
+   */
+  const handlePointBlur = (index: number) => {
+    const newRawPoints = [...rawPoints];
+    newRawPoints[index] = points[index]?.toString() ?? "";
+    setRawPoints(newRawPoints);
+  };
+
+  const handleValueBlur = (index: number) => {
+    const newRawValues = [...rawValues];
+    newRawValues[index] = values[index]?.toString() ?? "";
+    setRawValues(newRawValues);
   };
 
   /**
@@ -176,11 +205,13 @@ export const EnvelopeDialog: React.FC<EnvelopeDialogProps> = (props) => {
             >
               {ENVELOPE_POINT_SORT.map((i) => (
                 <EnvelopeTextGroup
-                  points={points}
-                  values={values}
+                  points={rawPoints}
+                  values={rawValues}
                   index={i}
                   setPoint={setPoint}
                   setValue={setValue}
+                  onPointBlur={handlePointBlur}
+                  onValueBlur={handleValueBlur}
                 />
               ))}
             </Box>

@@ -3,8 +3,9 @@ import React from "react";
 export const EnvelopeTextField: React.FC<{
   label: string;
   index: number;
-  value: number;
+  value: string;
   setValue: (index: number, value: string) => void;
+  onBlur: (index: number) => void;
 }> = (props) => {
   return (
     <TextField
@@ -15,6 +16,7 @@ export const EnvelopeTextField: React.FC<{
       variant="outlined"
       value={props.value ?? ""}
       onChange={(e) => props.setValue(props.index, e.target.value)}
+      onBlur={() => props.onBlur(props.index)}
     />
   );
 };
