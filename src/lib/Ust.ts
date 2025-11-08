@@ -149,6 +149,8 @@ export class Ust {
         note.region = l.replace("$region=", "");
       } else if (l.startsWith("$region_end=")) {
         note.regionEnd = l.replace("$region_end=", "");
+      } else if (l.startsWith("VoiceColor=")) {
+        note.voiceColor = l.replace("VoiceColor=", "");
       }
     });
   }

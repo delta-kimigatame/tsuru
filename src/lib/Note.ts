@@ -1058,6 +1058,10 @@ export class Note {
       //stringかundefined
       noteText += `$region_end=${this.regionEnd}\r\n`;
     }
+    if (this.voiceColor !== undefined) {
+      //stringかundefined
+      noteText += `VoiceColor=${this.voiceColor}\r\n`;
+    }
     return noteText;
   }
 }
