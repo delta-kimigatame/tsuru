@@ -222,6 +222,7 @@ export const translationZh = {
       label: "标签",
       flags: "Flags",
       direct: "不使用引擎 ($direct=True)",
+      voiceColor: "音色",
       submitButton: "更改",
     },
   },

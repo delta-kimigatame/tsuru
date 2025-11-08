@@ -225,6 +225,7 @@ export const translationEn = {
       label: "label",
       flags: "flags",
       direct: "Skip resampler ($direct=True)",
+      voiceColor: "Voice Color",
       submitButton: "Change",
     },
   },

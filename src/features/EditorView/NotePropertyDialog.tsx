@@ -43,13 +43,14 @@ const initialFormData: NoteState = {
   label: undefined,
   flags: undefined,
   direct: false,
+  voiceColor: undefined, // voiceColorを追加
 };
 
 export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
   props
 ) => {
   const { t } = useTranslation();
-  const { setNote } = useMusicProjectStore();
+  const { setNote, vb } = useMusicProjectStore();
   const windowSize = useWindowSize();
   const formReducer = (state: NoteState, action: NoteFormAction) => {
     switch (action.type) {
@@ -212,6 +213,33 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
         </Box>
         {formState.lyric !== "R" && (
           <>
+            {vb && vb.colors && vb.colors.length > 0 && (
+              <Box sx={{ m: 1 }}>
+                <FormControl fullWidth>
+                  <InputLabel>{t("editor.noteProperty.voiceColor")}</InputLabel>
+                  <Select
+                    label="Voice Color"
+                    variant="outlined"
+                    value={formState.voiceColor || ""}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "UPDATE_FIELD",
+                        key: "voiceColor",
+                        value:
+                          e.target.value === "" ? undefined : e.target.value,
+                      })
+                    }
+                    data-testid="propertyVoiceColorSelect"
+                  >
+                    {vb.colors.map((color) => (
+                      <MenuItem key={color} value={color}>
+                        {color}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            )}
             <Box
               sx={{
                 display: "flex",
@@ -472,6 +500,7 @@ type NoteState = {
   label: string | undefined;
   flags: string | undefined;
   direct: boolean | undefined;
+  voiceColor: string | undefined;
 };
 type NoteFormAction =
   | ({
@@ -501,6 +530,7 @@ const pickNoteFields = (note: Note): NoteState => ({
   label: note.label,
   flags: note.flags,
   direct: note.direct,
+  voiceColor: note.voiceColor,
 });
 
 /**
@@ -541,6 +571,7 @@ const NoteEditCore = (n: Note, state: NoteState): Note => {
     n.modulation = state.modulation;
     n.flags = state.flags;
     n.direct = state.direct;
+    n.voiceColor = state.voiceColor;
   }
   n.label = state.label;
   if (state.tempo === undefined || state.tempo === null) {

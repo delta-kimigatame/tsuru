@@ -164,6 +164,19 @@ export abstract class BaseVoiceBank {
   }
 
   /**
+   * character.yamlのsubbanksで定義されたcolorの一覧(重複は削除される)
+   */
+  get colors(): Array<string> {
+    if (this._characterYaml && this._characterYaml.subbanks) {
+      return Array.from(
+        new Set(this._characterYaml.subbanks.map((subbank) => subbank.color))
+      );
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * readme.txt
    */
   get readme(): string | undefined {

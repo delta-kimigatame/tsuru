@@ -227,6 +227,7 @@ export const translationJa = {
       label: "ラベル",
       flags: "フラグ",
       direct: "エンジンを使用しない($direct=True)",
+      voiceColor: "ボイスカラー",
       submitButton: "変更",
     },
   },

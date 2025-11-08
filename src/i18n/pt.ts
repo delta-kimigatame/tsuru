@@ -228,6 +228,7 @@ export const translationPt = {
       label: "Rótulo",
       flags: "Flags",
       direct: "Não usar mecanismo ($direct=True)",
+      voiceColor: "Cor da voz",
       submitButton: "Alterar",
     },
   },
