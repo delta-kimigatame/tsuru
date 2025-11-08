@@ -62,26 +62,66 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
     }
   };
   const [formState, dispatch] = React.useReducer(formReducer, initialFormData);
+  // 生の入力値用の状態を追加
+  const [rawLength, setRawLength] = React.useState<string>("");
   React.useEffect(() => {
     LOG.debug(`ノートの変更検知、編集内容の初期化`, "NotePropertyDialog");
     if (props.note) {
       dispatch({ type: "RESET", initial: pickNoteFields(props.note) });
+      setRawLength(props.note.length.toString());
     } else {
       dispatch({ type: "RESET", initial: initialFormData });
+      setRawLength(initialFormData.length.toString());
     }
   }, [props.note]);
+
+  /**
+   * length入力時の処理：生の値のみ更新、バリデーションは行わない
+   */
+  const handleLengthInput = (value: string) => {
+    setRawLength(value);
+  };
+  /**
+   * lengthフォーカス離脱時の処理：バリデーションを実行し、正規化
+   */
+  const handleLengthBlur = () => {
+    const parsedValue = parseInt(rawLength);
+    const validatedValue = isNaN(parsedValue)
+      ? props.note.length
+      : Math.max(parsedValue, 1);
+
+    // バリデーション済みの値でformStateを更新
+    dispatch({
+      type: "UPDATE_FIELD",
+      key: "length",
+      value: validatedValue,
+    });
+
+    // 生の値も正規化された値に更新
+    setRawLength(validatedValue.toString());
+  };
 
   /**
    * ノートの編集を確定する処理。
    */
   const handleButtonClick = () => {
+    // 確定前に最終バリデーションを実行
+    const parsedLength = parseInt(rawLength);
+    const finalLength = isNaN(parsedLength)
+      ? props.note.length
+      : Math.max(parsedLength, 1);
+
+    const finalFormState = {
+      ...formState,
+      length: finalLength,
+    };
     LOG.info(
       `ノート編集確定。index:${
         props.note.index
-      }、編集後パラメータ:${JSON.stringify(formState)}`,
+      }、編集後パラメータ:${JSON.stringify(finalFormState)}`,
       "NotePropertyDialog"
     );
-    const n = NoteEdit(props.note.deepCopy(), formState);
+    const n = NoteEdit(props.note.deepCopy(), finalFormState);
     setNote(n.index, n);
     props.handleClose();
   };
@@ -144,17 +184,9 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
             type="number"
             label={t("editor.noteProperty.length")}
             data-testid="propertyLength"
-            value={formState.length}
-            onChange={(e) =>
-              dispatch({
-                type: "UPDATE_FIELD",
-                key: "length",
-                value:
-                  e.target.value === ""
-                    ? 0
-                    : Math.max(parseInt(e.target.value), 0),
-              })
-            }
+            value={rawLength}
+            onChange={(e) => handleLengthInput(e.target.value)}
+            onBlur={handleLengthBlur}
           />
           <FormControl fullWidth sx={{ m: 1 }}>
             <InputLabel>{t("editor.noteProperty.notenum")}</InputLabel>
