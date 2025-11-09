@@ -159,6 +159,7 @@ export const translationJa = {
     },
     footer: {
       project: "プロジェクト",
+      audiotrack: "伴奏",
       loadUst: "ust読込",
       saveUst: "ust保存",
       prjectSetting: "プロジェクト設定",
@@ -181,6 +182,10 @@ export const translationJa = {
       selectCancel: "キャンセル",
       undo: "元に戻す",
       redo: "やり直す",
+      loadAudioTrack: "伴奏読み込み",
+      audioOffsetReset: "タイミングリセット",
+      audioTrackMute: "ミュート",
+      audioClear: "伴奏クリア",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

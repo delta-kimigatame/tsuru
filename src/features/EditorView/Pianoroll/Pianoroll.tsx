@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import React from "react";
+import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
@@ -10,6 +11,7 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { LyricTextBox } from "../LyricTextBox";
 import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
+import { PianorollBackgroundWavForm } from "./PianorollBackgroundWavForm";
 import { PianorollNotes } from "./PianorollNotes";
 import {
   deciToneToPoint,
@@ -66,6 +68,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
       leftsMs.push(totalMsLength);
       totalMsLength += notes[i].msLength;
     }
+    props.setNotesLeftMs(leftsMs);
     return { notesLeft: lefts, notesLeftMs: leftsMs, totalLength: totalLength };
   }, [notes]);
 
@@ -300,6 +303,13 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           />
         </svg>
         <PianorollWavForm notesLeft={notesLeft} scrollLeft={scrollLeft} />
+        <PianorollBackgroundWavForm
+          notesLeft={notesLeft}
+          notesLeftMs={notesLeftMs}
+          scrollLeft={scrollLeft}
+          backgroundWav={props.backgroundAudioWav}
+          backgroundWavOffsetMs={props.backgroundWavOffsetMs}
+        />
       </Box>
       {portraitUrl !== undefined && (
         <img
@@ -347,4 +357,7 @@ export interface PianorollProps {
   setLyricTargetIndex: (index: number | undefined) => void;
   addNoteLength?: number;
   addNoteLyric?: string;
+  setNotesLeftMs?: (notesLeftMs: number[]) => void;
+  backgroundAudioWav?: Wave | null;
+  backgroundWavOffsetMs?: number;
 }

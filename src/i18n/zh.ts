@@ -156,6 +156,7 @@ export const translationZh = {
     },
     footer: {
       project: "项目",
+      audiotrack: "伴奏",
       loadUst: "加载 ust",
       saveUst: "保存 ust",
       prjectSetting: "项目设置",
@@ -177,6 +178,10 @@ export const translationZh = {
       selectCancel: "取消",
       undo: "撤销",
       redo: "重做",
+      loadAudioTrack: "加载伴奏",
+      audioOffsetReset: "重置时间偏移",
+      audioTrackMute: "静音",
+      audioClear: "清除伴奏",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",

@@ -158,6 +158,7 @@ export const translationEn = {
     },
     footer: {
       project: "Project",
+      audiotrack: "Accompaniment",
       loadUst: "Load UST",
       saveUst: "Save UST",
       prjectSetting: "Project Settings",
@@ -179,6 +180,10 @@ export const translationEn = {
       selectCancel: "cancel",
       undo: "undo",
       redo: "redo",
+      loadAudioTrack: "Load Accompaniment",
+      audioOffsetReset: "Reset Timing",
+      audioTrackMute: "Mute",
+      audioClear: "Remove",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

@@ -162,6 +162,7 @@ export const translationPt = {
     },
     footer: {
       project: "Projeto",
+      audiotrack: "Acompanhamento",
       loadUst: "Carregar UST",
       saveUst: "Salvar UST",
       prjectSetting: "Configurações do projeto",
@@ -182,6 +183,11 @@ export const translationPt = {
       selectReset: "Cancelar seleção",
       selectCancel: "Cancelar",
       undo: "Desfazer",
+      redo: "Refazer",
+      loadAudioTrack: "Carregar acompanhamento",
+      audioOffsetReset: "Redefinir tempo",
+      audioTrackMute: "Mudo",
+      audioClear: "Remover",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

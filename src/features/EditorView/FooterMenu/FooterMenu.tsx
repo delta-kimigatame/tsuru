@@ -1,4 +1,5 @@
 import AddBoxIcon from "@mui/icons-material/AddBox";
+import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -12,6 +13,7 @@ import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { useMenu } from "../../../hooks/useMenu";
 import { useVerticalFooterMenu } from "../../../hooks/useVerticalFooterMenu";
@@ -24,6 +26,7 @@ import { useSnackBarStore } from "../../../store/snackBarStore";
 import { executeBatchProcess } from "../../../utils/batchProcess";
 import { loadBatchProcessClasses } from "../../../utils/loadBatchProcess";
 import { BatchProcessDialog } from "../../BatchProcess/BatchProcessDialog";
+import { FooterAudioTrackMenu } from "./FooterAudioTrackMenu";
 import { FooterBatchProcessMenu } from "./FooterBatchProcessMenu";
 import { FooterProjectMenu } from "./FooterProjectMenu";
 import { FooterZoomMenu } from "./FooterZoomMenu";
@@ -57,6 +60,11 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
     handleBatchProcessMenuOpen,
     handleBatchProcessMenuClose,
   ] = useMenu("FooterMenu.BatchProcessMenu");
+  const [
+    audioTrackMenuAnchor,
+    handleAudioTrackMenuOpen,
+    handleAudioTrackMenuClose,
+  ] = useMenu("FooterMenu.AudioTrackMenu");
   const windowSize = useWindowSize();
   const menuVertical = useVerticalFooterMenu();
   const theme = useTheme();
@@ -259,6 +267,14 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
         <Tab
+          icon={<AudiotrackIcon />}
+          label={t("editor.footer.audiotrack")}
+          onClick={handleAudioTrackMenuOpen}
+          sx={{ flex: 1, p: 0 }}
+          value={0}
+          disabled={batchProcessProgress}
+        />
+        <Tab
           icon={
             props.synthesisProgress ? (
               <CircularProgress />
@@ -318,6 +334,19 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         handleClose={handleProjectMenuClose}
         setUstLoadProgress={setUstLoadProgress}
       />
+      <FooterAudioTrackMenu
+        anchor={audioTrackMenuAnchor}
+        handleClose={handleAudioTrackMenuClose}
+        setBackgroundAudioWav={props.setBackgroundAudioWav}
+        backgroundWavUrl={props.backgroundWavUrl}
+        setBackgroundWavUrl={props.setBackgroundWavUrl}
+        backgroundOffsetMs={props.backgroundOffsetMs}
+        setBackgroundOffsetMs={props.setBackgroundOffsetMs}
+        backgroundVolume={props.backgroundVolume}
+        setBackgroundVolume={props.setBackgroundVolume}
+        backgroundMuted={props.backgroundMuted}
+        setBackgroundMuted={props.setBackgroundMuted}
+      />
       <FooterZoomMenu
         anchor={zoomMenuAnchor}
         handleClose={handleZoomMenuClose}
@@ -360,4 +389,22 @@ export interface FooterMenuProps {
   selectMode: "toggle" | "range" | "pitch" | "add";
   /** 選択モードを更新するためのコールバック */
   setSelectMode: (mode: "toggle" | "range" | "pitch" | "add") => void;
+  /** 伴奏音声のデータ */
+  setBackgroundAudioWav: (wav: Wave) => void;
+  /**伴奏音声のurl */
+  backgroundWavUrl: string;
+  /** 伴奏音声のURLを更新するためのコールバック */
+  setBackgroundWavUrl: (url: string) => void;
+  /** 伴奏音声のオフセット（ミリ秒） */
+  backgroundOffsetMs: number;
+  /** 伴奏音声のオフセットを更新するためのコールバック */
+  setBackgroundOffsetMs: (offset: number) => void;
+  /** 伴奏音声のボリューム（0.0 - 1.0） */
+  backgroundVolume: number;
+  /** 伴奏音声のボリュームを更新するためのコールバック */
+  setBackgroundVolume: (volume: number) => void;
+  /** 伴奏音声のミュート状態 */
+  backgroundMuted: boolean;
+  /** 伴奏音声のミュート状態を更新するためのコールバック */
+  setBackgroundMuted: (muted: boolean) => void;
 }
