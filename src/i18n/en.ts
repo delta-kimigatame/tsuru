@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/09\r\n[Added] Added accompaniment track feature. You can load wav files for waveform display and simultaneous playback.",
       "2025/11/08\r\n[Fix] Fixed an issue where it was difficult to input when trying to leave some numeric input fields blank, as the minimum value would automatically be entered.\r\n[Added] Added voice color feature (OpenUtau compatible).\r\nYou can output ust including voice color, but the official UTAU will ignore the voice color value.\r\n[Fix] Enhanced logging",
       "2025/11/03\r\n[Added] Added batch lyric change feature to batch processing. Hiragana input is split by syllable, alphanumeric input is split by space.\r\n[Added] Experimental support for Japanese automatic mode (CVVC). It will be monitored for a while, and if there are few issues, it will become a standard feature.",
       "2025/11/02\r\n[Added] Added sine wave sound when placing notes.\r\n$direct=true can now be set in the note properties.",
