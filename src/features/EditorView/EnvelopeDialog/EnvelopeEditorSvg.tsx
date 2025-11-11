@@ -28,11 +28,22 @@ export const EnvelopeEditorSvg: React.FC<{
   setPoint,
   setValue,
 }) => {
+  const svgRef = React.useRef<SVGSVGElement>(null);
   const [targetIndex, setTargetIndex] = React.useState<number | undefined>(
     undefined
   );
+  const [isDragging, setIsDragging] = React.useState<boolean>(false);
+
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    // タッチデバイスでのスクロール防止
+    event.preventDefault();
+    event.stopPropagation();
+
     const svg = event.currentTarget;
+
+    // ポインターキャプチャを設定（重要：タッチ操作の追跡を確実にする）
+    svg.setPointerCapture(event.pointerId);
+
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
@@ -50,14 +61,29 @@ export const EnvelopeEditorSvg: React.FC<{
       }
     });
     setTargetIndex(minIndex);
+    setIsDragging(minIndex !== undefined);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // ポインターキャプチャを解放
+    const svg = event.currentTarget;
+    svg.releasePointerCapture(event.pointerId);
+
     setTargetIndex(undefined);
+    setIsDragging(false);
   };
 
   const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    if (targetIndex === undefined) return;
+    // ドラッグ中でない場合は何もしない
+    if (targetIndex === undefined || !isDragging) return;
+
+    // スクロール防止
+    event.preventDefault();
+    event.stopPropagation();
+
     const svg = event.currentTarget;
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
@@ -70,6 +96,14 @@ export const EnvelopeEditorSvg: React.FC<{
     setValue(targetIndex, v.toString());
   };
 
+  const handlePointerCancel = (event: React.PointerEvent<SVGSVGElement>) => {
+    event.preventDefault();
+    const svg = event.currentTarget;
+    svg.releasePointerCapture(event.pointerId);
+    setTargetIndex(undefined);
+    setIsDragging(false);
+  };
+
   return (
     <svg
       width={svgSize.width}
@@ -77,7 +111,14 @@ export const EnvelopeEditorSvg: React.FC<{
       onPointerUp={handlePointerUp}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      style={{
+        touchAction: "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+      }}
     >
       <g id="frame">
         <EnvelopeEditorFrame svgSize={svgSize} pallet={pallet} />
