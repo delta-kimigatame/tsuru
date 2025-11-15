@@ -497,6 +497,7 @@ export const EditorView: React.FC<{
         handlePlayStop={handlePlayStop}
         selectMode={selectMode}
         setSelectMode={setSelectMode}
+        backgroundAudioWav={backgroundAudioWav}
         setBackgroundAudioWav={setBackgroundAudioWav}
         backgroundWavUrl={backgroundWavUrl}
         setBackgroundWavUrl={setBackgroundWavUrl}

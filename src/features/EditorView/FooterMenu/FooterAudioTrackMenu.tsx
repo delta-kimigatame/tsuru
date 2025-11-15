@@ -1,6 +1,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import ClearIcon from "@mui/icons-material/Clear";
+import SpeedIcon from "@mui/icons-material/Speed";
 import SyncIcon from "@mui/icons-material/Sync";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
@@ -19,13 +20,14 @@ import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { LOG } from "../../../lib/Logging";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { estimateBpm } from "../../../utils/estimateBpm";
 
 export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
   props
 ) => {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const { ustTempo } = useMusicProjectStore();
+  const { ustTempo, setUstTempo } = useMusicProjectStore();
   // テキストボックス用の生値管理
   const [textInputValue, setTextInputValue] = React.useState<string>(
     props.backgroundOffsetMs.toString()
@@ -79,7 +81,8 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
       const objectUrl = URL.createObjectURL(blob);
 
       props.setBackgroundWavUrl(objectUrl);
-      props.setBackgroundAudioWav(new Wave(arrayBuffer));
+      const w = new Wave(arrayBuffer);
+      props.setBackgroundAudioWav(w);
       props.setBackgroundOffsetMs(0);
       setTextInputValue("0");
       LOG.info(`wav読込完了: ${file.name}`, "FooterMenu");
@@ -174,6 +177,18 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     props.handleClose();
   };
 
+  const handleEstimateBpmClick = () => {
+    LOG.info("伴奏音声のBPM推定開始", "FooterAudioTrackMenu");
+    if (!props.backgroundAudioWav) {
+      LOG.warn("伴奏音声が存在しないためBPM推定を中止", "FooterAudioTrackMenu");
+      return;
+    }
+    const bpm = estimateBpm(props.backgroundAudioWav!);
+    LOG.info(`推定されたBPM: ${bpm}`, "FooterAudioTrackMenu");
+    setUstTempo(bpm);
+    props.handleClose();
+  };
+
   return (
     <>
       <input
@@ -195,6 +210,19 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
             <AudiotrackIcon />
           </ListItemIcon>
           <ListItemText>{t("editor.footer.loadAudioTrack")}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleEstimateBpmClick}
+          disabled={
+            props.backgroundWavUrl === "" ||
+            props.backgroundWavUrl === null ||
+            props.backgroundWavUrl === undefined
+          }
+        >
+          <ListItemIcon>
+            <SpeedIcon />
+          </ListItemIcon>
+          <ListItemText>{t("editor.footer.estimateBpm")}</ListItemText>
         </MenuItem>
         <MenuItem
           onClick={handleMuteToggleBackgroundWavClick}
@@ -312,21 +340,6 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
             props.backgroundWavUrl === null ||
             props.backgroundWavUrl === undefined
           }
-          onClick={handleBackgroundAudioOffsetResetClick}
-        >
-          <ListItemIcon>
-            <SyncIcon />
-          </ListItemIcon>
-          <ListItemText>
-            <ListItemText>{t("editor.footer.audioOffsetReset")}</ListItemText>
-          </ListItemText>
-        </MenuItem>
-        <MenuItem
-          disabled={
-            props.backgroundWavUrl === "" ||
-            props.backgroundWavUrl === null ||
-            props.backgroundWavUrl === undefined
-          }
           onClick={handleClearClick}
         >
           <ListItemIcon>
@@ -346,6 +359,7 @@ export interface FooterAudioTrackMenuProps {
   anchor: HTMLElement | null;
   /** メニューを閉じるためのコールバック */
   handleClose: () => void;
+  backgroundAudioWav: Wave | null;
   /** 伴奏用wavのデータを更新するためのコールバック */
   setBackgroundAudioWav: (wav: Wave) => void;
   /** 伴奏音声のurl */

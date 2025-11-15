@@ -337,6 +337,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
       <FooterAudioTrackMenu
         anchor={audioTrackMenuAnchor}
         handleClose={handleAudioTrackMenuClose}
+        backgroundAudioWav={props.backgroundAudioWav}
         setBackgroundAudioWav={props.setBackgroundAudioWav}
         backgroundWavUrl={props.backgroundWavUrl}
         setBackgroundWavUrl={props.setBackgroundWavUrl}
@@ -389,6 +390,7 @@ export interface FooterMenuProps {
   selectMode: "toggle" | "range" | "pitch" | "add";
   /** 選択モードを更新するためのコールバック */
   setSelectMode: (mode: "toggle" | "range" | "pitch" | "add") => void;
+  backgroundAudioWav: Wave | null;
   /** 伴奏音声のデータ */
   setBackgroundAudioWav: (wav: Wave) => void;
   /**伴奏音声のurl */
