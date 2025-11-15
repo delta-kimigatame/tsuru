@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/16\r\n[Added] Added experimental BPM auto-detection feature.\r\nAdded automatic timing adjustment feature for accompaniment tracks.",
       "2025/11/15_3\r\n[Fix] Fixed an issue where swipe scrolling during pitch editing was not disabled on iOS environments.",
       "2025/11/15_2\r\n[Fix] Fixed a bug where abnormal values could contaminate pitch data, causing pitch lines to fail to render.",
       "2025/11/15\r\n[Fix] Made it possible to grab and edit portamentos in the envelope editor.\r\n[Fix] Made it possible to grab and edit portamentos in pitch editing mode. Note that screen scrolling via swiping is now locked when a portamento is selected.\r\n[Fix] Fixed a bug where portamentos could not be added properly when there were only 2 pitch portamentos.\r\n[Fix] Fixed a bug where batch lyric change processing did not work properly when rests were included.\r\n[Fix] Fixed a bug where automatic lyric conversion did not work when editing lyrics via double-tap.",
