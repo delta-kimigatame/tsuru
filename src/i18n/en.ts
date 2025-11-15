@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/15\r\n[Fix] Made it possible to grab and edit portamentos in the envelope editor.\r\n[Fix] Made it possible to grab and edit portamentos in pitch editing mode. Note that screen scrolling via swiping is now locked when a portamento is selected.\r\n[Fix] Fixed a bug where portamentos could not be added properly when there were only 2 pitch portamentos.\r\n[Fix] Fixed a bug where batch lyric change processing did not work properly when rests were included.\r\n[Fix] Fixed a bug where automatic lyric conversion did not work when editing lyrics via double-tap.",
       "2025/11/09\r\n[Added] Added accompaniment track feature. You can load wav files for waveform display and simultaneous playback.",
       "2025/11/08\r\n[Fix] Fixed an issue where it was difficult to input when trying to leave some numeric input fields blank, as the minimum value would automatically be entered.\r\n[Added] Added voice color feature (OpenUtau compatible).\r\nYou can output ust including voice color, but the official UTAU will ignore the voice color value.\r\n[Fix] Enhanced logging",
       "2025/11/03\r\n[Added] Added batch lyric change feature to batch processing. Hiragana input is split by syllable, alphanumeric input is split by space.\r\n[Added] Experimental support for Japanese automatic mode (CVVC). It will be monitored for a while, and if there are few issues, it will become a standard feature.",
