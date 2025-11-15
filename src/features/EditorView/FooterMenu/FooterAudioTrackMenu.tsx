@@ -1,6 +1,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import ClearIcon from "@mui/icons-material/Clear";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import SpeedIcon from "@mui/icons-material/Speed";
 import SyncIcon from "@mui/icons-material/Sync";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { LOG } from "../../../lib/Logging";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { estimateBeatOffset } from "../../../utils/estimateBeatOffset";
 import { estimateBpm } from "../../../utils/estimateBpm";
 
 export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
@@ -51,7 +53,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
    * オフセットの最大・最小値
    */
   const offsetRange = React.useMemo(() => {
-    const maxOffset = calculateOneBarMs;
+    const maxOffset = calculateOneBarMs * 2;
     return {
       min: -maxOffset,
       max: maxOffset,
@@ -186,6 +188,26 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     const bpm = estimateBpm(props.backgroundAudioWav!);
     LOG.info(`推定されたBPM: ${bpm}`, "FooterAudioTrackMenu");
     setUstTempo(bpm);
+    const offset = estimateBeatOffset(props.backgroundAudioWav, bpm);
+    LOG.info(`推定された拍頭オフセット: ${offset} ms`, "FooterAudioTrackMenu");
+    props.setBackgroundOffsetMs(offset);
+    setTextInputValue(offset.toString());
+    props.handleClose();
+  };
+
+  const handleEstimateBeatOffsetClick = () => {
+    LOG.info("伴奏音声の拍頭オフセット推定開始", "FooterAudioTrackMenu");
+    if (!props.backgroundAudioWav) {
+      LOG.warn(
+        "伴奏音声が存在しないため拍頭オフセット推定を中止",
+        "FooterAudioTrackMenu"
+      );
+      return;
+    }
+    const offset = estimateBeatOffset(props.backgroundAudioWav, ustTempo);
+    LOG.info(`推定された拍頭オフセット: ${offset} ms`, "FooterAudioTrackMenu");
+    props.setBackgroundOffsetMs(offset);
+    setTextInputValue(offset.toString());
     props.handleClose();
   };
 
@@ -325,10 +347,27 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
             props.backgroundWavUrl === null ||
             props.backgroundWavUrl === undefined
           }
-          onClick={handleBackgroundAudioOffsetResetClick}
+          onClick={handleEstimateBeatOffsetClick}
         >
           <ListItemIcon>
             <SyncIcon />
+          </ListItemIcon>
+          <ListItemText>
+            <ListItemText>
+              {t("editor.footer.audioOffsetEstimate")}
+            </ListItemText>
+          </ListItemText>
+        </MenuItem>
+        <MenuItem
+          disabled={
+            props.backgroundWavUrl === "" ||
+            props.backgroundWavUrl === null ||
+            props.backgroundWavUrl === undefined
+          }
+          onClick={handleBackgroundAudioOffsetResetClick}
+        >
+          <ListItemIcon>
+            <RestartAltIcon />
           </ListItemIcon>
           <ListItemText>
             <ListItemText>{t("editor.footer.audioOffsetReset")}</ListItemText>
