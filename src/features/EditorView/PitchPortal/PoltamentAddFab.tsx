@@ -62,10 +62,15 @@ const AddPoltamentCore = (targetIndex: number, n: Note): Note => {
       : pbwIndex < 0
       ? n.pby[0] / 2
       : (n.pby[pbwIndex] - n.pby[pbwIndex - 1]) / 2 + n.pby[pbwIndex - 1];
+  console.log(`newPbw: ${newPbw}, newPby: ${newPby}`);
   if (targetIndex === 0) {
     n.pbw[0] = newPbw;
     n.pbw.unshift(newPbw);
-    n.pby.unshift(newPby);
+    if (n.pby === undefined) {
+      n.setPby([newPby]);
+    } else {
+      n.pby.unshift(newPby);
+    }
     n.pbm.unshift("");
   } else if (pbwIndex === n.pbw.length - 1) {
     n.pbw.push(10);
