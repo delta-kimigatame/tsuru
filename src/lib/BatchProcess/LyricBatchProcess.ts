@@ -29,9 +29,9 @@ export class LyricBatchProcess extends BaseBatchProcess<LyricBatchProcessOptions
       // 英数字の場合は半角スペースで分割
       syllables = options.lyricsValue.split(" ").filter((s) => s.length > 0);
     } else {
-      // ひらがなを1音節ずつ分割（拗音を考慮）
+      // ひらがなを1音節ずつ分割（拗音を考慮）もしくはR
       syllables =
-        options.lyricsValue.match(/[ぁ-ん][ぁぃぅぇぉゃゅょゎ]?/g) || [];
+        options.lyricsValue.match(/[ぁ-んR][ぁぃぅぇぉゃゅょゎ]?/g) || [];
     }
 
     // 各ノートに音節を割り当て（短い方の長さまで）
