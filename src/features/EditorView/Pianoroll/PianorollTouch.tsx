@@ -40,6 +40,30 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   >(undefined);
   const [hasPitchDragged, setHasPitchDragged] = React.useState<boolean>(false);
 
+  // iOS対応: ピッチ編集時のbody全体のスクロール制御
+  React.useEffect(() => {
+    const shouldLockScroll =
+      props.selectMode === "pitch" && props.targetPoltament !== undefined;
+
+    if (shouldLockScroll) {
+      // body要素のスクロールを無効化
+      const originalBodyStyle = document.body.style.overflow;
+      const originalBodyTouchAction = document.body.style.touchAction;
+      const originalHtmlStyle = document.documentElement.style.overflow;
+
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+      document.documentElement.style.overflow = "hidden";
+
+      return () => {
+        // クリーンアップ時に元のスタイルを復元
+        document.body.style.overflow = originalBodyStyle;
+        document.body.style.touchAction = originalBodyTouchAction;
+        document.documentElement.style.overflow = originalHtmlStyle;
+      };
+    }
+  }, [props.selectMode, props.targetPoltament]);
+
   /**
    * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
    * @param svgPoint
@@ -204,6 +228,10 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       if (targetPoltamentIndex !== undefined) {
         event.preventDefault();
         event.stopPropagation();
+        // iOS対応: touchstart/touchmove/touchendイベントもキャンセル
+        if (event.nativeEvent instanceof TouchEvent) {
+          event.nativeEvent.preventDefault();
+        }
         // ポインターキャプチャーを設定してドラッグ追跡を確実にする
         event.currentTarget.setPointerCapture(event.pointerId);
         setPitchDragPointerId(event.pointerId);
@@ -231,6 +259,10 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       if (props.targetPoltament !== undefined) {
         event.preventDefault();
         event.stopPropagation();
+        // iOS対応: touchstart/touchmove/touchendイベントもキャンセル
+        if (event.nativeEvent instanceof TouchEvent) {
+          event.nativeEvent.preventDefault();
+        }
       } else {
         // ポルタメントが選択されていない場合、ポインターキャプチャーをリリース
         if (pitchDragPointerId === event.pointerId) {
@@ -516,6 +548,13 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
             ? "none"
             : "auto",
         cursor: isPitchDragging ? "grabbing" : "auto",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        // iOS対応: タッチ時のハイライト無効化
+        WebkitTouchCallout: "none",
+        WebkitTapHighlightColor: "transparent",
       }}
       onPointerUp={handlePitchPointerUp}
       onPointerDown={handlePointerDown}

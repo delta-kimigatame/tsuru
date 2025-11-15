@@ -67,6 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/11/15_3\r\n[Correção] Corrigido um problema onde o scroll por deslize durante a edição de pitch não era desabilitado em ambientes iOS.",
       "2025/11/15_2\r\n[Correção] Corrigido um bug onde valores anômalos podiam contaminar os dados de pitch, fazendo com que as linhas de pitch falhassem na renderização.",
       "2025/11/15\r\n[Correção] Possibilitado agarrar e editar portamentos no editor de envelope.\r\n[Correção] Possibilitado agarrar e editar portamentos no modo de edição de pitch. Observe que o scroll da tela por deslize agora fica bloqueado quando um portamento está selecionado.\r\n[Correção] Corrigido um bug onde portamentos não podiam ser adicionados adequadamente quando havia apenas 2 portamentos de pitch.\r\n[Correção] Corrigido um bug onde o processamento de alteração de letras em lote não funcionava adequadamente quando pausas estavam incluídas.\r\n[Correção] Corrigido um bug onde a conversão automática de letras não funcionava ao editar letras via toque duplo.",
       "2025/11/09\r\n[Adição] Adicionada a função de faixa de acompanhamento. É possível carregar arquivos wav para exibição de forma de onda e reprodução simultânea.",

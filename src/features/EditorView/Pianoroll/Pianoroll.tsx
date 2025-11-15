@@ -200,7 +200,11 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         width: "100%",
         height: PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom + 40,
         overflowX: "hidden",
-        overflowY: "auto",
+        // ピッチ編集時はY軸スクロールも無効化
+        overflowY:
+          props.selectMode === "pitch" && props.targetPoltament !== undefined
+            ? "hidden"
+            : "auto",
         m: 0,
         p: 0,
         userSelect: "none",
@@ -225,6 +229,15 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           overflowX: "scroll",
           position: "relative",
           userSelect: "none",
+          // iOS対応: スクロールの慣性とバウンスを制御
+          WebkitOverflowScrolling: "touch",
+          // ピッチ編集時は両軸のスクロールを無効化
+          ...(props.selectMode === "pitch" &&
+            props.targetPoltament !== undefined && {
+              overflowX: "hidden",
+              overflowY: "hidden",
+              touchAction: "none", // iOS対応: タッチアクションを完全に無効化
+            }),
         }}
         ref={containerRef}
       >
