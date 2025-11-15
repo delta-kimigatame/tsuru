@@ -282,6 +282,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
               setMenuAnchor={setMenuAnchor}
               setLyricAnchor={setLyricAnchor}
               poltaments={pitchPoltament}
+              targetPoltament={props.targetPoltament}
               setTargetPoltament={props.setTargetPoltament}
               setLyricTargetIndex={props.setLyricTargetIndex}
               addNoteLength={props.addNoteLength}
