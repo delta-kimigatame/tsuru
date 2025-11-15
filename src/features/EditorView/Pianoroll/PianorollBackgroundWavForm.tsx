@@ -84,8 +84,20 @@ export const PianorollBackgroundWavForm: React.FC<
       (rightMs - props.backgroundWavOffsetMs) *
         (props.backgroundWav.sampleRate / 1000)
     );
-    /** 開始フレームから終了フレームまで */
-    const wavData = props.backgroundWav.data.slice(startFrame, endFrame);
+    /**
+     * 開始フレームから終了フレームまで
+     * ただし、startFrameが0未満の場合、startFrameの絶対値分の長さの0埋め配列を先頭に追加する
+     */
+    let wavData: number[];
+    if (startFrame < 0) {
+      // startFrameが負の場合、0埋めの配列を先頭に追加
+      const paddingLength = Math.abs(startFrame);
+      const actualData = props.backgroundWav.data.slice(0, endFrame);
+      const padding = new Array(paddingLength).fill(0);
+      wavData = [...padding, ...actualData];
+    } else {
+      wavData = props.backgroundWav.data.slice(startFrame, endFrame);
+    }
     const points = calculatePolylinePoints(
       wavData,
       windowSize.width,
