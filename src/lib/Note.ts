@@ -825,7 +825,6 @@ export class Note {
         }
       }
     });
-    console.log(x, y, mode, result);
     return result;
   }
 
