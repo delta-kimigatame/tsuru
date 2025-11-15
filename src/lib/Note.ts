@@ -379,16 +379,19 @@ export class Note {
    * mode2ピッチの音高列。,でつなげた文字列を与える
    */
   set pby(value: string) {
-    this._pby = value
-      .split(",")
-      .map((v) => Math.min(Math.max(parseFloat(v), -200), 200));
+    this._pby = value.split(",").map((v) => {
+      const parsed = parseFloat(v);
+      return Math.min(Math.max(isNaN(parsed) ? 0 : parsed, -200), 200);
+    });
   }
 
   /**
    * mode2ピッチの音高列
    */
   setPby(value: Array<number>): void {
-    this._pby = value.map((v) => Math.min(Math.max(v, -200), 200));
+    this._pby = value.map((v) =>
+      Math.min(Math.max(isNaN(v) ? 0 : v, -200), 200)
+    );
   }
 
   /**
@@ -822,6 +825,7 @@ export class Note {
         }
       }
     });
+    console.log(x, y, mode, result);
     return result;
   }
 
