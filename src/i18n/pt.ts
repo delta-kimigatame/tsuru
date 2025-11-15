@@ -192,6 +192,8 @@ export const translationPt = {
       audioOffsetReset: "Redefinir tempo",
       audioTrackMute: "Mudo",
       audioClear: "Remover",
+      estimateBpm: "Detecção de BPM (experimental)",
+      audioOffsetEstimate: "Ajustar tempo automaticamente",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

@@ -188,6 +188,8 @@ export const translationEn = {
       audioOffsetReset: "Reset Timing",
       audioTrackMute: "Mute",
       audioClear: "Remove",
+      estimateBpm: "BPM Detection (experimental)",
+      audioOffsetEstimate: "Auto-Adjust Timing",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

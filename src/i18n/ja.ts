@@ -190,6 +190,8 @@ export const translationJa = {
       audioOffsetReset: "タイミングリセット",
       audioTrackMute: "ミュート",
       audioClear: "伴奏クリア",
+      estimateBpm: "BPM自動検出(β)",
+      audioOffsetEstimate: "タイミング自動調整",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

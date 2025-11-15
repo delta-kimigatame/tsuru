@@ -186,6 +186,8 @@ export const translationZh = {
       audioOffsetReset: "重置时间偏移",
       audioTrackMute: "静音",
       audioClear: "清除伴奏",
+      estimateBpm: "BPM检测 (实验性)",
+      audioOffsetEstimate: "自动调整时间偏移",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",
