@@ -112,7 +112,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
       });
     });
     return { pitchPoltament: points };
-  }, [notes, props.pitchTargetIndex, notesLeft]);
+  }, [notes, props.pitchTargetIndex, notesLeft, horizontalZoom, verticalZoom]);
 
   React.useEffect(() => {
     LOG.debug(`コンポーネントマウント、c4Center:${c4Center}`, "Pianoroll");
