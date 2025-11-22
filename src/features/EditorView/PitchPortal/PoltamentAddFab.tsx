@@ -56,13 +56,23 @@ const redo = (args: { targetIndex: number; note: Note }): Note[] => {
 const AddPoltamentCore = (targetIndex: number, n: Note): Note => {
   const pbwIndex = targetIndex - 1;
   const newPbw = n.pbw[pbwIndex < 0 ? 0 : pbwIndex + 1] / 2;
+  const pbsHeight =
+    n.prev === null || n.prev.lyric === "R"
+      ? n.pbsHeight
+      : (n.prev.notenum - n.notenum) * 10;
   const newPby =
     n.pby === undefined
       ? 0
       : pbwIndex < 0
-      ? n.pby[0] / 2
-      : (n.pby[pbwIndex] - n.pby[pbwIndex - 1]) / 2 + n.pby[pbwIndex - 1];
-  console.log(`newPbw: ${newPbw}, newPby: ${newPby}`);
+      ? (n.pby[0] - pbsHeight) / 2 + pbsHeight
+      : (() => {
+          const val1 = n.pby[pbwIndex];
+          const val2 = n.pby[pbwIndex + 1] ?? 0;
+          const absVal1 = Math.abs(val1);
+          const absVal2 = Math.abs(val2);
+          const diff = absVal1 > absVal2 ? val1 - val2 : val2 - val1;
+          return Math.abs(diff / 2) + Math.min(val1, val2);
+        })();
   if (targetIndex === 0) {
     n.pbw[0] = newPbw;
     n.pbw.unshift(newPbw);
@@ -89,7 +99,9 @@ const AddPoltamentCore = (targetIndex: number, n: Note): Note => {
     n.setPbw(
       n.pbw.slice(0, pbwIndex + 1).concat([newPbw], n.pbw.slice(pbwIndex + 1))
     );
-    n.setPby(n.pby.slice(0, pbwIndex).concat([newPby], n.pby.slice(pbwIndex)));
+    n.setPby(
+      n.pby.slice(0, pbwIndex + 1).concat([newPby], n.pby.slice(pbwIndex + 1))
+    );
     if (n.pbm === undefined) {
       n.setPbm(Array(n.pbw.length).fill(""));
     } else {
