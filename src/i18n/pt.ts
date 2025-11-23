@@ -67,6 +67,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/11/23_2\r\n[Correção] Removida a funcionalidade de pinça devido a problemas significativos relacionados",
       "2025/11/23\r\n[Adição] Adicionada função de zoom por pinça.\r\n[Correção] Resolvidos problemas relacionados a portamentos de pitch.",
       "2025/11/16\r\n[Adição] Adicionada função experimental de detecção automática de BPM.\r\nAdicionada função de ajuste automático de tempo para faixas de acompanhamento.",
       "2025/11/15_3\r\n[Correção] Corrigido um problema onde o scroll por deslize durante a edição de pitch não era desabilitado em ambientes iOS.",
