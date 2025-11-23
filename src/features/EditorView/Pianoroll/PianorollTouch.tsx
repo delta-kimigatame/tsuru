@@ -40,21 +40,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   >(undefined);
   const [hasPitchDragged, setHasPitchDragged] = React.useState<boolean>(false);
 
-  // ピンチイン・ピンチアウト用の状態
-  const [initialPinchDistance, setInitialPinchDistance] = React.useState<
-    number | null
-  >(null);
-  const [initialZoom, setInitialZoom] = React.useState<{
-    horizontal: number;
-    vertical: number;
-  } | null>(null);
-  const [activeTouches, setActiveTouches] = React.useState<
-    Map<number, { x: number; y: number }>
-  >(new Map());
-  // ピンチ実行後、全ての指が離れるまで他の操作を無効化するフラグ
-  const [hasPinchedRecently, setHasPinchedRecently] =
-    React.useState<boolean>(false);
-
   // iOS対応: ピッチ編集時のbody全体のスクロール制御
   React.useEffect(() => {
     const shouldLockScroll =
@@ -79,97 +64,12 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     }
   }, [props.selectMode, props.targetPoltament]);
 
-  // iOS対応: ピンチジェスチャーのデフォルト動作を完全にキャンセル
-  React.useEffect(() => {
-    // viewport metaタグを動的に設定してピンチズームを無効化
-    let viewportMeta = document.querySelector('meta[name="viewport"]');
-    const isNewMeta = !viewportMeta;
-    if (isNewMeta) {
-      viewportMeta = document.createElement("meta");
-      viewportMeta.setAttribute("name", "viewport");
-      document.head.appendChild(viewportMeta);
-    }
-    const originalContent = viewportMeta.getAttribute("content");
-    viewportMeta.setAttribute(
-      "content",
-      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    );
-
-    // gesturestart, gesturechange, gestureendイベントをキャンセル（iOS Safari用）
-    const preventGesture = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    // touchmoveイベントで2本指以上のタッチをキャンセル
-    const preventMultiTouch = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    document.addEventListener("gesturestart", preventGesture, {
-      passive: false,
-    });
-    document.addEventListener("gesturechange", preventGesture, {
-      passive: false,
-    });
-    document.addEventListener("gestureend", preventGesture, { passive: false });
-    document.addEventListener("touchmove", preventMultiTouch, {
-      passive: false,
-    });
-
-    return () => {
-      // クリーンアップ
-      if (originalContent) {
-        viewportMeta.setAttribute("content", originalContent);
-      } else if (isNewMeta && viewportMeta.parentNode) {
-        viewportMeta.parentNode.removeChild(viewportMeta);
-      }
-      document.removeEventListener("gesturestart", preventGesture);
-      document.removeEventListener("gesturechange", preventGesture);
-      document.removeEventListener("gestureend", preventGesture);
-      document.removeEventListener("touchmove", preventMultiTouch);
-    };
-  }, []);
-
-  /**
-   * 2つのタッチポイント間の距離を計算
-   */
-  const calculatePinchDistance = (
-    touch1: { x: number; y: number },
-    touch2: { x: number; y: number }
-  ): number => {
-    const dx = touch2.x - touch1.x;
-    const dy = touch2.y - touch1.y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-  /**
-   * 2つのタッチポイントの中心点を計算
-   */
-  const calculatePinchCenter = (
-    touch1: { x: number; y: number },
-    touch2: { x: number; y: number }
-  ): { x: number; y: number } => {
-    return {
-      x: (touch1.x + touch2.x) / 2,
-      y: (touch1.y + touch2.y) / 2,
-    };
-  };
-
   /**
    * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
    * @param svgPoint
    * @returns
    */
   const handleTap = (coords: { x: number; y: number }, svgPoint: DOMPoint) => {
-    // ピンチ実行後はタップを無視
-    if (hasPinchedRecently) {
-      return;
-    }
-
     const targetPoltamentIndex =
       props.selectMode !== "pitch" || props.poltaments === undefined
         ? undefined
@@ -310,33 +210,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
    * ピッチ編集モード対応のポインターダウンハンドラー
    */
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    // タッチ情報を記録
-    const newTouches = new Map(activeTouches);
-    newTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    setActiveTouches(newTouches);
-
-    // 2本目の指が追加された時
-    if (newTouches.size === 2) {
-      const touches = Array.from(newTouches.values());
-      const distance = calculatePinchDistance(touches[0], touches[1]);
-      setInitialPinchDistance(distance);
-      setInitialZoom({
-        horizontal: horizontalZoom,
-        vertical: verticalZoom,
-      });
-      // ピンチ実行中フラグを立てる
-      setHasPinchedRecently(true);
-      // ピンチ開始時は既存の操作をキャンセル
-      event.preventDefault();
-      return;
-    }
-
-    // ピンチ実行後は他の操作を無効化
-    if (hasPinchedRecently) {
-      event.preventDefault();
-      return;
-    }
-
     // ピッチ編集モードの場合、ポインターダウン時に即座に判定
     if (props.selectMode === "pitch") {
       const pt = event.currentTarget.createSVGPoint();
@@ -380,63 +253,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
    * ピッチ編集モード専用のポインター移動ハンドラー
    */
   const handlePitchPointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    // タッチ情報を更新
-    if (activeTouches.has(event.pointerId)) {
-      const newTouches = new Map(activeTouches);
-      newTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      setActiveTouches(newTouches);
-
-      // 2本指でのピンチ操作
-      if (
-        newTouches.size === 2 &&
-        initialPinchDistance !== null &&
-        initialZoom !== null
-      ) {
-        event.preventDefault();
-
-        const touches = Array.from(newTouches.values());
-        const currentDistance = calculatePinchDistance(touches[0], touches[1]);
-        const scale = currentDistance / initialPinchDistance;
-
-        // ピンチの向きを判定（水平・垂直・両方）
-        const dx = Math.abs(touches[1].x - touches[0].x);
-        const dy = Math.abs(touches[1].y - touches[0].y);
-        const isHorizontalPinch = dx > dy * 1.5; // 水平方向の動きが優勢
-        const isVerticalPinch = dy > dx * 1.5; // 垂直方向の動きが優勢
-
-        // ズーム値の計算と適用
-        if (isHorizontalPinch) {
-          // 横方向のみズーム
-          const newHorizontalZoom = Math.max(
-            0.01,
-            Math.min(4, initialZoom.horizontal * scale)
-          );
-          useCookieStore.getState().setHorizontalZoom(newHorizontalZoom);
-        } else if (isVerticalPinch) {
-          // 縦方向のみズーム
-          const newVerticalZoom = Math.max(
-            0.25,
-            Math.min(1, initialZoom.vertical * scale)
-          );
-          useCookieStore.getState().setVerticalZoom(newVerticalZoom);
-        } else {
-          // 両方向ズーム
-          const newHorizontalZoom = Math.max(
-            0.01,
-            Math.min(4, initialZoom.horizontal * scale)
-          );
-          const newVerticalZoom = Math.max(
-            0.25,
-            Math.min(1, initialZoom.vertical * scale)
-          );
-          useCookieStore.getState().setHorizontalZoom(newHorizontalZoom);
-          useCookieStore.getState().setVerticalZoom(newVerticalZoom);
-        }
-
-        return; // ピンチ中は他の操作を無効化
-      }
-    }
-
     // ピッチ編集モードの場合
     if (props.selectMode === "pitch") {
       // ポルタメントが選択されている場合のみスクロールを防止
@@ -655,22 +471,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
    * ピッチ編集モード専用のポインターアップハンドラー
    */
   const handlePitchPointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    // タッチ情報を削除
-    const newTouches = new Map(activeTouches);
-    newTouches.delete(event.pointerId);
-    setActiveTouches(newTouches);
-
-    // 全ての指が離れたらピンチ実行フラグをリセット
-    if (newTouches.size === 0) {
-      setHasPinchedRecently(false);
-    }
-
-    // ピンチ終了
-    if (newTouches.size < 2) {
-      setInitialPinchDistance(null);
-      setInitialZoom(null);
-    }
-
     // ドラッグ後の場合はタップイベントをスキップ
     const shouldSkipTap = hasPitchDragged;
 
@@ -723,60 +523,12 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     // ドラッグフラグをリセット
     setHasPitchDragged(false);
 
-    // ピンチ状態もリセット
-    setActiveTouches(new Map());
-    setInitialPinchDistance(null);
-    setInitialZoom(null);
-    setHasPinchedRecently(false);
-
     // 元のハンドラーも実行
     handlePointerCancel();
   };
 
-  // SVG要素へのref
-  const svgRef = React.useRef<SVGSVGElement>(null);
-
-  // iOS対応: SVG要素にgestureイベントリスナーを直接追加
-  React.useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
-
-    const preventGesture = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    const preventMultiTouch = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    // @ts-ignore - gestureイベントはTypeScriptの型定義にないが、iOS Safariで存在する
-    svg.addEventListener("gesturestart", preventGesture, { passive: false });
-    // @ts-ignore
-    svg.addEventListener("gesturechange", preventGesture, { passive: false });
-    // @ts-ignore
-    svg.addEventListener("gestureend", preventGesture, { passive: false });
-    svg.addEventListener("touchstart", preventMultiTouch, { passive: false });
-    svg.addEventListener("touchmove", preventMultiTouch, { passive: false });
-
-    return () => {
-      // @ts-ignore
-      svg.removeEventListener("gesturestart", preventGesture);
-      // @ts-ignore
-      svg.removeEventListener("gesturechange", preventGesture);
-      // @ts-ignore
-      svg.removeEventListener("gestureend", preventGesture);
-      svg.removeEventListener("touchstart", preventMultiTouch);
-      svg.removeEventListener("touchmove", preventMultiTouch);
-    };
-  }, []);
-
   return (
     <svg
-      ref={svgRef}
       width={
         (props.totalLength + 480 * 8) *
         PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
@@ -790,7 +542,11 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         left: 0,
         zIndex: 9,
         pointerEvents: "all",
-        touchAction: "none",
+        touchAction:
+          props.selectMode === "pitch" &&
+          (props.targetPoltament !== undefined || isPitchDragging)
+            ? "none"
+            : "auto",
         cursor: isPitchDragging ? "grabbing" : "auto",
         userSelect: "none",
         WebkitUserSelect: "none",
