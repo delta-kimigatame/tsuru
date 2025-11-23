@@ -65,6 +65,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/23\r\n[Added] Added pinch-in and pinch-out zoom functionality.\r\n[Fix] Resolved issues related to pitch portamento.",
       "2025/11/16\r\n[Added] Added experimental BPM auto-detection feature.\r\nAdded automatic timing adjustment feature for accompaniment tracks.",
       "2025/11/15_3\r\n[Fix] Fixed an issue where swipe scrolling during pitch editing was not disabled on iOS environments.",
       "2025/11/15_2\r\n[Fix] Fixed a bug where abnormal values could contaminate pitch data, causing pitch lines to fail to render.",
