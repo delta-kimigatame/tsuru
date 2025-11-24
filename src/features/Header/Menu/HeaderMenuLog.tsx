@@ -70,7 +70,6 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
         e instanceof Error ? e.message : String(e)
       }\r\n`;
     }
-    console.log(text);
     const logFile = new File(
       [text + "\r\n" + dumpUst + "\r\n" + dumpResampler + "\r\n" + dumpOto],
       `log_${new Date().toJSON()}.txt`,

@@ -21,7 +21,6 @@ export const ColorThemeMenu: React.FC<ColorThemeMenuProps> = (props) => {
 
   const handleClick = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
     LOG.debug("click", "ColorThemeMenu");
-    console.log(e.currentTarget);
     const value = e.currentTarget
       .querySelector(".MuiAvatar-root")
       ?.textContent?.trim() as ColorTheme;

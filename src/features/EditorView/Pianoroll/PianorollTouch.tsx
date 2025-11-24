@@ -188,7 +188,6 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     coords: { x: number; y: number },
     targetNoteIndex: number
   ) => {
-    console.log(coords);
     props.setLyricAnchor({ x: coords.x, y: coords.y });
     props.setLyricTargetIndex(targetNoteIndex);
   };

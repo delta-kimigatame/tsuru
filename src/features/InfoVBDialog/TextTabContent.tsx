@@ -41,7 +41,6 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
      */
     const fetchLines = async () => {
       LOG.info(`テキストファイル読み込み。${props.textFile}`, "TextTabContent");
-      console.log(props.textFile instanceof File);
       try {
         const buf =
           props.textFile instanceof File

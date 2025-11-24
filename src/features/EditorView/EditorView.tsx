@@ -394,7 +394,6 @@ export const EditorView: React.FC<{
     const backgroundTargetTime = timeOffset - backgroundOffsetMs / 1000;
     // 伴奏の再生開始タイミングをチェック
     if (!backgroundAudioPlaying && mainTime - backgroundTargetTime >= 0) {
-      console.log("伴奏再生開始処理実行");
       const actualBackgroundTime = mainTime + backgroundTargetTime;
 
       if (actualBackgroundTime >= 0) {

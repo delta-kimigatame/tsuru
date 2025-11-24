@@ -21,7 +21,6 @@ export const PitchHorizontalSlider: React.FC<
       n.pbw[0] -= dif;
     } else {
       const dif = newValue - n.pbw[props.targetIndex - 1];
-      console.log("PITCH_DEBUG", n.pbs.time, dif, n.pbw);
       n.pbw[props.targetIndex - 1] = newValue;
       if (props.targetIndex !== n.pbw.length) {
         n.pbw[props.targetIndex] -= dif;
