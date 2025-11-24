@@ -275,6 +275,21 @@ export const translationEn = {
       title: "Batch Change Lyrics",
       lyricsValue: "Lyrics",
     },
+    lengthQuantizeBatchProcess: {
+      title: "Quantize Note Lengths",
+      quantizeValue: "Quantize Length",
+      quantizeValueOptions: [
+        "Sixty-fourth note (30)",
+        "Thirty-second triplet (40)",
+        "Thirty-second note (60)",
+        "Sixteenth triplet (80)",
+        "Sixteenth note (120)",
+        "Eighth triplet (160)",
+        "Eighth note (240)",
+        "Quarter note (480)",
+      ],
+      isDeleteZero: "Delete notes with length 0.",
+    },
     resetEdit: {
       title: "Edit Voice Reset",
       info: "Reset Labels",

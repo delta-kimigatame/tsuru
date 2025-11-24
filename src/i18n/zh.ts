@@ -272,6 +272,21 @@ export const translationZh = {
       title: "批量更改歌词",
       lyricsValue: "歌词",
     },
+    lengthQuantizeBatchProcess: {
+      title: "量化音符长度",
+      quantizeValue: "量化长度",
+      quantizeValueOptions: [
+        "六十四分音符(30)",
+        "三十二分音符三连音(40)",
+        "三十二分音符(60)",
+        "十六分音符三连音(80)",
+        "十六分音符(120)",
+        "八分音符三连音(160)",
+        "八分音符(240)",
+        "四分音符(480)",
+      ],
+      isDeleteZero: "删除长度为0的音符",
+    },
     resetEdit: {
       title: "调声重置",
       info: "标签重置",

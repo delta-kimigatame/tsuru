@@ -275,6 +275,21 @@ export const translationPt = {
         "Não remover",
       ],
     },
+    lengthQuantizeBatchProcess: {
+      title: "Quantizar Comprimento das Notas",
+      quantizeValue: "Valor de Quantização",
+      quantizeValueOptions: [
+        "Semicolcheia dupla (30)",
+        "Semicolcheia tripla (32) (40)",
+        "Semicolcheia (60)",
+        "Fusa tripla (80)",
+        "Fusa (120)",
+        "Semicolcheia tripla (160)",
+        "Semicolcheia (240)",
+        "Semínima (480)",
+      ],
+      isDeleteZero: "Excluir notas com comprimento 0.",
+    },
     lyricBatchProcess: {
       title: "Alterar Letras em Lote",
       lyricsValue: "Letra",

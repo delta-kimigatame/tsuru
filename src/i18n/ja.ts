@@ -277,6 +277,21 @@ export const translationJa = {
       title: "歌詞一括変更",
       lyricsValue: "歌詞",
     },
+    lengthQuantizeBatchProcess: {
+      title: "ノート長を丸める",
+      quantizeValue: "丸める長さ",
+      isDeleteZero: "長さ0になるノートを削除する。",
+      quantizeValueOptions: [
+        "64分音符(30)",
+        "32分音符三連符(40)",
+        "32分音符(60)",
+        "16分三連符(80)",
+        "16分音符(120)",
+        "8分三連符(160)",
+        "8分音符(240)",
+        "4分音符(480)",
+      ],
+    },
     resetEdit: {
       title: "調声リセット",
       info: "ラベルをリセット",
