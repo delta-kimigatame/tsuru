@@ -1,9 +1,18 @@
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
+import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
 import TranslateIcon from "@mui/icons-material/Translate";
-import { ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
+import {
+  Checkbox,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenu } from "../../../hooks/useMenu";
@@ -29,9 +38,13 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     setUst,
     setUstTempo,
     setUstFlags,
+    tone,
+    isMinor,
     vb,
     notes,
     setNotes,
+    setTone,
+    setIsMinor,
     ustFlags,
     ustTempo,
     clearUst,
@@ -156,6 +169,38 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     handleClose();
   };
 
+  /** キー(調)を変更する処理 */
+  const handleToneChange = (event: SelectChangeEvent<number>) => {
+    const newTone = Number(event.target.value);
+    LOG.debug(`調を変更: ${tone} -> ${newTone}`, "FooterProjectMenu");
+    setTone(newTone);
+  };
+
+  /** 長調/短調を切り替える処理 */
+  const handleIsMinorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newIsMinor = event.target.checked;
+    LOG.debug(
+      `長調/短調を変更: ${isMinor} -> ${newIsMinor}`,
+      "FooterProjectMenu"
+    );
+    setIsMinor(newIsMinor);
+  };
+
+  const toneOptions = [
+    { value: 11, label: "B" },
+    { value: 10, label: "A#/Bb" },
+    { value: 9, label: "A" },
+    { value: 8, label: "G#/Ab" },
+    { value: 7, label: "G" },
+    { value: 6, label: "F#/Gb" },
+    { value: 5, label: "F" },
+    { value: 4, label: "E" },
+    { value: 3, label: "D#/Eb" },
+    { value: 2, label: "D" },
+    { value: 1, label: "C#/Db" },
+    { value: 0, label: "C" },
+  ];
+
   return (
     <>
       <input
@@ -189,6 +234,32 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
             <SettingsIcon />
           </ListItemIcon>
           <ListItemText>{t("editor.footer.prjectSetting")}</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemIcon>
+            <MusicNoteIcon />
+          </ListItemIcon>
+          <Select
+            value={tone}
+            onChange={handleToneChange}
+            size="small"
+            sx={{ minWidth: 120 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {toneOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </MenuItem>
+        <MenuItem>
+          <Checkbox
+            checked={isMinor}
+            onChange={handleIsMinorChange}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <ListItemText>{t("editor.footer.isMinor")}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handlePhonemizerMenuOpen} disabled={ust === null}>
           <ListItemIcon>
