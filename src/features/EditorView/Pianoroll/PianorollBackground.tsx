@@ -4,6 +4,7 @@ import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useThemeMode } from "../../../hooks/useThemeMode";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
+import { useMusicProjectStore } from "../../../store/musicProjectStore";
 
 /**
  * ピアノロールの背景部分
@@ -11,6 +12,7 @@ import { useCookieStore } from "../../../store/cookieStore";
 export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
   totalLength,
 }) => {
+  const { tone, isMinor } = useMusicProjectStore();
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
   const mode = useThemeMode();
 
@@ -49,7 +51,9 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
             width="100%"
             height={PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}
             fill={
-              PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(i % 12)
+              PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(
+                (i + tone + (isMinor ? 3 : 0)) % 12
+              )
                 ? COLOR_PALLET[colorTheme][mode]["blackKey"]
                 : COLOR_PALLET[colorTheme][mode]["whiteKey"]
             }
@@ -65,7 +69,7 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
             y2={i * PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}
             stroke={COLOR_PALLET[colorTheme][mode]["horizontalSeparator"]}
             strokeWidth={
-              i % 12 === 0
+              (i + tone) % 12 === 0
                 ? PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE
                 : PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH
             }

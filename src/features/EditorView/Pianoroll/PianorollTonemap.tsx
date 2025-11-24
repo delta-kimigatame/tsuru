@@ -3,6 +3,7 @@ import { COLOR_PALLET } from "../../../config/pallet";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useThemeMode } from "../../../hooks/useThemeMode";
 import { useCookieStore } from "../../../store/cookieStore";
+import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { noteNumToTone } from "../../../utils/Notenum";
 
 /**
@@ -10,6 +11,7 @@ import { noteNumToTone } from "../../../utils/Notenum";
  */
 export const PianorollTonemap: React.FC = () => {
   const { colorTheme, verticalZoom, horizontalZoom } = useCookieStore();
+  const { tone, isMinor } = useMusicProjectStore();
   const mode = useThemeMode();
 
   return (
@@ -33,7 +35,9 @@ export const PianorollTonemap: React.FC = () => {
             width="100%"
             height={PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}
             fill={
-              PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(i % 12)
+              PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(
+                (i + tone + (isMinor ? 3 : 0)) % 12
+              )
                 ? COLOR_PALLET[colorTheme][mode]["tonemapBlackKey"]
                 : COLOR_PALLET[colorTheme][mode]["tonemapWhiteKey"]
             }
@@ -60,7 +64,7 @@ export const PianorollTonemap: React.FC = () => {
             y2={i * PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom}
             stroke={COLOR_PALLET[colorTheme][mode]["horizontalSeparator"]}
             strokeWidth={
-              i % 12 === 0
+              (i + tone) % 12 === 0
                 ? PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE
                 : PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH
             }

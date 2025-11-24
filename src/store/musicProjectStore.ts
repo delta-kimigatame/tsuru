@@ -44,6 +44,12 @@ interface MusicProjectStore {
    */
   phonemizer: BasePhonemizer;
 
+  /** 調。Cを0C#を1...Bを11とする整数。 */
+  tone: number;
+
+  /** 短調かを表すbool */
+  isMinor: boolean;
+
   /**
    * 楽譜を設定する
    * @param ust Ust のインスタンス
@@ -97,6 +103,10 @@ interface MusicProjectStore {
 
   setPhonemizer: (newPhonemizer: BasePhonemizer) => void;
 
+  setTone: (tone: number) => void;
+
+  setIsMinor: (isMinor: boolean) => void;
+
   clearUst: () => void;
 }
 
@@ -113,6 +123,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       notes: [],
       // phonemizer: new DefaultPhonemizer(),
       phonemizer: new JPCVorVCVPhonemizer(),
+      tone: 0,
+      isMinor: false,
       setUst: (ust) => set({ ust }),
       setVb: (vb) => set({ vb }),
 
@@ -224,6 +236,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
           state.ust.notes = updatedNotes;
           return { phonemizer: newPhonemizer, notes: updatedNotes };
         }),
+      setTone: (tone) => set({ tone }),
+      setIsMinor: (isMinor) => set({ isMinor }),
       clearUst: () =>
         set((state) => {
           return { notes: [], ustTempo: 120, ustFlags: "", ust: null };
