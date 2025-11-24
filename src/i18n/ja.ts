@@ -255,6 +255,22 @@ export const translationJa = {
       title: "歌詞の末尾に文字を追加",
       suffixValue: "追加する文字",
     },
+    removeSuffixBatchProcess: {
+      title: "歌詞の前後の文字を削除",
+      suffixRemoveMode: "歌詞の末尾",
+      suffixRemoveModeOptions: [
+        "ひらがな以降をすべて削除",
+        "アンダーバー以降を削除",
+        "半角数字のみ削除",
+        "削除しない",
+      ],
+      prefixRemoveMode: "歌詞の先頭",
+      prefixRemoveModeOptions: [
+        "ひらがなより前をすべて削除",
+        "半角スペース以前を削除",
+        "削除しない",
+      ],
+    },
     lyricBatchProcess: {
       title: "歌詞一括変更",
       lyricsValue: "歌詞",

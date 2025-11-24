@@ -250,6 +250,22 @@ export const translationZh = {
       title: "在歌词末尾添加字符",
       suffixValue: "要添加的字符",
     },
+    removeSuffixBatchProcess: {
+      title: "删除歌词前后的字符",
+      suffixRemoveMode: "歌词末尾",
+      suffixRemoveModeOptions: [
+        "删除平假名之后的所有字符",
+        "删除下划线之后的字符",
+        "仅删除半角数字",
+        "不删除",
+      ],
+      prefixRemoveMode: "歌词开头",
+      prefixRemoveModeOptions: [
+        "删除平假名之前的所有字符",
+        "删除半角空格之前的字符",
+        "不删除",
+      ],
+    },
     lyricBatchProcess: {
       title: "批量更改歌词",
       lyricsValue: "歌词",

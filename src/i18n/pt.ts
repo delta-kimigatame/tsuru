@@ -257,6 +257,22 @@ export const translationPt = {
       title: "Adicionar caracteres ao final da letra",
       suffixValue: "Caracteres a adicionar",
     },
+    removeSuffixBatchProcess: {
+      title: "Remover caracteres do início/fim da letra",
+      suffixRemoveMode: "Final da letra",
+      suffixRemoveModeOptions: [
+        "Remover tudo após hiragana",
+        "Remover após sublinhado",
+        "Remover apenas números",
+        "Não remover",
+      ],
+      prefixRemoveMode: "Início da letra",
+      prefixRemoveModeOptions: [
+        "Remover tudo antes de hiragana",
+        "Remover antes do espaço",
+        "Não remover",
+      ],
+    },
     lyricBatchProcess: {
       title: "Alterar Letras em Lote",
       lyricsValue: "Letra",

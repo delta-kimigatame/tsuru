@@ -253,6 +253,22 @@ export const translationEn = {
       title: "Add Suffix to Lyrics",
       suffixValue: "Suffix to Add",
     },
+    removeSuffixBatchProcess: {
+      title: "Remove Prefix/Suffix from Lyrics",
+      suffixRemoveMode: "End of Lyrics",
+      suffixRemoveModeOptions: [
+        "Remove all after hiragana",
+        "Remove after underscore",
+        "Remove numbers only",
+        "Do not remove",
+      ],
+      prefixRemoveMode: "Start of Lyrics",
+      prefixRemoveModeOptions: [
+        "Remove all before hiragana",
+        "Remove before space",
+        "Do not remove",
+      ],
+    },
     lyricBatchProcess: {
       title: "Batch Change Lyrics",
       lyricsValue: "Lyrics",
