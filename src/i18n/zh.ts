@@ -246,6 +246,10 @@ export const translationZh = {
     octaveUp: "升高 1 个八度",
     octaveDown: "降低 1 个八度",
     envelopeNormalize: "包络线归一化",
+    addSuffixBatchProcess: {
+      title: "在歌词末尾添加字符",
+      suffixValue: "要添加的字符",
+    },
     lyricBatchProcess: {
       title: "批量更改歌词",
       lyricsValue: "歌词",

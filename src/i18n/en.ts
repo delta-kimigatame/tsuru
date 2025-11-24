@@ -249,6 +249,10 @@ export const translationEn = {
     octaveUp: "Raise by 1 Octave",
     octaveDown: "Lower by 1 Octave",
     envelopeNormalize: "Envelope Normalization",
+    addSuffixBatchProcess: {
+      title: "Add Suffix to Lyrics",
+      suffixValue: "Suffix to Add",
+    },
     lyricBatchProcess: {
       title: "Batch Change Lyrics",
       lyricsValue: "Lyrics",
