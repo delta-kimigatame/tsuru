@@ -36,6 +36,7 @@ export const translationJa = {
     logAttention:
       "ログは自動では送信されません。必要に応じて開発者に送付してください。",
   },
+  notemenu: { alias: "エイリアス選択" },
   top: {
     catchphrase: "さあ!UTAおう!",
     descriptions: [
@@ -270,7 +271,7 @@ export const translationJa = {
       lyric: {
         title: "歌詞",
         lyric: "歌詞を変更する",
-        mode: "aa",
+        mode: "変換モード",
         modeOptions: ["単独音", "連続音"],
         replace: "「を」「ぢ」「づ」を「お」「じ」「ず」に置き換える",
         useHeadingCV: "単独音モードの時、先頭のノートを[- あ]の形式にする",

@@ -37,6 +37,7 @@ export const translationEn = {
     logAttention:
       "Logs are not sent automatically, so please send them to the developer if necessary.",
   },
+  notemenu: { alias: "Alias Selection" },
   top: {
     catchphrase: "Let's UTA! Let's go!",
     descriptions: [
@@ -268,7 +269,7 @@ export const translationEn = {
       lyric: {
         title: "Lyrics",
         lyric: "Change Lyrics",
-        mode: "aa",
+        mode: "Conversion Mode",
         modeOptions: ["CV", "VCV"],
         replace:
           "Replace 'を', 'ぢ', and 'づ' with 'お', 'じ', and 'ず' respectively.",

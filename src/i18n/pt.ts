@@ -37,6 +37,7 @@ export const translationPt = {
     logAttention:
       "Os logs não são enviados automaticamente. Envie-os ao desenvolvedor se necessário.",
   },
+  notemenu: { alias: "Seleção de Alias" },
   top: {
     catchphrase: "Vamos UTA! Vamos cantar!",
     descriptions: [
@@ -272,7 +273,7 @@ export const translationPt = {
       lyric: {
         title: "Letra",
         lyric: "Alterar letra",
-        mode: "aa",
+        mode: "Modo de conversão",
         modeOptions: ["CV", "VCV"],
         replace: 'Substituir "を", "ぢ", "づ" por "お", "じ", "ず"',
         useHeadingCV: "No modo CV, usar o formato [- a] para a primeira nota",
