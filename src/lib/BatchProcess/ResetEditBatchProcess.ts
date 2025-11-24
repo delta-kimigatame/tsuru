@@ -26,7 +26,7 @@ export interface ResetEditBatchProcessOptions {
  */
 export class ResetEditBatchProcess extends BaseBatchProcess<ResetEditBatchProcessOptions> {
   title = "batchprocess.resetEdit.title";
-  summary = "調声リセット";
+  summary = "total:調声リセット";
   public override process(
     notes: Note[],
     options: ResetEditBatchProcessOptions

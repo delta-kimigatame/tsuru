@@ -14,7 +14,7 @@ export interface RemoveSuffixBatchProcessOptions {
 
 export class RemoveSuffixBatchProcess extends BaseBatchProcess<RemoveSuffixBatchProcessOptions> {
   title = "batchprocess.removeSuffixBatchProcess.title";
-  summary = "歌詞末尾のサフィックスを一括削除";
+  summary = "lyric:歌詞末尾のサフィックスを一括削除";
   public override process(
     notes: Note[],
     options: RemoveSuffixBatchProcessOptions

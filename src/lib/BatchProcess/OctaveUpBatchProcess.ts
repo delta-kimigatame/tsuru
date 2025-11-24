@@ -6,7 +6,7 @@ import { Note } from "../Note";
  */
 export class OctaveUpBatchProcess extends BaseBatchProcess<void> {
   title = "batchprocess.octaveUp";
-  summary = "1オクターブ上げる";
+  summary = "notenum:1オクターブ上げる";
   protected _process(notes: Note[]): Note[] {
     const newNotes = notes.map((n) => n.deepCopy());
     newNotes.forEach((n) => (n.notenum = n.notenum + 12));

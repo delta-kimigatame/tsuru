@@ -99,7 +99,7 @@ export interface PreprocessingBatchProcessOptions {
 
 export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBatchProcessOptions> {
   title = "batchprocess.preprocessing.title";
-  summary = "おまかせ下処理";
+  summary = "total:おまかせ下処理";
   public override process(
     notes: Note[],
     options: PreprocessingBatchProcessOptions

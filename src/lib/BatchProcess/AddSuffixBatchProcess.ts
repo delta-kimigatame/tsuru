@@ -12,7 +12,7 @@ export interface AddSuffixBatchProcessOptions {
 
 export class AddSuffixBatchProcess extends BaseBatchProcess<AddSuffixBatchProcessOptions> {
   title = "batchprocess.addSuffixBatchProcess.title";
-  summary = "歌詞末尾にサフィックスを一括追加";
+  summary = "lyric:歌詞末尾にサフィックスを一括追加";
   public override process(
     notes: Note[],
     options: AddSuffixBatchProcessOptions

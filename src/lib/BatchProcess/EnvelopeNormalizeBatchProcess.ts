@@ -11,7 +11,7 @@ import { Note } from "../Note";
  */
 export class EnvelopeNormalizeBatchProcess extends BaseBatchProcess<void> {
   title = "batchprocess.envelopeNormalize";
-  summary = "エンベロープ正規化";
+  summary = "envelope:エンベロープ正規化";
   public override process(notes: Note[]): Note[] {
     return super.process(notes);
   }

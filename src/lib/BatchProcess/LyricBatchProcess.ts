@@ -11,7 +11,7 @@ export interface LyricBatchProcessOptions {
 }
 export class LyricBatchProcess extends BaseBatchProcess<LyricBatchProcessOptions> {
   title = "batchprocess.lyricBatchProcess.title";
-  summary = "歌詞一括変更";
+  summary = "lyric:歌詞一括変更";
 
   public override process(
     notes: Note[],

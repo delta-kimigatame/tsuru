@@ -7,7 +7,7 @@ const modules = import.meta.glob("../lib/BatchProcess/*.ts");
 export async function loadBatchProcessClasses(): Promise<
   Array<{ title: string; cls: new () => BaseBatchProcess }>
 > {
-  const classes: Array<{ title: string; cls: any }> = [];
+  const classes: Array<{ title: string; cls: any; summary: string }> = [];
   for (const path in modules) {
     const module = await modules[path]();
     // ここではモジュールが複数のエクスポートを持つ可能性を考慮
@@ -21,9 +21,16 @@ export async function loadBatchProcessClasses(): Promise<
         // インスタンス生成または静的メソッドで title を取得
         // ここでは一時的にインスタンス生成する例です
         const instance = new exported();
-        classes.push({ title: instance.title, cls: exported });
+        classes.push({
+          title: instance.title,
+          cls: exported,
+          summary: instance.summary,
+        });
       }
     }
   }
-  return classes;
+  // summaryでソート
+  classes.sort((a, b) => a.summary.localeCompare(b.summary));
+  // summaryプロパティを除外して返す
+  return classes.map(({ title, cls }) => ({ title, cls }));
 }
