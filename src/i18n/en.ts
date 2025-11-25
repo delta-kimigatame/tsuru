@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/25\r\n[Added] Added note length quantization feature to batch processing.",
       '2025/11/24\r\n[Added] Added scale specification feature in the project menu.\r\n[Added] Piano roll colors now change according to the scale.\r\n[Added] Added "Add characters to the end of lyrics" and "Remove characters from the beginning/end of lyrics" to batch processing\r\n[Fix] Fixed a bug where undo/redo could not be used after changing lyrics via double-tap.\r\n[Fix] Added missing language resources',
       "2025/11/23_2\r\n[Fix] Removed pinch-in and pinch-out functionality due to significant related issues",
       "2025/11/23\r\n[Added] Added pinch-in and pinch-out zoom functionality.\r\n[Fix] Resolved issues related to pitch portamento.",
