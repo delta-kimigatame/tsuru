@@ -398,14 +398,17 @@ export class Note {
    * mode2ピッチの間隔
    */
   get pbw(): Array<number> {
-    return this._pbw;
+    return this._pbw.map((v) => (isNaN(v) ? 0 : v));
   }
 
   /**
    * mode2ピッチの間隔。,で繋げた文字列
    */
   set pbw(value: string) {
-    this._pbw = value.split(",").map((v) => Math.max(parseFloat(v), 0));
+    this._pbw = value.split(",").map((v) => {
+      const parsed = parseFloat(v);
+      return Math.max(isNaN(parsed) ? 0 : parsed, 0);
+    });
   }
 
   /**
