@@ -332,9 +332,8 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
         // 指し示している音高を小数点第一位まで求める
         const targetPitch =
           107 -
-          (svgPoint.y - PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom / 2) /
-            (PIANOROLL_CONFIG.KEY_HEIGHT / verticalZoom);
-
+          (svgPoint.y - (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom) / 2) /
+            (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom);
         // note.notenumを減じ、10倍した値をpbyの該当インデックスに設定
         const pitchBendValue = Math.round(
           (targetPitch - selectedNote.notenum) * 10
