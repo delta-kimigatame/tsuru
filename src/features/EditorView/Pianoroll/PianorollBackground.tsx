@@ -23,13 +23,17 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
    */
   const beatsCount = React.useMemo(() => {
     LOG.debug("totalLengthの更新検知", "PianorollNotes");
-    return (Math.ceil(totalLength / 480 / 4) + 2) * 4;
+    return (
+      (Math.ceil(totalLength / 480 / 4) +
+        PIANOROLL_CONFIG.EXTRA_MEASURE_COUNT) *
+      4
+    );
   }, [totalLength]);
 
   return (
     <svg
       width={
-        (totalLength + 480 * 8) *
+        (totalLength + 480 * PIANOROLL_CONFIG.EXTRA_BEATS_COUNT) *
         PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
         horizontalZoom
       }
@@ -61,7 +65,7 @@ export const PianorollBackground: React.FC<PianorollBackgroundProps> = ({
           <line
             x1={0}
             x2={
-              (totalLength + 480 * 8) *
+              (totalLength + 480 * PIANOROLL_CONFIG.EXTRA_BEATS_COUNT) *
               PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
               horizontalZoom
             }

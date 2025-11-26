@@ -243,7 +243,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
       >
         <svg
           width={
-            (totalLength + 480 * 8) *
+            (totalLength + 480 * PIANOROLL_CONFIG.EXTRA_BEATS_COUNT) *
             PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
             horizontalZoom
           }

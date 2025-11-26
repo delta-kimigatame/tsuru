@@ -42,4 +42,8 @@ export const PIANOROLL_CONFIG = {
   PREVIEW_TONE_DURATION: 0.2,
   // プレビュー音の音量(0.0～1.0)
   PREVIEW_TONE_VOLUME: 0.3,
+  // 末尾に追加する小節数
+  EXTRA_MEASURE_COUNT: 8,
+  // 末尾に追加する拍数
+  EXTRA_BEATS_COUNT: 8 * 4,
 };
