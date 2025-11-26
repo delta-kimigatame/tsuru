@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/11/27\r\n[Correção] Corrigido um problema onde a edição de pitch não funcionava corretamente ao ampliar o piano roll verticalmente.\r\n[Correção] Corrigido um bug onde adicionar portamento de pitch após uma pausa gerava valores inválidos.\r\n[Correção] Revisado o intervalo de exibição do piano roll.",
       "2025/11/25\r\n[Adição] Função de quantização de duração de nota adicionada ao processamento em lote.",
       '2025/11/24\r\n[Adição] Adicionada a capacidade de especificar a escala no menu do projeto.\r\n[Adição] As cores do piano roll agora mudam de acordo com a escala.\r\n[Adição] Adicionado "Adicionar caracteres ao final das letras" e "Remover caracteres do início/fim das letras" ao processamento em lote\r\n[Correção] Corrigido um bug onde desfazer/refazer não podia ser usado após alterar letras via toque duplo.\r\n[Correção] Adicionados recursos de idioma faltantes',
       "2025/11/23_2\r\n[Correção] Removida a funcionalidade de pinça devido a problemas significativos relacionados",
