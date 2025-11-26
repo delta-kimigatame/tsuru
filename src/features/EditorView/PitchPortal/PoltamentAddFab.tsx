@@ -79,7 +79,7 @@ const AddPoltamentCore = (targetIndex: number, n: Note): Note => {
     if (n.pby === undefined) {
       n.setPby([newPby]);
     } else {
-      n.pby.unshift(newPby);
+      n.setPby([newPby].concat(n.pby));
     }
     n.pbm.unshift("");
   } else if (pbwIndex === n.pbw.length - 1) {
@@ -87,7 +87,7 @@ const AddPoltamentCore = (targetIndex: number, n: Note): Note => {
     if (n.pby === undefined) {
       n.setPby([0]);
     } else {
-      n.pby.push(0);
+      n.setPby(n.pby.concat([0]));
     }
     if (n.pbm === undefined) {
       n.setPbm(Array(n.pbw.length).fill(""));
