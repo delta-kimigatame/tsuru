@@ -425,7 +425,7 @@ export const EditorView: React.FC<{
       const currentBackgroundTime = backgroundAudioRef.current.currentTime;
 
       // 誤差が大きい場合のみ同期調整
-      if (Math.abs(currentBackgroundTime - expectedBackgroundTime) > 0.2) {
+      if (Math.abs(currentBackgroundTime - expectedBackgroundTime) > 0.01) {
         if (
           expectedBackgroundTime >= 0 &&
           expectedBackgroundTime <
