@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/27_2\r\n[Fix] Fixed a bug where ust files could not be loaded if there was even one note without pitch set.",
       "2025/11/27\r\n[Fix] Fixed an issue where pitch editing did not work correctly when the piano roll was vertically zoomed.\r\n[Fix] Fixed a bug where adding pitch portamento after a rest could result in invalid values.\r\n[Fix] Revised the display range of the piano roll.",
       "2025/11/25\r\n[Added] Added note length quantization feature to batch processing.",
       '2025/11/24\r\n[Added] Added scale specification feature in the project menu.\r\n[Added] Piano roll colors now change according to the scale.\r\n[Added] Added "Add characters to the end of lyrics" and "Remove characters from the beginning/end of lyrics" to batch processing\r\n[Fix] Fixed a bug where undo/redo could not be used after changing lyrics via double-tap.\r\n[Fix] Added missing language resources',

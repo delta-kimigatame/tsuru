@@ -398,7 +398,7 @@ export class Note {
    * mode2ピッチの間隔
    */
   get pbw(): Array<number> {
-    return this._pbw.map((v) => (isNaN(v) ? 0 : v));
+    return this._pbw;
   }
 
   /**
@@ -415,7 +415,7 @@ export class Note {
    * mode2ピッチの間隔
    */
   setPbw(value: Array<number>): void {
-    this._pbw = value.map((v) => Math.max(v, 0));
+    this._pbw = value.map((v) => Math.max(isNaN(v) ? 0 : v, 0));
   }
 
   /**
