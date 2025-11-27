@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/11/28\r\n[Adição] Adicionado botão de limpar cache ao menu de pressionamento longo da nota.\r\n[Adição] Adicionado botão de alternância de retrato do personagem ao menu do projeto.\r\n[Adição] Agora, ao tocar duas vezes em uma área vazia, a seleção de notas é cancelada.\r\n[Correção] Correção de bug no processamento em lote: Processamento automático.\r\n[Correção] Revisado o processo de reprodução sincronizada do acompanhamento.",
       "2025/11/27_2\r\n[Correção] Corrigido um erro onde o arquivo ust não podia ser carregado se houvesse uma nota sem pitch definido.",
       "2025/11/27\r\n[Correção] Corrigido um problema onde a edição de pitch não funcionava corretamente ao ampliar o piano roll verticalmente.\r\n[Correção] Corrigido um bug onde adicionar portamento de pitch após uma pausa gerava valores inválidos.\r\n[Correção] Revisado o intervalo de exibição do piano roll.",
       "2025/11/25\r\n[Adição] Função de quantização de duração de nota adicionada ao processamento em lote.",
