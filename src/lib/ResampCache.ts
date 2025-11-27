@@ -90,6 +90,13 @@ class ResampCache {
     this.cache = {};
   };
 
+  /** インデックス配列を渡して、該当するインデックスのキャッシュをクリアする */
+  clearByIndices = (indices: number[]) => {
+    for (const index of indices) {
+      delete this.cache[index];
+    }
+  };
+
   /**
    * indexを指定してキャッシュのデータを返す
    * @param index noteのインデックス

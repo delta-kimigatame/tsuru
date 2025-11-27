@@ -16,6 +16,7 @@ import { DividerButton } from "./DividerButton";
 import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
 import { NotePasteGoButton } from "./NotePasteGoButton";
+import { NotesCacheClearButton } from "./NotesCacheClearButton";
 import { NotesCopyButton } from "./NotesCopyButton";
 import { NotesDeleteButton } from "./NotesDeleteButton";
 import { NotesDownButton } from "./NotesDownButton";
@@ -150,6 +151,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
               handleMenuClose={handleMenuClose}
             />
             <NotesDeleteButton
+              selectedNotesIndex={props.selectedNotesIndex}
+              setSelectedNotesIndex={props.setSelectedNotesIndex}
+              handleMenuClose={handleMenuClose}
+            />
+            <NotesCacheClearButton
               selectedNotesIndex={props.selectedNotesIndex}
               setSelectedNotesIndex={props.setSelectedNotesIndex}
               handleMenuClose={handleMenuClose}
