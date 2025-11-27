@@ -197,6 +197,7 @@ export const translationZh = {
       estimateBpm: "BPM检测 (实验性)",
       audioOffsetEstimate: "自动调整时间偏移",
       isMinor: "小调",
+      isShowPortrait: "显示角色立绘",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",

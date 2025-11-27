@@ -40,6 +40,8 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     setUstFlags,
     tone,
     isMinor,
+    isShowPortrait,
+    setIsShowPortrait,
     vb,
     notes,
     setNotes,
@@ -186,6 +188,18 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     setIsMinor(newIsMinor);
   };
 
+  /** 立ち絵表示の切り替え処理 */
+  const handleIsShowPortraitChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newIsShowPortrait = event.target.checked;
+    LOG.debug(
+      `立ち絵表示の切り替え: ${isShowPortrait} -> ${newIsShowPortrait}`,
+      "FooterProjectMenu"
+    );
+    setIsShowPortrait(newIsShowPortrait);
+  };
+
   const toneOptions = [
     { value: 11, label: "B" },
     { value: 10, label: "A#/Bb" },
@@ -260,6 +274,14 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
             onClick={(e) => e.stopPropagation()}
           />
           <ListItemText>{t("editor.footer.isMinor")}</ListItemText>
+        </MenuItem>
+        <MenuItem disabled={vb === null || vb.portrait === undefined}>
+          <Checkbox
+            checked={isShowPortrait && vb !== null && vb.portrait !== undefined}
+            onChange={handleIsShowPortraitChange}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <ListItemText>{t("editor.footer.isShowPortrait")}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handlePhonemizerMenuOpen} disabled={ust === null}>
           <ListItemIcon>

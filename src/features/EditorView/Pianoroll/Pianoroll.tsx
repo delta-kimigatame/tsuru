@@ -27,7 +27,7 @@ import { PianorollWavForm } from "./PianorollWavForm";
 
 export const Pianoroll: React.FC<PianorollProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes, vb } = useMusicProjectStore();
+  const { notes, vb, isShowPortrait } = useMusicProjectStore();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const c4Center = notenumToPoint(60, verticalZoom);
   const portraitUrl: string = React.useMemo(() => {
@@ -325,7 +325,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
           backgroundWavOffsetMs={props.backgroundWavOffsetMs}
         />
       </Box>
-      {portraitUrl !== undefined && (
+      {portraitUrl !== undefined && isShowPortrait && (
         <img
           src={portraitUrl}
           style={{

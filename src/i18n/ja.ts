@@ -201,6 +201,7 @@ export const translationJa = {
       estimateBpm: "BPM自動検出(β)",
       audioOffsetEstimate: "タイミング自動調整",
       isMinor: "マイナー(短調)",
+      isShowPortrait: "立ち絵表示",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

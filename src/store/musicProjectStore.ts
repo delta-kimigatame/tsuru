@@ -50,6 +50,9 @@ interface MusicProjectStore {
   /** 短調かを表すbool */
   isMinor: boolean;
 
+  /** 立ち絵表示有無 */
+  isShowPortrait: boolean;
+
   /**
    * 楽譜を設定する
    * @param ust Ust のインスタンス
@@ -107,6 +110,8 @@ interface MusicProjectStore {
 
   setIsMinor: (isMinor: boolean) => void;
 
+  setIsShowPortrait: (isShow: boolean) => void;
+
   clearUst: () => void;
 }
 
@@ -125,6 +130,7 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       phonemizer: new JPCVorVCVPhonemizer(),
       tone: 0,
       isMinor: false,
+      isShowPortrait: true,
       setUst: (ust) => set({ ust }),
       setVb: (vb) => set({ vb }),
 
@@ -238,6 +244,7 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
         }),
       setTone: (tone) => set({ tone }),
       setIsMinor: (isMinor) => set({ isMinor }),
+      setIsShowPortrait: (isShow) => set({ isShowPortrait: isShow }),
       clearUst: () =>
         set((state) => {
           return { notes: [], ustTempo: 120, ustFlags: "", ust: null };

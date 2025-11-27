@@ -199,6 +199,7 @@ export const translationEn = {
       estimateBpm: "BPM Detection (experimental)",
       audioOffsetEstimate: "Auto-Adjust Timing",
       isMinor: "Minor",
+      isShowPortrait: "Show character portrait",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

@@ -203,6 +203,7 @@ export const translationPt = {
       estimateBpm: "Detecção de BPM (experimental)",
       audioOffsetEstimate: "Ajustar tempo automaticamente",
       isMinor: "Menor",
+      isShowPortrait: "Exibir retrato do personagem",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:
