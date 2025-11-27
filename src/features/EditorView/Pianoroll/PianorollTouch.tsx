@@ -82,16 +82,23 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       verticalZoom
     );
     const tapTime = Date.now();
+    /** 同じノートを2回タップしたときの判定 */
     const isDoubleTap =
       targetNoteIndex !== undefined &&
       targetNoteIndex === lastTapNoteIndex &&
+      tapTime - lastTapTime <= EDITOR_CONFIG.DOUBLE_TAP_MS;
+    /** ノート無しのダブルタップ判定 */
+    const isDoubleTapNone =
+      targetNoteIndex === undefined &&
+      lastTapNoteIndex === undefined &&
       tapTime - lastTapTime <= EDITOR_CONFIG.DOUBLE_TAP_MS;
     setLastTapTime(tapTime);
     setLastTapNoteIndex(targetNoteIndex);
     if (
       targetNoteIndex === undefined &&
       targetPoltamentIndex === undefined &&
-      props.selectMode !== "add"
+      props.selectMode !== "add" &&
+      !isDoubleTapNone
     ) {
       return;
     }
@@ -99,7 +106,12 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       `notes[${targetNoteIndex}] click,mode:${props.selectMode}`,
       "PianorollToutch"
     );
-    if (props.selectMode === "pitch") {
+    if (isDoubleTapNone) {
+      props.setSelectedNotesIndex([]);
+      snackBarStore.setSeverity("info");
+      snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
+      snackBarStore.setOpen(true);
+    } else if (props.selectMode === "pitch") {
       // ポルタメントは既にポインターダウン時に処理済み、ノートのみ処理
       if (targetPoltamentIndex === undefined && targetNoteIndex !== undefined) {
         handlePitchModeTap(
