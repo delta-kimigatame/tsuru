@@ -226,7 +226,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
         n.lyric = `* ${match[2]}`;
       } else {
         n.lyric = `${match[2]}`;
-        if (options.vowelConnect === "param") {
+        if (options.vowelConnect === "param" && CVVowels.test(match[2])) {
           /**
            * パラメータ母音結合
            * 母音結合用のaliasが設定されていない場合にタイミング関係パラメータを用いて疑似的な母音結合を行う。
