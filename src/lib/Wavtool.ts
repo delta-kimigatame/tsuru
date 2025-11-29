@@ -158,4 +158,50 @@ export class Wavtool {
     );
     return wav.Output();
   }
+
+  /** 伴奏データをmixする */
+  mixBackgroundAudio(
+    backgroundWav: Wave,
+    offsetMs: number,
+    volume: number
+  ): void {
+    const wp = new WaveProcessing();
+
+    /** 伴奏wavの開始フレーム */
+    const startFrame = Math.floor(
+      (offsetMs / 1000) * renderingConfig.frameRate
+    );
+    /** 伴奏wavの終了フレーム。開始フレーム+wavtoolが保持しているフレーム数 */
+    const endFrame = startFrame + this._data.length;
+
+    /** 伴奏データのLchの正規化。必要範囲のみ */
+    const backgroundData = wp.LogicalNormalize(
+      backgroundWav.data.slice(
+        startFrame,
+        endFrame > backgroundWav.data.length
+          ? backgroundWav.data.length
+          : endFrame
+      ),
+      backgroundWav.bitDepth
+    );
+    /** 伴奏データのRchがある場合、正規化しLchと平均を取る形でモノラルにする */
+    if (backgroundWav.rData) {
+      const rData = wp.LogicalNormalize(
+        backgroundWav.rData.slice(
+          startFrame,
+          endFrame > backgroundWav.rData.length
+            ? backgroundWav.rData.length
+            : endFrame
+        ),
+        backgroundWav.bitDepth
+      );
+      backgroundData.map((v, i) => (backgroundData[i] = (v + rData[i]) / 2));
+    }
+
+    /** 音量を考慮しながらmixダウンする。 */
+    this._data = this._data.map((v, i) => {
+      const bgValue = backgroundData[i] ? backgroundData[i] * volume : 0;
+      return v + bgValue;
+    });
+  }
 }

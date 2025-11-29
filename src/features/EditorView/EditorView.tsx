@@ -88,7 +88,6 @@ export const EditorView: React.FC<{
     React.useState<boolean>(false);
   const [backgroundVolume, setBackgroundVolume] = React.useState<number>(0.5); // 0.0 - 1.0
   const [backgroundMuted, setBackgroundMuted] = React.useState<boolean>(false);
-  const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -206,67 +205,14 @@ export const EditorView: React.FC<{
     // 選択されたノートの最初の時間（ミリ秒）を秒に変換
     return (notesLeftMs[minIndex] - notes[minIndex].atPreutter) / 1000;
   }, [selectNotesIndex, notesLeftMs]);
-  /**
-   * 両方のaudioを同期再生する
-   */
-  const playBothAudio = async () => {
-    try {
-      const promises: Promise<void>[] = [];
-      const timeOffset = getAudioTimeOffset();
-      const backgroundStartTime = timeOffset - backgroundOffsetMs / 1000;
-
-      // 楽譜音声の再生
-      if (audioRef.current && wavUrl) {
-        audioRef.current.currentTime = 0; // 楽譜音声は常に0から開始
-        promises.push(audioRef.current.play());
-      }
-
-      // 伴奏音声の再生（閾値チェック付き）
-      if (backgroundAudioRef.current && backgroundWavUrl) {
-        if (backgroundStartTime >= 0) {
-          // 伴奏の長さチェック
-          const backgroundDuration =
-            backgroundAudioRef.current.duration || Infinity;
-
-          if (backgroundStartTime < backgroundDuration) {
-            backgroundAudioRef.current.currentTime = backgroundStartTime;
-            promises.push(backgroundAudioRef.current.play());
-            setBackgroundAudioPlaying(true);
-            LOG.info(
-              `伴奏再生開始: ${backgroundStartTime}秒から`,
-              "EditorView"
-            );
-          } else {
-            LOG.warn(
-              `伴奏開始時間が音声長を超えています。開始時間: ${backgroundStartTime}秒, 音声長: ${backgroundDuration}秒`,
-              "EditorView"
-            );
-          }
-        } else {
-          // 負の値の場合は後で再生開始
-          setBackgroundAudioPlaying(false);
-          LOG.info(
-            `伴奏は${Math.abs(backgroundStartTime)}秒後に再生開始予定`,
-            "EditorView"
-          );
-        }
-      }
-
-      await Promise.all(promises);
-      LOG.info(
-        `同期再生開始。楽譜オフセット: 0秒, 伴奏オフセット: ${Math.max(
-          0,
-          backgroundStartTime
-        )}秒`,
-        "EditorView"
-      );
-    } catch (error) {
-      LOG.error(`同期再生に失敗: ${error}`, "EditorView");
-    }
-  };
 
   /** playとwavdownloadの共通処理 */
-  const synthesis = async () => {
+  const synthesis = async (backgroundAudio?: {
+    wav: Wave;
+    offsetMs: number;
+    volume: number;
+    mute: boolean;
+  }) => {
     if (!synthesisWorker.isReady) {
       LOG.error("エンジンが起動していません", "EditorView");
       synthesisWorker.reload();
@@ -287,7 +233,8 @@ export const EditorView: React.FC<{
       const synthesisStartTime = Date.now();
       const wavBuf = await synthesisWorker.synthesis(
         selectNotesIndex,
-        setSynthesisCount
+        setSynthesisCount,
+        backgroundAudio
       );
       LOG.gtag("synthesis", {
         synthesisName: vb.name,
@@ -321,7 +268,14 @@ export const EditorView: React.FC<{
       return;
     }
     setPlayReady(false);
-    const dataUrl = wavUrl ?? (await synthesis());
+    /**
+     * wavUrlは伴奏入りオーディオだが、ダウンロードしたいのは伴奏無しのため、
+     * backgroundAudioWavが存在する場合は、必ず再合成を行う。
+     * backgroundAudioWavが存在しない場合は、キャッシュされたwavUrlを利用するが、wavUrlが未生成の場合は再合成を行う。
+     */
+    const dataUrl = !backgroundAudioWav
+      ? wavUrl ?? (await synthesis())
+      : await synthesis();
     setSynthesisProgress(false);
     if (dataUrl !== undefined) {
       LOG.gtag("download", { downloadName: vb.name });
@@ -348,10 +302,20 @@ export const EditorView: React.FC<{
     if (wavUrl !== undefined) {
       LOG.info("再生開始", "EditorView");
       setPlaying(true);
-      playBothAudio();
+      audioRef.current.play();
     } else {
       setPlayReady(true);
-      await synthesis();
+      if (backgroundAudioWav) {
+        const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+        await synthesis({
+          wav: backgroundAudioWav,
+          offsetMs: realOffsetMs,
+          volume: backgroundVolume,
+          mute: backgroundMuted,
+        });
+      } else {
+        await synthesis();
+      }
       setSynthesisProgress(false);
     }
   };
@@ -364,12 +328,6 @@ export const EditorView: React.FC<{
     setPlaying(false);
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
-
-    // 伴奏音声の停止
-    if (backgroundAudioRef.current) {
-      backgroundAudioRef.current.pause();
-      backgroundAudioRef.current.currentTime = 0;
-    }
     setBackgroundAudioPlaying(false);
     setPlayingMs(0);
   };
@@ -381,87 +339,27 @@ export const EditorView: React.FC<{
    */
   const handleTimeUpdate = () => {
     setPlayingMs(audioRef.current.currentTime * 1000);
-    if (playing) {
-      syncBothAudioTime(audioRef.current.currentTime);
-    }
   };
-  /**
-   * 両方のaudioの時間を同期する
-   */
-  const syncBothAudioTime = (mainTime: number) => {
-    if (!backgroundAudioRef.current || !backgroundWavUrl) return;
-    const timeOffset = getAudioTimeOffset();
-    const backgroundTargetTime = timeOffset - backgroundOffsetMs / 1000;
-    // 伴奏の再生開始タイミングをチェック
-    if (!backgroundAudioPlaying && mainTime - backgroundTargetTime >= 0) {
-      const actualBackgroundTime = mainTime + backgroundTargetTime;
-
-      if (actualBackgroundTime >= 0) {
-        // 遅延再生開始
-        const backgroundDuration =
-          backgroundAudioRef.current.duration || Infinity;
-
-        if (actualBackgroundTime < backgroundDuration) {
-          backgroundAudioRef.current.currentTime = actualBackgroundTime;
-          backgroundAudioRef.current
-            .play()
-            .then(() => {
-              setBackgroundAudioPlaying(true);
-              LOG.info(
-                `伴奏遅延再生開始: ${actualBackgroundTime}秒から`,
-                "EditorView"
-              );
-            })
-            .catch((error) => {
-              LOG.error(`伴奏の遅延再生開始に失敗: ${error}`, "EditorView");
-            });
-        }
-      }
-    }
-
-    // 既に再生中の場合の同期処理
-    if (backgroundAudioPlaying && backgroundTargetTime >= 0) {
-      const expectedBackgroundTime = mainTime + backgroundTargetTime;
-      const currentBackgroundTime = backgroundAudioRef.current.currentTime;
-
-      // 誤差が大きい場合のみ同期調整
-      if (Math.abs(currentBackgroundTime - expectedBackgroundTime) > 0.01) {
-        if (
-          expectedBackgroundTime >= 0 &&
-          expectedBackgroundTime <
-            (backgroundAudioRef.current.duration || Infinity)
-        ) {
-          backgroundAudioRef.current.currentTime = expectedBackgroundTime;
-          LOG.debug(`伴奏時間同期: ${expectedBackgroundTime}秒`, "EditorView");
-        }
-      }
-    }
-  };
-  // 伴奏音声終了時の処理
-  const handleBackgroundAudioEnded = () => {
-    setBackgroundAudioPlaying(false);
-    LOG.debug("伴奏音声終了", "EditorView");
-  };
-
   React.useEffect(() => {
     LOG.debug("wavUrlかplayReadyの更新を検知", "EditorView");
     if (wavUrl !== undefined && playReady) {
       LOG.info("再生開始", "EditorView");
       setPlayReady(false);
       setPlaying(true);
-      playBothAudio();
+      audioRef.current.play();
     }
   }, [wavUrl, playReady]);
 
-  // backgroundAudioRefに状態を同期
+  /** 伴奏関係のデータが変更された際wavUrlを初期化する */
   React.useEffect(() => {
-    if (backgroundAudioRef.current) {
-      backgroundAudioRef.current.volume = backgroundMuted
-        ? 0
-        : backgroundVolume;
-      backgroundAudioRef.current.muted = backgroundMuted;
-    }
-  }, [backgroundVolume, backgroundMuted]);
+    LOG.debug("伴奏関係の設定変更を検知。wavUrlをクリア", "EditorView");
+    setWavUrl(undefined);
+  }, [
+    backgroundOffsetMs,
+    backgroundVolume,
+    backgroundMuted,
+    backgroundAudioWav,
+  ]);
   return (
     <>
       <Pianoroll
@@ -531,14 +429,6 @@ export const EditorView: React.FC<{
             onTimeUpdate={handleTimeUpdate}
           ></audio>
         </>
-      )}
-      {backgroundWavUrl !== undefined && (
-        <audio
-          src={backgroundWavUrl}
-          ref={backgroundAudioRef}
-          data-testid="audio-background"
-          onEnded={handleBackgroundAudioEnded}
-        />
       )}
     </>
   );

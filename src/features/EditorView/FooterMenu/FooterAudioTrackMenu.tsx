@@ -19,6 +19,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
+import { renderingConfig } from "../../../config/rendering";
 import { LOG } from "../../../lib/Logging";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { estimateBeatOffset } from "../../../utils/estimateBeatOffset";
@@ -84,6 +85,9 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
 
       props.setBackgroundWavUrl(objectUrl);
       const w = new Wave(arrayBuffer);
+      w.sampleRate = renderingConfig.frameRate;
+      w.bitDepth = 16;
+      w.VolumeNormalize();
       props.setBackgroundAudioWav(w);
       props.setBackgroundOffsetMs(0);
       setTextInputValue("0");

@@ -1,3 +1,4 @@
+import { Wave } from "utauwav";
 import { renderingConfig } from "../config/rendering";
 import { LOG } from "../lib/Logging";
 import { resampCache } from "../lib/ResampCache";
@@ -43,7 +44,13 @@ export class SynthesisWorker {
    */
   async synthesis(
     selectNotes: Array<number>,
-    setSynthesisCount: (number) => void = (value) => {}
+    setSynthesisCount: (number) => void = (value) => {},
+    backgroundAudio?: {
+      wav: Wave;
+      offsetMs: number;
+      volume: number;
+      mute: boolean;
+    }
   ): Promise<ArrayBuffer> {
     this.wavtool = new Wavtool();
     this.workersPool.clearTasks();
@@ -58,6 +65,16 @@ export class SynthesisWorker {
     );
     await this.append(requestParams, 0, setSynthesisCount);
     LOG.info("音声合成終了", "synthesis,SynthesisWorker");
+
+    if (backgroundAudio && !backgroundAudio.mute) {
+      LOG.info("バックグラウンドオーディオを合成", "synthesis,SynthesisWorker");
+      this.wavtool.mixBackgroundAudio(
+        backgroundAudio.wav,
+        backgroundAudio.offsetMs,
+        backgroundAudio.volume
+      );
+    }
+
     /** 16bit/44100HzのWaveオブジェクトのbuffer */
     try {
       LOG.info("wavに変換", "synthesis,SynthesisWorker");
