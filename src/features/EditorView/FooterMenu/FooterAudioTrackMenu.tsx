@@ -9,6 +9,7 @@ import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import {
   Box,
+  Checkbox,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -261,6 +262,11 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
           <ListItemIcon>
             <VolumeOffIcon />
           </ListItemIcon>
+          <Checkbox
+            checked={props.backgroundMuted}
+            onChange={handleMuteToggleBackgroundWavClick}
+            onClick={(e) => e.stopPropagation()}
+          />
           <ListItemText>{t("editor.footer.audioTrackMute")}</ListItemText>
         </MenuItem>
         <MenuItem
