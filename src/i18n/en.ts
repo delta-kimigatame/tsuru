@@ -280,6 +280,9 @@ export const translationEn = {
       title: "Batch Change Lyrics",
       lyricsValue: "Lyrics",
     },
+    lyricTorestBatchProcess: {
+      title: "Convert Lyrics to Rest",
+    },
     lengthQuantizeBatchProcess: {
       title: "Quantize Note Lengths",
       quantizeValue: "Quantize Length",

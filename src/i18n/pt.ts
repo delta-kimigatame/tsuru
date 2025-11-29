@@ -299,6 +299,9 @@ export const translationPt = {
       title: "Alterar Letras em Lote",
       lyricsValue: "Letra",
     },
+    lyricTorestBatchProcess: {
+      title: "Converter letras em pausas",
+    },
     resetEdit: {
       title: "Redefinir ajuste",
       info: "Redefinir rótulo",

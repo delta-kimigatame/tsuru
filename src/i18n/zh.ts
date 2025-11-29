@@ -277,6 +277,9 @@ export const translationZh = {
       title: "批量更改歌词",
       lyricsValue: "歌词",
     },
+    lyricTorestBatchProcess: {
+      title: "将歌词转换为休止符",
+    },
     lengthQuantizeBatchProcess: {
       title: "量化音符长度",
       quantizeValue: "量化长度",

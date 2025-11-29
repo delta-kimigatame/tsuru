@@ -282,6 +282,9 @@ export const translationJa = {
       title: "歌詞一括変更",
       lyricsValue: "歌詞",
     },
+    lyricTorestBatchProcess: {
+      title: "歌詞を休符にする",
+    },
     lengthQuantizeBatchProcess: {
       title: "ノート長を丸める",
       quantizeValue: "丸める長さ",
