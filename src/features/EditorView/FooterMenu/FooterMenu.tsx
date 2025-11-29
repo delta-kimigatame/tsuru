@@ -272,7 +272,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           onClick={handleAudioTrackMenuOpen}
           sx={{ flex: 1, p: 0 }}
           value={0}
-          disabled={batchProcessProgress}
+          disabled={
+            batchProcessProgress || props.synthesisProgress || props.playing
+          }
         />
         <Tab
           icon={
