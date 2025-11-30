@@ -411,6 +411,7 @@ export const translationEn = {
     JPCVorVCVPhonemizer: "(Japanese) Automatic VCV",
     RomajiJPCVorVCVPhonemizer: "(Japanese) Romaji Automatic VCV",
     JPAutoPhonemizer: "(Japanese) Automatic VCV(with CVVC)",
+    RomajiJPAutoPhonemizer: "(Japanese) Romaji Automatic VCV(with CVVC)",
   },
   footer: {
     disclaimer:

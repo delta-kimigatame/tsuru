@@ -406,6 +406,7 @@ export const translationZh = {
     JPCVorVCVPhonemizer: "（日语）自动连续音",
     RomajiJPCVorVCVPhonemizer: "（日语）罗马字自动连续音",
     JPAutoPhonemizer: "（日语）自动连续音（CVVC支持）",
+    RomajiJPAutoPhonemizer: "（日语）罗马字自动连续音（CVVC支持）",
   },
   footer: {
     disclaimer:
