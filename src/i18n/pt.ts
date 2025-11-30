@@ -260,6 +260,12 @@ export const translationPt = {
     octaveUp: "1 oitava acima",
     octaveDown: "1 oitava abaixo",
     envelopeNormalize: "Normalizar envelope",
+    applyOtoBatchProcess: {
+      title: "Aplicar configurações de oto",
+    },
+    applyAutoFitBatchProcess: {
+      title: "Aplicar resultados de ajuste automático",
+    },
     addSuffixBatchProcess: {
       title: "Adicionar caracteres ao final da letra",
       suffixValue: "Caracteres a adicionar",

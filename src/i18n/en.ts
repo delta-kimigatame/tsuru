@@ -256,6 +256,12 @@ export const translationEn = {
     octaveUp: "Raise by 1 Octave",
     octaveDown: "Lower by 1 Octave",
     envelopeNormalize: "Envelope Normalization",
+    applyOtoBatchProcess: {
+      title: "Apply Oto Settings",
+    },
+    applyAutoFitBatchProcess: {
+      title: "Apply Auto-Fit Results",
+    },
     addSuffixBatchProcess: {
       title: "Add Suffix to Lyrics",
       suffixValue: "Suffix to Add",

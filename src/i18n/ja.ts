@@ -258,6 +258,12 @@ export const translationJa = {
     octaveUp: "1オクターブ上げる",
     octaveDown: "1オクターブ下げる",
     envelopeNormalize: "エンベロープ正規化",
+    applyOtoBatchProcess: {
+      title: "原音設定値を適用",
+    },
+    applyAutoFitBatchProcess: {
+      title: "自動調整結果を適用",
+    },
     addSuffixBatchProcess: {
       title: "歌詞の末尾に文字を追加",
       suffixValue: "追加する文字",
