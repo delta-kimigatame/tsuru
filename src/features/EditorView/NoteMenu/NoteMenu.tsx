@@ -16,6 +16,7 @@ import { DividerButton } from "./DividerButton";
 import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
 import { LengthSelect } from "./LengthSelect";
+import { LinkSelectButton } from "./LinkSelectButton";
 import { NotePasteGoButton } from "./NotePasteGoButton";
 import { NotesCacheClearButton } from "./NotesCacheClearButton";
 import { NotesCopyButton } from "./NotesCopyButton";
@@ -134,6 +135,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
                 <VibratoEditButton
                   selectedNotesIndex={props.selectedNotesIndex}
                   setVibratoTargetNote={setVibratoTargetNote}
+                  handleMenuClose={handleMenuClose}
+                />
+                <LinkSelectButton
+                  selectedNotesIndex={props.selectedNotesIndex}
+                  setSelectedNotesIndex={props.setSelectedNotesIndex}
                   handleMenuClose={handleMenuClose}
                 />
               </ButtonGroup>
