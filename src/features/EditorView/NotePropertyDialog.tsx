@@ -151,6 +151,18 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+      <DialogActions>
+        <Button
+          fullWidth
+          variant="contained"
+          color="primary"
+          onClick={handleButtonClick}
+          size="large"
+          sx={{ mx: 1 }}
+        >
+          {t("editor.noteProperty.submitButton")}
+        </Button>
+      </DialogActions>
       <DialogContent>
         <Box
           sx={{
@@ -464,18 +476,6 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
           }
         />
       </DialogContent>
-      <DialogActions>
-        <Button
-          fullWidth
-          variant="contained"
-          color="primary"
-          onClick={handleButtonClick}
-          size="large"
-          sx={{ mx: 1 }}
-        >
-          {t("editor.noteProperty.submitButton")}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
