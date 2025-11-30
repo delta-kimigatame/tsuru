@@ -4,6 +4,7 @@ import { Wave } from "utauwav";
 
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
+import { Presamp } from "./Presamp";
 import { Frq } from "./UtauFrq";
 
 export abstract class BaseVoiceBank {
@@ -72,6 +73,9 @@ export abstract class BaseVoiceBank {
    */
   protected _initialized: boolean;
 
+  protected _presamp: Presamp;
+
+  /** ユーザー同意済みフラグ */
   agree: boolean = false;
 
   get initialized(): boolean {
@@ -211,6 +215,10 @@ export abstract class BaseVoiceBank {
     return null;
   }
 
+  get presamp(): Presamp {
+    return this._presamp;
+  }
+
   constructor() {
     this._prefixmaps = {};
     this._oto = new Oto();
@@ -265,6 +273,7 @@ export abstract class BaseVoiceBank {
   abstract extractCharacterYaml(): Promise<void>;
   abstract extractPortrait(): Promise<void>;
   abstract extractPrefixmaps(encoding): Promise<void>;
+  abstract extractPresampIni(): Promise<void>;
   /**
    * rootフォルダ以下にあるすべてのoto.iniを読み込み、this._otoを更新する
    * @param encoding oto.ini読み込み時の文字コード

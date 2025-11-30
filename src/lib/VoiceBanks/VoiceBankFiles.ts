@@ -10,6 +10,7 @@ import { readTextFile } from "../../services/readTextFile";
 import { BaseVoiceBank } from "./BaseVoiceBank";
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
+import { Presamp } from "./Presamp";
 import { Frq } from "./UtauFrq";
 
 export class VoiceBankFiles extends BaseVoiceBank {
@@ -104,6 +105,7 @@ export class VoiceBankFiles extends BaseVoiceBank {
           asyncs.push(this.extractPortrait());
           asyncs.push(this.extractPrefixmaps(encoding));
           asyncs.push(this.extractOtoAll(encoding));
+          asyncs.push(this.extractPresampIni());
           Promise.all(asyncs).then(() => {
             if (!Object.keys(this._prefixmaps).includes("")) {
               this._prefixmaps[""] = new PrefixMap();
@@ -262,6 +264,22 @@ export class VoiceBankFiles extends BaseVoiceBank {
         this._oto.ParseOto(dirPath, otoTxt);
         resolve();
       });
+    });
+  }
+  async extractPresampIni(): Promise<void> {
+    const root =
+      this._root !== undefined && this._root !== "" ? this._root + "/" : "";
+    return new Promise(async (resolve) => {
+      if (this._filenames.includes(this._root + "/presamp.ini")) {
+        this._presamp = new Presamp();
+        const iniBuf = await this._files[
+          this._filenames.indexOf(this._root + "/presamp.ini")
+        ].arrayBuffer();
+        const iniTxt = await readTextFile(iniBuf, "UTF8");
+        this._presamp.parseIni(iniTxt);
+        console.log(this._presamp);
+      }
+      resolve();
     });
   }
 }
