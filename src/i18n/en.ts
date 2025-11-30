@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/11/30\r\n[Added] Added phrase selection button to the note long-press menu.\r\n[Added] Added note length selection feature to the note long-press menu.\r\n[Added] Added features to batch processing: apply Oto settings, apply Auto-Fit results, and convert lyrics to rest.\r\n[Fix] Revised accompaniment synchronization playback method.\r\n[Fix] Made it impossible to change accompaniment settings during playback or synthesis.\r\n[Fix] Made accompaniment mute status easier to understand.",
       "2025/11/28\r\n[Added] Added cache clear button to the note long-press menu.\r\n[Added] Added character portrait toggle button to the project menu.\r\n[Added] Double-tapping an empty area now cancels note selection.\r\n[Fix] Fixed a bug in batch process: Automatic Preprocessing.\r\n[Fix] Revised accompaniment synchronization playback process.",
       "2025/11/27_2\r\n[Fix] Fixed a bug where ust files could not be loaded if there was even one note without pitch set.",
       "2025/11/27\r\n[Fix] Fixed an issue where pitch editing did not work correctly when the piano roll was vertically zoomed.\r\n[Fix] Fixed a bug where adding pitch portamento after a rest could result in invalid values.\r\n[Fix] Revised the display range of the piano roll.",
