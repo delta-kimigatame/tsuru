@@ -1,5 +1,4 @@
-import ContentPasteIcon from "@mui/icons-material/ContentPaste";
-import { ButtonGroup, IconButton, Menu } from "@mui/material";
+import { ButtonGroup, Menu } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
@@ -9,6 +8,7 @@ import { Note } from "../../../lib/Note";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { EnvelopeDialog } from "../EnvelopeDialog/EnvelopeDialog";
 import { NoteDividerDialog } from "../NoteDividerDialog";
+import { NotePasteDialog } from "../NotePasteDialog";
 import { NotePropertyDialog } from "../NotePropertyDialog";
 import { VibratoDialog } from "../VibratoDialog";
 import { AliaseSelect } from "./AliaseSelect";
@@ -17,6 +17,7 @@ import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
 import { LengthSelect } from "./LengthSelect";
 import { LinkSelectButton } from "./LinkSelectButton";
+import { NotePasteButton } from "./NotePasteButton";
 import { NotePasteGoButton } from "./NotePasteGoButton";
 import { NotesCacheClearButton } from "./NotesCacheClearButton";
 import { NotesCopyButton } from "./NotesCopyButton";
@@ -43,6 +44,9 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   >(undefined);
   const [vibratoTargetNote, setVibratoTargetNote] = React.useState<
     Note | undefined
+  >(undefined);
+  const [pasteTargetIndex, setPasteTargetIndex] = React.useState<
+    number[] | undefined
   >(undefined);
 
   const [aliasValue, setAliasValue] = React.useState<string>("");
@@ -75,6 +79,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   const handleVibratoDialogClose = () => {
     LOG.debug("ビブラートダイアログを閉じる", "NoteMenu");
     setVibratoTargetNote(undefined);
+  };
+
+  const handlePasteDialogClose = () => {
+    LOG.debug("貼り付けダイアログを閉じる", "NoteMenu");
+    setPasteTargetIndex(undefined);
   };
 
   return (
@@ -152,9 +161,11 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
               setSelectedNotesIndex={props.setSelectedNotesIndex}
               handleMenuClose={handleMenuClose}
             />
-            <IconButton disabled data-testid="NotesPasteButton">
-              <ContentPasteIcon />
-            </IconButton>
+            <NotePasteButton
+              selectedNotesIndex={props.selectedNotesIndex}
+              setPasteTargetNote={setPasteTargetIndex}
+              handleMenuClose={handleMenuClose}
+            />
             <NotePasteGoButton
               selectedNotesIndex={props.selectedNotesIndex}
               setSelectedNotesIndex={props.setSelectedNotesIndex}
@@ -216,6 +227,13 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
           open={vibratoTargetNote !== undefined}
           note={vibratoTargetNote}
           handleClose={handleVibratoDialogClose}
+        />
+      )}
+      {pasteTargetIndex !== undefined && pasteTargetIndex.length > 0 && (
+        <NotePasteDialog
+          open={pasteTargetIndex !== undefined && pasteTargetIndex.length > 0}
+          selectedNotesIndex={pasteTargetIndex}
+          handleClose={handlePasteDialogClose}
         />
       )}
     </>
