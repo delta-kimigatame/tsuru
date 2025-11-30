@@ -15,6 +15,7 @@ import { AliaseSelect } from "./AliaseSelect";
 import { DividerButton } from "./DividerButton";
 import { EditButton } from "./EditButton";
 import { EnvelopeEditButton } from "./EnvelopeEditButton";
+import { LengthSelect } from "./LengthSelect";
 import { NotePasteGoButton } from "./NotePasteGoButton";
 import { NotesCacheClearButton } from "./NotesCacheClearButton";
 import { NotesCopyButton } from "./NotesCopyButton";
@@ -44,6 +45,9 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
   >(undefined);
 
   const [aliasValue, setAliasValue] = React.useState<string>("");
+  const [lengthValue, setLengthValue] = React.useState<number>(
+    notes[props.selectedNotesIndex[0]]?.length ?? 480
+  );
   /**
    * メニューを閉じる動作
    */
@@ -83,7 +87,7 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
               props.menuAnchor.y * 2 >= windowSize.height
                 ? props.menuAnchor.y -
                   PIANOROLL_CONFIG.KEY_HEIGHT *
-                    (props.selectedNotesIndex.length === 1 ? 5 : 3)
+                    (props.selectedNotesIndex.length === 1 ? 7 : 3)
                 : props.menuAnchor.y + PIANOROLL_CONFIG.KEY_HEIGHT,
             left: props.menuAnchor.x - 80,
           }}
@@ -163,12 +167,20 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
           </ButtonGroup>
           <br />
           {props.selectedNotesIndex.length === 1 && (
-            <AliaseSelect
-              selectedNotesIndex={props.selectedNotesIndex}
-              handleClose={handleMenuClose}
-              aliasValue={aliasValue}
-              setAliasValue={setAliasValue}
-            />
+            <>
+              <AliaseSelect
+                selectedNotesIndex={props.selectedNotesIndex}
+                handleClose={handleMenuClose}
+                aliasValue={aliasValue}
+                setAliasValue={setAliasValue}
+              />
+              <LengthSelect
+                selectedNotesIndex={props.selectedNotesIndex}
+                handleClose={handleMenuClose}
+                lengthValue={lengthValue}
+                setLengthValue={setLengthValue}
+              />
+            </>
           )}
         </Menu>
       )}

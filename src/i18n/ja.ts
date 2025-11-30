@@ -36,7 +36,7 @@ export const translationJa = {
     logAttention:
       "ログは自動では送信されません。必要に応じて開発者に送付してください。",
   },
-  notemenu: { alias: "エイリアス選択" },
+  notemenu: { alias: "エイリアス選択", length: "長さ選択" },
   top: {
     catchphrase: "さあ!UTAおう!",
     descriptions: [

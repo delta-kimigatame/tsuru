@@ -35,7 +35,7 @@ export const translationZh = {
     clearProject: "初始化项目",
     logAttention: "日志不会自动发送。如有需要，请手动发送给开发者。",
   },
-  notemenu: { alias: "别名选择" },
+  notemenu: { alias: "别名选择", length: "长度选择" },
   top: {
     catchphrase: "来吧！一起UTA吧！",
     descriptions: [

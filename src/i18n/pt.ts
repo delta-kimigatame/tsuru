@@ -37,7 +37,7 @@ export const translationPt = {
     logAttention:
       "Os logs não são enviados automaticamente. Envie-os ao desenvolvedor se necessário.",
   },
-  notemenu: { alias: "Seleção de Alias" },
+  notemenu: { alias: "Seleção de Alias", length: "Seleção de Duração" },
   top: {
     catchphrase: "Vamos UTA! Vamos cantar!",
     descriptions: [

@@ -37,7 +37,7 @@ export const translationEn = {
     logAttention:
       "Logs are not sent automatically, so please send them to the developer if necessary.",
   },
-  notemenu: { alias: "Alias Selection" },
+  notemenu: { alias: "Alias Selection", length: "Length Selection" },
   top: {
     catchphrase: "Let's UTA! Let's go!",
     descriptions: [
