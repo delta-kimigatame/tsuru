@@ -61,6 +61,8 @@ export abstract class BasePhonemizer {
    */
   protected abstract _autoFitParam(note: Note): void;
 
+  protected abstract _getNotesCount(vb: BaseVoiceBank, note: Note): number;
+
   /**
    * 合成に必要なパラメータを返す処理のエンドポイント
    * @param vb UTAU音源
@@ -115,5 +117,9 @@ export abstract class BasePhonemizer {
    */
   public autoFitParam(note: Note): void {
     this._autoFitParam(note);
+  }
+
+  public getNotesCount(vb: BaseVoiceBank, note: Note): number {
+    return this._getNotesCount(vb, note);
   }
 }

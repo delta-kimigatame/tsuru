@@ -180,4 +180,16 @@ export class Ust {
     );
     return params;
   }
+
+  getCacheIndex(vb: BaseVoiceBank, selectNotes?: Array<number>): number[] {
+    const cacheIndex: number[] = [];
+    const targetNotes =
+      selectNotes && selectNotes.length > 0
+        ? selectNotes.map((idx) => this.notes[idx])
+        : this.notes;
+    targetNotes.forEach((n) => {
+      cacheIndex.push(...n.getCacheIndex(vb));
+    });
+    return cacheIndex;
+  }
 }

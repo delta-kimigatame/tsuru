@@ -40,22 +40,27 @@ export const PianorollWavForm: React.FC<PianorollWavFormProps> = (props) => {
       return;
     }
     const wavtool = new Wavtool();
-    const requests: Array<AppendRequest> = rangeIndex.map((i) => {
+    const requests: Array<AppendRequest> = [];
+    rangeIndex.forEach((i) => {
       const params = notes[i].getRequestParam(vb, ustFlags, defaultNote);
-      return {
-        inputData: Array.from(
-          notes[i].lyric === "R" || resampCache.getByIndex(i) === undefined
-            ? params[0].append.length >= 0
-              ? new Int16Array(
-                  Math.ceil(
-                    (params[0].append.length / 1000) * renderingConfig.frameRate
+      const cacheIndex = notes[i].getCacheIndex(vb);
+      params.forEach((param, j) => {
+        requests.push({
+          inputData: Array.from(
+            notes[i].lyric === "R" ||
+              resampCache.getByIndex(cacheIndex[j]) === undefined
+              ? param.append.length >= 0
+                ? new Int16Array(
+                    Math.ceil(
+                      (param.append.length / 1000) * renderingConfig.frameRate
+                    )
                   )
-                )
-              : new Int16Array(0)
-            : resampCache.getByIndex(i)
-        ),
-        ...params[0].append,
-      };
+                : new Int16Array(0)
+              : resampCache.getByIndex(cacheIndex[j])
+          ),
+          ...param.append,
+        });
+      });
     });
     requests.forEach((req) => {
       wavtool.append(req);

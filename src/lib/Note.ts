@@ -6,6 +6,7 @@
 import type OtoRecord from "utauoto/dist/OtoRecord";
 import type { defaultParam } from "../types/note";
 import type { AppendRequestBase, ResampRequest } from "../types/request";
+import { range } from "../utils/array";
 import { makeTimeAxis } from "../utils/interp";
 import { BasePhonemizer } from "./BasePhonemizer";
 import { DefaultPhonemizer } from "./Phonemizer/DefaultPhonemizer";
@@ -1069,6 +1070,14 @@ export class Note {
       noteText += `VoiceColor=${this.voiceColor}\r\n`;
     }
     return noteText;
+  }
+
+  getCacheIndex(vb: BaseVoiceBank): number[] {
+    const prevCacheIndex = this.prev?.getCacheIndex(vb) ?? [];
+    const prevLastIndex = prevCacheIndex.slice(-1)[0] ?? -1;
+    const startIndex = prevLastIndex + 1;
+    const endIndex = prevLastIndex + this.phonemizer.getNotesCount(vb, this);
+    return range(startIndex, endIndex);
   }
 }
 export const dumpEnvelope = (envelope: {

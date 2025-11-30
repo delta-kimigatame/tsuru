@@ -485,6 +485,27 @@ export class JPAutoPhonemizer extends BasePhonemizer {
     }
     return null;
   }
+  protected _getNotesCount(vb: BaseVoiceBank, note: Note): number {
+    /**
+     * 次のノートの子音を確認し、nullが返ってきた場合はparamsは1つ。
+     * 非nullが返ってきた場合、[lastPhoneme nextConsonant]がotoに存在するかチェックし、存在すればparamsを2つに分割する。
+     * otoが存在しなければparamsは1つ。
+     */
+    const nextConsonant = this.getNextConsonant(note.next);
+    const vcOtoRecord = this.getOtoRecord(
+      vb,
+      this.getLastPhoneme(note),
+      nextConsonant ? nextConsonant.consonant : "",
+      note.notenum,
+      note.voiceColor ? note.voiceColor : "",
+      true
+    );
+    if (vcOtoRecord !== null) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
 
   protected _getRequestParamm(
     vb: BaseVoiceBank,

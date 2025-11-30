@@ -89,6 +89,10 @@ export class DefaultPhonemizer extends BasePhonemizer {
     return note.msLength;
   }
 
+  protected _getNotesCount(vb: BaseVoiceBank, note: Note): number {
+    return 1;
+  }
+
   protected _getRequestParamm(
     vb: BaseVoiceBank,
     note: Note,

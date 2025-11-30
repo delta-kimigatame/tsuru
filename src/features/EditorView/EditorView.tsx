@@ -168,6 +168,7 @@ export const EditorView: React.FC<{
     }
     notes.forEach((n) => {
       const requests = n.getRequestParam(vb, ustFlags, defaultNote);
+      const cacheIndex = n.getCacheIndex(vb);
       requests.forEach((request, i) => {
         if (request.resamp === undefined) return;
         const key = resampCache.createKey(request.resamp);
@@ -181,7 +182,7 @@ export const EditorView: React.FC<{
             `キャッシュ生成開始。index:${n.index}。i:${i}`,
             "EditorView"
           );
-          synthesisWorker.resamp(request, vb, n.index).catch((error) => {
+          synthesisWorker.resamp(request, vb, cacheIndex[i]).catch((error) => {
             LOG.error(
               `キャッシュ生成の失敗。input:${JSON.stringify(
                 request.resamp

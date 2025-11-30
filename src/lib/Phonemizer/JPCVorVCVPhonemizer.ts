@@ -95,6 +95,9 @@ export class JPCVorVCVPhonemizer extends BasePhonemizer {
     /** いずれにも該当しない場合、入力値を返す。戻り値はnullの場合もあり得る */
     return vb.getOtoRecord(lyric, notenum, voiceColor);
   }
+  protected _getNotesCount(vb: BaseVoiceBank, note: Note): number {
+    return 1;
+  }
 
   protected _applyOto(note: Note, vb: BaseVoiceBank): void {
     if (note.lyric === undefined) {

@@ -57,8 +57,7 @@ export class SynthesisWorker {
     const { vb, ust } = useMusicProjectStore.getState();
     const { defaultNote, workersCount } = useCookieStore.getState();
     const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
-    const targetIndexes =
-      selectNotes.length !== 0 ? selectNotes : ust.notes.map((n) => n.index);
+    const targetIndexes = ust.getCacheIndex(vb, selectNotes);
     LOG.info("音声合成開始", "synthesis,SynthesisWorker");
     this.resampResults = requestParams.map((p, i) =>
       this.resamp(p, vb, targetIndexes[i])
