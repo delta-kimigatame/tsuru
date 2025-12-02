@@ -107,10 +107,15 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
       "PianorollToutch"
     );
     if (isDoubleTapNone) {
-      props.setSelectedNotesIndex([]);
-      snackBarStore.setSeverity("info");
-      snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
-      snackBarStore.setOpen(true);
+      if (props.selectedNotesIndex.length !== 0) {
+        props.setSelectedNotesIndex([]);
+        snackBarStore.setSeverity("info");
+        snackBarStore.setValue(t("editor.selectReset")); //ノートの選択解除
+        snackBarStore.setOpen(true);
+      } else {
+        // すべてのノートのインデックスを選択
+        props.setSelectedNotesIndex(range(0, notes.length - 1));
+      }
     } else if (props.selectMode === "pitch") {
       // ポルタメントは既にポインターダウン時に処理済み、ノートのみ処理
       if (targetPoltamentIndex === undefined && targetNoteIndex !== undefined) {

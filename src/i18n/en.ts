@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/12/03\r\n[Added] Added a feature to select all notes by double-tapping an empty area when no notes are selected.",
       "2025/12/01\r\n[Added] Added format-specific paste feature to the note long-press menu.\r\n[Added] Implemented Japanese automatic CVVC mode with Romaji input support.\r\n[Fix] Fixed an issue where waveform display was incorrect when converting lyrics to CVVC.",
       "2025/11/30\r\n[Added] Added phrase selection button to the note long-press menu.\r\n[Added] Added note length selection feature to the note long-press menu.\r\n[Added] Added features to batch processing: apply Oto settings, apply Auto-Fit results, and convert lyrics to rest.\r\n[Fix] Revised accompaniment synchronization playback method.\r\n[Fix] Made it impossible to change accompaniment settings during playback or synthesis.\r\n[Fix] Made accompaniment mute status easier to understand.",
       "2025/11/28\r\n[Added] Added cache clear button to the note long-press menu.\r\n[Added] Added character portrait toggle button to the project menu.\r\n[Added] Double-tapping an empty area now cancels note selection.\r\n[Fix] Fixed a bug in batch process: Automatic Preprocessing.\r\n[Fix] Revised accompaniment synchronization playback process.",
