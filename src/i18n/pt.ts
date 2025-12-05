@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/05\r\n[Correção] Resolvido um problema onde itens de configuração entravam em conflito com outras ferramentas Kimigatame.",
       "2025/12/03\r\n[Adição] Adicionada função para selecionar todas as notas ao tocar duas vezes em uma área vazia quando nenhuma nota está selecionada.",
       "2025/12/01\r\n[Adição] Adicionada função de colar com formato específico ao menu de pressionamento longo da nota.\r\n[Adição] Implementado modo automático japonês CVVC com suporte à entrada em romaji.\r\n[Correção] Corrigido problema onde a exibição da forma de onda estava incorreta ao converter letras para CVVC.",
       "2025/11/30\r\n[Adição] Adicionado botão de seleção de frase ao menu de pressionamento longo da nota.\r\n[Adição] Adicionada função de seleção de duração da nota ao menu de pressionamento longo da nota.\r\n[Adição] Adicionadas funções ao processamento em lote: aplicar configurações de oto, aplicar resultados de ajuste automático e converter letras em pausas.\r\n[Correção] Revisado o método de reprodução sincronizada do acompanhamento.\r\n[Correção] Agora não é possível alterar as configurações do acompanhamento durante a reprodução ou síntese.\r\n[Correção] O estado de mudo do acompanhamento está mais claro.",

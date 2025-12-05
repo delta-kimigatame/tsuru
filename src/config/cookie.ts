@@ -6,16 +6,16 @@ import { defaultNote } from "./note";
 import { resampWorkersCount } from "./workers";
 
 export const COOKIE_KEYS = {
-  mode: "mode",
-  language: "language",
-  colorTheme: "colorTheme",
-  defaultNote: "defaultNote",
-  verticalZoom: "verticalZoom",
-  horizontalZoom: "horizontalZoom",
-  workersCount: "workersCount",
-  fastResamp: "fastResamp",
-  useCache: "useCache",
-  backgroundResamp: "backgroundResamp",
+  mode: "utaletMode",
+  language: "utaletLanguage",
+  colorTheme: "utaletColorTheme",
+  defaultNote: "utaletDefaultNote",
+  verticalZoom: "utaletVerticalZoom",
+  horizontalZoom: "utaletHorizontalZoom",
+  workersCount: "utaletWorkersCount",
+  fastResamp: "utaletFastResamp",
+  useCache: "utaletUseCache",
+  backgroundResamp: "utaletBackgroundResamp",
 } as const;
 
 const determineDefaultLocale = (): Language => {
