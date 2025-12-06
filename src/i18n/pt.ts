@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/06\r\n[Correção] Corrigido um problema onde a modulação não podia ser salva.",
       "2025/12/05\r\n[Correção] Resolvido um problema onde itens de configuração entravam em conflito com outras ferramentas Kimigatame.",
       "2025/12/03\r\n[Adição] Adicionada função para selecionar todas as notas ao tocar duas vezes em uma área vazia quando nenhuma nota está selecionada.",
       "2025/12/01\r\n[Adição] Adicionada função de colar com formato específico ao menu de pressionamento longo da nota.\r\n[Adição] Implementado modo automático japonês CVVC com suporte à entrada em romaji.\r\n[Correção] Corrigido problema onde a exibição da forma de onda estava incorreta ao converter letras para CVVC.",

@@ -1033,6 +1033,10 @@ export class Note {
       //stringかundefined
       noteText += `Flags=${this.flags}\r\n`;
     }
+    if (this.modulation !== undefined) {
+      //intかundefined
+      noteText += `Modulation=${this.modulation.toString()}\r\n`;
+    }
     if (this.vibrato) {
       //オブジェクトかundefined
       noteText += `VBR=${this.vibrato.length.toFixed(

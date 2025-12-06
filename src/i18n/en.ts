@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/12/06\r\n[Fix] Fixed an issue where modulation could not be saved.",
       "2025/12/05\r\n[Fix] Resolved an issue where settings items conflicted with other Kimigatame tools.",
       "2025/12/03\r\n[Added] Added a feature to select all notes by double-tapping an empty area when no notes are selected.",
       "2025/12/01\r\n[Added] Added format-specific paste feature to the note long-press menu.\r\n[Added] Implemented Japanese automatic CVVC mode with Romaji input support.\r\n[Fix] Fixed an issue where waveform display was incorrect when converting lyrics to CVVC.",
