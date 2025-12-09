@@ -238,7 +238,7 @@ export class JPCVorVCVPhonemizer extends BasePhonemizer {
           note.flags !== null && note.flags !== undefined && note.flags !== ""
             ? note.flags
             : flags,
-        offsetMs: note.oto.offset,
+        offsetMs: Math.max(0, note.oto.offset),
         targetMs: note.targetLength,
         fixedMs: note.oto.velocity,
         cutoffMs: note.oto.blank,

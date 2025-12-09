@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/07\r\n[Correção] Corrigido um problema onde a síntese falhava se o deslocamento nas configurações de Oto fosse um número negativo.",
       "2025/12/06\r\n[Correção] Corrigido um problema onde a modulação não podia ser salva.",
       "2025/12/05\r\n[Correção] Resolvido um problema onde itens de configuração entravam em conflito com outras ferramentas Kimigatame.",
       "2025/12/03\r\n[Adição] Adicionada função para selecionar todas as notas ao tocar duas vezes em uma área vazia quando nenhuma nota está selecionada.",

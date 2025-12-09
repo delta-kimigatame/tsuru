@@ -580,7 +580,7 @@ export class JPAutoPhonemizer extends BasePhonemizer {
             note.flags !== null && note.flags !== undefined && note.flags !== ""
               ? note.flags
               : flags,
-          offsetMs: vcOtoRecord.offset,
+          offsetMs: Math.max(0, vcOtoRecord.offset),
           targetMs:
             Math.ceil((vcTargetNoteLength + vcParams.preutter) / 50) * 50,
           fixedMs: vcOtoRecord.velocity,
@@ -648,7 +648,7 @@ export class JPAutoPhonemizer extends BasePhonemizer {
           note.flags !== null && note.flags !== undefined && note.flags !== ""
             ? note.flags
             : flags,
-        offsetMs: note.oto.offset,
+        offsetMs: Math.max(0, note.oto.offset),
         targetMs: note.targetLength,
         fixedMs: note.oto.velocity,
         cutoffMs: note.oto.blank,
