@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/09\r\n[Correção] Corrigido um bug onde o editor não podia ser aberto quando havia uma nota com parâmetros inválidos.",
       "2025/12/07\r\n[Correção] Corrigido um problema onde a síntese falhava se o deslocamento nas configurações de Oto fosse um número negativo.",
       "2025/12/06\r\n[Correção] Corrigido um problema onde a modulação não podia ser salva.",
       "2025/12/05\r\n[Correção] Resolvido um problema onde itens de configuração entravam em conflito com outras ferramentas Kimigatame.",

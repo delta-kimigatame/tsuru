@@ -99,11 +99,24 @@ export class Ust {
         note.tempo = nowTempo;
         this.notes.push(note);
       } else if (l.startsWith("Length=")) {
+        /** lengthが不正な値となる場合があるが、初期値を設定してしまうと楽譜自体が狂うため、lengthが不正でも読み込み時に修正はしない。 */
         note.length = parseInt(l.replace("Length=", ""));
       } else if (l.startsWith("Lyric=")) {
-        note.lyric = l.replace("Lyric=", "");
+        /** 不正な値 Lyric=undefinedが出た場合、Rにする。 */
+        const lyric = l.replace("Lyric=", "");
+        if (lyric === "undefined" || lyric.trim() === "") {
+          note.lyric = "R";
+        } else {
+          note.lyric = lyric;
+        }
       } else if (l.startsWith("NoteNum=")) {
-        note.notenum = parseInt(l.replace("NoteNum=", ""));
+        /** notenumが不正な値であった場合、60にする */
+        const notenum = parseInt(l.replace("NoteNum=", ""));
+        if (isNaN(notenum) || notenum < 0 || notenum > 127) {
+          note.notenum = 60;
+        } else {
+          note.notenum = notenum;
+        }
       } else if (l.startsWith("Tempo=")) {
         note.tempo = parseFloat(l.replace("Tempo=", ""));
         nowTempo = note.tempo;
@@ -153,6 +166,10 @@ export class Ust {
         note.voiceColor = l.replace("VoiceColor=", "");
       }
     });
+    /** lengthが不正な値のノートを削除する */
+    this.notes = this.notes.filter(
+      (n) => Number.isFinite(n.length) && n.length > 0
+    );
   }
 
   /**
