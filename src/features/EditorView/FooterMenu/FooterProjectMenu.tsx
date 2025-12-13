@@ -163,6 +163,7 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
   const handleClearProjectClick = () => {
     LOG.debug("click Clear Project", "FooterProjectMenu");
     clearUst();
+    undoManager.clear();
     handleClose();
   };
 

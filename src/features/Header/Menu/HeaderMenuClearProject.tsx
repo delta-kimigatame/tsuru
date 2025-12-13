@@ -6,6 +6,7 @@ import {
   HeaderMenuItemProps,
 } from "../../../components/Header/HeaderMenuItemBase";
 import { LOG } from "../../../lib/Logging";
+import { undoManager } from "../../../lib/UndoManager";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 export const HeaderMenuClearProject: React.FC<HeaderMenuItemProps> = (
   props
@@ -16,6 +17,7 @@ export const HeaderMenuClearProject: React.FC<HeaderMenuItemProps> = (
     LOG.debug("click", "HeaderMenuClearProject");
     LOG.info("プロジェクト初期化", "HeaderMenuClearProject");
     clearUst();
+    undoManager.clear();
     props.onMenuClose();
   };
 
