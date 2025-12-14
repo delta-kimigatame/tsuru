@@ -1,11 +1,29 @@
 import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import type { Preview } from "@storybook/react-vite";
+import type { Decorator, Preview } from "@storybook/react-vite";
 import { useMemo } from "react";
 import { I18nextProvider } from "react-i18next";
 import { getDesignTokens } from "../src/config/theme";
 import i18n from "../src/i18n/configs";
+import { useCookieStore } from "../src/store/cookieStore";
+import { useMusicProjectStore } from "../src/store/musicProjectStore";
+import { useSnackBarStore } from "../src/store/snackBarStore";
+
+// ストアの初期状態を保存（アプリ起動時の状態）
+const cookieStoreInitialState = useCookieStore.getState();
+const musicProjectStoreInitialState = useMusicProjectStore.getState();
+const snackBarStoreInitialState = useSnackBarStore.getState();
+
+// 各ストーリー実行前にストアをリセットするDecorator
+const StoreResetDecorator: Decorator = (Story) => {
+  // ストーリーレンダリング前に全ストアを初期状態にリセット
+  useCookieStore.setState(cookieStoreInitialState);
+  useMusicProjectStore.setState(musicProjectStoreInitialState);
+  useSnackBarStore.setState(snackBarStoreInitialState);
+
+  return <Story />;
+};
 
 const preview: Preview = {
   parameters: {
@@ -31,8 +49,10 @@ const preview: Preview = {
     },
   },
 
-  // i18n統合 + テーマ統合
+  // i18n統合 + テーマ統合 + ストアリセット
   decorators: [
+    // 最初にストアをリセット（他のDecoratorより先に実行）
+    StoreResetDecorator,
     (Story, context) => {
       // グローバルツールバーから言語を取得
       const locale = context.globals.locale || "ja";
