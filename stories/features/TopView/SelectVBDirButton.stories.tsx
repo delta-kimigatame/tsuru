@@ -1,9 +1,9 @@
-﻿import { Meta, StoryObj } from "@storybook/react";
-import { SelectVBButton } from "../../../src/features/TopView/SelectVbButton";
+import { Meta, StoryObj } from "@storybook/react";
+import { SelectVBDirButton } from "../../../src/features/TopView/SelectVBDirButton";
 
-const meta: Meta<typeof SelectVBButton> = {
-  title: "features/TopView/SelectVBButton",
-  component: SelectVBButton,
+const meta: Meta<typeof SelectVBDirButton> = {
+  title: "features/TopView/SelectVBDirButton",
+  component: SelectVBDirButton,
   tags: ["autodocs"],
 };
 
@@ -15,7 +15,6 @@ export const Default: Story = {
     processing: false,
     setProcessing: () => {},
     setReadFile: () => {},
-    setDialogOpen: () => {},
   },
 };
 
@@ -24,6 +23,5 @@ export const Processing: Story = {
     processing: true,
     setProcessing: () => {},
     setReadFile: () => {},
-    setDialogOpen: () => {},
   },
 };
