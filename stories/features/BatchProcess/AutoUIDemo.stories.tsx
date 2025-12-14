@@ -1,6 +1,4 @@
-﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
-// import { fireEvent, userEvent, within } from "@storybook/test";
+import { Meta, StoryObj } from "@storybook/react";
 import { BatchProcess } from "../../../src/features/BatchProcess/BatchProcess";
 import { BaseBatchProcess } from "../../../src/lib/BaseBatchProcess";
 import { Note } from "../../../src/lib/Note";
@@ -14,41 +12,44 @@ import {
   TextBoxStringUIProp,
 } from "../../../src/types/batchProcess";
 
-class DummyBatchProcessFlat extends BaseBatchProcess<any> {
-  title = "dummy.flat";
-  summary = "Dummy Flat Batch Process";
+/**
+ * 自動UI生成機能のデモンストレーション用ダミーバッチプロセス（フラット構造）
+ */
+class DemoFlatUIBatchProcess extends BaseBatchProcess<any> {
+  title = "demo.flatUI.title";
+  summary = "Flat UI Demo";
   initialOptions = {
     checkboxOption: true,
     switchOption: false,
     selectOption: "option2",
     sliderOption: 50,
     textboxNumberOption: 100,
-    textboxStringOption: "initial text",
+    textboxStringOption: "sample text",
   };
   ui = [
     {
       key: "checkboxOption",
-      labelKey: "dummy.checkbox.label",
+      labelKey: "demo.checkbox.label",
       inputType: "checkbox",
       defaultValue: true,
     } as CheckboxUIProp,
     {
       key: "switchOption",
-      labelKey: "dummy.switch.label",
+      labelKey: "demo.switch.label",
       inputType: "switch",
       defaultValue: false,
     } as SwitchUIProp,
     {
       key: "selectOption",
-      labelKey: "dummy.select.label",
+      labelKey: "demo.select.label",
       inputType: "select",
       options: ["option1", "option2", "option3"],
-      displayOptionKey: "dummy.select.options",
+      displayOptionKey: "demo.select.options",
       defaultValue: "option2",
     } as SelectUIProp,
     {
       key: "sliderOption",
-      labelKey: "dummy.slider.label",
+      labelKey: "demo.slider.label",
       inputType: "slider",
       min: 0,
       max: 100,
@@ -57,7 +58,7 @@ class DummyBatchProcessFlat extends BaseBatchProcess<any> {
     } as SliderUIProp,
     {
       key: "textboxNumberOption",
-      labelKey: "dummy.textboxNumber.label",
+      labelKey: "demo.textboxNumber.label",
       inputType: "textbox-number",
       min: 0,
       max: 200,
@@ -65,9 +66,9 @@ class DummyBatchProcessFlat extends BaseBatchProcess<any> {
     } as TextBoxNumberUIProp,
     {
       key: "textboxStringOption",
-      labelKey: "dummy.textboxString.label",
+      labelKey: "demo.textboxString.label",
       inputType: "textbox-string",
-      defaultValue: "initial text",
+      defaultValue: "sample text",
     } as TextBoxStringUIProp,
   ];
   protected _process(notes: Note[], options?: any): Note[] {
@@ -75,58 +76,61 @@ class DummyBatchProcessFlat extends BaseBatchProcess<any> {
   }
 }
 
-class DummyBatchProcessGrouped extends BaseBatchProcess<any> {
-  title = "dummy.grouped";
-  summary = "Dummy Grouped Batch Process";
+/**
+ * 自動UI生成機能のデモンストレーション用ダミーバッチプロセス（グループ構造）
+ */
+class DemoGroupedUIBatchProcess extends BaseBatchProcess<any> {
+  title = "demo.groupedUI.title";
+  summary = "Grouped UI Demo";
   initialOptions = {
     checkboxOption: true,
     switchOption: false,
+    nestedOption: { mode: "VCV" },
     selectOption: "option2",
     sliderOption: 50,
     textboxNumberOption: 100,
-    textboxStringOption: "initial text",
-    lyricOptions: { mode: "VCV" },
+    textboxStringOption: "sample text",
   };
   ui = [
     {
-      titleKey: "dummy.group.lyric",
+      titleKey: "demo.group.basic",
       items: [
         {
           key: "checkboxOption",
-          labelKey: "dummy.checkbox.label",
+          labelKey: "demo.checkbox.label",
           inputType: "checkbox",
           defaultValue: true,
         } as CheckboxUIProp,
         {
           key: "switchOption",
-          labelKey: "dummy.switch.label",
+          labelKey: "demo.switch.label",
           inputType: "switch",
           defaultValue: false,
         } as SwitchUIProp,
         {
-          key: "lyricOptions.mode",
-          labelKey: "dummy.nested.mode",
+          key: "nestedOption.mode",
+          labelKey: "demo.nested.mode",
           inputType: "select",
           options: ["CV", "VCV"],
-          displayOptionKey: "dummy.nested.modeOptions",
+          displayOptionKey: "demo.nested.modeOptions",
           defaultValue: "VCV",
         } as SelectUIProp,
       ],
     } as PaperGroup,
     {
-      titleKey: "dummy.group.others",
+      titleKey: "demo.group.advanced",
       items: [
         {
           key: "selectOption",
-          labelKey: "dummy.select.label",
+          labelKey: "demo.select.label",
           inputType: "select",
           options: ["option1", "option2", "option3"],
-          displayOptionKey: "dummy.select.options",
+          displayOptionKey: "demo.select.options",
           defaultValue: "option2",
         } as SelectUIProp,
         {
           key: "sliderOption",
-          labelKey: "dummy.slider.label",
+          labelKey: "demo.slider.label",
           inputType: "slider",
           min: 0,
           max: 100,
@@ -135,7 +139,7 @@ class DummyBatchProcessGrouped extends BaseBatchProcess<any> {
         } as SliderUIProp,
         {
           key: "textboxNumberOption",
-          labelKey: "dummy.textboxNumber.label",
+          labelKey: "demo.textboxNumber.label",
           inputType: "textbox-number",
           min: 0,
           max: 200,
@@ -143,9 +147,9 @@ class DummyBatchProcessGrouped extends BaseBatchProcess<any> {
         } as TextBoxNumberUIProp,
         {
           key: "textboxStringOption",
-          labelKey: "dummy.textboxString.label",
+          labelKey: "demo.textboxString.label",
           inputType: "textbox-string",
-          defaultValue: "initial text",
+          defaultValue: "sample text",
         } as TextBoxStringUIProp,
       ],
     } as PaperGroup,
@@ -156,7 +160,7 @@ class DummyBatchProcessGrouped extends BaseBatchProcess<any> {
 }
 
 const meta: Meta<typeof BatchProcess> = {
-  title: "features/BatchProcess/BatchProcessIntegration",
+  title: "features/BatchProcess/AutoUIDemo",
   component: BatchProcess,
   tags: ["autodocs"],
 };
@@ -166,14 +170,14 @@ type Story = StoryObj<typeof meta>;
 
 export const FlatUI: Story = {
   args: {
-    batchprocess: new DummyBatchProcessFlat(),
+    batchprocess: new DemoFlatUIBatchProcess(),
     selectedNotesIndex: [],
   },
 };
 
 export const GroupedUI: Story = {
   args: {
-    batchprocess: new DummyBatchProcessGrouped(),
+    batchprocess: new DemoGroupedUIBatchProcess(),
     selectedNotesIndex: [],
   },
 };
