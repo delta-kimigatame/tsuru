@@ -1,6 +1,5 @@
 ﻿import { Meta, StoryObj } from "@storybook/react";
 import { SampleWavButton } from "../../../src/features/InfoVBDialog/SampleWavButton";
-import { sampleWav } from "../../../src/storybook/sampledata";
 
 const meta: Meta<typeof SampleWavButton> = {
   title: "features/InfoVBDialog/SampleWavButton",
@@ -11,13 +10,14 @@ const meta: Meta<typeof SampleWavButton> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const WithSample: Story = {
   args: {
-    sampleUrl: "data:audio/wav;base64," + sampleWav,
+    sampleUrl:
+      "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
   },
 };
 
-export const Disabled: Story = {
+export const NoSample: Story = {
   args: {
     sampleUrl: undefined,
   },

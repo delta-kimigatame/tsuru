@@ -1,106 +1,56 @@
 ﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
-// import { userEvent, within } from "@storybook/test";
+import JSZip from "jszip";
+import React, { useEffect, useState } from "react";
 import { InfoVBDialog } from "../../../src/features/InfoVBDialog/InfoVBDialog";
+import { VoiceBank } from "../../../src/lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
-import { sampleIcon, sampleWav } from "../../../src/storybook/sampledata";
-import { base64ToArrayBuffer } from "../../../src/storybook/utils";
-import { EncodingOption } from "../../../src/utils/EncodingMapping";
+import { loadVB } from "../../../src/storybook/utils";
 
-const fakeVb = {
-  name: "Test VB",
-  image: base64ToArrayBuffer(sampleIcon),
-  sample: base64ToArrayBuffer(sampleWav),
-  author: "Test Author",
-  web: "https://example.com",
-  version: "v1.0",
-  voice: "Test Voice",
-  oto: {
-    otoCount: 5,
-  },
-  zip: {
-    "readme.txt": {},
-    "a.txt": {},
-  },
-  initialize: async (encoding: EncodingOption) => {
-    return;
-  },
+const InfoVBDialogWrapper: React.FC<{ vbFileName: string }> = ({
+  vbFileName,
+}) => {
+  const { setVb } = useMusicProjectStore();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const td = new TextDecoder("Shift-JIS");
+        const buffer = await loadVB(vbFileName);
+        const zip = new JSZip();
+        await zip.loadAsync(buffer, {
+          decodeFileName: (fileNameBinary: Uint8Array) =>
+            td.decode(fileNameBinary),
+        });
+        const loadedVb = new VoiceBank(zip.files);
+        await loadedVb.initialize();
+        setVb(loadedVb);
+        setOpen(true);
+      } catch (err) {
+        console.error("Failed to load VB:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [vbFileName, setVb]);
+
+  if (loading) return <div>Loading voicebank...</div>;
+  return <InfoVBDialog open={open} setOpen={setOpen} />;
 };
 
-// @ts-expect-error testのために実際と異なる型の代入
-useMusicProjectStore.setState({ vb: fakeVb });
-
-const meta: Meta<typeof InfoVBDialog> = {
+const meta: Meta<typeof InfoVBDialogWrapper> = {
   title: "features/InfoVBDialog/InfoVBDialog",
-  component: InfoVBDialog,
+  component: InfoVBDialogWrapper,
   tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof InfoVBDialogWrapper>;
 
 export const Default: Story = {
   args: {
-    open: true,
-    setOpen: (open: boolean) => {
-      console.log("setOpen:", open);
-    },
+    vbFileName: "minimumCV.zip",
   },
-};
-
-export const AfterAgreement: Story = {
-  args: {
-    open: true,
-    setOpen: (open: boolean) => {
-      console.log("setOpen:", open);
-    },
-  },
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement, step }) => {
-  //   const canvas = within(document.body);
-  //   await step("利用規約同意ボタンが表示される", async () => {
-  //     await canvas.findByRole("button", { name: /全規約に同意/i });
-  //   });
-  //   await step("利用規約同意ボタンをクリックする", async () => {
-  //     const agreeButton = await canvas.findByRole("button", {
-  //       name: /全規約に同意/i,
-  //     });
-  //     await userEvent.click(agreeButton);
-  //   });
-  //   await step("ダイアログが閉じる", async () => {
-  //     await within(document.body)
-  //       .findByRole("dialog", {}, { timeout: 5000 })
-  //       .catch(() => {
-  //         return;
-  //       });
-  //   });
-  // },
-};
-
-export const FromHeader: Story = {
-  args: {
-    open: true,
-    setOpen: (open: boolean) => {
-      console.log("setOpen:", open);
-    },
-  },
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement, step }) => {
-  //   const canvas = within(document.body);
-  //   await step("初回起動時に利用規約同意ボタンが表示される", async () => {
-  //     await canvas.findByRole("button", { name: /全規約に同意/i });
-  //   });
-  //   await step("利用規約同意ボタンをクリックし、ダイアログを閉じる", async () => {
-  //     const agreeButton = await canvas.findByRole("button", {
-  //       name: /全規約に同意/i,
-  //     });
-  //     await userEvent.click(agreeButton);
-  //   });
-  //   await step(
-  //     "Header から再呼び出しで、閉じるアイコンが表示される",
-  //     async () => {
-  //       await canvas.findByRole("button", { name: /close/i });
-  //     }
-  //   );
-  // },
 };

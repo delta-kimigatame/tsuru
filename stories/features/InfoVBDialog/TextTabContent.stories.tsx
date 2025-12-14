@@ -1,6 +1,4 @@
 ﻿import { Meta, StoryObj } from "@storybook/react";
-import * as iconv from "iconv-lite";
-import JSZip from "jszip";
 import { TextTabContent } from "../../../src/features/InfoVBDialog/TextTabContent";
 import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
@@ -13,44 +11,20 @@ const meta: Meta<typeof TextTabContent> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// サンプルテキスト
-const sampleText = "あいう\r\nえお";
+// Shift-JISでエンコードされたバイト列（"サンプルテキスト\r\n改行を含むテキスト\r\n3行目のテキスト"）
+const sjisBytes = new Uint8Array([
+  0x83, 0x54, 0x83, 0x93, 0x83, 0x76, 0x83, 0x8b, 0x83, 0x65, 0x83, 0x4c, 0x83,
+  0x58, 0x83, 0x67, 0x0d, 0x0a, 0x89, 0xfc, 0x8d, 0x73, 0x82, 0xf0, 0x8a, 0xdc,
+  0x82, 0xde, 0x83, 0x65, 0x83, 0x4c, 0x83, 0x58, 0x83, 0x67, 0x0d, 0x0a, 0x33,
+  0x8d, 0x73, 0x96, 0xda, 0x82, 0xcc, 0x83, 0x65, 0x83, 0x4c, 0x83, 0x58, 0x83,
+  0x67,
+]);
+const textFile = new File([sjisBytes], "sample.txt", { type: "text/plain" });
 
-// Shift-JIS 用のテキストファイルを作成
-const zipShift = new JSZip();
-const shiftJisFile = new File(
-  [iconv.encode(sampleText, "Windows-31j")],
-  "test.txt",
-  { type: "text/plane;charset=shift-jis" }
-);
-zipShift.file("test.txt", shiftJisFile);
-const shiftJisTextFile = zipShift.files["test.txt"];
-
-// UTF-8 用のテキストファイルを作成
-const zipUtf8 = new JSZip();
-const utf8File = new File([sampleText], "test.txt", {
-  type: "text/plain;charset=utf-8",
-});
-zipUtf8.file("test.txt", utf8File);
-const utf8TextFile = zipUtf8.files["test.txt"];
-
-export const ShiftJIS: Story = {
+export const Default: Story = {
   args: {
-    textFile: shiftJisTextFile,
+    textFile: textFile,
     encoding: EncodingOption.SHIFT_JIS,
-  },
-};
-
-export const UTF8: Story = {
-  args: {
-    textFile: utf8TextFile,
-    encoding: EncodingOption.UTF8,
-  },
-};
-
-export const TextUndefined: Story = {
-  args: {
-    textFile: undefined,
-    encoding: EncodingOption.SHIFT_JIS,
+    progress: false,
   },
 };
