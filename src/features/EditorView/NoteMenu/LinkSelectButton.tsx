@@ -42,7 +42,7 @@ export const LinkSelectButton: React.FC<LinkSelectButtonProps> = (props) => {
     <IconButton
       disabled={props.selectedNotesIndex.length !== 1}
       onClick={handleLinkSelectButtonClick}
-      data-testid="EditButton"
+      data-testid="LinkSelectButton"
     >
       <LinkIcon />
     </IconButton>
