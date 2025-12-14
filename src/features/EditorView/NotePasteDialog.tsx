@@ -117,7 +117,13 @@ export const NotePasteDialog: React.FC<NotePasteDialogProps> = (props) => {
       return;
     }
     const targetNotes = getTargetNotes(notes, filteredSelectNotesIndex);
-    const loadNotes = (await loadUstFromClipboard()).notes;
+    const loadedUst = await loadUstFromClipboard();
+    if (!loadedUst || !loadedUst.notes) {
+      LOG.warn("クリップボードから有効なUSTデータを読み込めませんでした", "NotePasteDialog");
+      props.handleClose();
+      return;
+    }
+    const loadNotes = loadedUst.notes;
     const newNotes = NotePaste(targetNotes, loadNotes, formState);
     const updatedNotes = [...notes];
     filteredSelectNotesIndex.forEach((idx, i) => {
