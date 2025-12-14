@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PIANOROLL_CONFIG } from "../../../../src/config/pianoroll";
 import {
+  AddNote,
   getTargetNoteIndex,
   getTargetNoteIndexFromX,
+  getTargetPpltamentIndex,
   handleAddModeTap,
   handlePitchModeTap,
   handleRangeModeTap,
@@ -351,5 +353,146 @@ describe("PianorollToutchUtilty", () => {
     const redoResult = undoManager.redo();
     expect(undoResult).toEqual(notes);
     expect(redoResult).toEqual(resultNotes);
+  });
+
+  // AddNote関数の直接テスト
+  it("AddNote: 空配列にノートを追加した場合は1つのノートを含む配列になる", () => {
+    const result = AddNote([], undefined, 60, "あ", 480, 120);
+    expect(result.length).toBe(1);
+    expect(result[0].notenum).toBe(60);
+    expect(result[0].lyric).toBe("あ");
+    expect(result[0].length).toBe(480);
+    expect(result[0].tempo).toBe(120);
+  });
+
+  it("AddNote: indexがundefinedの場合は末尾にノートを追加する", () => {
+    const result = AddNote(notes, undefined, 72, "い", 240, 120);
+    expect(result.length).toBe(4);
+    expect(result.slice(0, 3)).toEqual(notes);
+    expect(result[3].notenum).toBe(72);
+    expect(result[3].lyric).toBe("い");
+    expect(result[3].length).toBe(240);
+  });
+
+  it("AddNote: indexを指定した場合はその位置にノートを挿入する", () => {
+    const result = AddNote(notes, 1, 84, "う", 360, 120);
+    expect(result.length).toBe(4);
+    expect(result[0]).toEqual(notes[0]);
+    expect(result[1].notenum).toBe(84);
+    expect(result[1].lyric).toBe("う");
+    expect(result[1].length).toBe(360);
+    expect(result.slice(2, 4)).toEqual(notes.slice(1, 3));
+  });
+
+  it("AddNote: 追加したノートのテンポは前のノートから継承される", () => {
+    const notesWithTempo = [createNote(60), createNote(62)];
+    notesWithTempo[1].tempo = 140;
+    const result = AddNote(notesWithTempo, undefined, 64, "え", 480, 120);
+    expect(result[2].tempo).toBe(140);
+  });
+
+  // getTargetPpltamentIndex関数のテスト
+  it("getTargetPpltamentIndex: ポルタメント領域内をクリックした場合はインデックスを返す", () => {
+    const poltaments = [
+      { x: 100, y: 200 },
+      { x: 300, y: 400 },
+    ];
+    const result = getTargetPpltamentIndex({ x: 105, y: 205 }, poltaments);
+    expect(result).toBe(0);
+  });
+
+  it("getTargetPpltamentIndex: 複数のポルタメントがある場合は最も近いものを返す", () => {
+    const poltaments = [
+      { x: 100, y: 200 },
+      { x: 200, y: 300 },
+      { x: 300, y: 400 },
+    ];
+    const result = getTargetPpltamentIndex({ x: 205, y: 305 }, poltaments);
+    expect(result).toBe(1);
+  });
+
+  it("getTargetPpltamentIndex: 閾値より遠い場合はundefinedを返す", () => {
+    const poltaments = [{ x: 100, y: 200 }];
+    const result = getTargetPpltamentIndex({ x: 1000, y: 1000 }, poltaments);
+    expect(result).toBe(undefined);
+  });
+
+  it("getTargetPpltamentIndex: 空配列の場合はundefinedを返す", () => {
+    const result = getTargetPpltamentIndex({ x: 100, y: 200 }, []);
+    expect(result).toBe(undefined);
+  });
+
+  // エッジケーステスト
+  it("getTargetNoteIndexFromX: 空配列の場合は-1を返す", () => {
+    const result = getTargetNoteIndexFromX(0, [], [], 1);
+    expect(result).toBe(-1);
+  });
+
+  it("getTargetNoteIndexFromX: 負のX座標の場合は最後のノートより前のインデックスを返す", () => {
+    const result = getTargetNoteIndexFromX(-100, notes, notesLeft, 1);
+    // 負のX座標の場合、findIndexが0を返し、0-1=-1となり、notes.length-1が返される
+    expect(result).toBe(notes.length - 1);
+  });
+
+  it("getTargetNoteIndex: 範囲外のnotenumの場合はundefinedを返す", () => {
+    const result = getTargetNoteIndex(
+      {
+        x: 0,
+        y: -100, // 範囲外のY座標
+      } as DOMPoint,
+      notes,
+      notesLeft,
+      1,
+      1
+    );
+    expect(result).toBe(undefined);
+  });
+
+  it("handleToggleModeTap: 空の選択リストに追加した場合はソートされた配列になる", () => {
+    const setSelectedNotesIndexSpy = vi.fn();
+    handleToggleModeTap([], 2, setSelectedNotesIndexSpy);
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([2]);
+  });
+
+  it("handleRangeModeTap: startIndexとtargetIndexが同じ場合は1つのノートを選択する", () => {
+    const setStartIndexSpy = vi.fn();
+    const setSelectedNotesIndexSpy = vi.fn();
+    const setSeveritySpy = vi.fn();
+    const setValueSpy = vi.fn();
+    const setOpenSpy = vi.fn();
+    handleRangeModeTap(
+      0,
+      0,
+      setStartIndexSpy,
+      setSelectedNotesIndexSpy,
+      setSeveritySpy,
+      setValueSpy,
+      setOpenSpy,
+      "範囲選択完了"
+    );
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([0]);
+    // startIndexが既に設定されている場合は、setStartIndexは呼ばれない
+    expect(setStartIndexSpy).not.toHaveBeenCalled();
+  });
+
+  it("handleRangeModeTap: startIndexより小さいtargetIndexの場合は逆順で選択する", () => {
+    const setStartIndexSpy = vi.fn();
+    const setSelectedNotesIndexSpy = vi.fn();
+    const setSeveritySpy = vi.fn();
+    const setValueSpy = vi.fn();
+    const setOpenSpy = vi.fn();
+    handleRangeModeTap(
+      5,
+      2,
+      setStartIndexSpy,
+      setSelectedNotesIndexSpy,
+      setSeveritySpy,
+      setValueSpy,
+      setOpenSpy,
+      "範囲選択完了"
+    );
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([2, 3, 4, 5]);
+    // startIndexが既に設定されている場合は、setStartIndexは呼ばれない
+    expect(setStartIndexSpy).not.toHaveBeenCalled();
   });
 });
