@@ -25,7 +25,7 @@ class DummyWorker {
 }
 
 describe("waitForWorkerMessage", () => {
-  it("resolves when a matching message event is fired", async () => {
+  it("マッチするメッセージイベントが発火されるとresolveされる", async () => {
     const dummyWorker = new DummyWorker();
     const promise = waitForWorkerMessage(
       dummyWorker as unknown as Worker,
@@ -48,7 +48,7 @@ describe("waitForWorkerMessage", () => {
     expect(result).toEqual({ type: "test", payload: 42 });
   });
 
-  it("removes the event listener after resolution", async () => {
+  it("resolve後にイベントリスナーが削除される", async () => {
     const dummyWorker = new DummyWorker();
     const removeSpy = vi.spyOn(dummyWorker, "removeEventListener");
 

@@ -115,7 +115,7 @@ const TestProjectCookieDefaultNote: React.FC = () => {
 };
 
 describe("useProjectCookie", () => {
-  it("defaultMode", () => {
+  it("デフォルト値の確認(mode)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieMode />
@@ -123,7 +123,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("Mode: system")).toBeInTheDocument();
   });
-  it("hasMode", () => {
+  it("Cookieに保存されたmodeを取得できる", () => {
     document.cookie = "utaletMode=dark; path=/;";
     render(
       <CookiesProvider>
@@ -132,7 +132,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("Mode: dark")).toBeInTheDocument();
   });
-  it("changeMode", async () => {
+  it("setModeでmodeを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieMode />
@@ -142,7 +142,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("Mode: dark")).toBeInTheDocument();
   });
-  it("defaultLanguage", () => {
+  it("デフォルト値の確認(language)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieLanguage />
@@ -150,7 +150,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("Language: en")).toBeInTheDocument();
   });
-  it("hasLanguage", () => {
+  it("Cookieに保存されたlanguageを取得できる", () => {
     document.cookie = "utaletLanguage=en; path=/;";
     render(
       <CookiesProvider>
@@ -159,7 +159,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("Language: en")).toBeInTheDocument();
   });
-  it("changeLanguage", async () => {
+  it("setLanguageでlanguageを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieLanguage />
@@ -169,7 +169,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("Language: en")).toBeInTheDocument();
   });
-  it("defaultColorTheme", () => {
+  it("デフォルト値の確認(colorTheme)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieColorTheme />
@@ -177,7 +177,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("ColorTheme: default")).toBeInTheDocument();
   });
-  it("hasColorTheme", () => {
+  it("Cookieに保存されたcolorThemeを取得できる", () => {
     document.cookie = "utaletColorTheme=red; path=/;";
     render(
       <CookiesProvider>
@@ -186,7 +186,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("ColorTheme: red")).toBeInTheDocument();
   });
-  it("changeColorTheme", async () => {
+  it("setColorThemeでcolorThemeを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieColorTheme />
@@ -197,7 +197,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("ColorTheme: red")).toBeInTheDocument();
   });
 
-  it("defaultDefaultNote", () => {
+  it("デフォルト値の確認(defaultNote)", () => {
     // 初期状態（Cookieがない場合）でテスト
     render(
       <CookiesProvider>
@@ -228,7 +228,7 @@ describe("useProjectCookie", () => {
       )
     ).toBeInTheDocument();
   });
-  it("hasDefaultNote", () => {
+  it("Cookieに保存されたdefaultNoteを取得できる", () => {
     // Cookieがすでに設定されている場合
     document.cookie =
       "utaletDefaultNote=" +
@@ -253,7 +253,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("Envelope Points: 0, 2")).toBeInTheDocument();
     expect(screen.getByText("Envelope Values: 1, 3")).toBeInTheDocument();
   });
-  it("changeDefaultNote", async () => {
+  it("setDefaultNoteでdefaultNoteを変更すると更新される", async () => {
     // デフォルトの状態から変更
     render(
       <CookiesProvider>
@@ -270,7 +270,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("Envelope Points: 0, 2")).toBeInTheDocument();
     expect(screen.getByText("Envelope Values: 0, 2")).toBeInTheDocument();
   });
-  it("defaultVerticalZoom", () => {
+  it("デフォルト値の確認(verticalZoom)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieVerticalZoom />
@@ -278,7 +278,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("VerticalZoom: 1")).toBeInTheDocument();
   });
-  it("hasVerticalZoom", () => {
+  it("Cookieに保存されたverticalZoomを取得できる", () => {
     document.cookie = "utaletVerticalZoom=0.8; path=/;";
     render(
       <CookiesProvider>
@@ -287,7 +287,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("VerticalZoom: 0.8")).toBeInTheDocument();
   });
-  it("changeVerticalZoom", async () => {
+  it("setVerticalZoomでverticalZoomを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieVerticalZoom />
@@ -297,7 +297,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("VerticalZoom: 2")).toBeInTheDocument();
   });
-  it("defaultHorizontalZoom", () => {
+  it("デフォルト値の確認(horizontalZoom)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieHorizontalZoom />
@@ -305,7 +305,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("HorizontalZoom: 1")).toBeInTheDocument();
   });
-  it("hasHorizontalZoom", () => {
+  it("Cookieに保存されたhorizontalZoomを取得できる", () => {
     document.cookie = "utaletHorizontalZoom=0.8; path=/;";
     render(
       <CookiesProvider>
@@ -314,7 +314,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("HorizontalZoom: 0.8")).toBeInTheDocument();
   });
-  it("changeHorizontalZoom", async () => {
+  it("setHorizontalZoomでhorizontalZoomを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieHorizontalZoom />
@@ -324,7 +324,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("HorizontalZoom: 2")).toBeInTheDocument();
   });
-  it("defaultWorkersCount", () => {
+  it("デフォルト値の確認(workersCount)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieWorkersCount />
@@ -332,7 +332,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("WorkersCount: 3")).toBeInTheDocument();
   });
-  it("hasWorkersCount", () => {
+  it("Cookieに保存されたworkersCountを取得できる", () => {
     document.cookie = "utaletWorkersCount=1; path=/;";
     render(
       <CookiesProvider>
@@ -341,7 +341,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("WorkersCount: 1")).toBeInTheDocument();
   });
-  it("changeWorkersCount", async () => {
+  it("setWorkersCountでworkersCountを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieWorkersCount />
@@ -351,7 +351,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("WorkersCount: 2")).toBeInTheDocument();
   });
-  it("defaultFastResamp", () => {
+  it("デフォルト値の確認(fastResamp)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieFastResamp />
@@ -359,7 +359,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("FastResamp: false")).toBeInTheDocument();
   });
-  it("hasFastResamp", () => {
+  it("Cookieに保存されたfastResampを取得できる", () => {
     document.cookie = "utaletFastResamp=true; path=/;";
     render(
       <CookiesProvider>
@@ -368,7 +368,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("FastResamp: true")).toBeInTheDocument();
   });
-  it("changeFastResamp", async () => {
+  it("setFastResampでfastResampを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieFastResamp />
@@ -378,7 +378,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("FastResamp: true")).toBeInTheDocument();
   });
-  it("defaultUseCache", () => {
+  it("デフォルト値の確認(useCache)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieUseCache />
@@ -386,7 +386,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("UseCache: true")).toBeInTheDocument();
   });
-  it("hasUseCache", () => {
+  it("Cookieに保存されたuseCacheを取得できる", () => {
     document.cookie = "utaletUseCache=false; path=/;";
     render(
       <CookiesProvider>
@@ -395,7 +395,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("UseCache: false")).toBeInTheDocument();
   });
-  it("changeUseCache", async () => {
+  it("setUseCacheでuseCacheを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieUseCache />
@@ -405,7 +405,7 @@ describe("useProjectCookie", () => {
     await fireEvent.click(button);
     expect(screen.getByText("UseCache: false")).toBeInTheDocument();
   });
-  it("defaultBackgroundResamp", () => {
+  it("デフォルト値の確認(backgroundResamp)", () => {
     render(
       <CookiesProvider>
         <TestProjectCookieBackgroundResamp />
@@ -413,7 +413,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("BackgroundResamp: true")).toBeInTheDocument();
   });
-  it("hasBackgroundResamp", () => {
+  it("Cookieに保存されたbackgroundResampを取得できる", () => {
     document.cookie = "utaletBackgroundResamp=false; path=/;";
     render(
       <CookiesProvider>
@@ -422,7 +422,7 @@ describe("useProjectCookie", () => {
     );
     expect(screen.getByText("BackgroundResamp: false")).toBeInTheDocument();
   });
-  it("changeBackgroundResamp", async () => {
+  it("setBackgroundResampでbackgroundResampを変更すると更新される", async () => {
     render(
       <CookiesProvider>
         <TestProjectCookieBackgroundResamp />
