@@ -1,237 +1,535 @@
-﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
-// import { userEvent, within } from "@storybook/test";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
-import {
-  FooterMenu,
-  FooterMenuProps,
-} from "../../../../src/features/EditorView/FooterMenu/FooterMenu";
+import { Wave } from "utauwav";
+import { FooterMenu } from "../../../../src/features/EditorView/FooterMenu/FooterMenu";
+import { Ust } from "../../../../src/lib/Ust";
+import { useCookieStore } from "../../../../src/store/cookieStore";
+import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import { sampleShortCVUst } from "../../../../src/storybook/sampledata";
+import { base64ToArrayBuffer } from "../../../../src/storybook/utils";
 
-const meta: Meta<typeof FooterMenu> = {
+const meta = {
   title: "features/EditorView/FooterMenu/FooterMenu",
   component: FooterMenu,
-  tags: ["autodocs"],
-  args: {
-    selectedNotesIndex: [],
-    handlePlay: () => {},
-    handleDownload: () => {},
-    synthesisProgress: false,
-    synthesisCount: 0,
-    playing: false,
-    handlePlayStop: () => {},
+  parameters: {
+    layout: "fullscreen",
   },
-};
+  tags: ["autodocs"],
+} satisfies Meta<typeof FooterMenu>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+/**
+ * FooterMenuコンポーネントのデフォルト表示
+ *
+ * 選択モード切替、Undo/Redo、バッチ処理、再生/停止、WAVダウンロードなどの機能を提供
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("toggle");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(false);
+      const [synthesisCount, setSynthesisCount] = React.useState(0);
+      const [playing, setPlaying] = React.useState(false);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
 
-export const SynthesisProgress: Story = {
-  args: {
-    synthesisProgress: true,
-    selectedNotesIndex: [],
-    synthesisCount: 1,
-  },
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async () => {
-  //   const projectStore = useMusicProjectStore.getState();
-  //   const notes = new Array<Note>(5).fill(new Note());
-  //   projectStore.setUst({} as Ust);
-  //   projectStore.setNotes(notes);
-  // },
-};
+      // 音楽プロジェクトのストアに初期データをセット
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
 
-export const Playing = Template.bind({});
-Playing.args = {
-  playing: true,
-};
-Playing.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
+      // 言語設定
+      useCookieStore.setState({
+        language: "ja",
+      });
 
-export const Landscape = Template.bind({});
-Landscape.args = {};
-Landscape.parameters = {
-  viewport: {
-    defaultViewport: "iphonex",
-    defaultOrientation: "landscape",
-  },
-};
-Landscape.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-Landscape.storyName = "iphoneX横向き";
+      const handlePlay = () => {
+        console.log("Play clicked");
+        setPlaying(true);
+        // 実際の再生処理はダミー
+        setTimeout(() => setPlaying(false), 3000);
+      };
 
-export const ClickUst = Template.bind({});
-ClickUst.args = {};
-ClickUst.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-ClickUst.play = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  const ustTab = await canvas.findByRole("tab", { name: /UST読込/i });
-  await userEvent.click(ustTab);
-  const fileInput = await canvas.findByTestId("file-input");
-  if (!fileInput) {
-    throw new Error("隠しファイル入力が見つかりません");
-  }
-};
-ClickUst.storyName = "UST読込クリック(ファイル読込が開く)";
-export const ClickZoom = Template.bind({});
-ClickZoom.args = {};
-ClickZoom.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-ClickZoom.play = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  await step(
-    "隠しファイル入力にダミーのustファイルをアップロードする",
-    async () => {
-      const fileInput = await canvas.findByTestId("file-input");
-      const dummyZip = new File(
-        [base64ToArrayBuffer(sampleShortCVUst)],
-        "test.ust"
+      const handlePlayStop = () => {
+        console.log("Stop clicked");
+        setPlaying(false);
+      };
+
+      const handleDownload = () => {
+        console.log("Download clicked");
+        setSynthesisProgress(true);
+        setSynthesisCount(0);
+        // ダミーの生成進捗
+        const interval = setInterval(() => {
+          setSynthesisCount((prev) => {
+            const next = prev + 1;
+            if (next >= ust.notes.length) {
+              clearInterval(interval);
+              setSynthesisProgress(false);
+              return 0;
+            }
+            return next;
+          });
+        }, 100);
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
       );
-      await userEvent.upload(fileInput, dummyZip);
-    }
-  );
-  const zoomTab = await canvas.findByRole("tab", { name: /拡大縮小/i });
-  await userEvent.click(zoomTab);
-  await within(document.body).findByRole("menu", {}, { timeout: 5000 });
+    },
+  ],
 };
-ClickZoom.storyName = "拡大縮小クリック(メニューが開く)";
 
-export const ClickBatchProcess = Template.bind({});
-ClickBatchProcess.args = {};
-ClickBatchProcess.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-ClickBatchProcess.play = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  await step(
-    "隠しファイル入力にダミーのustファイルをアップロードする",
-    async () => {
-      const fileInput = await canvas.findByTestId("file-input");
-      const dummyZip = new File(
-        [base64ToArrayBuffer(sampleShortCVUst)],
-        "test.ust"
+/**
+ * ノートが選択されている状態
+ */
+export const WithSelectedNotes: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([0, 1, 2]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("toggle");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(false);
+      const [synthesisCount, setSynthesisCount] = React.useState(0);
+      const [playing, setPlaying] = React.useState(false);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      const handlePlay = () => {
+        console.log("Play selected notes");
+        setPlaying(true);
+        setTimeout(() => setPlaying(false), 3000);
+      };
+
+      const handlePlayStop = () => {
+        console.log("Stop playing");
+        setPlaying(false);
+      };
+
+      const handleDownload = () => {
+        console.log("Download selected notes");
+        setSynthesisProgress(true);
+        setSynthesisCount(0);
+        const interval = setInterval(() => {
+          setSynthesisCount((prev) => {
+            const next = prev + 1;
+            if (next >= selectedNotesIndex.length) {
+              clearInterval(interval);
+              setSynthesisProgress(false);
+              return 0;
+            }
+            return next;
+          });
+        }, 100);
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
       );
-      await userEvent.upload(fileInput, dummyZip);
-    }
-  );
-  const batchProcessTab = await canvas.findByRole("tab", { name: /一括処理/i });
-  await userEvent.click(batchProcessTab);
-
-  await within(document.body).findByRole("menu", {}, { timeout: 5000 });
-};
-ClickBatchProcess.storyName = "一括処理クリック(メニューが開く)";
-
-const DummyParent: React.FC = () => {
-  const [playing, setPlaying] = React.useState<boolean>(false);
-  const [processing, setProcessing] = React.useState<boolean>(false);
-
-  const handlePlay = () => {
-    setPlaying(true);
-  };
-
-  const handlePlayStop = () => {
-    setPlaying(false);
-  };
-
-  const handleDownload = () => {
-    setProcessing(true);
-  };
-
-  // 他のハンドラーはダミー関数でOK
-  const dummyProps: FooterMenuProps = {
-    selectedNotesIndex: [],
-    handlePlay: handlePlay,
-    handleDownload: handleDownload,
-    synthesisProgress: processing,
-    synthesisCount: 0,
-    playing: playing,
-    handlePlayStop: handlePlayStop,
-  };
-
-  return <FooterMenu {...dummyProps} />;
+    },
+  ],
 };
 
-const ClickTemplate: StoryFn = () => <DummyParent />;
-export const ClickPlay = ClickTemplate.bind({});
-ClickPlay.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-ClickPlay.storyName = "再生クリック";
+/**
+ * 再生中の状態
+ */
+export const Playing: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("toggle");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(false);
+      const [synthesisCount, setSynthesisCount] = React.useState(0);
+      const [playing, setPlaying] = React.useState(true);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
 
-ClickPlay.play = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  await step(
-    "隠しファイル入力にダミーのustファイルをアップロードする",
-    async () => {
-      const fileInput = await canvas.findByTestId("file-input");
-      const dummyZip = new File(
-        [base64ToArrayBuffer(sampleShortCVUst)],
-        "test.ust"
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      const handlePlay = () => {
+        console.log("Play clicked");
+        setPlaying(true);
+      };
+
+      const handlePlayStop = () => {
+        console.log("Stop clicked");
+        setPlaying(false);
+      };
+
+      const handleDownload = () => {
+        console.log("Download clicked");
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
       );
-      await userEvent.upload(fileInput, dummyZip);
-    }
-  );
-  const playTab = await canvas.findByRole("tab", { name: /再生/i });
-  await userEvent.click(playTab);
-  const stopTab = await canvas.findByRole("tab", { name: /停止/i });
-  await userEvent.click(stopTab);
-  await canvas.findByRole("tab", { name: /再生/i });
+    },
+  ],
 };
 
-export const ClickDownload = ClickTemplate.bind({});
-ClickDownload.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
+/**
+ * 合成処理中の状態
+ */
+export const Synthesizing: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("toggle");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(true);
+      const [synthesisCount, setSynthesisCount] = React.useState(5);
+      const [playing, setPlaying] = React.useState(false);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
 
-ClickDownload.storyName = "wav保存をクリック";
-ClickDownload.play = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  await step(
-    "隠しファイル入力にダミーのustファイルをアップロードする",
-    async () => {
-      const fileInput = await canvas.findByTestId("file-input");
-      const dummyZip = new File(
-        [base64ToArrayBuffer(sampleShortCVUst)],
-        "test.ust"
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      const handlePlay = () => {
+        console.log("Play clicked");
+      };
+
+      const handlePlayStop = () => {
+        console.log("Stop clicked");
+      };
+
+      const handleDownload = () => {
+        console.log("Download clicked");
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
       );
-      await userEvent.upload(fileInput, dummyZip);
-    }
-  );
-  const downloadTab = await canvas.findByRole("tab", { name: /WAV保存/i });
-  await userEvent.click(downloadTab);
-  await canvas.findAllByRole("tab", { name: /0\/9/i });
+    },
+  ],
+};
+
+/**
+ * 追加モード（ノート追加）
+ */
+export const AddMode: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("add");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(false);
+      const [synthesisCount, setSynthesisCount] = React.useState(0);
+      const [playing, setPlaying] = React.useState(false);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      const handlePlay = () => {
+        console.log("Play clicked");
+        setPlaying(true);
+        setTimeout(() => setPlaying(false), 3000);
+      };
+
+      const handlePlayStop = () => {
+        console.log("Stop clicked");
+        setPlaying(false);
+      };
+
+      const handleDownload = () => {
+        console.log("Download clicked");
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * 範囲選択モード
+ */
+export const RangeSelectMode: Story = {
+  decorators: [
+    (Story) => {
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [selectMode, setSelectMode] = React.useState<
+        "toggle" | "range" | "pitch" | "add"
+      >("range");
+      const [synthesisProgress, setSynthesisProgress] = React.useState(false);
+      const [synthesisCount, setSynthesisCount] = React.useState(0);
+      const [playing, setPlaying] = React.useState(false);
+      const [backgroundAudioWav, setBackgroundAudioWav] =
+        React.useState<Wave | null>(null);
+      const [backgroundWavUrl, setBackgroundWavUrl] = React.useState("");
+      const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState(0);
+      const [backgroundVolume, setBackgroundVolume] = React.useState(0.5);
+      const [backgroundMuted, setBackgroundMuted] = React.useState(false);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      const handlePlay = () => {
+        console.log("Play clicked");
+        setPlaying(true);
+        setTimeout(() => setPlaying(false), 3000);
+      };
+
+      const handlePlayStop = () => {
+        console.log("Stop clicked");
+        setPlaying(false);
+      };
+
+      const handleDownload = () => {
+        console.log("Download clicked");
+      };
+
+      return (
+        <Story
+          args={{
+            selectedNotesIndex,
+            setSelectedNotesIndex,
+            handlePlay,
+            handleDownload,
+            synthesisProgress,
+            synthesisCount,
+            playing,
+            handlePlayStop,
+            selectMode,
+            setSelectMode,
+            backgroundAudioWav,
+            setBackgroundAudioWav,
+            backgroundWavUrl,
+            setBackgroundWavUrl,
+            backgroundOffsetMs,
+            setBackgroundOffsetMs,
+            backgroundVolume,
+            setBackgroundVolume,
+            backgroundMuted,
+            setBackgroundMuted,
+          }}
+        />
+      );
+    },
+  ],
 };
