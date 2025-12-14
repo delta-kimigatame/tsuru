@@ -7,7 +7,7 @@ import { PrefixMap } from "../../../src/lib/VoiceBanks/PrefixMap";
 import { VoiceBank } from "../../../src/lib/VoiceBanks/VoiceBank";
 
 describe("VoiceBank", () => {
-  it("not_found_character.txt", async () => {
+  it("character.txtがない場合、エラーをスローする", async () => {
     const z = new JSZip();
     const vb = new VoiceBank(z.files);
     await expect(async () => {
@@ -15,7 +15,7 @@ describe("VoiceBank", () => {
     }).rejects.toThrow("character.txt not found.");
   });
 
-  it("simple_character_txt", async () => {
+  it("最小構成のcharacter.txtで初期化できる", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -40,7 +40,7 @@ describe("VoiceBank", () => {
     expect(vb.prefixmaps).toEqual({ "": new PrefixMap() });
   });
 
-  it("simple_character_all", async () => {
+  it("全プロパティのcharacter.txtで初期化できる", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({
       name: "a",
@@ -70,7 +70,7 @@ describe("VoiceBank", () => {
     expect(vb.version).toBe("f");
   });
 
-  it("readme", async () => {
+  it("readme.txtを読み込める", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
@@ -90,7 +90,7 @@ describe("VoiceBank", () => {
     expect(vb.readme).toBe("test");
   });
 
-  it("yaml", async () => {
+  it("character.yamlを読み込める", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
@@ -144,7 +144,7 @@ describe("VoiceBank", () => {
     expect(vb.prefixmaps["b"].getValue("B4").suffix).toBe("_B");
   });
 
-  it("yaml_portraitHeightEqual0", async () => {
+  it("character.yamlのportrait_heightが0の場合、デフォルト値を使用する", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
@@ -184,7 +184,7 @@ describe("VoiceBank", () => {
     expect(vb.portraitHeight).toBe(800);
   });
 
-  it("prefixmap", async () => {
+  it("prefix.mapを読み込める", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
@@ -207,7 +207,7 @@ describe("VoiceBank", () => {
     expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("p");
   });
 
-  it("prefixmapWithYaml", async () => {
+  it("prefix.mapとcharacter.yamlを両方読み込むとyamlが優先される", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "a" });
     const c_output = new File(
@@ -263,7 +263,7 @@ describe("VoiceBank", () => {
     expect(vb.prefixmaps["b"].getValue("B4").suffix).toBe("_B");
   });
 
-  it("oto", async () => {
+  it("oto.iniを読み込める", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -297,7 +297,7 @@ describe("VoiceBank", () => {
     expect(vb.oto.GetRecordFromAlias("う")?.dirpath).toBe("test");
   });
 
-  it("getOtoRecord", async () => {
+  it("getOtoRecordでoto.iniレコードを取得できる", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -355,7 +355,7 @@ describe("VoiceBank", () => {
     expect(vb.getOtoRecord("あ_B", 60, "")).toBeNull();
   });
 
-  it("GetWav", async () => {
+  it("GetWavでWAVファイルを取得できる", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -380,7 +380,7 @@ describe("VoiceBank", () => {
     }).rejects.toThrow("root/い.wav not found.");
   });
 
-  it("GetFrq", async () => {
+  it("GetFrqでFRQファイルを取得できる", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -408,7 +408,7 @@ describe("VoiceBank", () => {
     }).rejects.toThrow("root/い_wav.frq not found.");
   });
 
-  it("utf8", async () => {
+  it("UTF-8エンコーディングのファイルを読み込める", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -439,7 +439,7 @@ describe("VoiceBank", () => {
     expect(vb.prefixmaps[""].getValue("C5").suffix).toBe("試");
   });
 
-  it("zipプロパティがroot以下のファイルのみを返すことを確認する:rootが未定義", () => {
+  it("rootが定義済みの場合、zipプロパティがroot以下のファイルのみを返す", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(

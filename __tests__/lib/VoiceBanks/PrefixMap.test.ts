@@ -4,7 +4,7 @@ import { PrefixMap } from "../../../src/lib/VoiceBanks/PrefixMap";
 import { noteNumToTone, toneToNoteNum } from "../../../src/utils/Notenum";
 
 describe("prefix.map", () => {
-  it("empty_init", () => {
+  it("空の初期化で全音域がprefix/suffix空文字を確認", () => {
     const map = new PrefixMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       const valueFromNotenum = map.getValue(i);
@@ -17,7 +17,7 @@ describe("prefix.map", () => {
       expect(valueFromToneName.suffix).toBe("");
     }
   });
-  it("change_value", () => {
+  it("個別の音程にprefix/suffixを設定できる", () => {
     const map = new PrefixMap();
     map.setValue({ tone: "B7", prefix: "pre", suffix: "" });
     map.setValue({ tone: "A#7", prefix: "", suffix: "su" });
@@ -37,7 +37,7 @@ describe("prefix.map", () => {
     }
   });
 
-  it("change_range_value", () => {
+  it("音域範囲にprefix/suffixを設定できる", () => {
     const map = new PrefixMap();
     map.setRangeValues("C7-B7", "pre", "");
     map.setRangeValues("C6-B6", "", "su");
@@ -61,14 +61,14 @@ describe("prefix.map", () => {
     }
   });
 
-  it("output_empty", () => {
+  it("空の状態でprefix.mapを出力できる", () => {
     const map = new PrefixMap();
     const output = map.outputMap();
     for (let i = toneToNoteNum("C1"); i <= toneToNoteNum("B7"); i++) {
       expect(output).toContain(noteNumToTone(i) + "\t\t");
     }
   });
-  it("output_setValue", () => {
+  it("setValue後にprefix.mapを出力できる", () => {
     const map = new PrefixMap();
     map.setValue({ tone: "B7", prefix: "pre", suffix: "" });
     map.setValue({ tone: "A#7", prefix: "", suffix: "su" });
@@ -83,7 +83,7 @@ describe("prefix.map", () => {
       }
     }
   });
-  it("output_setRangeValues", () => {
+  it("setRangeValues後にprefix.mapを出力できる", () => {
     const map = new PrefixMap();
     map.setRangeValues("C7-B7", "pre", "");
     map.setRangeValues("C6-B6", "", "su");
@@ -101,7 +101,7 @@ describe("prefix.map", () => {
       }
     }
   });
-  it("output_setRangeSingle", () => {
+  it("単一音程を範囲指定で設定して出力できる", () => {
     const map = new PrefixMap();
     map.setRangeValues("B7", "pre", "");
     const output = map.outputMap();
@@ -113,7 +113,7 @@ describe("prefix.map", () => {
       }
     }
   });
-  it("load_empty_file", () => {
+  it("空のprefix.mapファイルを読み込める", () => {
     const map = new PrefixMap();
     const output = map.outputMap();
     const map2 = new PrefixMap(output);
@@ -128,7 +128,7 @@ describe("prefix.map", () => {
       expect(valueFromToneName.suffix).toBe("");
     }
   });
-  it("load_file", () => {
+  it("prefix.mapファイルを読み込める", () => {
     const map = new PrefixMap();
     map.setRangeValues("C7-B7", "pre", "");
     map.setRangeValues("C6-B6", "", "su");
@@ -153,7 +153,7 @@ describe("prefix.map", () => {
       }
     }
   });
-  it("load_file_with_Charset:utf8", () => {
+  it("#Charset:UTF8付きprefix.mapファイルを読み込める", () => {
     const map = new PrefixMap();
     map.setRangeValues("C7-B7", "pre", "");
     map.setRangeValues("C6-B6", "", "su");
@@ -178,7 +178,7 @@ describe("prefix.map", () => {
       }
     }
   });
-  it("output_empty_for_OU", () => {
+  it("OpenUtau用に空の状態でsubbanksを出力できる", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
     const output = map.outputSubbanks();
@@ -187,7 +187,7 @@ describe("prefix.map", () => {
     expect(output[0].suffix).toBe("");
     expect(output[0].tone_ranges[0]).toBe("C1-B7");
   });
-  it("output_range_for_OU", () => {
+  it("OpenUtau用に音域範囲でsubbanksを出力できる", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
     map.setRangeValues("C7-B7", "pre", "");
@@ -211,7 +211,7 @@ describe("prefix.map", () => {
     expect(output[3].suffix).toBe("");
     expect(output[3].tone_ranges[0]).toBe("C7-B7");
   });
-  it("output_range_for_OU_same_prefix_last", () => {
+  it("OpenUtau用に同一prefix/suffixの音域を統合して出力できる(末尾)", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
     map.setRangeValues("C6-B6", "", "su");
@@ -226,7 +226,7 @@ describe("prefix.map", () => {
     expect(output[1].suffix).toBe("su");
     expect(output[1].tone_ranges[0]).toBe("C6-B6");
   });
-  it("output_range_for_OU_same_prefix_last", () => {
+  it("OpenUtau用に同一prefix/suffixの複数音域を統合して出力できる", () => {
     const map = new PrefixMap();
     map.voiceColor = "test";
     map.setRangeValues("C4-B4", "", "su");

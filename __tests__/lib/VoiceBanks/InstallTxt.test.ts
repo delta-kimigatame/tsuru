@@ -2,16 +2,16 @@ import { describe, expect, it } from "vitest";
 import { InstallTxt } from "../../../src/lib/VoiceBanks/InstallTxt";
 
 describe("InstallTxt", () => {
-  it("throw error", () => {
+  it("txtもfolderも未指定の場合、エラーをスローする", () => {
     expect(() => {
       new InstallTxt({});
     }).toThrow("txtかfolderのどちらかが必要です");
   });
-  it("values_minimum", () => {
+  it("folder最小構成で初期化できる", () => {
     const install = new InstallTxt({ folder: "foo" });
     expect(install.folder).toBe("foo");
   });
-  it("values_all", () => {
+  it("folder全プロパティで初期化できる", () => {
     const install = new InstallTxt({
       folder: "foo",
       contentsDir: "bar",
@@ -21,11 +21,11 @@ describe("InstallTxt", () => {
     expect(install.contentsDir).toBe("bar");
     expect(install.description).toBe("test");
   });
-  it("text_minimum", () => {
+  it("txt最小構成で初期化できる", () => {
     const install = new InstallTxt({ txt: "type=voiceset\r\nfolder=foo\r\n" });
     expect(install.folder).toBe("foo");
   });
-  it("text_all", () => {
+  it("txt全プロパティで初期化できる", () => {
     const install = new InstallTxt({
       txt: "type=voiceset\r\nfolder=foo\r\ncontentsdir=bar\r\ndescription=test",
     });
@@ -33,22 +33,22 @@ describe("InstallTxt", () => {
     expect(install.contentsDir).toBe("bar");
     expect(install.description).toBe("test");
   });
-  it("output_minimum", () => {
+  it("最小構成でtxt出力できる", () => {
     const install = new InstallTxt({ folder: "foo" });
     const output = install.outputTxt();
     expect(output).toBe("type=voiceset\r\nfolder=foo\r\n");
   });
-  it("output_with_contentdir", () => {
+  it("contentsdirありでtxt出力できる", () => {
     const install = new InstallTxt({ folder: "foo", contentsDir: "bar" });
     const output = install.outputTxt();
     expect(output).toBe("type=voiceset\r\nfolder=foo\r\ncontentsdir=bar\r\n");
   });
-  it("output_with_description", () => {
+  it("descriptionありでtxt出力できる", () => {
     const install = new InstallTxt({ folder: "foo", description: "test" });
     const output = install.outputTxt();
     expect(output).toBe("type=voiceset\r\nfolder=foo\r\ndescription=test\r\n");
   });
-  it("output_all", () => {
+  it("全プロパティでtxt出力できる", () => {
     const install = new InstallTxt({
       folder: "foo",
       contentsDir: "bar",
