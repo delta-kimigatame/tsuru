@@ -1,4 +1,5 @@
 // HeaderLogo.test.tsx
+import { useMediaQuery } from "@mui/material";
 import {
   act,
   fireEvent,
@@ -6,12 +7,20 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HeaderLogo } from "../../../src/features/Header//HeaderLogo";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
 import { useSnackBarStore } from "../../../src/store/snackBarStore";
 import { EncodingOption } from "../../../src/utils/EncodingMapping";
+
+// useMediaQueryをモック化
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual("@mui/material");
+  return {
+    ...actual,
+    useMediaQuery: vi.fn().mockReturnValue(true), // デフォルトはtrue (画面サイズ大)
+  };
+});
 
 // ダミー vb オブジェクト（vbが非nullの場合のテスト用）
 const dummyVb = {
@@ -41,7 +50,7 @@ describe("HeaderLogo", () => {
   });
 
   // 1. vbが非null時のクリックハンドラの動作検証
-  it("should open InfoVBDialog when vb is non-null and avatar is clicked", async () => {
+  it("vbが非nullの場合はAvatarをクリックするとInfoVBDialogが開く", async () => {
     // 初期状態: vb is non-null
     setGlobalVb(dummyVb);
     render(<HeaderLogo />);
@@ -56,8 +65,8 @@ describe("HeaderLogo", () => {
     });
   });
 
-  // 2. vbがnull時のクリックハンドラの動作検証
-  it("should show snackbar message when vb is null and avatar is clicked", async () => {
+  // 2. vbがなnull時のクリックハンドラの動作検証
+  it("vbがnullの場合はAvatarをクリックするとsnackbarが表示される", async () => {
     // vb を null に設定
     setGlobalVb(null);
     // スナックバーの set* メソッドを spy
@@ -80,7 +89,7 @@ describe("HeaderLogo", () => {
   });
 
   // 3. vbが非null時のAvatarの属性検証
-  it("should render avatar with vb.image and vb.name when vb is non-null", async () => {
+  it("vbが非nullの場合はvb.imageとvb.nameでAvatarがレンダリングされる", async () => {
     setGlobalVb(dummyVb);
     render(<HeaderLogo />);
     const avatar = await screen.findByAltText(dummyVb.name);
@@ -90,8 +99,8 @@ describe("HeaderLogo", () => {
     expect(avatar.getAttribute("alt")).toEqual(dummyVb.name);
   });
 
-  // 4. vbがnull時のAvatarの属性検証
-  it("should render avatar with default logo and alt 'logo' when vb is null", async () => {
+  // 4. vbがなnull時のAvatarの属性検証
+  it("vbがnullの場合はデフォルトロゴとalt='logo'でAvatarがレンダリングされる", async () => {
     setGlobalVb(null);
     render(<HeaderLogo />);
     const avatar = await screen.findByAltText("logo");
@@ -100,7 +109,7 @@ describe("HeaderLogo", () => {
   });
 
   // 5. vbが非nullかつ内部状態がopenのときInfoVBDialogがレンダリングされることの検証
-  it("should render InfoVBDialog when open state is true and vb is non-null", async () => {
+  it("open状態がtrueでvbが非nullの場合はInfoVBDialogがレンダリングされる", async () => {
     setGlobalVb(dummyVb);
     render(<HeaderLogo />);
     const avatar = await screen.findByAltText(dummyVb.name);
@@ -116,7 +125,7 @@ describe("HeaderLogo", () => {
   // 6. InfoVBDialogに期待する通りsetOpenが渡っていることの検証
   // ※ InfoVBDialog自体は子コンポーネントとして既にテスト済みのため、ここでは
   // 単に InfoVBDialog がレンダリングされていることを確認する
-  it("should pass setOpen prop correctly to InfoVBDialog", async () => {
+  it("InfoVBDialogにsetOpen propが正しく渡される", async () => {
     setGlobalVb(dummyVb);
     render(<HeaderLogo />);
     const avatar = await screen.findByAltText(dummyVb.name);
@@ -129,5 +138,34 @@ describe("HeaderLogo", () => {
     });
     // 詳細な props の検証は、InfoVBDialog の単体テストで行う前提なので、
     // ここでは setOpen が呼ばれる挙動を含めて十分とする。
+  });
+
+  // 7. レスポンシブ表示: matches=true (画面幅sm以上) の場合はTypographyが表示される
+  it("画面幅がsm以上の場合はTypographyが表示される", async () => {
+    // デフォルトでuseMediaQueryはtrueを返す設定になっているため、
+    // 特別なモック設定なしで画面サイズが大きい状態をテスト
+    setGlobalVb(dummyVb);
+    const { container } = render(<HeaderLogo />);
+
+    // vbが非nullの場合、vb.nameがTypographyとして表示される
+    // Typographyはsubtitle2として表示される (BoxのdirectChildとして)
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    const typography = container.querySelector(".MuiTypography-subtitle2");
+    expect(typography).toBeInTheDocument();
+    expect(typography).toHaveTextContent(dummyVb.name);
+  });
+
+  // 8. レスポンシブ表示: matches=false (画面幅sm未満) の場合はTypographyが表示されない
+  it("画面幅がsm未満の場合はTypographyが表示されない", async () => {
+    // useMediaQueryがfalseを返すようモック
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+
+    setGlobalVb(null);
+    const { container } = render(<HeaderLogo />);
+
+    // vbがnullの場合のproductNameもTypographyとして表示されないことを確認
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    const typography = container.querySelector(".MuiTypography-subtitle2");
+    expect(typography).not.toBeInTheDocument();
   });
 });
