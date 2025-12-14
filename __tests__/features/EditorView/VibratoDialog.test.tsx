@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   VibratoDialog,
@@ -9,11 +8,17 @@ import {
 import { Note } from "../../../src/lib/Note";
 import { undoManager } from "../../../src/lib/UndoManager";
 import { Ust } from "../../../src/lib/Ust";
+import { BaseVoiceBank } from "../../../src/lib/VoiceBanks/BaseVoiceBank";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
 
 describe("VibratoDialog", () => {
   beforeEach(() => {
     undoManager.clear();
+    const store = useMusicProjectStore.getState();
+    const mockVb = {
+      getOtoRecord: vi.fn().mockReturnValue({}),
+    } as unknown as BaseVoiceBank;
+    store.setVb(mockVb);
   });
   it("VibratoEdit:useVibratoがtrueの場合、値を更新する", () => {
     const n = new Note();
@@ -240,6 +245,8 @@ describe("VibratoDialog", () => {
   it("VibratoDialog:実行によりvibratoが設定される", () => {
     const n = new Note();
     n.index = 0;
+    n.lyric = "あ";
+    n.notenum = 60;
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);
     store.setNotes([n]);
@@ -296,6 +303,8 @@ describe("VibratoDialog", () => {
   });
   it("VibratoDialog:noteのビブラート設定解除", () => {
     const n = new Note();
+    n.lyric = "あ";
+    n.notenum = 60;
     n.vibrato = "50,120,40,35,45,1,8,0";
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);
