@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { CookiesProvider, useCookies } from "react-cookie";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { COOKIE_KEYS, cookieDefaults } from "../../src/config/cookie";
@@ -89,12 +88,20 @@ describe("cookieStore", () => {
       defaultNote: cookieDefaults.defaultNote,
       verticalZoom: cookieDefaults.verticalZoom,
       horizontalZoom: cookieDefaults.horizontalZoom,
+      workersCount: cookieDefaults.workersCount,
+      fastResamp: cookieDefaults.fastResamp,
+      useCache: cookieDefaults.useCache,
+      backgroundResamp: cookieDefaults.backgroundResamp,
       setModeInCookie: () => {},
       setLanguageInCookie: () => {},
       setColorThemeInCookie: () => {},
       setDefaultNoteInCookie: () => {},
       setVerticalZoomInCookie: () => {},
       setHorizontalZoomInCookie: () => {},
+      setWorkersCountInCookie: () => {},
+      setFastResampInCookie: () => {},
+      setUseCacheInCookie: () => {},
+      setBackgroundResampInCookie: () => {},
       isInitialized: false,
     });
   });
@@ -108,7 +115,7 @@ describe("cookieStore", () => {
     });
   });
 
-  it("zustandDefault", () => {
+  it("Zustandのデフォルト値の確認", () => {
     render(
       <CookiesProvider>
         <TestComponent />
@@ -145,7 +152,7 @@ describe("cookieStore", () => {
     );
   });
 
-  it("zustandLoadCookie", async () => {
+  it("Cookieに値がある場合はCookieから読み込まれる", async () => {
     // クッキーに事前に値をセット
     document.cookie = `${COOKIE_KEYS.mode}=dark`;
     document.cookie = `${COOKIE_KEYS.language}=en`;
@@ -190,7 +197,7 @@ describe("cookieStore", () => {
     });
   });
 
-  it("zustandChangeValue", () => {
+  it("setModeでmodeを変更するとZustandの値が更新される", () => {
     render(
       <CookiesProvider>
         <TestComponent />
@@ -198,19 +205,39 @@ describe("cookieStore", () => {
     );
 
     fireEvent.click(screen.getByText("Set Mode Dark"));
-    fireEvent.click(screen.getByText("Set Language EN"));
-    fireEvent.click(screen.getByText("Set Color Theme Red"));
-    fireEvent.click(screen.getByText("Set Default Note"));
-    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
-    fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
-    fireEvent.click(screen.getByText("Set Workers Count 2"));
-    fireEvent.click(screen.getByText("Set FastResamp true"));
-    fireEvent.click(screen.getByText("Set UseCache false"));
-    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
-
     expect(screen.getByTestId("mode")).toHaveTextContent("dark");
+  });
+
+  it("setLanguageでlanguageを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Language EN"));
     expect(screen.getByTestId("language")).toHaveTextContent("en");
+  });
+
+  it("setColorThemeでcolorThemeを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Color Theme Red"));
     expect(screen.getByTestId("colorTheme")).toHaveTextContent("red");
+  });
+
+  it("setDefaultNoteでdefaultNoteを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Default Note"));
     expect(screen.getByTestId("defaultNote")).toHaveTextContent(
       JSON.stringify({
         velocity: 120,
@@ -219,15 +246,75 @@ describe("cookieStore", () => {
         envelope: { point: [0, 2], value: [1, 3] },
       })
     );
+  });
+
+  it("setVerticalZoomでverticalZoomを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
     expect(screen.getByTestId("verticalZoom")).toHaveTextContent("2");
+  });
+
+  it("setHorizontalZoomでhorizontalZoomを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
     expect(screen.getByTestId("horizontalZoom")).toHaveTextContent("2");
+  });
+
+  it("setWorkersCountでworkersCountを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Workers Count 2"));
     expect(screen.getByTestId("workersCount")).toHaveTextContent("2");
+  });
+
+  it("setFastResampでfastResampを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set FastResamp true"));
     expect(screen.getByTestId("fastResamp")).toHaveTextContent("true");
+  });
+
+  it("setUseCacheでuseCacheを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set UseCache false"));
     expect(screen.getByTestId("useCache")).toHaveTextContent("false");
+  });
+
+  it("setBackgroundResampでbackgroundResampを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
     expect(screen.getByTestId("backgroundResamp")).toHaveTextContent("false");
   });
 
-  it("changeCookieWhenChangeValue", async () => {
+  it("setModeでmodeを変更するとCookieも更新される", async () => {
     render(
       <CookiesProvider>
         <TestComponent />
@@ -235,20 +322,46 @@ describe("cookieStore", () => {
     );
 
     fireEvent.click(screen.getByText("Set Mode Dark"));
-    fireEvent.click(screen.getByText("Set Language EN"));
-    fireEvent.click(screen.getByText("Set Color Theme Red"));
-    fireEvent.click(screen.getByText("Set Default Note"));
-    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
-    fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
-    fireEvent.click(screen.getByText("Set Workers Count 2"));
-    fireEvent.click(screen.getByText("Set FastResamp true"));
-    fireEvent.click(screen.getByText("Set UseCache false"));
-    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
-
     await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.mode}=dark`);
+    });
+  });
+
+  it("setLanguageでlanguageを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Language EN"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.language}=en`);
+    });
+  });
+
+  it("setColorThemeでcolorThemeを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Color Theme Red"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.colorTheme}=red`);
+    });
+  });
+
+  it("setDefaultNoteでdefaultNoteを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Default Note"));
+    await waitFor(() => {
       expect(document.cookie).toContain(
         `${COOKIE_KEYS.defaultNote}=${encodeURIComponent(
           JSON.stringify({
@@ -259,11 +372,83 @@ describe("cookieStore", () => {
           })
         )}`
       );
+    });
+  });
+
+  it("setVerticalZoomでverticalZoomを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.verticalZoom}=2`);
+    });
+  });
+
+  it("setHorizontalZoomでhorizontalZoomを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.horizontalZoom}=2`);
+    });
+  });
+
+  it("setWorkersCountでworkersCountを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set Workers Count 2"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.workersCount}=2`);
+    });
+  });
+
+  it("setFastResampでfastResampを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set FastResamp true"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.fastResamp}=true`);
+    });
+  });
+
+  it("setUseCacheでuseCacheを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set UseCache false"));
+    await waitFor(() => {
       expect(document.cookie).toContain(`${COOKIE_KEYS.useCache}=false`);
+    });
+  });
+
+  it("setBackgroundResampでbackgroundResampを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>
+    );
+
+    fireEvent.click(screen.getByText("Set BackgroundResamp false"));
+    await waitFor(() => {
       expect(document.cookie).toContain(
         `${COOKIE_KEYS.backgroundResamp}=false`
       );
