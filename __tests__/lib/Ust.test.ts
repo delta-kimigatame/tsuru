@@ -36,7 +36,46 @@ const makeHeader = (encode: string): Array<string> => {
 };
 
 describe("Ust", () => {
-  it("load_header", async () => {
+  describe("constructor", () => {
+    it("デフォルトのtempoは120である", () => {
+      const u = new Ust();
+      expect(u.tempo).toBe(120);
+    });
+  });
+
+  describe("tempo", () => {
+    it("正常値を設定できる", () => {
+      const u = new Ust();
+      u.tempo = 150;
+      expect(u.tempo).toBe(150);
+    });
+
+    it("最小値10を設定できる", () => {
+      const u = new Ust();
+      u.tempo = 10;
+      expect(u.tempo).toBe(10);
+    });
+
+    it("最小値未満は10にクランプされる", () => {
+      const u = new Ust();
+      u.tempo = 5;
+      expect(u.tempo).toBe(10);
+    });
+
+    it("最大値512を設定できる", () => {
+      const u = new Ust();
+      u.tempo = 512;
+      expect(u.tempo).toBe(512);
+    });
+
+    it("最大値を超えた値は512にクランプされる", () => {
+      const u = new Ust();
+      u.tempo = 600;
+      expect(u.tempo).toBe(512);
+    });
+  });
+
+  it("Shift-JISエンコードのヘッダを読み込める", async () => {
     const ustLines = makeHeader("shift-jis").concat([
       "[#0000]",
       "Length=1920",
@@ -63,7 +102,7 @@ describe("Ust", () => {
     expect(u.notes.length).toBe(2);
     expect(u.notes[0].lyric).toBe("あ");
   });
-  it("load_header_utf8", async () => {
+  it("UTF-8エンコードのヘッダを読み込める", async () => {
     const ustLines = makeHeader("utf-8").concat([
       "[#0000]",
       "Length=1920",
@@ -90,7 +129,7 @@ describe("Ust", () => {
     expect(u.notes.length).toBe(2);
     expect(u.notes[0].lyric).toBe("あ");
   });
-  it("minimum_note", async () => {
+  it("最小限のノートパラメータで読み込める", async () => {
     const ustLines = makeHeader("utf-8").concat([
       "[#0000]",
       "Length=1920",
@@ -114,7 +153,7 @@ describe("Ust", () => {
     expect(u.notes[0].hasTempo).toBeFalsy();
     expect(u.notes[0].preutter).toBeUndefined();
   });
-  it("fully_note", async () => {
+  it("全てのノートパラメータを読み込める", async () => {
     const ustLines = makeHeader("utf-8").concat([
       "[#0000]",
       "Length=1920",
@@ -191,7 +230,7 @@ describe("Ust", () => {
     expect(u.notes[0].region).toBe("1番");
     expect(u.notes[0].regionEnd).toBe("イントロ");
   });
-  it("tempo", async () => {
+  it("ノート途中のテンポ変更が正しく反映される", async () => {
     const ustLines = makeHeader("utf-8").concat([
       "[#0000]",
       "Length=1920",
@@ -225,7 +264,7 @@ describe("Ust", () => {
     expect(u.notes[2].tempo).toBe(120);
     expect(u.notes[2].hasTempo).toBeFalsy();
   });
-  it("pointer", async () => {
+  it("ノート間のprev/nextポインタが正しく設定される", async () => {
     const ustLines = makeHeader("utf-8").concat([
       "[#0000]",
       "Length=1920",
@@ -259,6 +298,146 @@ describe("Ust", () => {
     expect(u.notes[2].prev.index).toBe(1);
     expect(u.notes[2].next).toBeUndefined();
   });
+
+  it("Lengthが不正な値のノートは読み込まれない", async () => {
+    const ustLines = makeHeader("utf-8").concat([
+      "[#0000]",
+      "Length=1920",
+      "Lyric=あ",
+      "NoteNum=60",
+      "[#0001]",
+      "Length=0",
+      "Lyric=い",
+      "NoteNum=61",
+      "[#0002]",
+      "Length=-100",
+      "Lyric=う",
+      "NoteNum=62",
+      "[#0003]",
+      "Length=abc",
+      "Lyric=え",
+      "NoteNum=63",
+      "[#0004]",
+      "Length=480",
+      "Lyric=お",
+      "NoteNum=64",
+    ]);
+    const ustBuf = new File(
+      [iconv.encode(ustLines.join("\r\n"), "utf-8")],
+      "test.ust",
+      { type: "text/plane;charset=utf-8" }
+    );
+    const u = new Ust();
+    await u.load(ustBuf);
+    expect(u.notes.length).toBe(2);
+    expect(u.notes[0].lyric).toBe("あ");
+    expect(u.notes[1].lyric).toBe("お");
+  });
+
+  it("Lyricがundefinedまたは空の場合はRになる", async () => {
+    const ustLines = makeHeader("utf-8").concat([
+      "[#0000]",
+      "Length=1920",
+      "Lyric=undefined",
+      "NoteNum=60",
+      "[#0001]",
+      "Length=1920",
+      "Lyric=",
+      "NoteNum=61",
+      "[#0002]",
+      "Length=1920",
+      "Lyric=  ",
+      "NoteNum=62",
+    ]);
+    const ustBuf = new File(
+      [iconv.encode(ustLines.join("\r\n"), "utf-8")],
+      "test.ust",
+      { type: "text/plane;charset=utf-8" }
+    );
+    const u = new Ust();
+    await u.load(ustBuf);
+    expect(u.notes.length).toBe(3);
+    expect(u.notes[0].lyric).toBe("R");
+    expect(u.notes[1].lyric).toBe("R");
+    expect(u.notes[2].lyric).toBe("R");
+  });
+
+  it("NoteNumが不正な値の場合は60になる", async () => {
+    const ustLines = makeHeader("utf-8").concat([
+      "[#0000]",
+      "Length=1920",
+      "Lyric=あ",
+      "NoteNum=-1",
+      "[#0001]",
+      "Length=1920",
+      "Lyric=い",
+      "NoteNum=128",
+      "[#0002]",
+      "Length=1920",
+      "Lyric=う",
+      "NoteNum=abc",
+    ]);
+    const ustBuf = new File(
+      [iconv.encode(ustLines.join("\r\n"), "utf-8")],
+      "test.ust",
+      { type: "text/plane;charset=utf-8" }
+    );
+    const u = new Ust();
+    await u.load(ustBuf);
+    expect(u.notes.length).toBe(3);
+    expect(u.notes[0].notenum).toBe(60);
+    expect(u.notes[1].notenum).toBe(60);
+    expect(u.notes[2].notenum).toBe(60);
+  });
+
+  it("PreUtteranceがNaNの場合はundefinedのままである", async () => {
+    const ustLines = makeHeader("utf-8").concat([
+      "[#0000]",
+      "Length=1920",
+      "Lyric=あ",
+      "NoteNum=60",
+      "PreUtterance=abc",
+    ]);
+    const ustBuf = new File(
+      [iconv.encode(ustLines.join("\r\n"), "utf-8")],
+      "test.ust",
+      { type: "text/plane;charset=utf-8" }
+    );
+    const u = new Ust();
+    await u.load(ustBuf);
+    expect(u.notes.length).toBe(1);
+    expect(u.notes[0].preutter).toBeUndefined();
+  });
+
+  it("TRACKENDがあってもそれまでのノートは読み込まれる", async () => {
+    const ustLines = makeHeader("utf-8").concat([
+      "[#0000]",
+      "Length=1920",
+      "Lyric=あ",
+      "NoteNum=60",
+      "[#0001]",
+      "Length=1920",
+      "Lyric=い",
+      "NoteNum=61",
+      "[#TRACKEND]",
+      "[#0002]",
+      "Length=1920",
+      "Lyric=う",
+      "NoteNum=62",
+    ]);
+    const ustBuf = new File(
+      [iconv.encode(ustLines.join("\r\n"), "utf-8")],
+      "test.ust",
+      { type: "text/plane;charset=utf-8" }
+    );
+    const u = new Ust();
+    await u.load(ustBuf);
+    // TRACKENDはforEach内のreturnなのでループは継続し、全ノートが読み込まれる
+    expect(u.notes.length).toBe(3);
+    expect(u.notes[0].lyric).toBe("あ");
+    expect(u.notes[1].lyric).toBe("い");
+    expect(u.notes[2].lyric).toBe("う");
+  });
 });
 
 describe("usedTestUst", () => {
@@ -277,7 +456,7 @@ describe("usedTestUst", () => {
     ustBuf = fs.readFileSync("./__tests__/__fixtures__/testustCV.ust");
   });
 
-  it("load", async () => {
+  it("実際のustファイルを読み込める", async () => {
     const u = new Ust();
     await u.load(ustBuf);
     expect(u.notes.length).toBe(9);
@@ -327,7 +506,7 @@ describe("usedTestUst", () => {
       height: 0,
     });
   });
-  it("getRenderParams", async () => {
+  it("全ノートのレンダリングパラメータを取得できる", async () => {
     const u = new Ust();
     await u.load(ustBuf);
     const params = u.getRequestParam(vb, defaultNote);
@@ -340,7 +519,7 @@ describe("usedTestUst", () => {
     expect(params[0].append.overlap).toBe(0);
     params.slice(1, 7).forEach((p) => expect(p.resamp).not.toBeUndefined());
   });
-  it("getRenderParamsSelected", async () => {
+  it("選択ノートのレンダリングパラメータのみ取得できる", async () => {
     const u = new Ust();
     await u.load(ustBuf);
     const params = u.getRequestParam(vb, defaultNote, [0, 1]);
@@ -352,10 +531,29 @@ describe("usedTestUst", () => {
     expect(params[0].append.overlap).toBe(0);
     params.slice(1).forEach((p) => expect(p.resamp).not.toBeUndefined());
   });
+
+  it("getCacheIndexで全ノートのキャッシュインデックスを取得できる", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    const cacheIndex = u.getCacheIndex(vb);
+    expect(cacheIndex).toBeDefined();
+    expect(Array.isArray(cacheIndex)).toBe(true);
+    // 全ノート（休符含む9個）のキャッシュインデックス
+    expect(cacheIndex.length).toBe(9);
+  });
+
+  it("getCacheIndexで選択ノートのキャッシュインデックスのみ取得できる", async () => {
+    const u = new Ust();
+    await u.load(ustBuf);
+    const cacheIndex = u.getCacheIndex(vb, [1, 2]);
+    expect(cacheIndex).toBeDefined();
+    expect(Array.isArray(cacheIndex)).toBe(true);
+    expect(cacheIndex.length).toBe(2);
+  });
 });
 
 describe("stnth", () => {
-  it("synthTest", async () => {
+  it("音源とustファイルから合成テストを実行できる", async () => {
     console.log(`スタート:${Date.now()}`);
     const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
     const zip = new JSZip();
