@@ -1,98 +1,63 @@
 ﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
-// import { userEvent, within } from "@storybook/test";
-import { SnackBar } from "../../../src/features/common/SnackBar";
+import JSZip from "jszip";
+import React, { useEffect, useState } from "react";
 import { HeaderLogo } from "../../../src/features/Header/HeaderLogo";
+import { VoiceBank } from "../../../src/lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
-import { sampleIcon, sampleWav } from "../../../src/storybook/sampledata";
-import { base64ToArrayBuffer } from "../../../src/storybook/utils";
-import { EncodingOption } from "../../../src/utils/EncodingMapping";
+import { loadVB } from "../../../src/storybook/utils";
 
-const fakeVb = {
-  name: "Test VB",
-  image: base64ToArrayBuffer(sampleIcon),
-  sample: base64ToArrayBuffer(sampleWav),
-  author: "Test Author",
-  web: "https://example.com",
-  version: "v1.0",
-  voice: "Test Voice",
-  oto: { otoCount: 5 },
-  zip: { "readme.txt": {}, "a.txt": {} },
-  initialize: async (encoding: EncodingOption) => Promise.resolve(),
+const HeaderLogoWrapper: React.FC<{ vbFileName?: string }> = ({
+  vbFileName,
+}) => {
+  const { setVb } = useMusicProjectStore();
+  const [loading, setLoading] = useState(!!vbFileName);
+
+  useEffect(() => {
+    if (!vbFileName) {
+      setVb(null);
+      setLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      try {
+        const td = new TextDecoder("Shift-JIS");
+        const buffer = await loadVB(vbFileName);
+        const zip = new JSZip();
+        await zip.loadAsync(buffer, {
+          decodeFileName: (fileNameBinary: Uint8Array) =>
+            td.decode(fileNameBinary),
+        });
+        const loadedVb = new VoiceBank(zip.files);
+        await loadedVb.initialize();
+        setVb(loadedVb);
+      } catch (err) {
+        console.error("Failed to load VB:", err);
+        setVb(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [vbFileName, setVb]);
+
+  if (loading) return <div>Loading voicebank...</div>;
+  return <HeaderLogo />;
 };
 
-useMusicProjectStore.setState({ vb: null });
-
-const meta: Meta<typeof HeaderLogo> = {
+const meta: Meta<typeof HeaderLogoWrapper> = {
   title: "features/Header/HeaderLogo",
-  component: HeaderLogo,
+  component: HeaderLogoWrapper,
   tags: ["autodocs"],
-  decorators: [
-    (Story) => (
-      <>
-        <Story />
-        <SnackBar />
-      </>
-    ),
-  ],
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof HeaderLogoWrapper>;
 
-export const VbNull: Story = {
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement, step }) => {
-  //   useMusicProjectStore.setState({ vb: null });
-  //   const canvas = within(document.body);
-  //   await step("デフォルトのロゴとアプリ名が表示される", async () => {
-  //     await canvas.findByAltText("logo");
-  //   });
-  // },
-};
+export const NoVoiceBank: Story = {};
 
-export const WithVb: Story = {
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement }) => {
-  //   // @ts-expect-error testのために実際と異なる型の代入
-  //   useMusicProjectStore.setState({ vb: fakeVb });
-  //   const canvas = within(document.body);
-  //   await canvas.findByText(fakeVb.name);
-  // },
-};
-
-export const AvatarClick: Story = {
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement, step }) => {
-  //   // @ts-expect-error testのために実際と異なる型の代入
-  //   useMusicProjectStore.setState({ vb: fakeVb });
-  //   const canvas = within(document.body);
-  //   await step("Avatar（vb.image から生成されたもの）が表示される", async () => {
-  //     await canvas.findByAltText(fakeVb.name);
-  //   });
-  //   await step("Avatar をクリックすると InfoVBDialog が表示される", async () => {
-  //     const avatar = await canvas.findByAltText(fakeVb.name);
-  //     await userEvent.click(avatar);
-  //     await canvas.findByRole("dialog", {}, { timeout: 5000 });
-  //   });
-  // },
-};
-
-export const VbNullAvatarClick: Story = {
-  // TODO: Uncomment and migrate to @storybook/test
-  // play: async ({ canvasElement, step }) => {
-  //   useMusicProjectStore.setState({ vb: null });
-  //   const canvas = within(document.body);
-  //   await step("Avatar（デフォルトロゴ）が表示される", async () => {
-  //     await canvas.findByAltText("logo");
-  //   });
-  //   await step(
-  //     "Avatar をクリックすると SnackBar の案内メッセージが表示される",
-  //     async () => {
-  //       const avatar = await canvas.findByAltText("logo");
-  //       await userEvent.click(avatar);
-  //       await canvas.findByText("音源が未選択です。音源を選択して始めよう!");
-  //     }
-  //   );
-  // },
+export const WithVoiceBank: Story = {
+  args: {
+    vbFileName: "minimumCV.zip",
+  },
 };
