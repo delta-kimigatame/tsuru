@@ -21,12 +21,11 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
  * @returns ファイルのArrayBuffer
  */
 export const loadVB = async (filename: string): Promise<ArrayBuffer> => {
-  // URLにポートが指定されているかどうかを確認
-  const hasPort = Boolean(window.location.port);
-  // ポートが指定されている場合はルート直下、そうでない場合はstorybookPublic/配下を参照する
-  const filePath = hasPort
-    ? `/storybookPublic/${filename}`
-    : `/utaletStoryBook/storybookPublic/${filename}`;
+  // 開発環境ではルート直下、本番環境では/tsuru/storybook/配下を参照
+  const filePath =
+    process.env.NODE_ENV === "production"
+      ? `/tsuru/storybook/${filename}`
+      : `/${filename}`;
 
   const response = await fetch(filePath);
   if (!response.ok) {
