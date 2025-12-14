@@ -26,25 +26,3 @@ export const Default: Story = {
     setDialogOpen: () => {},
   },
 };
-
-export const NotOpen: Story = {
-  args: {
-    dialogOpen: false,
-    readFile: new File([base64ToArrayBuffer(base64ZipData)], "dummy.zip", {
-      type: "application/zip",
-    }),
-    setProcessing: () => {},
-    setReadFile: () => {},
-    setDialogOpen: () => {},
-  },
-};
-
-export const FileNull: Story = {
-  args: {
-    dialogOpen: true,
-    readFile: null,
-    setProcessing: () => {},
-    setReadFile: () => {},
-    setDialogOpen: () => {},
-  },
-};
