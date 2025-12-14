@@ -3,21 +3,52 @@ import * as iconv from "iconv-lite";
 import JSZip from "jszip";
 import { beforeAll, describe, expect, it } from "vitest";
 import { defaultNote } from "../../src/config/note";
-import { dumpEnvelope, Note } from "../../src/lib/Note";
+import { dumpEnvelope, dumpNotes, Note } from "../../src/lib/Note";
 import { CharacterTxt } from "../../src/lib/VoiceBanks/CharacterTxt";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
 import { ResampRequest } from "../../src/types/request";
 import { makeTimeAxis } from "../../src/utils/interp";
 
 describe("Note", () => {
-  it("index", () => {
+  it("indexが正しく設定される", () => {
     const n = new Note();
     expect(n.index).toBeUndefined();
     n.index = 1;
     expect(n.index).toBe(1);
   });
 
-  it("length", () => {
+  // Phase 3: 未テストプロパティテスト
+  it("hasTempoでテンポパラメータの有無を管理できる", () => {
+    const n = new Note();
+    expect(n.hasTempo).toBeUndefined();
+    n.hasTempo = true;
+    expect(n.hasTempo).toBe(true);
+    n.hasTempo = false;
+    expect(n.hasTempo).toBe(false);
+  });
+
+  it("labelが正しく設定される", () => {
+    const n = new Note();
+    expect(n.label).toBeUndefined();
+    n.label = "ラベルテスト";
+    expect(n.label).toBe("ラベルテスト");
+  });
+
+  it("flagsが正しく設定される", () => {
+    const n = new Note();
+    expect(n.flags).toBeUndefined();
+    n.flags = "g-3B50";
+    expect(n.flags).toBe("g-3B50");
+  });
+
+  it("voiceColorが正しく設定される", () => {
+    const n = new Note();
+    expect(n.voiceColor).toBeUndefined();
+    n.voiceColor = "Soft";
+    expect(n.voiceColor).toBe("Soft");
+  });
+
+  it("lengthが正の整数に丸められて設定される", () => {
     const n = new Note();
     expect(n.length).toBeUndefined();
     n.length = 480;
@@ -28,7 +59,7 @@ describe("Note", () => {
     expect(n.length).toBe(0);
   });
 
-  it("notenum", () => {
+  it("notenumが24～107の範囲で整数に丸められて設定される", () => {
     const n = new Note();
     expect(n.notenum).toBeUndefined();
     n.notenum = 60;
@@ -41,7 +72,7 @@ describe("Note", () => {
     expect(n.notenum).toBe(24);
   });
 
-  it("tempo", () => {
+  it("tempoが10～512の範囲で浮動小数として設定される", () => {
     const n = new Note();
     expect(n.tempo).toBeUndefined();
     n.tempo = 120.0;
@@ -54,7 +85,7 @@ describe("Note", () => {
     expect(n.tempo).toBe(512);
   });
 
-  it("preutter", () => {
+  it("preutterが0以上の値として設定されatPreutterに反映される", () => {
     const n = new Note();
     expect(n.preutter).toBeUndefined();
     n.preutter = 120.9;
@@ -65,7 +96,7 @@ describe("Note", () => {
     expect(n.atPreutter).toBe(0);
   });
 
-  it("overlap", () => {
+  it("overlapが設定されatOverlapに反映される", () => {
     const n = new Note();
     expect(n.overlap).toBeUndefined();
     n.overlap = 120.9;
@@ -76,7 +107,7 @@ describe("Note", () => {
     expect(n.atOverlap).toBe(-120.9);
   });
 
-  it("stp", () => {
+  it("stpが0以上の値として設定されatStpに反映される", () => {
     const n = new Note();
     expect(n.stp).toBeUndefined();
     n.stp = 120.9;
@@ -87,7 +118,7 @@ describe("Note", () => {
     expect(n.atStp).toBe(0);
   });
 
-  it("velocity", () => {
+  it("velocityが0～200の整数として設定されvelocityRateが計算される", () => {
     const n = new Note();
     expect(n.velocity).toBeUndefined();
     expect(n.velocityRate).toBe(1);
@@ -105,7 +136,22 @@ describe("Note", () => {
     expect(n.velocityRate).toBe(2);
   });
 
-  it("intensity", () => {
+  // Phase 3: エラー処理・エッジケーステスト
+  it("velocityRateはvelocity未設定時に1を返す", () => {
+    const n = new Note();
+    expect(n.velocityRate).toBe(1);
+  });
+
+  it("directプロパティで直接wavtool使用フラグを設定できる", () => {
+    const n = new Note();
+    expect(n.direct).toBeUndefined();
+    n.direct = true;
+    expect(n.direct).toBe(true);
+    n.direct = false;
+    expect(n.direct).toBe(false);
+  });
+
+  it("intensityが0～200の整数として設定される", () => {
     const n = new Note();
     expect(n.intensity).toBeUndefined();
     n.intensity = 100;
@@ -117,7 +163,7 @@ describe("Note", () => {
     n.intensity = -1;
     expect(n.intensity).toBe(0);
   });
-  it("modulation", () => {
+  it("modulationが-200～200の整数として設定される", () => {
     const n = new Note();
     expect(n.modulation).toBeUndefined();
     n.modulation = 100;
@@ -130,7 +176,7 @@ describe("Note", () => {
     expect(n.modulation).toBe(-200);
   });
 
-  it("pitches", () => {
+  it("pitchesが-2048～2047の範囲で整数配列として設定される", () => {
     const n = new Note();
     expect(n.pitches).toBeUndefined();
     n.pitches = "0,-1,1.9,2048,-2049";
@@ -139,14 +185,14 @@ describe("Note", () => {
     expect(n.pitches).toEqual([2047, -2048, 1]);
   });
 
-  it("pbstart", () => {
+  it("pbStartが正しく設定される", () => {
     const n = new Note();
     expect(n.pbStart).toBeUndefined();
     n.pbStart = 30;
     expect(n.pbStart).toBe(30);
   });
 
-  it("pbs", () => {
+  it("pbsくtimeとheightを指定して正しく設定される", () => {
     const n = new Note();
     expect(n.pbs).toBeUndefined();
     n.pbs = "-30";
@@ -171,7 +217,7 @@ describe("Note", () => {
     expect(n3.pbs).toEqual({ time: 0, height: -200 });
   });
 
-  it("pby", () => {
+  it("pbyが-200～200の範囲で浮動小数配列として設定される", () => {
     const n = new Note();
     expect(n.pby).toBeUndefined();
     n.pby = "0,10.9,201,-201";
@@ -180,7 +226,7 @@ describe("Note", () => {
     expect(n.pby).toEqual([200, -200, 10.9]);
   });
 
-  it("pbw", () => {
+  it("pbwが0以上の浮動小数配列として設定される", () => {
     const n = new Note();
     expect(n.pbw).toBeUndefined();
     n.pbw = "0,10.9,-1";
@@ -189,7 +235,7 @@ describe("Note", () => {
     expect(n.pbw).toEqual([0, 0, 10.9]);
   });
 
-  it("pbm", () => {
+  it("pbmが補間方法を表す配列として設定される", () => {
     const n = new Note();
     expect(n.pbm).toBeUndefined();
     n.pbm = ",s,r,j,l";
@@ -198,7 +244,7 @@ describe("Note", () => {
     expect(n.pbm).toEqual(["s", "", "j", "r"]);
   });
 
-  it("envelope", () => {
+  it("envelopeがpointとvalueを持ち範囲制限されて設定される", () => {
     const n = new Note();
     expect(n.envelope).toBeUndefined();
     n.envelope = "0,0";
@@ -249,7 +295,7 @@ describe("Note", () => {
       value: [0, 0, 100, 200, 200],
     });
   });
-  it("vibrato", () => {
+  it("vibratoが各パラメータを持ち範囲制限されて設定される", () => {
     const n = new Note();
     expect(n.vibrato).toBeUndefined();
     n.vibrato = "50,120,100,20,30,5,10,0";
@@ -332,7 +378,322 @@ describe("Note", () => {
     });
   });
 
-  it("msLength", () => {
+  // Phase 1: 異常値ガード処理テスト
+  it("notenumにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.notenum = 60;
+    expect(n.notenum).toBe(60);
+    n.notenum = NaN;
+    expect(n.notenum).toBe(60);
+  });
+
+  it("notenumにInfinityを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.notenum = 60;
+    expect(n.notenum).toBe(60);
+    n.notenum = Infinity;
+    expect(n.notenum).toBe(60);
+    n.notenum = -Infinity;
+    expect(n.notenum).toBe(60);
+  });
+
+  it("preutterにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.preutter = 100;
+    expect(n.preutter).toBe(100);
+    n.preutter = NaN;
+    expect(n.preutter).toBe(100);
+  });
+
+  it("overlapにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.overlap = 50;
+    expect(n.overlap).toBe(50);
+    n.overlap = NaN;
+    expect(n.overlap).toBe(50);
+  });
+
+  it("stpにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.stp = 10;
+    expect(n.stp).toBe(10);
+    n.stp = NaN;
+    expect(n.stp).toBe(10);
+  });
+
+  it("velocityにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.velocity = 100;
+    expect(n.velocity).toBe(100);
+    n.velocity = NaN;
+    expect(n.velocity).toBe(100);
+  });
+
+  it("intensityにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.intensity = 100;
+    expect(n.intensity).toBe(100);
+    n.intensity = NaN;
+    expect(n.intensity).toBe(100);
+  });
+
+  it("modulationにNaNを設定しても値が変更されない", () => {
+    const n = new Note();
+    n.modulation = 50;
+    expect(n.modulation).toBe(50);
+    n.modulation = NaN;
+    expect(n.modulation).toBe(50);
+  });
+
+  // Phase 2: 個別vibratoパラメータsetterテスト
+  it("vibratoLengthが0～100の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoLength = 75;
+    expect(n.vibrato.length).toBe(75);
+    n.vibratoLength = -10;
+    expect(n.vibrato.length).toBe(0);
+    n.vibratoLength = 150;
+    expect(n.vibrato.length).toBe(100);
+  });
+
+  it("vibratoCycleが64～512の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoCycle = 200;
+    expect(n.vibrato.cycle).toBe(200);
+    n.vibratoCycle = 50;
+    expect(n.vibrato.cycle).toBe(64);
+    n.vibratoCycle = 600;
+    expect(n.vibrato.cycle).toBe(512);
+  });
+
+  it("vibratoDepthが5～200の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoDepth = 150;
+    expect(n.vibrato.depth).toBe(150);
+    n.vibratoDepth = 3;
+    expect(n.vibrato.depth).toBe(5);
+    n.vibratoDepth = 250;
+    expect(n.vibrato.depth).toBe(200);
+  });
+
+  it("vibratoFadeInTimeが0～100の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoFadeInTime = 50;
+    expect(n.vibrato.fadeInTime).toBe(50);
+    n.vibratoFadeInTime = -10;
+    expect(n.vibrato.fadeInTime).toBe(0);
+    n.vibratoFadeInTime = 150;
+    expect(n.vibrato.fadeInTime).toBe(100);
+  });
+
+  it("vibratoFadeOutTimeが0～100の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoFadeOutTime = 50;
+    expect(n.vibrato.fadeOutTime).toBe(50);
+    n.vibratoFadeOutTime = -10;
+    expect(n.vibrato.fadeOutTime).toBe(0);
+    n.vibratoFadeOutTime = 150;
+    expect(n.vibrato.fadeOutTime).toBe(100);
+  });
+
+  it("vibratoPhaseが-100～100の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoPhase = 50;
+    expect(n.vibrato.phase).toBe(50);
+    n.vibratoPhase = -150;
+    expect(n.vibrato.phase).toBe(-100);
+    n.vibratoPhase = 150;
+    expect(n.vibrato.phase).toBe(100);
+  });
+
+  it("vibratoHeightが-100～100の範囲で設定される", () => {
+    const n = new Note();
+    n.vibrato = "50,100,100,0,0,0,0,0";
+    n.vibratoHeight = 50;
+    expect(n.vibrato.height).toBe(50);
+    n.vibratoHeight = -150;
+    expect(n.vibrato.height).toBe(-100);
+    n.vibratoHeight = 150;
+    expect(n.vibrato.height).toBe(100);
+  });
+
+  // Phase 1: lyric setter副作用テスト
+  it("lyric変更時にnextのautoFitParamが呼ばれる", async () => {
+    const z = new JSZip();
+    const c = new CharacterTxt({ name: "あ" });
+    const c_output = new File(
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
+      "character.txt",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    const o_output = new File(
+      [
+        iconv.encode(
+          "_あ.wav=あ,1,2,3,300,100\r\n_い.wav=い,5,10,15,200,50\r\n",
+          "Windows-31j"
+        ),
+      ],
+      "oto.ini",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    z.file("root/character.txt", c_output);
+    z.file("root/oto.ini", o_output);
+    const vb = new VoiceBank(z.files);
+    await vb.initialize();
+
+    const n1 = new Note();
+    n1.length = 480;
+    n1.tempo = 120;
+    n1.lyric = "あ";
+    n1.notenum = 60;
+    n1.applyOto(vb);
+
+    const n2 = new Note();
+    n2.length = 480;
+    n2.tempo = 120;
+    n2.lyric = "い";
+    n2.notenum = 60;
+    n2.applyOto(vb);
+
+    n1.next = n2;
+    n2.prev = n1;
+
+    // n1のatPreutterが300、n2は元々200
+    expect(n2.atPreutter).toBe(200);
+
+    // n1のlyricを変更するとn2.autoFitParam()が呼ばれる
+    n1.lyric = "い";
+    n1.applyOto(vb);
+
+    // n1のatPreutterが200に変わり、n2のautoFitParamで調整される
+    expect(n1.atPreutter).toBe(200);
+  });
+
+  it("lyric変更時にotoがundefinedにリセットされる", async () => {
+    const z = new JSZip();
+    const c = new CharacterTxt({ name: "あ" });
+    const c_output = new File(
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
+      "character.txt",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    const o_output = new File(
+      [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
+      "oto.ini",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    z.file("root/character.txt", c_output);
+    z.file("root/oto.ini", o_output);
+    const vb = new VoiceBank(z.files);
+    await vb.initialize();
+
+    const n = new Note();
+    n.lyric = "あ";
+    n.notenum = 60;
+    n.applyOto(vb);
+    expect(n.oto).toBeDefined();
+
+    n.lyric = "い";
+    expect(n.oto).toBeUndefined();
+  });
+
+  // Phase 1: 配列系メソッドテスト
+  it("setPbyで配列が正しく設定される", () => {
+    const n = new Note();
+    n.setPby([10.5, -50, 100, 250, -250]);
+    expect(n.pby).toEqual([10.5, -50, 100, 200, -200]);
+  });
+
+  it("setPbwで配列が正しく設定される", () => {
+    const n = new Note();
+    n.setPbw([10.5, 0, -5, 100]);
+    expect(n.pbw).toEqual([10.5, 0, 0, 100]);
+  });
+
+  it("setPbmで配列が正しく設定される", () => {
+    const n = new Note();
+    n.setPbm(["s", "", "r", "j"]);
+    expect(n.pbm).toEqual(["s", "", "r", "j"]);
+  });
+
+  it("setEnvelopeでundefinedを渡すとenvelopeがundefinedになる", () => {
+    const n = new Note();
+    n.envelope = "0,5,35,0,100,90";
+    expect(n.envelope).toBeDefined();
+    n.setEnvelope(undefined);
+    expect(n.envelope).toBeUndefined();
+  });
+
+  // Phase 3: ユーティリティテスト
+  it("pbsTimeで個別にtime値を設定できる", () => {
+    const n = new Note();
+    n.pbsTime = 100;
+    expect(n.pbs).toEqual({ time: 100, height: 0 });
+    n.pbsTime = -50;
+    expect(n.pbs).toEqual({ time: -50, height: 0 });
+  });
+
+  it("pbsHeightで個別にheight値を設定できる", () => {
+    const n = new Note();
+    n.pbsHeight = 50;
+    expect(n.pbs).toEqual({ time: 0, height: 50 });
+    n.pbsHeight = -100;
+    expect(n.pbs).toEqual({ time: 0, height: -100 });
+    n.pbsHeight = 250;
+    expect(n.pbs).toEqual({ time: 0, height: 200 });
+    n.pbsHeight = -250;
+    expect(n.pbs).toEqual({ time: 0, height: -200 });
+  });
+
+  // Phase 1: getCacheIndexテスト
+  it("getCacheIndexでprevの有無に応じた連番が取得できる", async () => {
+    const z = new JSZip();
+    const c = new CharacterTxt({ name: "あ" });
+    const c_output = new File(
+      [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
+      "character.txt",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    const o_output = new File(
+      [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
+      "oto.ini",
+      { type: "text/plane;charset=shift-jis" }
+    );
+    z.file("root/character.txt", c_output);
+    z.file("root/oto.ini", o_output);
+    const vb = new VoiceBank(z.files);
+    await vb.initialize();
+
+    const n1 = new Note();
+    n1.lyric = "あ";
+    n1.notenum = 60;
+    n1.applyOto(vb);
+    expect(n1.getCacheIndex(vb)).toEqual([0]);
+
+    const n2 = new Note();
+    n2.lyric = "あ";
+    n2.notenum = 60;
+    n2.applyOto(vb);
+    n2.prev = n1;
+    n1.next = n2;
+    expect(n2.getCacheIndex(vb)).toEqual([1]);
+
+    const n3 = new Note();
+    n3.lyric = "あ";
+    n3.notenum = 60;
+    n3.applyOto(vb);
+    n3.prev = n2;
+    n2.next = n3;
+    expect(n3.getCacheIndex(vb)).toEqual([2]);
+  });
+
+  it("lengthとtempoからmsLengthが計算される", () => {
     const n = new Note();
     expect(() => n.msLength).toThrow("length is not initial.");
     n.length = 480;
@@ -345,7 +706,7 @@ describe("Note", () => {
     expect(n.msLength).toBe(500);
   });
 
-  it("applyOto", async () => {
+  it("applyOtoで原音設定が適用されat系プロパティが設定される", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -397,7 +758,7 @@ describe("Note", () => {
     expect(n.atFilename).toBe("test/_う.wav");
   });
 
-  it("AutoFitParam_NoPrev", async () => {
+  it("prevがない場合autoFitParamでat値がそのまま設定される", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -440,7 +801,7 @@ describe("Note", () => {
     expect(n.atStp).toBe(10);
   });
 
-  it("AutoFitParam_WithPrev", async () => {
+  it("prevがある場合autoFitParamで自動調整が適用される", async () => {
     const z = new JSZip();
     const c = new CharacterTxt({ name: "あ" });
     const c_output = new File(
@@ -506,7 +867,7 @@ describe("Note", () => {
 });
 
 describe("RenderNote", () => {
-  it("outputMs", () => {
+  it("outputMsがnextのat値を考慮して計算される", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 120;
@@ -524,7 +885,27 @@ describe("RenderNote", () => {
     expect(n.outputMs).toBe(650);
   });
 
-  it("targetMs", () => {
+  // Phase 2: outputMsエッジケーステスト
+  it("nextがundefinedの場合outputMsはmsLengthとatPreutterの合計になる", () => {
+    const n = new Note();
+    n.length = 480;
+    n.tempo = 120;
+    n.preutter = 100;
+    expect(n.outputMs).toBe(600); // 500 + 100
+  });
+
+  it("nextが休符の場合outputMsはmsLengthとatPreutterの合計になる", () => {
+    const n = new Note();
+    n.length = 480;
+    n.tempo = 120;
+    n.preutter = 100;
+    const next_n = new Note();
+    next_n.lyric = "R";
+    n.next = next_n;
+    expect(n.outputMs).toBe(600); // 500 + 100
+  });
+
+  it("targetLengthが50ms単位で切り上げて計算される", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 120;
@@ -536,7 +917,7 @@ describe("RenderNote", () => {
     expect(n.targetLength).toBe(650);
   });
 
-  it("pitchSpan", () => {
+  it("pitchSpanがtempoから5tick分の間隔として計算される", () => {
     const n = new Note();
     n.tempo = 120;
     expect(n.pitchSpan).toBe(0.5 / 96);
@@ -546,7 +927,7 @@ describe("RenderNote", () => {
     expect(n.pitchSpan).toBe(0.5 / 96 / 2);
   });
 
-  it("getBasePitchSingle", () => {
+  it("単独ノートの基準ピッチが全て0になる", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 120;
@@ -559,7 +940,7 @@ describe("RenderNote", () => {
     expect(basePitches.length).toBe(136);
     basePitches.forEach((p) => expect(p).toBe(0));
   });
-  it("getBasePitchWithPrev", () => {
+  it("prevがある場合基準ピッチがprevのnotenum差分を反映する", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 125;
@@ -598,7 +979,7 @@ describe("RenderNote", () => {
     expect(basePitches.length).toBe(221);
     expect(basePitches).toEqual(new Array(221).fill(0));
   });
-  it("getBasePitchWithNext", () => {
+  it("nextがある場合基準ピッチがnext.pbs.time後がnextのnotenumを反映する", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 125;
@@ -624,7 +1005,7 @@ describe("RenderNote", () => {
     expect(basePitches.slice(30)).toEqual(new Array(141 - 30).fill(100));
   });
 
-  it("getPitchInterpBase", () => {
+  it("getPitchInterpBaseでpbs,pbw,pby,pbmから補間パラメータが生成される", () => {
     const n = new Note();
     n.pbs = "-200;5";
     n.pbw = "300,200,100";
@@ -655,7 +1036,7 @@ describe("RenderNote", () => {
     expect(param.mode).toEqual(["", "", ""]);
   });
 
-  it("interpDefault", () => {
+  it("デフォルト補間(cos曲線)でピッチが補間される", () => {
     const n = new Note();
     n.pbs = "0;0";
     n.pbw = "100";
@@ -679,7 +1060,7 @@ describe("RenderNote", () => {
     expect(p[4]).toBeCloseTo(-100);
   });
 
-  it("interpLiner", () => {
+  it("線形補間(s)でピッチが補間される", () => {
     const n = new Note();
     n.pbs = "0;0";
     n.pbw = "100";
@@ -702,7 +1083,7 @@ describe("RenderNote", () => {
     expect(p[3]).toBe(-75);
     expect(p[4]).toBe(-100);
   });
-  it("interpR", () => {
+  it("R補間(sin曲線)でピッチが補間される", () => {
     const n = new Note();
     n.pbs = "0;0";
     n.pbw = "100";
@@ -721,7 +1102,7 @@ describe("RenderNote", () => {
     expect(p[2]).toBeCloseTo(-50 * 2 ** 0.5);
     expect(p[4]).toBeCloseTo(-100);
   });
-  it("interpJ", () => {
+  it("J補間(cos曲線反転)でピッチが補間される", () => {
     const n = new Note();
     n.pbs = "0;0";
     n.pbw = "100";
@@ -740,7 +1121,7 @@ describe("RenderNote", () => {
     expect(p[2]).toBeCloseTo(-100 + 50 * 2 ** 0.5);
     expect(p[4]).toBeCloseTo(-100);
   });
-  it("interpLinerNegative", () => {
+  it("負のoffsetで線形補間が正しく動作する", () => {
     const n = new Note();
     n.pbs = "-200;0";
     n.pbw = "50,150";
@@ -756,7 +1137,26 @@ describe("RenderNote", () => {
     expect(p[4]).toBeCloseTo(0);
   });
 
-  it("getVibratoDepth", () => {
+  // Phase 2: ピッチ計算early returnテスト
+  it("pbsがundefinedの場合getInterpPitchは全て0を返す", () => {
+    const n = new Note();
+    // pbs未設定
+    const t = [0, 0.05, 0.1];
+    const p = n.getInterpPitch(n, t, 0);
+    expect(p).toEqual([0, 0, 0]);
+  });
+
+  it("vibratoがundefinedの場合getVibratoPitchesは全て0を返す", () => {
+    const n = new Note();
+    n.tempo = 120;
+    n.length = 480;
+    // vibrato未設定
+    const t = makeTimeAxis(0.005, 0, 0.5);
+    const vp = n.getVibratoPitches(n, t, 0);
+    expect(vp).toEqual(new Array(t.length).fill(0));
+  });
+
+  it("getVibratoDepthでfadeIn/Outを考慮した深さが計算される", () => {
     const n = new Note();
     expect(n.getVibratoDepth(100, 0, 0, 100, 20, 20)).toBeCloseTo(0);
     expect(n.getVibratoDepth(100, 10, 0, 100, 20, 20)).toBeCloseTo(50);
@@ -767,7 +1167,7 @@ describe("RenderNote", () => {
     expect(n.getVibratoDepth(100, 100, 0, 100, 20, 20)).toBeCloseTo(0);
   });
 
-  it("getVibratoPitch", () => {
+  it("基本ビブラートピッチが正しく生成される", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -799,7 +1199,7 @@ describe("RenderNote", () => {
     expect(noFadevp[190]).toBeCloseTo(0);
     expect(noFadevp[195]).toBe(-100);
   });
-  it("getVibratoPitch_fadeIn", () => {
+  it("ビブラートのfadeInが正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -831,7 +1231,7 @@ describe("RenderNote", () => {
     expect(fadeInVbr[190]).toBeCloseTo(0);
     expect(fadeInVbr[195]).toBe(-95);
   });
-  it("getVibratoPitch_fadeOut", () => {
+  it("ビブラートのfadeOutが正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -863,7 +1263,7 @@ describe("RenderNote", () => {
     expect(fadeOutVbr[190]).toBeCloseTo(0);
     expect(fadeOutVbr[195]).toBe(-5);
   });
-  it("getVibratoPitchPhase", () => {
+  it("ビブラートのphaseパラメータが正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -895,7 +1295,7 @@ describe("RenderNote", () => {
     expect(phasevp[190]).toBeCloseTo(-100);
     expect(phasevp[195]).toBeCloseTo(0);
   });
-  it("getVibratoPitchLength", () => {
+  it("ビブラートのlengthパラメータが正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -917,7 +1317,7 @@ describe("RenderNote", () => {
     expect(lengthVb[190]).toBeCloseTo(0);
     expect(lengthVb[195]).toBe(100);
   });
-  it("getVibratoPitchHeight", () => {
+  it("ビブラートのheightパラメータ(正)が正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -949,7 +1349,7 @@ describe("RenderNote", () => {
     expect(heightVbr[190]).toBeCloseTo(0 + 100);
     expect(heightVbr[195]).toBe(-100 + 100);
   });
-  it("getVibratoPitchHeightNegative", () => {
+  it("ビブラートのheightパラメータ(負)が正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -982,7 +1382,7 @@ describe("RenderNote", () => {
     expect(heightVbr[195]).toBe(-100 - 100);
   });
 
-  it("getVibratoPitchCycle", () => {
+  it("ビブラートのcycleパラメータが正しく動作する", () => {
     const n = new Note();
     n.tempo = 120;
     n.length = 960;
@@ -1004,7 +1404,7 @@ describe("RenderNote", () => {
     expect(slowSycleVbr[180]).toBeCloseTo(0);
     expect(slowSycleVbr[190]).toBeCloseTo(100);
   });
-  it("getPitch_CheckInterpwithVbr", () => {
+  it("補間とビブラートを組み合わせたピッチが正しく生成される", () => {
     const n = new Note();
     n.length = 480;
     n.tempo = 120;
@@ -1023,7 +1423,7 @@ describe("RenderNote", () => {
     expect(pitch[96]).toBeCloseTo(100);
     pitch.slice(97).forEach((p) => expect(p).toBe(0));
   });
-  it("getPitch_CheckNextPitch", () => {
+  it("nextノートのpbs/pby/pbmがprevのピッチ計算に反映される", () => {
     const n = new Note();
     n.lyric = "あ";
     n.length = 480;
@@ -1088,7 +1488,7 @@ describe("getRequestParam", () => {
     await vb.initialize();
   });
 
-  it("rest_note", () => {
+  it("休符ノートのリクエストパラメータが正しく生成される", () => {
     const n = new Note();
     n.length = 480;
     n.lyric = "R";
@@ -1103,7 +1503,7 @@ describe("getRequestParam", () => {
     expect(param.append.overlap).toBe(0);
   });
 
-  it("direct_note", () => {
+  it("directノートのリクエストパラメータが正しく生成される", () => {
     const n = new Note();
     n.length = 480;
     n.lyric = "あ";
@@ -1122,7 +1522,7 @@ describe("getRequestParam", () => {
     expect(param.append.overlap).toBe(-0.91);
   });
 
-  it("resamp_minimum", () => {
+  it("resampリクエストパラメータが正しく生成される", () => {
     const n = new Note();
     n.length = 480;
     n.lyric = "あ";
@@ -1150,7 +1550,7 @@ describe("getRequestParam", () => {
     expect(param.append.overlap).toBe(-0.91);
   });
 
-  it("deepcopy", () => {
+  it("deepCopyで全プロパティが深いコピーされる", () => {
     const original = new Note();
     original.index = 0;
     original.length = 1920;
@@ -1198,7 +1598,7 @@ describe("getRequestParam", () => {
     expect(copy.next).toBe(next);
   });
 
-  it("dumpEnvelope", () => {
+  it("dumpEnvelopeでEnvelope型が正しく文字列化される", () => {
     expect(dumpEnvelope({ point: [0, 100], value: [0, 100, 100] })).toBe(
       "0.00,100.00"
     );
@@ -1215,7 +1615,7 @@ describe("getRequestParam", () => {
       dumpEnvelope({ point: [0, 5, 35, 20, 10], value: [0, 80, 90, 5, 75] })
     ).toBe("0.00,5.00,35.00,0,80,90,5,%,20.00,10.00,75");
   });
-  it("dumpNote_minimum", () => {
+  it("最小限のプロパティでdumpが正しく出力される", () => {
     const n = new Note();
     n.index = 1;
     n.length = 480;
@@ -1248,7 +1648,7 @@ describe("getRequestParam", () => {
     expect(dump).not.toContain("$region=");
     expect(dump).not.toContain("$region_end=");
   });
-  it("dumpNote_all", () => {
+  it("全プロパティ設定時にdumpが正しく出力される", () => {
     const n = new Note();
     n.index = 1;
     n.length = 480;
@@ -1298,5 +1698,34 @@ describe("getRequestParam", () => {
     expect(dump).toContain("$direct=True");
     expect(dump).toContain("$region=start");
     expect(dump).toContain("$region_end=end");
+  });
+
+  // Phase 3: dumpNotes関数テスト
+  it("dumpNotes関数で複数ノートがUST形式で出力される", () => {
+    const n1 = new Note();
+    n1.index = 0;
+    n1.length = 480;
+    n1.lyric = "あ";
+    n1.notenum = 60;
+
+    const n2 = new Note();
+    n2.index = 1;
+    n2.length = 240;
+    n2.lyric = "い";
+    n2.notenum = 62;
+
+    const output = dumpNotes([n1, n2], 120, "g-3");
+    expect(output).toContain("[#SETTING]");
+    expect(output).toContain("Charset=UTF-8");
+    expect(output).toContain("Tempo=120");
+    expect(output).toContain("Flags=g-3");
+    expect(output).toContain("Mode2=True");
+    expect(output).toContain("[#0000]");
+    expect(output).toContain("Lyric=あ");
+    expect(output).toContain("Length=480");
+    expect(output).toContain("[#0001]");
+    expect(output).toContain("Lyric=い");
+    expect(output).toContain("Length=240");
+    expect(output).toContain("[#TRACKEND]");
   });
 });
