@@ -2,6 +2,7 @@ import fs from "fs";
 import JSZip from "jszip";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Note } from "../../src/lib/Note";
+import { JPCVorVCVPhonemizer } from "../../src/lib/Phonemizer/JPCVorVCVPhonemizer";
 import { Ust } from "../../src/lib/Ust";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../src/store/musicProjectStore";
@@ -33,7 +34,7 @@ describe("musicProjectStore", () => {
       notes: [],
     });
   });
-  it("defaultValue", () => {
+  it("デフォルト値の確認", () => {
     const store = useMusicProjectStore.getState();
     expect(store.ust).toBeNull();
     expect(store.vb).toBeNull();
@@ -41,28 +42,28 @@ describe("musicProjectStore", () => {
     expect(store.ustFlags).toBe("");
     expect(store.notes).toEqual([]);
   });
-  it("setUst", () => {
+  it("setUstでUstを設定するとustが更新される", () => {
     const { setUst } = useMusicProjectStore.getState();
     setUst(u);
 
     const store = useMusicProjectStore.getState();
     expect(store.ust).toBe(u);
   });
-  it("setVb", () => {
+  it("setVbでVoiceBankを設定するとvbが更新される", () => {
     const { setVb } = useMusicProjectStore.getState();
     setVb(vb);
 
     const store = useMusicProjectStore.getState();
     expect(store.vb).toBe(vb);
   });
-  it("setUstTempo", () => {
+  it("setUstTempoでテンポを設定するとustTempoが更新される", () => {
     const { setUstTempo } = useMusicProjectStore.getState();
     setUstTempo(150);
 
     const store = useMusicProjectStore.getState();
     expect(store.ustTempo).toBe(150);
   });
-  it("setUstFlags", () => {
+  it("setUstFlagsでフラグを設定するとustFlagsが更新される", () => {
     const { setUstFlags } = useMusicProjectStore.getState();
     setUstFlags("some_flags");
 
@@ -70,7 +71,7 @@ describe("musicProjectStore", () => {
     expect(store.ustFlags).toBe("some_flags");
   });
 
-  it("setNoteProperty", () => {
+  it("setNotePropertyでノートプロパティを変更するとnotesが更新される", () => {
     // VoiceBankを設定(applyOtoで必要)
     useMusicProjectStore.setState({ vb: vb });
     const { setNoteProperty } = useMusicProjectStore.getState();
@@ -118,7 +119,7 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[2].tempo).toBe(140);
   });
 
-  it("setNote", () => {
+  it("setNoteでノートを置き換えるとnotesが更新される", () => {
     // VoiceBankを設定(applyOtoで必要)
     useMusicProjectStore.setState({ vb: vb });
     const { setNote } = useMusicProjectStore.getState();
@@ -178,7 +179,7 @@ describe("musicProjectStore", () => {
     expect(updatedStore.notes[2].tempo).toBe(140);
   });
 
-  it("setNotes", () => {
+  it("setNotesでノート配列を設定するとnotesが更新される", () => {
     // VoiceBankを設定(applyOtoで必要)
     useMusicProjectStore.setState({ vb: vb });
     const { setNotes } = useMusicProjectStore.getState();
@@ -284,5 +285,75 @@ describe("musicProjectStore", () => {
     const updatedStore = useMusicProjectStore.getState();
     // notesが変更されていないことを確認
     expect(updatedStore.notes).toEqual(originalNotes);
+  });
+
+  it("setPhonemizerでPhonemizerを設定するとphonemizerが更新される", () => {
+    // VoiceBankを設定(applyOtoで必要)
+    useMusicProjectStore.setState({ vb: vb });
+    const { setPhonemizer } = useMusicProjectStore.getState();
+    const n = new Note();
+    n.length = 480;
+    n.index = 0;
+    n.lyric = "あ";
+    n.notenum = 60;
+    const initialStore = useMusicProjectStore.getState();
+    initialStore.notes.push(n);
+
+    const newPhonemizer = new JPCVorVCVPhonemizer();
+    setPhonemizer(newPhonemizer);
+
+    const updatedStore = useMusicProjectStore.getState();
+    expect(updatedStore.phonemizer).toBe(newPhonemizer);
+    // notesのphonemizerも更新されることを確認
+    expect(updatedStore.notes[0].phonemizer).toBe(newPhonemizer);
+  });
+
+  it("setToneで調を設定するとtoneが更新される", () => {
+    const { setTone } = useMusicProjectStore.getState();
+    setTone(5); // F
+
+    const store = useMusicProjectStore.getState();
+    expect(store.tone).toBe(5);
+  });
+
+  it("setIsMinorで短調フラグを設定するとisMinorが更新される", () => {
+    const { setIsMinor } = useMusicProjectStore.getState();
+    setIsMinor(true);
+
+    const store = useMusicProjectStore.getState();
+    expect(store.isMinor).toBe(true);
+  });
+
+  it("setIsShowPortraitで立ち絵表示フラグを設定するとisShowPortraitが更新される", () => {
+    const { setIsShowPortrait } = useMusicProjectStore.getState();
+    setIsShowPortrait(false);
+
+    const store = useMusicProjectStore.getState();
+    expect(store.isShowPortrait).toBe(false);
+  });
+
+  it("clearUstを実行するとustとnotesがクリアされる", () => {
+    const { setUst, setUstTempo, setUstFlags, clearUst } =
+      useMusicProjectStore.getState();
+    // 初期状態を設定
+    setUst(u);
+    setUstTempo(150);
+    setUstFlags("g+5");
+    const n = new Note();
+    n.length = 480;
+    n.index = 0;
+    n.lyric = "あ";
+    n.notenum = 60;
+    const initialStore = useMusicProjectStore.getState();
+    initialStore.notes.push(n);
+
+    // クリア実行
+    clearUst();
+
+    const clearedStore = useMusicProjectStore.getState();
+    expect(clearedStore.ust).toBeNull();
+    expect(clearedStore.notes).toEqual([]);
+    expect(clearedStore.ustTempo).toBe(120);
+    expect(clearedStore.ustFlags).toBe("");
   });
 });
