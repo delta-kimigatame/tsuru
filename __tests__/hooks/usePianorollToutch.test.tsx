@@ -168,4 +168,97 @@ describe("usePianorollTouch", () => {
     expect(vi.getTimerCount()).toBe(0);
     vi.useRealTimers();
   });
+
+  it("selectModeが変更されるとstartIndexがリセットされる", () => {
+    const onTapMock = vi.fn();
+    const onHoldMock = vi.fn();
+
+    const { result, rerender } = renderHook(
+      ({ mode }) =>
+        usePianorollTouch({
+          selectMode: mode,
+          holdThreshold: EDITOR_CONFIG.HOLD_THRESHOLD_MS,
+          onTap: onTapMock,
+          onHold: onHoldMock,
+        }),
+      { initialProps: { mode: "toggle" as const } }
+    );
+
+    // startIndexを設定
+    act(() => {
+      result.current.setStartIndex(5);
+    });
+    expect(result.current.startIndex).toBe(5);
+
+    // selectModeを変更
+    rerender({ mode: "range" as const });
+
+    // startIndexがリセットされる
+    expect(result.current.startIndex).toBeUndefined();
+  });
+
+  it("setStartIndexでstartIndexが更新される", () => {
+    const onTapMock = vi.fn();
+    const onHoldMock = vi.fn();
+
+    const { result } = renderHook(() =>
+      usePianorollTouch({
+        selectMode: "toggle",
+        holdThreshold: EDITOR_CONFIG.HOLD_THRESHOLD_MS,
+        onTap: onTapMock,
+        onHold: onHoldMock,
+      })
+    );
+
+    // 初期値はundefined
+    expect(result.current.startIndex).toBeUndefined();
+
+    // setStartIndexで値を設定
+    act(() => {
+      result.current.setStartIndex(10);
+    });
+    expect(result.current.startIndex).toBe(10);
+
+    // undefined に戻す
+    act(() => {
+      result.current.setStartIndex(undefined);
+    });
+    expect(result.current.startIndex).toBeUndefined();
+  });
+
+  it("addモードの場合ポインターダウンでもtouchStartが記録されない", () => {
+    vi.useFakeTimers();
+    const fakeSVG = createFakeSVG();
+    const fakeEvent = {
+      clientX: 50,
+      clientY: 60,
+      currentTarget: fakeSVG,
+    } as unknown as React.PointerEvent<SVGSVGElement>;
+    const onTapMock = vi.fn();
+    const onHoldMock = vi.fn();
+
+    const { result } = renderHook(() =>
+      usePianorollTouch({
+        selectMode: "add",
+        holdThreshold: EDITOR_CONFIG.HOLD_THRESHOLD_MS,
+        onTap: onTapMock,
+        onHold: onHoldMock,
+      })
+    );
+
+    act(() => {
+      result.current.handlePointerDown(fakeEvent);
+    });
+
+    // タイマーは起動する
+    expect(vi.getTimerCount()).toBe(1);
+
+    // しかし、PointerUpしてもtouchStartがundefinedなのでtapは呼ばれる
+    act(() => {
+      result.current.handlePointerUp(fakeEvent);
+    });
+
+    expect(onTapMock).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
