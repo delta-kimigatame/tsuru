@@ -22,7 +22,7 @@ describe("usePianorollTouch", () => {
     vi.resetAllMocks();
   });
   afterEach(() => {});
-  it("handlePointerDown:SVGの座標取得とタイマーが起動する", () => {
+  it("ポインターダウンするとSVGの座標取得とタイマーが起動する", () => {
     const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     vi.useFakeTimers();
     // 擬似SVG要素の生成
@@ -57,7 +57,7 @@ describe("usePianorollTouch", () => {
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
-  it("handlePointerCancel:タイマーがキャンセルされる", () => {
+  it("ポインターダウン後にキャンセルするとタイマーがキャンセルされる", () => {
     const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     vi.useFakeTimers();
     // 擬似SVG要素の生成
@@ -96,7 +96,7 @@ describe("usePianorollTouch", () => {
     expect(vi.getTimerCount()).toBe(0);
     vi.useRealTimers();
   });
-  it("handleHold:タップ後タイマーが進行するとholdが呼ばれる", () => {
+  it("タップ後タイマーが進行するとholdイベントが呼ばれる", () => {
     const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     vi.useFakeTimers();
     // 擬似SVG要素の生成
@@ -132,7 +132,7 @@ describe("usePianorollTouch", () => {
     expect(vi.getTimerCount()).toBe(0);
     vi.useRealTimers();
   });
-  it("PointerUp:タップ後ポインターアップすると、tapイベントが呼ばれる", () => {
+  it("タップ後ポインターアップするとtapイベントが呼ばれる", () => {
     const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     vi.useFakeTimers();
     // 擬似SVG要素の生成
