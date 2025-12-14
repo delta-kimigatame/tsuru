@@ -1,20 +1,17 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import * as iconv from "iconv-lite";
 import JSZip from "jszip";
-import { getDesignTokens } from "../../../src/config/theme";
-import {
-  TextTabContent,
-  TextTabContentProps,
-} from "../../../src/features/InfoVBDialog/TextTabContent";
+import { TextTabContent } from "../../../src/features/InfoVBDialog/TextTabContent";
 import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
-const lightTheme = createTheme(getDesignTokens("light"));
-
-export default {
-  title: "06_音源情報画面/音源情報画面部品/テキストタブ(中身)",
+const meta: Meta<typeof TextTabContent> = {
+  title: "features/InfoVBDialog/TextTabContent",
   component: TextTabContent,
-} as Meta;
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 // サンプルテキスト
 const sampleText = "あいう\r\nえお";
@@ -37,39 +34,23 @@ const utf8File = new File([sampleText], "test.txt", {
 zipUtf8.file("test.txt", utf8File);
 const utf8TextFile = zipUtf8.files["test.txt"];
 
-const Template: StoryFn<TextTabContentProps> = (args) => (
-  <ThemeProvider theme={lightTheme}>
-    <TextTabContent {...args} />
-  </ThemeProvider>
-);
-
-export const ShiftJIS = Template.bind({});
-ShiftJIS.storyName = "Shift-JIS テキストファイル";
-ShiftJIS.args = {
-  textFile: shiftJisTextFile,
-  encoding: EncodingOption.SHIFT_JIS,
+export const ShiftJIS: Story = {
+  args: {
+    textFile: shiftJisTextFile,
+    encoding: EncodingOption.SHIFT_JIS,
+  },
 };
 
-export const UTF8 = Template.bind({});
-UTF8.storyName = "UTF-8 テキストファイル";
-UTF8.args = {
-  textFile: utf8TextFile,
-  encoding: EncodingOption.UTF8,
+export const UTF8: Story = {
+  args: {
+    textFile: utf8TextFile,
+    encoding: EncodingOption.UTF8,
+  },
 };
 
-export const TextUndefined = Template.bind({});
-ShiftJIS.storyName = "テキストファイルがundefined";
-ShiftJIS.args = {
-  textFile: undefined,
-  encoding: EncodingOption.SHIFT_JIS,
-};
-
-// 遅延処理用のヘルパー関数
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// 読み込み処理に3秒の遅延を入れるオーバーライド関数
-const delayedReadTextFile = async (buffer: ArrayBuffer, encoding: string) => {
-  await delay(3000);
-  // サンプルテキストとして "あいう\r\nえお" を返す
-  return "あいう\r\nえお";
+export const TextUndefined: Story = {
+  args: {
+    textFile: undefined,
+    encoding: EncodingOption.SHIFT_JIS,
+  },
 };

@@ -1,4 +1,5 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
+// TODO: Migrate to @storybook/test when implementing interactions
 import React from "react";
 import { PIANOROLL_CONFIG } from "../../../../src/config/pianoroll";
 import {
@@ -8,16 +9,9 @@ import {
 import { useCookieStore } from "../../../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
-export default {
-  title: "03_2_ピアノロール/部品/背景",
-  component: PianorollBackground,
-} as Meta<typeof PianorollBackground>;
-const DummyParent = (args) => {
+const DummyParent = (args: PianorollBackgroundProps) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { notes } = useMusicProjectStore();
-  /**
-   * 各ノートのx座標描画位置を予め求めておく
-   */
   const notesLeft = React.useMemo(() => {
     if (notes.length === 0) return [];
     const lefts = new Array<number>();
@@ -29,13 +23,11 @@ const DummyParent = (args) => {
     return lefts;
   }, [notes]);
 
-  /**
-   * svg幅を計算するためにノート長の合計を求める
-   */
   const totalLength = React.useMemo(() => {
     if (notes.length === 0) return 0;
     return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
   }, [notesLeft]);
+
   return (
     <svg
       width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
@@ -52,35 +44,48 @@ const DummyParent = (args) => {
   );
 };
 
-const Template: StoryFn<PianorollBackgroundProps> = (args) => (
-  <DummyParent {...args} />
-);
+const meta: Meta<typeof DummyParent> = {
+  title: "features/EditorView/Pianoroll/PianorollBackground",
+  component: DummyParent,
+  tags: ["autodocs"],
+};
 
-export const LightMode = Template.bind({});
-LightMode.play = async () => {
-  const store = useCookieStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-};
-LightMode.args = {};
-LightMode.storyName = "ライトモード";
-export const DarkMode = Template.bind({});
-DarkMode.play = async () => {
-  const store = useCookieStore.getState();
-  store.setMode("dark");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-};
-DarkMode.args = {};
-DarkMode.storyName = "ダークモード";
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const Zoom05 = Template.bind({});
-Zoom05.play = async () => {
-  const store = useCookieStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(0.5);
-};
+export const Default: Story = {};
+
+// TODO: Migrate to @storybook/test when upgrading testing interactions
+// export const LightMode: Story = {
+//   name: "ライトモード",
+//   play: async () => {
+//     const store = useCookieStore.getState();
+//     store.setMode("light");
+//     store.setColorTheme("default");
+//     store.setVerticalZoom(1);
+//   },
+// };
+
+// TODO: Migrate to @storybook/test when upgrading testing interactions
+// export const DarkMode: Story = {
+//   name: "ダークモード",
+//   play: async () => {
+//     const store = useCookieStore.getState();
+//     store.setMode("dark");
+//     store.setColorTheme("default");
+//     store.setVerticalZoom(1);
+//   },
+// };
+
+// TODO: Migrate to @storybook/test when upgrading testing interactions
+// export const Zoom05: Story = {
+//   name: "縦0.5倍",
+//   play: async () => {
+//     const store = useCookieStore.getState();
+//     store.setMode("light");
+//     store.setColorTheme("default");
+//     store.setVerticalZoom(0.5);
+//   },
+// };
 Zoom05.args = {};
 Zoom05.storyName = "縮小";

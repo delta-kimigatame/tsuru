@@ -1,11 +1,15 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import { SnackBar } from "../../../src/features/common/SnackBar";
 import { useSnackBarStore } from "../../../src/store/snackBarStore";
 
-export default {
-  title: "50_共通部品/スナックバー",
+const meta: Meta<typeof SnackBar> = {
+  title: "features/common/SnackBar",
   component: SnackBar,
-} as Meta<typeof SnackBar>;
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 // 状態を初期化するためのヘルパー関数
 const initializeStore = (
@@ -19,39 +23,38 @@ const initializeStore = (
   store.setSeverity(severity);
 };
 
-const Template: StoryFn<typeof SnackBar> = () => <SnackBar />;
-
-export const Closed = Template.bind({});
-Closed.play = async () => {
-  // Snackbar を閉じた状態にする
-  initializeStore(false, "", "info");
-};
-Closed.storyName = "閉じた状態";
-
-export const OpenSuccess = Template.bind({});
-OpenSuccess.play = async () => {
-  // Snackbar を成功状態で開く
-  initializeStore(true, "Operation successful!", "success");
-};
-OpenSuccess.storyName = "処理成功";
-export const OpenInfo = Template.bind({});
-OpenInfo.play = async () => {
-  // Snackbar を成功状態で開く
-  initializeStore(true, "info", "info");
-};
-OpenInfo.storyName = "情報";
-
-export const OpenError = Template.bind({});
-OpenError.play = async () => {
-  // Snackbar をエラー状態で開く
-  initializeStore(true, "An error occurred.", "error");
-};
-OpenError.storyName = "エラー";
-
-export const OpenWarn = Template.bind({});
-OpenWarn.play = async () => {
-  // Snackbar をエラー状態で開く
-  initializeStore(true, "An warn", "warning");
+export const Closed: Story = {
+  render: () => <SnackBar />,
+  play: async () => {
+    initializeStore(false, "", "info");
+  },
 };
 
-OpenWarn.storyName = "警告";
+export const OpenSuccess: Story = {
+  render: () => <SnackBar />,
+  play: async () => {
+    initializeStore(true, "Operation successful!", "success");
+  },
+};
+
+export const OpenInfo: Story = {
+  render: () => <SnackBar />,
+  play: async () => {
+    initializeStore(true, "info", "info");
+  },
+};
+
+export const OpenError: Story = {
+  render: () => <SnackBar />,
+  play: async () => {
+    initializeStore(true, "An error occurred.", "error");
+  },
+};
+
+// export const OpenWarn = Template.bind({});
+// OpenWarn.play = async () => {
+//   // Snackbar をエラー状態で開く
+//   initializeStore(true, "An warn", "warning");
+// };
+
+// OpenWarn.storyName = "警告";
