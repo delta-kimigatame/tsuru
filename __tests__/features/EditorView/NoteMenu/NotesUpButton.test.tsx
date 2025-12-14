@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   notesUp,
@@ -46,7 +45,7 @@ describe("NotesUpButton", () => {
     expect(resultNotes).toEqual(redoResult);
   });
 
-  it("ボタンをクリックすると、選択されたノートが半音上がる", async () => {
+  it("NotesUpButton:ボタンをクリックすると、選択されたノートが半音上がる", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);
@@ -70,5 +69,9 @@ describe("NotesUpButton", () => {
     expect(undoResult[0].index).toBe(0);
     expect(undoResult[1].index).toBe(2);
     expect(undoResult[2].index).toBe(4);
+    // 重要なプロパティのみを比較（phonemizerは異なる可能性がある）
+    expect(undoResult[0].notenum).toBe(60);
+    expect(undoResult[1].notenum).toBe(62);
+    expect(undoResult[2].notenum).toBe(64);
   });
 });

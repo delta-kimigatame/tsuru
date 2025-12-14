@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { VibratoEditButton } from "../../../../src/features/EditorView/NoteMenu/VibratoEditButton";
 import { Note } from "../../../../src/lib/Note";
@@ -25,7 +24,7 @@ describe("VibratoEditButton", () => {
     });
     return notes;
   };
-  it("VibratoEditButton:クリックすると、setVibratoTargetNoteにnoteが渡される", async () => {
+  it("VibratoEditButton:ボタンをクリックすると、setVibratoTargetNoteにnoteが渡される", async () => {
     const notes = createNotes();
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);

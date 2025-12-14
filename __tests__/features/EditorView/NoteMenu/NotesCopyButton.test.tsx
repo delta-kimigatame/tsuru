@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NotesCopyButton } from "../../../../src/features/EditorView/NoteMenu/NotesCopyButton";
 import { Note } from "../../../../src/lib/Note";
@@ -36,7 +35,7 @@ describe("NotesCopyButton", () => {
     });
   });
 
-  it("ボタンをクリックすると、選択したノートがコピーされる。成功", async () => {
+  it("NotesCopyButton:ボタンをクリックすると、選択したノートがコピーされる。成功", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
@@ -64,7 +63,7 @@ describe("NotesCopyButton", () => {
     expect(dummyNotes).toEqual(resultNotes);
   });
 
-  it("ボタンをクリックすると、選択したノートがコピーされる。失敗", async () => {
+  it("NotesCopyButton:ボタンをクリックすると、選択したノートがコピーされる。失敗", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue({

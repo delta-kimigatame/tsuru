@@ -1,13 +1,24 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NoteMenu } from "../../../../src/features/EditorView/NoteMenu/NoteMenu";
 import { Note } from "../../../../src/lib/Note";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBanks/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("NoteMenu", () => {
+  beforeEach(() => {
+    // vbをセットアップしてAliaseSelectがエラーにならないようにする
+    const dummyVb = {
+      oto: {
+        SearchAliases: vi.fn().mockReturnValue(["あ", "い", "う"]),
+      },
+    } as unknown as VoiceBank;
+    const store = useMusicProjectStore.getState();
+    store.setVb(dummyVb);
+    store.setUst({} as Ust);
+  });
   const createNotes = (): Note[] => {
     const notes = new Array();
     notes.push(new Note());
@@ -50,7 +61,7 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesUpButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDownButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesCopyButton")).not.toBeNull();
-    expect(screen.queryByTestId("NotesPasteButton")).not.toBeNull();
+    expect(screen.queryByTestId("notePasteButton")).not.toBeNull();
     expect(screen.queryByTestId("notePasteGoButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
     //以下5つのボタンは描画されない
@@ -78,7 +89,7 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesUpButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDownButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesCopyButton")).not.toBeNull();
-    expect(screen.queryByTestId("NotesPasteButton")).not.toBeNull();
+    expect(screen.queryByTestId("notePasteButton")).not.toBeNull();
     expect(screen.queryByTestId("notePasteGoButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
     expect(screen.queryByTestId("EditButton")).not.toBeNull();
@@ -105,7 +116,7 @@ describe("NoteMenu", () => {
     expect(screen.queryByTestId("NotesUpButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDownButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesCopyButton")).not.toBeNull();
-    expect(screen.queryByTestId("NotesPasteButton")).not.toBeNull();
+    expect(screen.queryByTestId("notePasteButton")).not.toBeNull();
     expect(screen.queryByTestId("notePasteGoButton")).not.toBeNull();
     expect(screen.queryByTestId("NotesDeleteButton")).not.toBeNull();
     //以下5つのボタンは表示されない
@@ -218,5 +229,42 @@ describe("NoteMenu", () => {
         name: /editor.vibratoDialog.submitButton/i,
       })
     ).not.toBeNull();
+  });
+
+  it("NoteMenu:selectedNotesIndex.length === 1のとき、AliaseSelectとLengthSelectが表示される", () => {
+    const notes = createNotes();
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(notes);
+    render(
+      <NoteMenu
+        menuAnchor={{ x: 0, y: 0 }}
+        setMenuAnchor={() => {}}
+        selectedNotesIndex={[0]}
+        setSelectedNotesIndex={() => {}}
+      />
+    );
+    // AliaseSelectのInputLabelが表示されることを確認
+    expect(screen.queryByText(/notemenu.alias/i)).not.toBeNull();
+    // LengthSelectのInputLabelが表示されることを確認
+    expect(screen.queryByText(/notemenu.length/i)).not.toBeNull();
+  });
+
+  it("NoteMenu:selectedNotesIndex.length !== 1のとき、AliaseSelectとLengthSelectが表示されない", () => {
+    const notes = createNotes();
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(notes);
+    render(
+      <NoteMenu
+        menuAnchor={{ x: 0, y: 0 }}
+        setMenuAnchor={() => {}}
+        selectedNotesIndex={[0, 1]}
+        setSelectedNotesIndex={() => {}}
+      />
+    );
+    // AliaseSelectとLengthSelectが表示されない
+    expect(screen.queryByText(/notemenu.alias/i)).toBeNull();
+    expect(screen.queryByText(/notemenu.length/i)).toBeNull();
   });
 });
