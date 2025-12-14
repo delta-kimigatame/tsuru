@@ -1,8 +1,6 @@
 import { createTheme } from "@mui/material";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { act } from "react";
 import JSZip from "jszip";
-import React from "react";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import { getDesignTokens } from "../../../src/config/theme";
 import {
@@ -11,7 +9,6 @@ import {
 } from "../../../src/features/LoadVBDialog/LoadVBDialog";
 import i18n from "../../../src/i18n/configs";
 import * as VoiceBankModule from "../../../src/lib/VoiceBanks/VoiceBank";
-import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
 i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
@@ -108,7 +105,9 @@ describe("LoadVBDialog", () => {
     });
 
     // EncodingSelectの値を変更（MUI Selectはhidden inputを使用）
-    const hiddenInput = document.querySelector('input[type="hidden"]') as HTMLInputElement;
+    const hiddenInput = document.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
     if (hiddenInput) {
       fireEvent.change(hiddenInput, { target: { value: "utf-8" } });
       await waitFor(() => {
