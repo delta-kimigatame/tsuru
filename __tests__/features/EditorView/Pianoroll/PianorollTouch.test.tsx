@@ -11,6 +11,32 @@ import {
 import { Note } from "../../../../src/lib/Note";
 import { undoManager } from "../../../../src/lib/UndoManager";
 
+// AudioContextのモック
+class MockAudioContext {
+  currentTime = 0;
+  destination = {};
+  createOscillator() {
+    return {
+      connect: vi.fn(),
+      frequency: { setValueAtTime: vi.fn() },
+      type: "sine",
+      start: vi.fn(),
+      stop: vi.fn(),
+    };
+  }
+  createGain() {
+    return {
+      connect: vi.fn(),
+      gain: { setValueAtTime: vi.fn() },
+    };
+  }
+}
+
+(global as any).window = {
+  ...global.window,
+  AudioContext: MockAudioContext,
+};
+
 describe("PianorollToutchUtilty", () => {
   const createNote = (notenum: number) => {
     const n = new Note();

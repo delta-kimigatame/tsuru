@@ -1,5 +1,22 @@
 import "@testing-library/jest-dom";
+
 HTMLElement.prototype.scrollTo = () => {};
+
+// Mock window.location
+if (typeof globalThis.window === "undefined") {
+  (globalThis as any).window = {};
+}
+Object.defineProperty(globalThis.window, "location", {
+  value: {
+    hostname: "localhost",
+    href: "http://localhost:3000",
+    pathname: "/",
+    search: "",
+    hash: "",
+  },
+  writable: true,
+  configurable: true,
+});
 
 global.Worker = class {
   onmessage: ((this: Worker, ev: MessageEvent) => any) | null = null;
