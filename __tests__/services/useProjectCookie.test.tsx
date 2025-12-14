@@ -124,7 +124,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("Mode: system")).toBeInTheDocument();
   });
   it("hasMode", () => {
-    document.cookie = "mode=dark; path=/;";
+    document.cookie = "utaletMode=dark; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieMode />
@@ -151,7 +151,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("Language: en")).toBeInTheDocument();
   });
   it("hasLanguage", () => {
-    document.cookie = "language=en; path=/;";
+    document.cookie = "utaletLanguage=en; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieLanguage />
@@ -178,7 +178,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("ColorTheme: default")).toBeInTheDocument();
   });
   it("hasColorTheme", () => {
-    document.cookie = "colorTheme=red; path=/;";
+    document.cookie = "utaletColorTheme=red; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieColorTheme />
@@ -231,7 +231,7 @@ describe("useProjectCookie", () => {
   it("hasDefaultNote", () => {
     // Cookieがすでに設定されている場合
     document.cookie =
-      "defaultNote=" +
+      "utaletDefaultNote=" +
       JSON.stringify({
         velocity: 120,
         intensity: 90,
@@ -279,7 +279,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("VerticalZoom: 1")).toBeInTheDocument();
   });
   it("hasVerticalZoom", () => {
-    document.cookie = "verticalZoom=0.8; path=/;";
+    document.cookie = "utaletVerticalZoom=0.8; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieVerticalZoom />
@@ -306,7 +306,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("HorizontalZoom: 1")).toBeInTheDocument();
   });
   it("hasHorizontalZoom", () => {
-    document.cookie = "horizontalZoom=0.8; path=/;";
+    document.cookie = "utaletHorizontalZoom=0.8; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieHorizontalZoom />
@@ -333,7 +333,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("WorkersCount: 3")).toBeInTheDocument();
   });
   it("hasWorkersCount", () => {
-    document.cookie = "workersCount=1; path=/;";
+    document.cookie = "utaletWorkersCount=1; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieWorkersCount />
@@ -360,7 +360,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("FastResamp: false")).toBeInTheDocument();
   });
   it("hasFastResamp", () => {
-    document.cookie = "fastResamp=true; path=/;";
+    document.cookie = "utaletFastResamp=true; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieFastResamp />
@@ -387,7 +387,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("UseCache: true")).toBeInTheDocument();
   });
   it("hasUseCache", () => {
-    document.cookie = "useCache=false; path=/;";
+    document.cookie = "utaletUseCache=false; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieUseCache />
@@ -414,7 +414,7 @@ describe("useProjectCookie", () => {
     expect(screen.getByText("BackgroundResamp: true")).toBeInTheDocument();
   });
   it("hasBackgroundResamp", () => {
-    document.cookie = "backgroundResamp=false; path=/;";
+    document.cookie = "utaletBackgroundResamp=false; path=/;";
     render(
       <CookiesProvider>
         <TestProjectCookieBackgroundResamp />
