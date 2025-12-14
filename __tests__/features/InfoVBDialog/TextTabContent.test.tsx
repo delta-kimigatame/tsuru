@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import JSZip from "jszip";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   TextTabContent,
@@ -56,7 +55,7 @@ describe("TextTabContent", () => {
     };
   });
 
-  it("初期状態: 読み込み開始直後は LinearProgress が表示される", async () => {
+  it("読み込み開始直後はLinearProgressが表示される", async () => {
     // 読み込み処理を遅延させるため、readTextFile を遅延するモックに変更
     vi.spyOn(readService, "readTextFile").mockImplementation(async () => {
       return new Promise((resolve) =>
@@ -73,7 +72,7 @@ describe("TextTabContent", () => {
     });
   });
 
-  it("正常系: 非同期処理が完了するとテキストが正しく分割・レンダリングされる", async () => {
+  it("非同期処理が完了した場合はテキストが正しく分割されレンダリングされる", async () => {
     render(<TextTabContent {...props} />);
     // 非同期処理が完了するまで待つ
     await waitFor(() => expect(screen.getByText(/あいう/)).toBeInTheDocument());
@@ -83,7 +82,7 @@ describe("TextTabContent", () => {
     expect(screen.getByText(/えお/)).toBeInTheDocument();
   });
 
-  it("エラー時: 非同期処理でエラーが発生した場合、snackbar の setter が呼ばれ、空配列がレンダリングされる", async () => {
+  it("非同期処理でエラーが発生した場合はsnackbarのsetterが呼ばれ空配列がレンダリングされる", async () => {
     // extractFileFromZip でエラーを発生させるモック
     vi.spyOn(extractService, "extractFileFromZip").mockRejectedValue(
       new Error("fail")
@@ -103,7 +102,7 @@ describe("TextTabContent", () => {
     expect(typography.textContent.trim()).toBe("");
   });
 
-  it("props.textFile や props.encoding の変更により useEffect が再実行される", async () => {
+  it("props.textFileやprops.encodingが変更された場合はuseEffectが再実行される", async () => {
     const { rerender } = render(<TextTabContent {...props} />);
     // 初回レンダリングが完了するのを待つ
     await waitFor(() => expect(screen.getByText(/あいう/)).toBeInTheDocument());
@@ -120,5 +119,17 @@ describe("TextTabContent", () => {
     // 新しい内容がレンダリングされるのを待つ
     await waitFor(() => expect(screen.getByText(/かきく/)).toBeInTheDocument());
     expect(screen.getByText(/けこ/)).toBeInTheDocument();
+  });
+
+  it("textFileがnullの場合は空配列が設定される", async () => {
+    const nullProps: TextTabContentProps = {
+      textFile: null,
+      encoding: EncodingOption.SHIFT_JIS,
+    };
+    render(<TextTabContent {...nullProps} />);
+
+    // textFileがnullの場合、lines が [] となるので、テキスト表示部分は空
+    const typography = screen.getByTestId("text-content");
+    expect(typography.textContent.trim()).toBe("");
   });
 });

@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NotePasteGoButton,
@@ -77,7 +76,7 @@ describe("NotePasteGoButton", () => {
     expect(resultNotes).toEqual(redoResult);
   });
 
-  it("ボタンをクリックすると、選択した位置の後ろにノートが挿入される。成功", async () => {
+  it("NotePasteGoButton:ボタンをクリックすると、選択した位置の後ろにノートが挿入される。成功", async () => {
     const notes = createNotes();
     const insertText = dumpNotes([notes[0]], 120, "");
     const store = useMusicProjectStore.getState();
@@ -105,7 +104,7 @@ describe("NotePasteGoButton", () => {
     expect(resultNotes[5].notenum).toBe(64);
   });
 
-  it("ボタンをクリックすると、選択した位置の後ろにノートが挿入される。失敗", async () => {
+  it("NotePasteGoButton:ボタンをクリックすると、選択した位置の後ろにノートが挿入される。失敗", async () => {
     const notes = createNotes();
     const store = useMusicProjectStore.getState();
     vi.spyOn(navigator.clipboard, "readText").mockRejectedValue(undefined);

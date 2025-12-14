@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom";
+
 HTMLElement.prototype.scrollTo = () => {};
 
 global.Worker = class {

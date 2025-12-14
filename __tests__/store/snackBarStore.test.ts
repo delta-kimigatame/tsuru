@@ -16,21 +16,21 @@ describe("snackBarStore", () => {
     expect(store.severity).toBe("info");
   });
 
-  it("setOpen", () => {
+  it("setOpenをtrueにするとopenがtrueになる", () => {
     const { setOpen } = useSnackBarStore.getState();
     setOpen(true);
     const { open } = useSnackBarStore.getState();
     expect(open).toBeTruthy();
   });
 
-  it("setValue", () => {
+  it("setValueで値を設定するとvalueが更新される", () => {
     const { setValue } = useSnackBarStore.getState();
     setValue("test");
     const { value } = useSnackBarStore.getState();
     expect(value).toBe("test");
   });
 
-  it("setSeverity", () => {
+  it("setSeverityで重要度を設定するとseverityが更新される", () => {
     const { setSeverity } = useSnackBarStore.getState();
     setSeverity("error");
     const { severity } = useSnackBarStore.getState();

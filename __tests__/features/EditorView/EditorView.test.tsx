@@ -9,7 +9,6 @@ import {
 } from "@testing-library/react";
 import fs from "fs";
 import JSZip from "jszip";
-import React from "react";
 import { GenerateWave } from "utauwav";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PIANOROLL_CONFIG } from "../../../src/config/pianoroll";
@@ -24,6 +23,20 @@ import { useCookieStore } from "../../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
 import { useSnackBarStore } from "../../../src/store/snackBarStore";
 import { defaultParam } from "../../../src/types/note";
+
+// ResampWorkerServiceをモック
+vi.mock("../../../src/services/resampWorker", () => {
+  return {
+    ResampWorkerService: vi.fn().mockImplementation(() => ({
+      isReady: true,
+      readyPromise: Promise.resolve(),
+      resamp: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+      clearTask: vi.fn(),
+      reload: vi.fn(),
+    })),
+  };
+});
+
 const createMinimumNote = (): Note => {
   const n = new Note();
   n.length = 480;
@@ -82,13 +95,13 @@ describe("EditorView", () => {
     store.setVb(vb);
   });
 
-  it("初期状態ではwavUrlが未設定なので、audio要素が描画されていない", () => {
+  it("初期状態の場合はaudio要素が描画されない", () => {
     render(<EditorView />);
     const audioElem = screen.queryByTestId("audio");
     expect(audioElem).toBeNull();
   });
 
-  it("初期状態ではsynthesisProgressがfalseのため、FooterMenuのWAV保存タブは通常のラベルが表示される", async () => {
+  it("初期状態の場合はWAV保存タブに通常のラベルが表示される", async () => {
     render(<EditorView />);
     const wavTab = await screen.findByRole("tab", {
       name: /editor\.footer\.play/i,
@@ -100,7 +113,7 @@ describe("EditorView", () => {
     // ここでは主に進捗インジケーターが表示されないことを確認する
   });
 
-  it("初期状態ではplayingがfalseのため、FooterMenuの再生タブはPlayArrowアイコンが表示され、Pianorollのseekbarは描画されていない", async () => {
+  it("初期状態の場合は再生タブにPlayArrowアイコンが表示されseekbarは描画されない", async () => {
     render(<EditorView />);
     // 再生タブ（"再生"というラベル）を取得
     const playTab = await screen.findByRole("tab", {
@@ -116,12 +129,12 @@ describe("EditorView", () => {
     expect(seekbar).toBeNull();
   });
 
-  it("初回レンダリング時に、[vb, notes]依存のuseEffectが実行されるはず", async () => {
+  it("初回レンダリング時は[vb, notes]依存のuseEffectが実行される", async () => {
     render(<EditorView />);
     expect(LOG.datas.some((d) => d.includes("生成済みwavのクリア"))).toBe(true);
   });
 
-  it("初回レンダリング時に、[notes,ustFlags,defaultNote]依存のuseEffectが実行されるはず", async () => {
+  it("初回レンダリング時は[notes,ustFlags,defaultNote]依存のuseEffectが実行される", async () => {
     vi.useFakeTimers();
     render(<EditorView />);
     vi.runAllTimers();
@@ -132,14 +145,14 @@ describe("EditorView", () => {
     ).toBe(true);
     vi.useRealTimers();
   });
-  it("初回レンダリング時に、[wavUrl, playReady]依存のuseEffectが実行されるはず", async () => {
+  it("初回レンダリング時は[wavUrl, playReady]依存のuseEffectが実行される", async () => {
     render(<EditorView />);
     expect(
       LOG.datas.some((d) => d.includes("wavUrlかplayReadyの更新を検知"))
     ).toBe(true);
   });
 
-  it("vbの更新でキャッシュクリア用のuseEffectとmakeCacheが呼ばれるはず", async () => {
+  it("vbを更新した場合はキャッシュクリアとmakeCacheが呼ばれる", async () => {
     render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // vb更新により、'vbの更新を検知。全てのキャッシュクリア' のログが出力されるはず
     act(() => {
@@ -155,7 +168,7 @@ describe("EditorView", () => {
     expect(getRequestParamSpy).toHaveBeenCalled();
   });
 
-  it("notesの更新でmakeCache用のuseEffectが呼ばれる", async () => {
+  it("notesを更新した場合はmakeCache用のuseEffectが呼ばれる", async () => {
     render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // notes更新により、'notesかustFlagsかdefaultNoteの更新検知' のログが出力されるはず
     const dummyNotes = [
@@ -178,7 +191,7 @@ describe("EditorView", () => {
     expect(getRequestParamSpy).toHaveBeenCalled();
     vi.useRealTimers();
   });
-  it("ustFlagsの更新でmakeCache用のuseEffectが呼ばれる", async () => {
+  it("ustFlagsを更新した場合はmakeCache用のuseEffectが呼ばれる", async () => {
     render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     vi.useFakeTimers();
     act(() => {
@@ -195,7 +208,7 @@ describe("EditorView", () => {
     expect(getRequestParamSpy).toHaveBeenCalled();
     vi.useRealTimers();
   });
-  it("defaultNoteの更新でmakeCache用のuseEffectが呼ばれる", async () => {
+  it("defaultNoteを更新した場合はmakeCache用のuseEffectが呼ばれる", async () => {
     render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     vi.useFakeTimers();
     act(() => {
@@ -213,7 +226,7 @@ describe("EditorView", () => {
     vi.useRealTimers();
   });
 
-  it("WAV保存タブをクリックすると、合成進捗が '0/2' と表示されるタブが2つ見つかる", async () => {
+  it("WAV保存タブをクリックした場合は合成進捗が'0/2'と表示されるタブが2つ見つかる", async () => {
     render(<EditorView checkWorkerReady={mockCheckWorkerReady} />);
     // "editor.footer.wav" タブ（WAV保存タブ）を探してクリックする
     const wavTab = await screen.findByRole("tab", {
@@ -227,7 +240,7 @@ describe("EditorView", () => {
     expect(progressTabs).toHaveLength(2);
   });
 
-  it("synthesis処理完了後、wavUrlが設定され、synthesisProgressがfalseになり、ダウンロード処理が実行される", async () => {
+  it("synthesis処理が完了した場合はwavUrlが設定されダウンロード処理が実行される", async () => {
     // SynthesisWorker.prototype.synthesis をモックして、dummyBuffer を返す
     const dummyBuffer = new ArrayBuffer(8);
     const synthesisSpy = vi
@@ -279,7 +292,7 @@ describe("EditorView", () => {
     createElementSpy.mockRestore();
     synthesisSpy.mockRestore();
   });
-  it("エラー発生時に、snackBarStoreの状態が適切に更新され、synthesisProgressがfalseになり、aClickSpyが呼ばれない", async () => {
+  it("エラーが発生した場合はsnackBarStoreが更新されaClickSpyが呼ばれない", async () => {
     // SynthesisWorker.synthesisをエラーを返すようにモックする
     const synthesisSpy = vi
       .spyOn(SynthesisWorker.prototype, "synthesis")
@@ -331,7 +344,7 @@ describe("EditorView", () => {
     synthesisSpy.mockRestore();
   });
 
-  it("再生・停止のシナリオ：wavUrlが存在する場合、再生と停止の動作が正しく切り替わる", async () => {
+  it("wavUrlが存在する場合は再生と停止の動作が正しく切り替わる", async () => {
     // ダミーwavBufを生成（1秒分のサンプル）
     const dummyWavBuf = GenerateWave(44100, 16, Array(44100).fill(0)).Output();
 
@@ -404,7 +417,7 @@ describe("EditorView", () => {
     });
   });
 
-  it("再生タブ押下時、synthesisの正常完了によりaudio要素が表示され、seekbarのx座標が更新され、再生停止後にx座標がリセットされる", async () => {
+  it("再生タブを押下してsynthesisが完了するとaudio要素が表示されseekbarのx座標が更新される", async () => {
     // ダミーwavバッファを返すモック
     const dummyWavBuf = GenerateWave(44100, 16, Array(44100).fill(0)).Output();
     const synthesisSpy = vi

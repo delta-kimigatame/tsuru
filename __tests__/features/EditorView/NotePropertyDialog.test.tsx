@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NoteEdit,
@@ -10,11 +9,17 @@ import {
 import { Note } from "../../../src/lib/Note";
 import { undoManager } from "../../../src/lib/UndoManager";
 import { Ust } from "../../../src/lib/Ust";
+import { BaseVoiceBank } from "../../../src/lib/VoiceBanks/BaseVoiceBank";
 import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
 
 describe("NotePropertyDialog", () => {
   beforeEach(() => {
     undoManager.clear();
+    const store = useMusicProjectStore.getState();
+    const mockVb = {
+      getOtoRecord: vi.fn().mockReturnValue({}),
+    } as unknown as BaseVoiceBank;
+    store.setVb(mockVb);
   });
   it("NoteEdit:設定した通り値が変更される", () => {
     const note = new Note();

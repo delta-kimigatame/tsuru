@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { Frq } from "../../../src/lib/VoiceBanks/UtauFrq";
 
 describe("エラーが帰る", () => {
-  test("no_buf_and_no_frq", () => {
+  test("bufもfrqも未指定の場合、エラーをスローする", () => {
     const frqs = [440.0, 440.0];
     expect(
       () =>
@@ -11,7 +11,7 @@ describe("エラーが帰る", () => {
         })
     ).toThrow("bufもしくはfrqのどちらかが必要です。");
   });
-  test("no_data_and_no_amp", () => {
+  test("dataもampも未指定の場合、エラーをスローする", () => {
     const frqs = [440.0, 440.0];
     expect(
       () =>
@@ -23,7 +23,7 @@ describe("エラーが帰る", () => {
 });
 
 describe("frqとampからFrq生成", () => {
-  test("frq_and_amp", () => {
+  test("frqとampで生成できる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -35,7 +35,7 @@ describe("frqとampからFrq生成", () => {
     expect(frq.frq).toEqual(Float64Array.from(frqs));
     expect(frq.amp).toEqual(Float64Array.from(amp));
   });
-  test("frq_and_amp_and_persamples", () => {
+  test("frqとampとperSamplesで生成できる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -48,7 +48,7 @@ describe("frqとampからFrq生成", () => {
     expect(frq.frq).toEqual(Float64Array.from(frqs));
     expect(frq.amp).toEqual(Float64Array.from(amp));
   });
-  test("frq_and_amp_and_frqavg", () => {
+  test("frqとampとfrqAverageで生成できる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -61,7 +61,7 @@ describe("frqとampからFrq生成", () => {
     expect(frq.frq).toEqual(Float64Array.from(frqs));
     expect(frq.amp).toEqual(Float64Array.from(amp));
   });
-  test("frq_and_amp_and_all", () => {
+  test("frqとampと全パラメータで生成できる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -75,7 +75,7 @@ describe("frqとampからFrq生成", () => {
     expect(frq.frq).toEqual(Float64Array.from(frqs));
     expect(frq.amp).toEqual(Float64Array.from(amp));
   });
-  test("frq_and_amp_and_allwith_data", () => {
+  test("frqとampと全パラメータとdataで生成できる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -93,7 +93,7 @@ describe("frqとampからFrq生成", () => {
 });
 
 describe("frqAverage", () => {
-  test("2value", () => {
+  test("2個の値から平均周波数を計算できる", () => {
     const frqs = [439.0, 441.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({
@@ -103,7 +103,7 @@ describe("frqAverage", () => {
     frq.calcAverageFrq();
     expect(frq.frqAverage).toBe(440);
   });
-  test("3value", () => {
+  test("3個の値から平均周波数を計算できる", () => {
     const frqs = [439.0, 441.0, 442.0];
     const amp = [0.6, 0.5, 0.4];
     const frq = new Frq({
@@ -113,7 +113,7 @@ describe("frqAverage", () => {
     frq.calcAverageFrq();
     expect(frq.frqAverage).toBeCloseTo(440.6666666666);
   });
-  test("3value_with0", () => {
+  test("0を含む3個の値から平均周波数を計算できる", () => {
     const frqs = [439.0, 0, 441.0];
     const amp = [0.6, 0.5, 0.4];
     const frq = new Frq({
@@ -126,7 +126,7 @@ describe("frqAverage", () => {
 });
 
 describe("frqとdataからFrq生成", () => {
-  test("frq_and_data", () => {
+  test("frqとdataで生成できる", () => {
     const frqs = [440.0, 440.0];
     const data = new Array<number>();
     for (let i = 0; i < 512; i++) {
@@ -154,7 +154,7 @@ describe("frqとdataからFrq生成", () => {
     expect(frq.amp[0]).toBeCloseTo(0.6);
     expect(frq.amp[1]).toBeCloseTo(0.5);
   });
-  test("frq_and_data_and_perSamples", () => {
+  test("frqとdataとperSamplesで生成できる", () => {
     const frqs = [440.0, 440.0];
     const data = new Array<number>();
     for (let i = 0; i < 20; i++) {
@@ -183,7 +183,7 @@ describe("frqとdataからFrq生成", () => {
     expect(frq.amp[0]).toBeCloseTo(0.6);
     expect(frq.amp[1]).toBeCloseTo(0.5);
   });
-  test("frq_and_dataand_frqAverage", () => {
+  test("frqとdataとfrqAverageで生成できる", () => {
     const frqs = [440.0, 440.0];
     const data = new Array<number>();
     for (let i = 0; i < 512; i++) {
@@ -212,7 +212,7 @@ describe("frqとdataからFrq生成", () => {
     expect(frq.amp[0]).toBeCloseTo(0.6);
     expect(frq.amp[1]).toBeCloseTo(0.5);
   });
-  test("frq_and_data_surplus", () => {
+  test("frqとdata（余剰あり）で生成できる", () => {
     const frqs = [440.0, 440.0];
     const data = new Array<number>();
     for (let i = 0; i < 257; i++) {
@@ -239,7 +239,7 @@ describe("frqとdataからFrq生成", () => {
 });
 
 describe("バイナリを読み込みエラーが帰る", () => {
-  test("small_than_52byte", () => {
+  test("52バイト未満の場合、エラーをスローする", () => {
     const errorData = new Uint8Array([
       0x46, 0x52, 0x45, 0x51, 0x30, 0x30, 0x30, 0x33, 0x00, 0x01, 0x00, 0x00,
       0x25, 0xf0, 0x46, 0xd7, 0x59, 0xde, 0x5d, 0x40, 0x44, 0xac, 0x00, 0x00,
@@ -251,7 +251,7 @@ describe("バイナリを読み込みエラーが帰る", () => {
       "このデータはfrqファイルではありません。ファイルサイズが小さすぎます。"
     );
   });
-  test("no_FREQ", () => {
+  test("FREQ識別子がない場合、エラーをスローする", () => {
     const errorData = new Uint8Array([
       0x46, 0x52, 0x45, 0x52, 0x30, 0x30, 0x30, 0x33, 0x00, 0x01, 0x00, 0x00,
       0x25, 0xf0, 0x46, 0xd7, 0x59, 0xde, 0x5d, 0x40, 0x44, 0xac, 0x00, 0x00,
@@ -266,7 +266,7 @@ describe("バイナリを読み込みエラーが帰る", () => {
 });
 
 describe("バイナリを読み込み", () => {
-  test("safe_data", () => {
+  test("正常なデータを読み込める", () => {
     const data = new Uint8Array([
       0x46, 0x52, 0x45, 0x51, 0x30, 0x30, 0x30, 0x33, 0x00, 0x01, 0x00, 0x00,
       0x25, 0xf0, 0x46, 0xd7, 0x59, 0xde, 0x5d, 0x40, 0x44, 0xac, 0x00, 0x00,
@@ -283,7 +283,7 @@ describe("バイナリを読み込み", () => {
 });
 
 describe("バイナリを書いて読む", () => {
-  test("safe_data", () => {
+  test("バイナリ出力して再読み込みできる", () => {
     const frqs = [440.0, 440.0];
     const amp = [0.6, 0.5];
     const frq = new Frq({

@@ -2,7 +2,6 @@
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { getDesignTokens } from "../../../src/config/theme";
 import {
@@ -132,7 +131,7 @@ const renderBatchProcess = (props: BatchProcessProps) => {
 };
 
 describe("BatchProcess", () => {
-  it("初期状態として、各UI要素が initialOptions の値を反映している", () => {
+  it("各UI要素がinitialOptionsの値を正しく反映している", () => {
     const dummyProcess = new DummyBatchProcessFlat();
     const props: BatchProcessProps = {
       batchprocess: dummyProcess,
@@ -192,7 +191,7 @@ describe("BatchProcess", () => {
     await user.click(optionCV);
   });
 
-  it("各 DynamicBatchProcessInput コンポーネントに正しい値が渡される（更新後）", async () => {
+  it("各DynamicBatchProcessInputコンポーネントに正しい値が渡される", async () => {
     const dummyProcess = new DummyBatchProcessFlat();
     const props: BatchProcessProps = {
       batchprocess: dummyProcess,
@@ -273,7 +272,7 @@ describe("BatchProcess - 実行ボタン押下時の動作", () => {
     dummyProcess = new DummyBatchProcessFlat();
   });
 
-  it("selectedNotesIndex が [] の場合、全ノートが更新される", async () => {
+  it("selectedNotesIndexが空配列の場合、全ノートが更新される", async () => {
     // BatchProcess コンポーネントの props を作成
     props = {
       batchprocess: dummyProcess,
@@ -293,7 +292,7 @@ describe("BatchProcess - 実行ボタン押下時の動作", () => {
     expect(updatedNotes[2].lyric).toBe("updated c");
   });
 
-  it("selectedNotesIndex が [1,2] の場合、対象ノートのみが更新される", async () => {
+  it("selectedNotesIndexが[1,2]の場合、対象ノートのみが更新される", async () => {
     // props を更新して selectedNotesIndex を [1,2] に
     props = {
       batchprocess: dummyProcess,
@@ -316,5 +315,100 @@ describe("BatchProcess - 実行ボタン押下時の動作", () => {
     // ノート 1,2 は更新されるはず
     expect(updatedNotes[1].lyric).toBe("updated " + initialNotes[1].lyric);
     expect(updatedNotes[2].lyric).toBe("updated " + initialNotes[2].lyric);
+  });
+
+  it("範囲外のselectedNotesIndexがフィルタリングされる", async () => {
+    // 範囲外のインデックス（-1, 10）を含む配列
+    props = {
+      batchprocess: dummyProcess,
+      selectedNotesIndex: [-1, 1, 10, 2],
+    };
+    renderBatchProcess(props);
+
+    const initialNotes = useMusicProjectStore.getState().notes;
+    const processButton = screen.getByRole("button");
+    await user.click(processButton);
+
+    const updatedNotes = useMusicProjectStore.getState().notes;
+    // ノート 0 は更新されない（範囲外インデックスがフィルタリングされる）
+    expect(updatedNotes[0].lyric).toBe(initialNotes[0].lyric);
+    // ノート 1,2 のみ更新される
+    expect(updatedNotes[1].lyric).toBe("updated " + initialNotes[1].lyric);
+    expect(updatedNotes[2].lyric).toBe("updated " + initialNotes[2].lyric);
+  });
+
+  it("handleCloseが提供されている場合、実行後に呼び出される", async () => {
+    let closeCalled = false;
+    const handleClose = () => {
+      closeCalled = true;
+    };
+    props = {
+      batchprocess: dummyProcess,
+      selectedNotesIndex: [],
+      handleClose,
+    };
+    renderBatchProcess(props);
+
+    const processButton = screen.getByRole("button");
+    await user.click(processButton);
+
+    expect(closeCalled).toBe(true);
+  });
+});
+
+describe("BatchProcess - initializeOptions関数の動作", () => {
+  it("initializeOptions関数が提供されている場合、その結果が初期値になる", () => {
+    class DummyWithInitializeOptions extends BaseBatchProcess<any> {
+      title = "dummy.init";
+      summary = "Dummy with initializeOptions";
+      initialOptions = {
+        count: 0,
+      };
+      initializeOptions = (notes: Note[]) => {
+        return { count: notes.length };
+      };
+      ui = [
+        {
+          key: "count",
+          labelKey: "dummy.count",
+          inputType: "textbox-number",
+          min: 0,
+          max: 100,
+          defaultValue: 0,
+        } as TextBoxNumberUIProp,
+      ];
+      protected _process(notes: Note[], options?: any): Note[] {
+        return notes;
+      }
+    }
+
+    // 3つのノートがある状態でテスト
+    const n0 = new Note();
+    n0.index = 0;
+    n0.lyric = "a";
+    const n1 = new Note();
+    n1.index = 1;
+    n1.lyric = "b";
+    const n2 = new Note();
+    n2.index = 2;
+    n2.lyric = "c";
+    //@ts-expect-error テストのためにわざと異なる型を与えている
+    useMusicProjectStore.setState({
+      ust: { notes: [n0, n1, n2] },
+      notes: [n0, n1, n2],
+    });
+
+    const dummyProcess = new DummyWithInitializeOptions();
+    const props: BatchProcessProps = {
+      batchprocess: dummyProcess,
+      selectedNotesIndex: [],
+    };
+    renderBatchProcess(props);
+
+    // initializeOptions が notes.length (3) を返すので、初期値は3になるはず
+    const textbox = screen.getByRole("spinbutton", {
+      name: /dummy\.count/i,
+    });
+    expect(textbox).toHaveValue(3);
   });
 });

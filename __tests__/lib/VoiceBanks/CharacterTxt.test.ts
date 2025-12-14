@@ -2,17 +2,18 @@ import { describe, expect, it } from "vitest";
 import { CharacterTxt } from "../../../src/lib/VoiceBanks/CharacterTxt";
 
 describe("CharacterTxt", () => {
-  it("throw error", () => {
+  it("txtもnameも未指定の場合、エラーをスローする", () => {
     expect(() => {
       new CharacterTxt({});
     }).toThrow("txtかnameのどちらかが必要です");
   });
 
-  it("values_minimum", () => {
+  it("name最小構成で初期化できる", () => {
     const character = new CharacterTxt({ name: "a" });
     expect(character.name).toBe("a");
   });
-  it("values_all", () => {
+
+  it("name全プロパティで初期化できる", () => {
     const character = new CharacterTxt({
       name: "a",
       image: "b.bmp",
@@ -28,11 +29,13 @@ describe("CharacterTxt", () => {
     expect(character.web).toBe("https://e.jp/");
     expect(character.version).toBe("f");
   });
-  it("text_minimum", () => {
+
+  it("txt最小構成で初期化できる", () => {
     const character = new CharacterTxt({ txt: "name=a" });
     expect(character.name).toBe("a");
   });
-  it("text_all", () => {
+
+  it("txt全プロパティで初期化できる", () => {
     const character = new CharacterTxt({
       txt: "name=a\r\nimage=b.bmp\r\nsample=c.wav\r\nauthor=d\r\nweb=https://e.jp/\r\nversion=f",
     });
@@ -43,7 +46,8 @@ describe("CharacterTxt", () => {
     expect(character.web).toBe("https://e.jp/");
     expect(character.version).toBe("f");
   });
-  it("text_all_cologne", () => {
+
+  it("txtコロン区切りで初期化できる", () => {
     const character = new CharacterTxt({
       txt: "name:a\r\nimage:b.bmp\r\nsample:c.wav\r\nauthor:d\r\nweb:https://e.jp/\r\nversion:f",
     });
@@ -54,11 +58,13 @@ describe("CharacterTxt", () => {
     expect(character.web).toBe("https://e.jp/");
     expect(character.version).toBe("f");
   });
-  it("output_minimum", () => {
+
+  it("最小構成でtxt出力できる", () => {
     const character = new CharacterTxt({ txt: "name:a" });
     expect(character.outputTxt()).toBe("name=a\r\n");
   });
-  it("output_all", () => {
+
+  it("全プロパティでtxt出力できる", () => {
     const character = new CharacterTxt({
       name: "a",
       image: "b.bmp",

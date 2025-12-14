@@ -1,7 +1,6 @@
 import { createTheme } from "@mui/material";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import JSZip from "jszip";
-import React from "react";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import { getDesignTokens } from "../../../src/config/theme";
 import {
@@ -56,14 +55,27 @@ describe("LoadVBDialog", () => {
     vi.clearAllMocks();
   });
 
-  it("readFileがnullの場合、ダイアログは表示されない", () => {
+  it("readFileがnullの場合はダイアログが表示されない", () => {
     props.readFile = null;
     render(<LoadVBDialog {...props} />);
     // ダイアログのopen条件は props.dialogOpen && readFile !== null のため
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("readFileが設定された場合、JSZip.loadAsyncが呼ばれてzipFilesが更新される", async () => {
+  it("readFileとdialogOpenが有効な場合はダイアログが表示される", async () => {
+    const fakeFiles = { "file1.txt": { name: "file1.txt" } };
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
+    render(<LoadVBDialog {...props} />);
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+  });
+
+  it("readFileが設定された場合はJSZip.loadAsyncが呼ばれてzipFilesが更新される", async () => {
     // fakeなzipファイル群を用意
     const fakeFiles = { "file1.txt": { name: "file1.txt" } };
     const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
@@ -80,7 +92,31 @@ describe("LoadVBDialog", () => {
     expect(await screen.findByText("file1.txt")).toBeInTheDocument();
   });
 
-  it("handleCloseが呼ばれると、setDialogOpenとsetProcessingがfalseになる", () => {
+  it("エンコーディングを変更した場合はloadZipが再実行される", async () => {
+    const fakeFiles = { "file1.txt": { name: "file1.txt" } };
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
+    render(<LoadVBDialog {...props} />);
+    await waitFor(() => {
+      expect(loadAsyncMock).toHaveBeenCalledTimes(1);
+    });
+
+    // EncodingSelectの値を変更（MUI Selectはhidden inputを使用）
+    const hiddenInput = document.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    if (hiddenInput) {
+      fireEvent.change(hiddenInput, { target: { value: "utf-8" } });
+      await waitFor(() => {
+        expect(loadAsyncMock).toHaveBeenCalledTimes(2);
+      });
+    }
+  });
+
+  it("handleCloseが呼ばれた場合はsetDialogOpenとsetProcessingがfalseになる", () => {
     render(<LoadVBDialog {...props} />);
     const closeButton = screen.getByRole("button", { name: /close/i });
     fireEvent.click(closeButton);
@@ -88,7 +124,13 @@ describe("LoadVBDialog", () => {
     expect(props.setProcessing).toHaveBeenCalledWith(false);
   });
 
-  it("handleButtonClick成功パターン：VoiceBank.initializeが成功し、setVb, setDialogOpen, setProcessingが呼ばれる", async () => {
+  it("handleButtonClickが成功した場合はVoiceBank.initializeが実行されsetVbが呼ばれる", async () => {
+    const fakeFiles = { "file1.txt": { name: "file1.txt" } };
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
     const fakeVoiceBank = {
       initialize: vi.fn().mockResolvedValue(undefined),
     };
@@ -111,7 +153,14 @@ describe("LoadVBDialog", () => {
     expect(props.setDialogOpen).toHaveBeenCalledWith(false);
     expect(props.setProcessing).toHaveBeenCalledWith(false);
   });
-  it("handleButtonClickエラーパターン：VoiceBank.initializeが失敗した場合、snackBarが呼び出され、ダイアログと処理状態が更新される", async () => {
+
+  it("handleButtonClickが失敗した場合はsnackBarが呼び出される", async () => {
+    const fakeFiles = { "file1.txt": { name: "file1.txt" } };
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
     const fakeVoiceBank = {
       initialize: vi.fn().mockRejectedValue(new Error("fail")),
     };
@@ -140,5 +189,59 @@ describe("LoadVBDialog", () => {
       )
     );
     await waitFor(() => expect(mockSetSeverity).toHaveBeenCalledWith("error"));
+  });
+
+  it("zipFilesが空の場合はOKボタンが無効化される", async () => {
+    const fakeFiles = {};
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
+    const fakeVoiceBank = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+    };
+    VoiceBankMock.mockImplementation(() => fakeVoiceBank);
+
+    render(<LoadVBDialog {...props} />);
+    await waitFor(() => {
+      expect(loadAsyncMock).toHaveBeenCalled();
+    });
+
+    // disabled条件は `processing && zipFiles !== null`
+    // zipFilesがnullではないが空のobjectなので、processingがfalseの場合enabledになる
+    const button = screen.getByRole("button", { name: /OK/i });
+    expect(button).not.toBeDisabled();
+  });
+
+  it("処理中の場合はOKボタンが無効化されCircularProgressが表示される", async () => {
+    const fakeFiles = { "file1.txt": { name: "file1.txt" } };
+    const loadAsyncMock = vi.fn().mockResolvedValue({ files: fakeFiles });
+    (JSZip as unknown as any).mockImplementation(() => ({
+      loadAsync: loadAsyncMock,
+    }));
+
+    const fakeVoiceBank = {
+      initialize: vi.fn().mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      ),
+    };
+
+    VoiceBankMock.mockImplementation(() => fakeVoiceBank);
+
+    render(<LoadVBDialog {...props} />);
+    await waitFor(() =>
+      expect(screen.getByText("file1.txt")).toBeInTheDocument()
+    );
+
+    const button = screen.getByRole("button", { name: /OK/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(button).toBeDisabled();
+      // CircularProgressは複数存在するため、getAllByRoleを使用
+      const progressBars = screen.getAllByRole("progressbar");
+      expect(progressBars.length).toBeGreaterThan(0);
+    });
   });
 });

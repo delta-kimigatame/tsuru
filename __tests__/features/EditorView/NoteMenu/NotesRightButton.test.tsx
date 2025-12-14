@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   notesRight,
@@ -50,7 +49,7 @@ describe("NotesRightButton", () => {
     expect(resultNotes).toEqual(redoResult);
   });
 
-  it("ボタンをクリックすると、選択されたノートが1つ右へ", async () => {
+  it("NotesRightButton:ボタンをクリックすると、選択されたノートが1つ右へ", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     const setSelectedNotesIndexSpy = vi.fn();
@@ -86,7 +85,7 @@ describe("NotesRightButton", () => {
     expect(undoResult[4].notenum).toBe(64);
     expect(undoResult[5].notenum).toBe(65);
   });
-  it("最後のノートが選択されているとき、disabledになる", async () => {
+  it("NotesRightButton:最後のノートが選択されているとき、disabledになる", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     const setSelectedNotesIndexSpy = vi.fn();
@@ -101,5 +100,49 @@ describe("NotesRightButton", () => {
     const button = await screen.findByTestId("NotesRightButton");
     // 0が含まれていると、disableのはず
     expect(button).toHaveAttribute("disabled");
+  });
+
+  it("NotesRightButton:範囲外のインデックスが含まれている場合、フィルタリングされる", async () => {
+    const dummyNotes = createNotes();
+    const store = useMusicProjectStore.getState();
+    const setSelectedNotesIndexSpy = vi.fn();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    render(
+      <NotesRightButton
+        selectedNotesIndex={[-1, 1, 10]} // -1と10は範囲外
+        setSelectedNotesIndex={setSelectedNotesIndexSpy}
+      />
+    );
+    const button = await screen.findByTestId("NotesRightButton");
+    fireEvent.click(button);
+
+    // 範囲外インデックスがフィルタされ、[1]のみ処理される
+    expect(setSelectedNotesIndexSpy).toHaveBeenCalledWith([2]);
+  });
+
+  it("NotesRightButton:全て範囲外のインデックスの場合、何も実行されない", async () => {
+    const dummyNotes = createNotes();
+    const store = useMusicProjectStore.getState();
+    const setSelectedNotesIndexSpy = vi.fn();
+    const initialNotes = dummyNotes.map((n) => n.deepCopy());
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    render(
+      <NotesRightButton
+        selectedNotesIndex={[-1, 10, 100]} // すべて範囲外
+        setSelectedNotesIndex={setSelectedNotesIndexSpy}
+      />
+    );
+    const button = await screen.findByTestId("NotesRightButton");
+    fireEvent.click(button);
+
+    const resultNotes = useMusicProjectStore.getState().notes;
+    // ノートが変更されていないことを確認
+    resultNotes.forEach((note, i) => {
+      expect(note.notenum).toBe(initialNotes[i].notenum);
+    });
+    // setSelectedNotesIndexが呼ばれていないことを確認
+    expect(setSelectedNotesIndexSpy).not.toHaveBeenCalled();
   });
 });

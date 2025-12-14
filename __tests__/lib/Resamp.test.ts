@@ -23,7 +23,7 @@ describe("Resamp", () => {
     resamp = new Resamp(vb);
     await resamp.initialize();
   });
-  it("getWavData", async () => {
+  it("offsetMsとcutoffMsを指定してwavデータが取得できる", async () => {
     const wav = await resamp.getWaveData(
       "denoise/01_あかきくけこ.wav",
       1538.32,
@@ -44,7 +44,7 @@ describe("Resamp", () => {
     );
     expect(wav3.length).toBe(4410);
   });
-  it("getFrq", async () => {
+  it("offsetMsと長さを指定してfrqデータが取得できる", async () => {
     const frq = await resamp.getFrqData(
       "denoise/01_あかきくけこ.wav",
       1538.32,
@@ -68,7 +68,7 @@ describe("Resamp", () => {
     frq2.frq.forEach((f) => expect(f).not.toBeNaN());
     frq2.amp.forEach((f) => expect(f).not.toBeNaN());
   });
-  it("stretchSimple", () => {
+  it("velocity=100でパラメータが正しく伸長される", () => {
     const s1 = resamp.stretch(
       [0, 1, 2, 3, 4],
       [
@@ -118,7 +118,7 @@ describe("Resamp", () => {
     ]);
     expect(s1.amp).toEqual([5, 6, 7, 7, 7, 8, 8, 8, 9, 9]);
   });
-  it("stretchVelocity0", () => {
+  it("velocity=0でパラメータが正しく伸長される", () => {
     const s1 = resamp.stretch(
       [0, 1, 2, 3, 4],
       [
@@ -168,7 +168,7 @@ describe("Resamp", () => {
     ]);
     expect(s1.amp).toEqual([5, 5, 6, 6, 7, 7, 8, 8, 9, 9]);
   });
-  it("stretchSimpleShurink", () => {
+  it("velocity=100でパラメータが正しく縮小される", () => {
     const s1 = resamp.stretch(
       [0, 0, 1, 1, 2, 2, 3, 3, 4, 4],
       [
@@ -218,7 +218,7 @@ describe("Resamp", () => {
     ]);
     expect(s1.amp).toEqual([5, 5, 6, 6, 7]);
   });
-  it("stretchSimpleShurinkVelocity", () => {
+  it("velocity=200でパラメータが正しく縮小される", () => {
     const s1 = resamp.stretch(
       [0, 0, 1, 1, 2, 2, 3, 3, 4, 4],
       [
@@ -268,7 +268,7 @@ describe("Resamp", () => {
     ]);
     expect(s1.amp).toEqual([5, 6, 7, 8, 9]);
   });
-  it("stretchSimpleShurinkVelocityWithstretch", () => {
+  it("velocity=200で縮小後に伸長してパラメータが正しく処理される", () => {
     const s1 = resamp.stretch(
       [0, 0, 1, 1, 2, 2, 3, 3, 4, 4],
       [
@@ -329,14 +329,14 @@ describe("Resamp", () => {
     expect(s1.amp).toEqual([5, 6, 7, 7, 7, 7, 8, 8, 9, 9]);
   });
 
-  it("pitchShift_mod0", () => {
+  it("modulation=0で音高が目標音高に変更される", () => {
     const p = resamp.pitchShift([435, 435, 435], 435, "A4", 0);
     expect(p).toEqual([440, 440, 440]);
     expect(resamp.pitchShift([435, 435, 435], 435, "A3", 0)).toEqual([
       220, 220, 220,
     ]);
   });
-  it("pitchShift_mod", () => {
+  it("modulationを指定して音高が正しく変更される", () => {
     const p = resamp.pitchShift([880, 880, 880], 440, "A4", 100);
     expect(p).toEqual([880, 880, 880]);
     expect(resamp.pitchShift([880, 880, 880], 440, "A4", 50)).toEqual([
@@ -349,7 +349,7 @@ describe("Resamp", () => {
     ]);
   });
 
-  it("applyPitch", () => {
+  it("ピッチデータが正しくf0に適用される", () => {
     const p = resamp.pitchShift(new Array(100).fill(440), 440, "A4", 0);
     expect(
       resamp
@@ -382,7 +382,7 @@ describe("Resamp", () => {
     ).toEqual(new Array(100).fill(880));
   });
 
-  it("adjustIntensity", () => {
+  it("intensityを指定して音量が正しく調整される", () => {
     const d = [0.5, 0.3, -0.3, -0.5, 0];
     expect(resamp.adjustVolume(d, 100, [1, 1, 1, 1, 1])).toEqual([
       0.5, 0.3, -0.3, -0.5, 0,
@@ -395,7 +395,7 @@ describe("Resamp", () => {
     ).toEqual([0, 0, 0, 0, 0]);
   });
 
-  it("resamp", async () => {
+  it("全パラメータを指定して合成が正しく実行される", async () => {
     const w = await resamp.resamp({
       inputWav: "denoise/01_あかきくけこ.wav",
       targetTone: "A3",
@@ -416,7 +416,7 @@ describe("Resamp", () => {
     fs.writeFileSync("./__tests__/test_result/output.wav", new DataView(buf));
   });
 
-  it("resampWorker", async () => {
+  it("Worker API用のメソッドで合成が正しく実行される", async () => {
     /**
      * vbをworkerに渡さないためにresampWorkerを作ったので実際はresamp.getWaveDataは使えないが、resampWorkerの確認のためにここは妥協
      */
@@ -466,7 +466,7 @@ describe("Resamp", () => {
 });
 
 describe("profilingResamp", () => {
-  it("profilingResamp", async () => {
+  it("プロファイリング用テストで合成が正しく実行される", async () => {
     const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
     const zip = new JSZip();
     const td = new TextDecoder("shift-jis");
@@ -493,5 +493,72 @@ describe("profilingResamp", () => {
       pitches: "AA#97#",
     });
     expect(w.length).toBe(26240);
+  });
+});
+
+describe("Resamp単体メソッド", () => {
+  let vb: VoiceBank;
+  let resamp: Resamp;
+
+  beforeAll(async () => {
+    const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
+    const zip = new JSZip();
+    const td = new TextDecoder("shift-jis");
+    await zip.loadAsync(buffer, {
+      // @ts-expect-error 型の方がおかしい
+      decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
+    });
+    vb = new VoiceBank(zip.files);
+    await vb.initialize();
+    resamp = new Resamp(vb);
+    await resamp.initialize();
+  });
+
+  it("gFlag=0でスペクトルが変更されない", () => {
+    const sp = [
+      Float64Array.from([1, 2, 3, 4]),
+      Float64Array.from([5, 6, 7, 8]),
+    ];
+    const result = resamp.applyGender(sp, 0);
+    expect(result).toEqual(sp);
+  });
+
+  it("gFlag>0でスペクトルが変換される", () => {
+    const sp = [
+      Float64Array.from([1, 2, 3, 4, 5, 6, 7, 8]),
+      Float64Array.from([1, 2, 3, 4, 5, 6, 7, 8]),
+    ];
+    const result = resamp.applyGender(sp, 50);
+    expect(result.length).toBe(2);
+    expect(result[0].length).toBe(8);
+    result.forEach((arr) => {
+      arr.forEach((v) => expect(v).not.toBeNaN());
+    });
+  });
+
+  it("BFlag=0,50,100で非周期性指標が変更されない", () => {
+    const ap = [
+      Float64Array.from([0.1, 0.2, 0.3]),
+      Float64Array.from([0.4, 0.5, 0.6]),
+    ];
+    expect(resamp.applyBreath(ap, 0)).toEqual(ap);
+    expect(resamp.applyBreath(ap, 50)).toEqual(ap);
+    expect(resamp.applyBreath(ap, 100)).toEqual(ap);
+  });
+
+  it("BFlag<50で非周期性指標が減少する", () => {
+    const ap = [Float64Array.from([0.5, 0.5, 0.5])];
+    const result = resamp.applyBreath(ap, 25);
+    expect(result[0][0]).toBeCloseTo(0.25);
+    expect(result[0][1]).toBeCloseTo(0.25);
+    expect(result[0][2]).toBeCloseTo(0.25);
+  });
+
+  it("BFlag>50で非周期性指標が増加する", () => {
+    const ap = [Float64Array.from([0.5, 0.5, 0.5])];
+    const result = resamp.applyBreath(ap, 75);
+    expect(result[0][0]).toBeCloseTo(0.75);
+    expect(result[0][1]).toBeCloseTo(0.75);
+    expect(result[0][2]).toBeCloseTo(0.75);
   });
 });

@@ -102,6 +102,9 @@ const dummyResampRequest: ResampRequest = {
   pitches: "AAAA",
 };
 
+// グローバルな Worker を DummyWorker に上書き
+global.Worker = DummyWorker as any;
+
 describe("ResampWorkerService", () => {
   let service: ResampWorkerService;
 
@@ -115,13 +118,13 @@ describe("ResampWorkerService", () => {
     service.terminate();
   });
 
-  it("waits until worker is ready", async () => {
+  it("workerが準備完了するまで待機する", async () => {
     // waitUntilReady() が解決するまで待てるか確認
     await service.waitUntilReady();
     expect(true).toBe(true);
   });
 
-  it("processResamp returns result when worker responds successfully", async () => {
+  it("workerが成功レスポンスを返すとprocessResampが結果を返す", async () => {
     // 正常系: processResamp を呼び出し、DummyWorker が成功レスポンスを返すか確認
     const result = await service.processResamp(
       dummyResampRequest,
@@ -131,7 +134,7 @@ describe("ResampWorkerService", () => {
     expect(Array.from(result)).toEqual([10, 20, 30]);
   });
 
-  it("processResamp throws error when worker responds with error", async () => {
+  it("workerがエラーレスポンスを返すとprocessResampがエラーをthrowする", async () => {
     // エラーシナリオ: inputWav を "simulateError" にしてエラー応答をシミュレートする
     const errorRequest: ResampRequest = {
       ...dummyResampRequest,

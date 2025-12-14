@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PoltamentRemoveFab,
@@ -9,6 +8,7 @@ import {
 import { Note } from "../../../../src/lib/Note";
 import { undoManager } from "../../../../src/lib/UndoManager";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("PoltamentRemoveFab", () => {
@@ -20,13 +20,19 @@ describe("PoltamentRemoveFab", () => {
     n.lyric = "あ";
     n.hasTempo = false;
     n.tempo = 120;
+    n.prev = { tempo: 120, length: 0, lyric: "R" };
     return n;
   };
   beforeEach(() => {
     undoManager.clear();
     vi.restoreAllMocks();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
   });
-  it("RemovePoltament:ポルタメントが削除され、pbwは1つ次の値と合算される", () => {
+  it("PoltamentRemoveFab: ポルタメントが削除され、pbwは1つ次の値と合算される", () => {
     const n = createNote();
     n.setPbw([150, 250, 350]);
     n.setPbm(["", "s", "r"]);
@@ -40,7 +46,7 @@ describe("PoltamentRemoveFab", () => {
     expect(undoResult).toEqual([n]);
     expect(redoResult).toEqual([resultNote]);
   });
-  it("RemovePoltament:ポルタメントが削除され、pbwは1つ次の値と合算される。targetIndex===1の場合", () => {
+  it("PoltamentRemoveFab: ポルタメントが削除され、pbwは1つ次の値と合算される。targetIndex===1の場合", () => {
     const n = createNote();
     n.setPbw([150, 250, 350]);
     n.setPbm(["", "s", "r"]);
@@ -54,7 +60,18 @@ describe("PoltamentRemoveFab", () => {
     expect(undoResult).toEqual([n]);
     expect(redoResult).toEqual([resultNote]);
   });
-  it("PoltamentRemoveFab:targetIndex===0の時disabled", async () => {
+  it("PoltamentRemoveFab: pbwIndex !== 0の場合、配列操作が正しく行われる", () => {
+    const n = createNote();
+    n.setPbw([100, 200, 300, 400]);
+    n.setPbm(["", "s", "r", "j"]);
+    n.setPby([50, 60, 70]);
+    const resultNote = RemovePoltament(3, n); // pbwIndex = 2
+    // pbw[2]とpbw[3]が合算されて600になり、pbw[2]の位置に配置される
+    expect(resultNote.pbw).toEqual([100, 200, 700]);
+    expect(resultNote.pbm).toEqual(["", "s", "j"]);
+    expect(resultNote.pby).toEqual([50, 60]);
+  });
+  it("PoltamentRemoveFab: targetIndex===0の時disabled", async () => {
     const n = createNote();
     n.setPbw([150, 250, 350]);
     n.setPbm(["", "s", "r"]);
@@ -63,7 +80,7 @@ describe("PoltamentRemoveFab", () => {
     const button = await screen.findByTestId("poltamentRemove");
     expect(button).toHaveAttribute("disabled");
   });
-  it("PoltamentRemoveFab:targetIndexがポルタメント末尾の時disabled", async () => {
+  it("PoltamentRemoveFab: targetIndexがポルタメント末尾の時disabled", async () => {
     const n = createNote();
     n.setPbw([150, 250, 350]);
     n.setPbm(["", "s", "r"]);
@@ -72,7 +89,7 @@ describe("PoltamentRemoveFab", () => {
     const button = await screen.findByTestId("poltamentRemove");
     expect(button).toHaveAttribute("disabled");
   });
-  it("PoltamentRemoveFab:clickするとRemovePoltamentが実行され、setNoteされる", async () => {
+  it("PoltamentRemoveFab: clickするとRemovePoltamentが実行され、setNoteされる", async () => {
     const n = createNote();
     n.setPbw([150, 250, 350]);
     n.setPbm(["", "s", "r"]);

@@ -16,7 +16,7 @@ describe("useThemeMode", () => {
   beforeEach(() => {
     vi.resetModules();
   });
-  it("systemDark", () => {
+  it("system設定でダークモードの場合darkになる", () => {
     (useCookieStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       mode: "system",
     });
@@ -24,7 +24,7 @@ describe("useThemeMode", () => {
     const { result } = renderHook(() => useThemeMode());
     expect(result.current).toBe("dark");
   });
-  it("systemLight", () => {
+  it("system設定でライトモードの場合lightになる", () => {
     (useCookieStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       mode: "system",
     });
@@ -32,7 +32,7 @@ describe("useThemeMode", () => {
     const { result } = renderHook(() => useThemeMode());
     expect(result.current).toBe("light");
   });
-  it("dark", () => {
+  it("dark設定の場合darkになる", () => {
     (useCookieStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       mode: "dark",
     });
@@ -40,7 +40,7 @@ describe("useThemeMode", () => {
     const { result } = renderHook(() => useThemeMode());
     expect(result.current).toBe("dark");
   });
-  it("light", () => {
+  it("light設定の場合lightになる", () => {
     (useCookieStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       mode: "light",
     });

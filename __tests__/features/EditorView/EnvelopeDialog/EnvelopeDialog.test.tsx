@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   envelopeApply,
@@ -14,6 +13,7 @@ import {
 import { Note } from "../../../../src/lib/Note";
 import { undoManager } from "../../../../src/lib/UndoManager";
 import { Ust } from "../../../../src/lib/Ust";
+import { BaseVoiceBank } from "../../../../src/lib/VoiceBanks/BaseVoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("EnvelopeDialog", () => {
@@ -452,13 +452,25 @@ describe("EnvelopeDialog", () => {
   });
   it("コンポーネント:ボタンをクリックするとエンベロープの適用を確定する", () => {
     const n = new Note();
+    n.index = 0;
     n.length = 480;
+    n.notenum = 60;
+    n.lyric = "あ";
+    n.hasTempo = false;
     n.tempo = 120;
+    n.preutter = 30;
+    n.overlap = 10;
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);
     store.setNotes([n]);
+    // VoiceBankのモックを設定（必要なメソッドを実装）
+    const mockVb = {
+      name: "mockVoiceBank",
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as BaseVoiceBank;
+    store.setVb(mockVb);
     const dialogCloseSpy = vi.fn();
-    const { rerender } = render(
+    render(
       <EnvelopeDialog open={true} note={n} handleClose={dialogCloseSpy} />
     );
     const pts = new Array();
@@ -477,32 +489,25 @@ describe("EnvelopeDialog", () => {
     }
     fireEvent.change(pts[0], { target: { value: "5" } });
     fireEvent.change(pts[1], { target: { value: "15" } });
-    fireEvent.change(pts[2], { target: { value: "460" } });
-    fireEvent.change(pts[3], { target: { value: "490" } });
+    fireEvent.change(pts[2], { target: { value: "440" } });
+    fireEvent.change(pts[3], { target: { value: "470" } });
     fireEvent.change(pts[4], { target: { value: "35" } });
     fireEvent.change(vts[0], { target: { value: "0" } });
     fireEvent.change(vts[1], { target: { value: "100" } });
     fireEvent.change(vts[2], { target: { value: "100" } });
     fireEvent.change(vts[3], { target: { value: "0" } });
     fireEvent.change(vts[4], { target: { value: "100" } });
-    //処理の実行
 
     const button = screen.getByRole("button", {
       name: /editor\.envelopeDialog\.submitButton/i,
     });
     fireEvent.click(button);
-    //ダイアログが閉じているはず
-    expect(dialogCloseSpy).toHaveBeenCalled();
-    rerender(
-      <EnvelopeDialog
-        open={false}
-        note={undefined}
-        handleClose={dialogCloseSpy}
-      />
-    );
-    const resultNotes = useMusicProjectStore.getState().notes;
-    expect(resultNotes[0].envelope).toEqual({
-      point: [5, 10, 30, 10, 20],
+
+    expect(dialogCloseSpy).toHaveBeenCalledTimes(1);
+    // envelopeの値が実際に変更されることを確認
+    const updatedNotes = useMusicProjectStore.getState().notes;
+    expect(updatedNotes[0].envelope).toEqual({
+      point: [5, 10, 30, 60, 20],
       value: [0, 100, 100, 0, 100],
     });
   });

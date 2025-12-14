@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   notesDown,
@@ -46,7 +45,7 @@ describe("NotesDownButton", () => {
     expect(resultNotes).toEqual(redoResult);
   });
 
-  it("ボタンをクリックすると、選択されたノートが半音上がる", async () => {
+  it("NotesDownButton:ボタンをクリックすると、選択されたノートが半音下がる", async () => {
     const dummyNotes = createNotes();
     const store = useMusicProjectStore.getState();
     store.setUst({} as Ust);

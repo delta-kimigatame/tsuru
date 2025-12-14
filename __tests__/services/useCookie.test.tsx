@@ -38,8 +38,8 @@ const TestObjectCookie: React.FC = () => {
   );
 };
 
-describe("testStringCookie", () => {
-  it("testDefault", () => {
+describe("文字列Cookie", () => {
+  it("デフォルト値の確認", () => {
     render(
       <CookiesProvider>
         <TestStringCookie />
@@ -47,7 +47,7 @@ describe("testStringCookie", () => {
     );
     expect(screen.getByText("Cookie: default")).toBeInTheDocument();
   });
-  it("testSetValue", async () => {
+  it("setStringCookieで値を設定するとCookieが更新される", async () => {
     render(
       <CookiesProvider>
         <TestStringCookie />
@@ -59,8 +59,8 @@ describe("testStringCookie", () => {
   });
 });
 
-describe("testObjectCookie", () => {
-  it("testDefault", () => {
+describe("オブジェクトCookie", () => {
+  it("デフォルト値の確認", () => {
     render(
       <CookiesProvider>
         <TestObjectCookie />
@@ -70,7 +70,7 @@ describe("testObjectCookie", () => {
       screen.getByText("Cookie.foo: defaultFoo, Cookie.bar: defaultBar")
     ).toBeInTheDocument();
   });
-  it("testSetValue", async () => {
+  it("setObjectCookieで値を設定するとCookieが更新される", async () => {
     render(
       <CookiesProvider>
         <TestObjectCookie />
@@ -81,7 +81,7 @@ describe("testObjectCookie", () => {
     const c = decodeURIComponent(document.cookie.replace("test=", ""));
     expect(JSON.parse(c)).toEqual({ foo: "testFoo", bar: "testBar" });
   });
-  it("testValue", () => {
+  it("Cookieに保存された値を取得できる", () => {
     const testCookieValue = JSON.stringify({ foo: "testFoo", bar: "testBar" });
     Object.defineProperty(document, "cookie", {
       value: "test=" + encodeURIComponent(testCookieValue),
