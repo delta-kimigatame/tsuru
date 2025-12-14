@@ -454,7 +454,7 @@ const NotePaste = (
     undoArgs: oldNote,
     redo: redo,
     redoArgs: {
-      n: oldNote,
+      oldNotes: oldNote,
       loadNotes: loadNoteCopies,
       state: { ...formState },
     },
