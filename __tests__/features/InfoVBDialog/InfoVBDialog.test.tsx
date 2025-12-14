@@ -1,6 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   InfoVBDialog,
@@ -44,7 +43,7 @@ describe("InfoVBDialog", () => {
   });
 
   // 1. vb 更新時の初期化とダイアログ表示
-  it("vb が非nullの場合、mount 時に同意状態が初期化され、props.setOpen(true) が呼ばれる", async () => {
+  it("vbが非nullの場合はmount時に同意状態が初期化されsetOpen(true)が呼ばれる", async () => {
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
     const props: InfoVBDialogProps = {
@@ -59,7 +58,7 @@ describe("InfoVBDialog", () => {
     });
   });
   // 2. エンコード変更時の再初期化（ReInitializeVb の動作）
-  it("ユーザーがエンコードを変更すると vb.initialize が新しいエンコード値で呼ばれる", async () => {
+  it("エンコードを変更した場合はvb.initializeが新しいエンコード値で呼ばれる", async () => {
     // 初期状態: vb には SHIFT_JIS が前提
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
@@ -85,7 +84,7 @@ describe("InfoVBDialog", () => {
     });
   });
   // 3. 利用規約同意ボタンの動作
-  it("利用規約同意ボタンがクリックされると、agreed が true となり、props.setOpen(false) が呼ばれる", async () => {
+  it("利用規約同意ボタンをクリックした場合はagreedがtrueになりsetOpen(false)が呼ばれる", async () => {
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
     const props: InfoVBDialogProps = {
@@ -108,7 +107,7 @@ describe("InfoVBDialog", () => {
     });
   });
   // 4. 同意済みの場合の閉じるアイコンの動作
-  it("同意済みの場合、閉じるアイコンが表示され、クリックすると props.setOpen(false) が呼ばれる", async () => {
+  it("同意済みの場合は閉じるアイコンが表示されクリックするとsetOpen(false)が呼ばれる", async () => {
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
     const props: InfoVBDialogProps = {
@@ -140,7 +139,7 @@ describe("InfoVBDialog", () => {
     });
   });
   // 5. props.open による表示制御
-  it("props.open が false の場合、ダイアログがレンダリングされない", () => {
+  it("props.openがfalseの場合はダイアログがレンダリングされない", () => {
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
     const props: InfoVBDialogProps = {
@@ -151,7 +150,7 @@ describe("InfoVBDialog", () => {
     expect(queryByRole("dialog")).toBeNull();
   });
   // 6. vb が null の場合、ダイアログがレンダリングされない
-  it("vb が null の場合、ダイアログがレンダリングされない", () => {
+  it("vbがnullの場合はダイアログがレンダリングされない", () => {
     setGlobalVb(null);
     const props: InfoVBDialogProps = {
       open: true,
@@ -161,7 +160,7 @@ describe("InfoVBDialog", () => {
     expect(queryByRole("dialog")).toBeNull();
   });
   // 7. 子コンポーネントへの props の受け渡しの最低限の検証
-  it("子コンポーネントへ vb のプロパティおよび encoding, vb.zip が正しく渡される", async () => {
+  it("子コンポーネントへvbのプロパティおよびencodingとvb.zipが正しく渡される", async () => {
     const dummyVb = createDummyVb();
     setGlobalVb(dummyVb);
     const props: InfoVBDialogProps = {
@@ -180,6 +179,33 @@ describe("InfoVBDialog", () => {
     // EncodingSelect も表示される（ラベル等）
     await waitFor(() => {
       expect(getByText(/encoding/i)).toBeDefined();
+    });
+  });
+
+  // 8. progress状態のテスト
+  it("progress中の場合はCircularProgressが表示される", async () => {
+    const dummyVb = createDummyVb({
+      initialize: vi.fn(async () => {
+        // 遅延させてprogressをtrueに保つ
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }),
+    });
+    setGlobalVb(dummyVb);
+    const props: InfoVBDialogProps = {
+      open: true,
+      setOpen: setOpenMock,
+    };
+    const { getByRole, rerender } = render(<InfoVBDialog {...props} />);
+
+    // エンコードを変更してprogressをtrueにする
+    const combobox = getByRole("combobox");
+    await userEvent.click(combobox);
+    const optionUTF8 = await screen.findByRole("option", { name: "UTF-8" });
+    await userEvent.click(optionUTF8);
+
+    // progress中はCircularProgressが表示される
+    await waitFor(() => {
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
     });
   });
 });

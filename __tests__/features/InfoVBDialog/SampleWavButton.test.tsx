@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
   SampleWavButton,
@@ -7,7 +6,7 @@ import {
 } from "../../../src/features/InfoVBDialog/SampleWavButton";
 
 describe("SampleWavButton", () => {
-  it("sampleURlが与えられている場合、audio 要素がレンダリングされ、ボタンは有効", () => {
+  it("sampleUrlが与えられている場合はaudio要素がレンダリングされボタンは有効になる", () => {
     const props: SampleWavButtonProps = {
       sampleUrl: "data:audio/wav;base64,dummyData",
     };
@@ -21,7 +20,7 @@ describe("SampleWavButton", () => {
     const audio = screen.getByTestId("audio") as HTMLAudioElement;
     expect(audio).toBeInTheDocument();
   });
-  it("sampleUrl が undefined の場合、audio 要素はレンダリングされず、ボタンは無効", () => {
+  it("sampleUrlがundefinedの場合はaudio要素はレンダリングされずボタンは無効になる", () => {
     const props: SampleWavButtonProps = {
       sampleUrl: undefined,
     };
@@ -35,7 +34,7 @@ describe("SampleWavButton", () => {
     const audio = screen.queryByTestId("audio");
     expect(audio).toBeNull();
   });
-  it("ボタンをクリックすると audio.play() が呼ばれる", () => {
+  it("ボタンをクリックした場合はaudio.play()が呼ばれる", () => {
     const playMock = vi.fn();
     // ダミーの audio 要素を作成して、play メソッドを spy するためのモックを設定
     const props: SampleWavButtonProps = {

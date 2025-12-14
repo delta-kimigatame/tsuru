@@ -1,6 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import JSZip from "jszip";
-import React from "react";
 import { describe, expect, it } from "vitest";
 import {
   TextTabs,
@@ -24,19 +23,19 @@ const createDummyZipFiles = (files: {
 describe("TextTabs", () => {
   // 1. filterRule のテスト
   describe("filterRule", () => {
-    it("character.txt, install.txt, readme.txt は除外する", () => {
+    it("character.txtとinstall.txtとreadme.txtは除外される", () => {
       expect(filterRule("character.txt")).toBe(false);
       expect(filterRule("install.txt")).toBe(false);
       expect(filterRule("readme.txt")).toBe(false);
     });
-    it("その他の .txt ファイルは通過する", () => {
+    it("その他の.txtファイルは通過する", () => {
       expect(filterRule("a.txt")).toBe(true);
       expect(filterRule("sample.txt")).toBe(true);
     });
   });
 
   // 2. useMemo による textFileList の算出の検証
-  it("props.zipFiles を与えた場合、textFileList が正しく算出される", () => {
+  it("props.zipFilesを与えた場合はtextFileListが正しく算出される", () => {
     // 以下のファイルが zipFiles に含まれるとする:
     // "readme.txt", "a.txt", "b.txt", "character.txt", "install.txt"
     const dummyFiles = createDummyZipFiles({
@@ -62,7 +61,7 @@ describe("TextTabs", () => {
   });
 
   // 3. props.zipFiles の変更により、textFileList が再計算されるかの検証
-  it("zipFiles の内容が変わった場合、textFileList が再計算される", async () => {
+  it("zipFilesの内容が変わった場合はtextFileListが再計算される", async () => {
     // 初期値: normalZipFiles = {"readme.txt", "a.txt"}
     const normalZipFiles = createDummyZipFiles({
       "readme.txt": "R",
@@ -94,7 +93,7 @@ describe("TextTabs", () => {
   });
 
   // 4. handleChange が呼ばれた際、value の state が更新されるか（タブ切替のロジック）
-  it("タブ切替時に内部 state が更新される", async () => {
+  it("タブを切り替えた場合は内部stateが更新される", async () => {
     const dummyFiles = createDummyZipFiles({
       "readme.txt": "R",
       "a.txt": "A",
@@ -120,7 +119,7 @@ describe("TextTabs", () => {
   });
 
   // 5. 各タブの key と、TextTabContent に渡される props の確認
-  it("各タブに渡される TextTabContent の props が期待通りである", async () => {
+  it("各タブに渡されるTextTabContentのpropsが期待通りである", async () => {
     // テスト用に各テキストファイルの内容として、一文字の識別子を入れる
     const zipFiles = createDummyZipFiles({
       "readme.txt": "R",
@@ -144,5 +143,16 @@ describe("TextTabs", () => {
     await waitFor(() => {
       expect(container.textContent).toContain("B");
     });
+  });
+
+  // 6. textFileListがundefinedの場合のテスト
+  it("zipFilesとfilesが両方nullの場合はテキストファイルが見つかりませんと表示される", () => {
+    const props: TextTabsProps = {
+      zipFiles: null,
+      files: null,
+      encoding: EncodingOption.SHIFT_JIS,
+    };
+    const { getByText } = render(<TextTabs {...props} />);
+    expect(getByText(/infoVBDialog\.TextTabs\.notFound/i)).toBeInTheDocument();
   });
 });
