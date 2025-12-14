@@ -1,41 +1,29 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
-import {
-  BatchProcessTextBoxNumber,
-  BatchProcessTextBoxNumberProps,
-} from "../../../src/components/BatchProcess/BatchProcessTextBoxNumber";
-import { getDesignTokens } from "../../../src/config/theme";
-import i18n from "../../../src/i18n/configs";
+﻿import { Meta, StoryObj } from "@storybook/react";
+import { BatchProcessTextBoxNumber } from "../../../src/components/BatchProcess/BatchProcessTextBoxNumber";
 import { TextBoxNumberUIProp } from "../../../src/types/batchProcess";
 
-export default {
-  title: "03_3_バッチプロセス/共通部品/テキストボックス(数値用)",
+const meta: Meta<typeof BatchProcessTextBoxNumber> = {
+  title: "components/BatchProcess/BatchProcessTextBoxNumber",
   component: BatchProcessTextBoxNumber,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+};
 
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-const Template: StoryFn<BatchProcessTextBoxNumberProps> = (args) => (
-  <ThemeProvider theme={lightTheme}>
-    <BatchProcessTextBoxNumber {...args} />
-  </ThemeProvider>
-);
-
-export const Default = Template.bind({});
-Default.args = {
-  config: {
-    key: "exampleNumber",
-    labelKey: "batchprocess.example.textboxNumber",
-    inputType: "textbox-number",
-    min: 0,
-    max: 200,
-    defaultValue: 100,
-  } as TextBoxNumberUIProp,
-  value: 100,
-  onChange: (key: string, value: number) => {
-    console.log(`Changed ${key}: ${value}`);
+export const Default: Story = {
+  args: {
+    config: {
+      key: "exampleNumber",
+      labelKey: "batchprocess.example.textboxNumber",
+      inputType: "textbox-number",
+      min: 0,
+      max: 200,
+      defaultValue: 100,
+    } as TextBoxNumberUIProp,
+    value: 100,
+    onChange: (key: string, value: number) => {
+      console.log(`Changed ${key}: ${value}`);
+    },
   },
 };
-Default.storyName = "デフォルト";

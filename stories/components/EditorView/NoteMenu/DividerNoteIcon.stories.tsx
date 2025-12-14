@@ -1,27 +1,23 @@
-﻿import { IconButton, SvgIconProps } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import { IconButton } from "@mui/material";
+import type { Meta, StoryObj } from "@storybook/react";
 import { DividerNoteIcon } from "../../../../src/components/EditorView/NoteMenu/DividerNoteIcon";
-import { getDesignTokens } from "../../../../src/config/theme";
 
-export default {
-  title: "03_9_エディタアイコン/ノート分割",
+const meta = {
+  title: "components/EditorView/NoteMenu/DividerNoteIcon",
   component: DividerNoteIcon,
-} as Meta;
-
-const lightTheme = createTheme(getDesignTokens("light"));
-const darkTheme = createTheme(getDesignTokens("dark"));
-
-const Template: StoryFn<SvgIconProps> = (args) => <DividerNoteIcon {...args} />;
-export const LightMode = Template.bind({});
-LightMode.args = {};
-LightMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
+  tags: ["autodocs"],
+  decorators: [
+    (Story) => (
       <IconButton>
         <Story />
       </IconButton>
-    </ThemeProvider>
-  ),
-];
-LightMode.storyName = "ライトモード";
+    ),
+  ],
+} satisfies Meta<typeof DividerNoteIcon>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {},
+};

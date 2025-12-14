@@ -1,22 +1,17 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import FooterShare from "../../../src/components/Footer/FooterShare";
-import i18n from "../../../src/i18n/configs";
 
-i18n.changeLanguage("ja");
-export default {
-  title: "04_フッタ/フッタ部品/共有ボタン",
+const meta = {
+  title: "components/Footer/FooterShare",
   component: FooterShare,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof FooterShare>;
 
-// matchesを明示的に型定義
-interface FooterShareProps {
-  matches: boolean;
-}
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-const Template: StoryFn<FooterShareProps> = (args) => <FooterShare {...args} />;
-export const Default = Template.bind({});
-Default.args = {
-  matches: true,
+export const Default: Story = {
+  args: {
+    matches: true,
+  },
 };
-Default.storyName = "デフォルト";

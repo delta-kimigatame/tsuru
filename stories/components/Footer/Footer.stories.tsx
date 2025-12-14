@@ -1,29 +1,15 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import { Footer } from "../../../src/components/Footer/Footer";
-import i18n from "../../../src/i18n/configs";
 
-i18n.changeLanguage("ja");
-export default {
-  title: "04_フッタ/フッタ全体",
+const meta = {
+  title: "components/Footer/Footer",
   component: Footer,
-  parameters: {
-    viewport: {
-      defaultViewport: "responsive", // デフォルトの表示をレスポンシブに
-    },
-  },
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof Footer>;
 
-const Template: StoryFn = () => <Footer />;
-export const Default = Template.bind({});
-Default.args = {};
-Default.storyName = "デフォルト";
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-// モバイルビュー用の Story
-export const NarrowScreen = Template.bind({});
-NarrowScreen.storyName = "狭い画面 (モバイルレイアウト)";
-NarrowScreen.parameters = {
-  viewport: {
-    defaultViewport: "iphonex", // Storybook の `mobile1` サイズを使用
-  },
+export const Default: Story = {
+  args: {},
 };

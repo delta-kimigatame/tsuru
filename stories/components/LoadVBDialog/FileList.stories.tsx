@@ -1,42 +1,25 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
-import {
-  FileList,
-  FileListProps,
-} from "../../../src/components/LoadVBDialog/FileList";
-import { getDesignTokens } from "../../../src/config/theme";
+﻿import type { Meta, StoryObj } from "@storybook/react";
+import { FileList } from "../../../src/components/LoadVBDialog/FileList";
 
-export default {
-  title: "05_音源読込画面/ファイル一覧",
+const meta = {
+  title: "components/LoadVBDialog/FileList",
   component: FileList,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof FileList>;
 
-const lightTheme = createTheme(getDesignTokens("light"));
-const Template: StoryFn<FileListProps> = (args) => <FileList {...args} />;
-export const Default = Template.bind({});
-Default.args = {
-  processing: false,
-  files: ["_ああいあうえあ.wav", "character.txt"],
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    processing: false,
+    files: ["_ああいあうえあ.wav", "character.txt"],
+  },
 };
-Default.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-Default.storyName = "デフォルト";
-export const Processing = Template.bind({});
-Processing.args = {
-  processing: true,
-  files: ["_ああいあうえあ.wav", "character.txt"],
+
+export const Processing: Story = {
+  args: {
+    processing: true,
+    files: ["_ああいあうえあ.wav", "character.txt"],
+  },
 };
-Processing.storyName = "ファイル読込中";
-Processing.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];

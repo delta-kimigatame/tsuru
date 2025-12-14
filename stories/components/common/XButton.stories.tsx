@@ -1,17 +1,18 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
-import { XButton, XButtonProps } from "../../../src/components/common/XButton";
+﻿import type { Meta, StoryObj } from "@storybook/react";
+import { XButton } from "../../../src/components/common/XButton";
 
-export default {
-  title: "50_共通部品/Xボタン",
+const meta = {
+  title: "components/common/XButton",
   component: XButton,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof XButton>;
 
-const Template: StoryFn<XButtonProps> = (args) => <XButton {...args} />;
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const Default = Template.bind({});
-Default.args = {
-  children: "共有",
-  href: "https://twitter.com/intent/tweet",
+export const Default: Story = {
+  args: {
+    children: "共有",
+    href: "https://twitter.com/intent/tweet",
+  },
 };
-Default.storyName = "デフォルト";
