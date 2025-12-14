@@ -1,0 +1,38 @@
+﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Meta, StoryFn } from "@storybook/react";
+import {
+  BatchProcessTextBoxString,
+  BatchProcessTextBoxStringProps,
+} from "../../../src/components/BatchProcess/BatchProcessTextBoxString";
+import { getDesignTokens } from "../../../src/config/theme";
+import i18n from "../../../src/i18n/configs";
+import { TextBoxStringUIProp } from "../../../src/types/batchProcess";
+export default {
+  title: "03_3_バッチプロセス/共通部品/テキストボックス(文字列用)",
+  component: BatchProcessTextBoxString,
+  argTypes: {},
+} as Meta;
+
+i18n.changeLanguage("ja");
+const lightTheme = createTheme(getDesignTokens("light"));
+
+const Template: StoryFn<BatchProcessTextBoxStringProps> = (args) => (
+  <ThemeProvider theme={lightTheme}>
+    <BatchProcessTextBoxString {...args} />
+  </ThemeProvider>
+);
+
+export const Default = Template.bind({});
+Default.args = {
+  config: {
+    key: "exampleString",
+    labelKey: "batchprocess.example.textboxstring",
+    inputType: "textbox-string",
+    defaultValue: "aaa",
+  } as TextBoxStringUIProp,
+  value: "aaa",
+  onChange: (key: string, value: string) => {
+    console.log(`Changed ${key}: ${value}`);
+  },
+};
+Default.storyName = "デフォルト";
