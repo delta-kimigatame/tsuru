@@ -1,7 +1,7 @@
 import fs from "fs";
 import * as iconv from "iconv-lite";
 import JSZip from "jszip";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { defaultNote } from "../../src/config/note";
 import { dumpEnvelope, dumpNotes, Note } from "../../src/lib/Note";
 import { CharacterTxt } from "../../src/lib/VoiceBanks/CharacterTxt";
@@ -59,81 +59,217 @@ describe("Note", () => {
     expect(n.length).toBe(0);
   });
 
-  it("notenumが24～107の範囲で整数に丸められて設定される", () => {
-    const n = new Note();
-    expect(n.notenum).toBeUndefined();
-    n.notenum = 60;
-    expect(n.notenum).toBe(60);
-    n.notenum = 60.9;
-    expect(n.notenum).toBe(60);
-    n.notenum = 108;
-    expect(n.notenum).toBe(107);
-    n.notenum = 23;
-    expect(n.notenum).toBe(24);
+  describe("notenum", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.notenum).toBeUndefined();
+    });
+
+    it("正常値を設定できる", () => {
+      n.notenum = 60;
+      expect(n.notenum).toBe(60);
+    });
+
+    it("小数は整数に丸められる", () => {
+      n.notenum = 60.9;
+      expect(n.notenum).toBe(60);
+    });
+
+    it("最大値107を設定できる", () => {
+      n.notenum = 107;
+      expect(n.notenum).toBe(107);
+    });
+
+    it("最大値を超えた値は107にクランプされる", () => {
+      n.notenum = 108;
+      expect(n.notenum).toBe(107);
+    });
+
+    it("最小値24を設定できる", () => {
+      n.notenum = 24;
+      expect(n.notenum).toBe(24);
+    });
+
+    it("最小値未満の値は24にクランプされる", () => {
+      n.notenum = 23;
+      expect(n.notenum).toBe(24);
+    });
   });
 
-  it("tempoが10～512の範囲で浮動小数として設定される", () => {
-    const n = new Note();
-    expect(n.tempo).toBeUndefined();
-    n.tempo = 120.0;
-    expect(n.tempo).toBe(120.0);
-    n.tempo = 120.9;
-    expect(n.tempo).toBe(120.9);
-    n.tempo = 9.9;
-    expect(n.tempo).toBe(10);
-    n.tempo = 512.1;
-    expect(n.tempo).toBe(512);
+  describe("tempo", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.tempo).toBeUndefined();
+    });
+
+    it("正常値を浮動小数として設定できる", () => {
+      n.tempo = 120.0;
+      expect(n.tempo).toBe(120.0);
+    });
+
+    it("小数点以下も保持される", () => {
+      n.tempo = 120.9;
+      expect(n.tempo).toBe(120.9);
+    });
+
+    it("最小値10を設定できる", () => {
+      n.tempo = 10;
+      expect(n.tempo).toBe(10);
+    });
+
+    it("最小値未満は10にクランプされる", () => {
+      n.tempo = 9.9;
+      expect(n.tempo).toBe(10);
+    });
+
+    it("最大値512を設定できる", () => {
+      n.tempo = 512;
+      expect(n.tempo).toBe(512);
+    });
+
+    it("最大値を超えた値は512にクランプされる", () => {
+      n.tempo = 512.1;
+      expect(n.tempo).toBe(512);
+    });
   });
 
-  it("preutterが0以上の値として設定されatPreutterに反映される", () => {
-    const n = new Note();
-    expect(n.preutter).toBeUndefined();
-    n.preutter = 120.9;
-    expect(n.preutter).toBe(120.9);
-    expect(n.atPreutter).toBe(120.9);
-    n.preutter = -120.9;
-    expect(n.preutter).toBe(0);
-    expect(n.atPreutter).toBe(0);
+  describe("preutter", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.preutter).toBeUndefined();
+    });
+
+    it("正常値を設定するとatPreutterに反映される", () => {
+      n.preutter = 120.9;
+      expect(n.preutter).toBe(120.9);
+      expect(n.atPreutter).toBe(120.9);
+    });
+
+    it("0を設定できる", () => {
+      n.preutter = 0;
+      expect(n.preutter).toBe(0);
+      expect(n.atPreutter).toBe(0);
+    });
+
+    it("負の値は0にクランプされる", () => {
+      n.preutter = -120.9;
+      expect(n.preutter).toBe(0);
+      expect(n.atPreutter).toBe(0);
+    });
   });
 
-  it("overlapが設定されatOverlapに反映される", () => {
-    const n = new Note();
-    expect(n.overlap).toBeUndefined();
-    n.overlap = 120.9;
-    expect(n.overlap).toBe(120.9);
-    expect(n.atOverlap).toBe(120.9);
-    n.overlap = -120.9;
-    expect(n.overlap).toBe(-120.9);
-    expect(n.atOverlap).toBe(-120.9);
+  describe("overlap", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.overlap).toBeUndefined();
+    });
+
+    it("正の値を設定するとatOverlapに反映される", () => {
+      n.overlap = 120.9;
+      expect(n.overlap).toBe(120.9);
+      expect(n.atOverlap).toBe(120.9);
+    });
+
+    it("負の値も設定できる", () => {
+      n.overlap = -120.9;
+      expect(n.overlap).toBe(-120.9);
+      expect(n.atOverlap).toBe(-120.9);
+    });
   });
 
-  it("stpが0以上の値として設定されatStpに反映される", () => {
-    const n = new Note();
-    expect(n.stp).toBeUndefined();
-    n.stp = 120.9;
-    expect(n.stp).toBe(120.9);
-    expect(n.atStp).toBe(120.9);
-    n.stp = -120.9;
-    expect(n.stp).toBe(0);
-    expect(n.atStp).toBe(0);
+  describe("stp", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.stp).toBeUndefined();
+    });
+
+    it("正常値を設定するとatStpに反映される", () => {
+      n.stp = 120.9;
+      expect(n.stp).toBe(120.9);
+      expect(n.atStp).toBe(120.9);
+    });
+
+    it("0を設定できる", () => {
+      n.stp = 0;
+      expect(n.stp).toBe(0);
+      expect(n.atStp).toBe(0);
+    });
+
+    it("負の値は0にクランプされる", () => {
+      n.stp = -120.9;
+      expect(n.stp).toBe(0);
+      expect(n.atStp).toBe(0);
+    });
   });
 
-  it("velocityが0～200の整数として設定されvelocityRateが計算される", () => {
-    const n = new Note();
-    expect(n.velocity).toBeUndefined();
-    expect(n.velocityRate).toBe(1);
-    n.velocity = 100;
-    expect(n.velocity).toBe(100);
-    expect(n.velocityRate).toBe(1);
-    n.velocity = 100.9;
-    expect(n.velocity).toBe(100);
-    expect(n.velocityRate).toBe(1);
-    n.velocity = 201;
-    expect(n.velocity).toBe(200);
-    expect(n.velocityRate).toBe(0.5);
-    n.velocity = -1;
-    expect(n.velocity).toBe(0);
-    expect(n.velocityRate).toBe(2);
+  describe("velocity", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.velocity).toBeUndefined();
+    });
+
+    it("正常値を設定するとvelocityRateが計算される", () => {
+      n.velocity = 100;
+      expect(n.velocity).toBe(100);
+      expect(n.velocityRate).toBe(1);
+    });
+
+    it("小数は整数に丸められる", () => {
+      n.velocity = 100.9;
+      expect(n.velocity).toBe(100);
+    });
+
+    it("最大値200を設定できる", () => {
+      n.velocity = 200;
+      expect(n.velocity).toBe(200);
+      expect(n.velocityRate).toBe(0.5);
+    });
+
+    it("最大値を超えた値は200にクランプされる", () => {
+      n.velocity = 201;
+      expect(n.velocity).toBe(200);
+    });
+
+    it("最小値0を設定できる", () => {
+      n.velocity = 0;
+      expect(n.velocity).toBe(0);
+      expect(n.velocityRate).toBe(2);
+    });
+
+    it("最小値未満は0にクランプされる", () => {
+      n.velocity = -1;
+      expect(n.velocity).toBe(0);
+    });
   });
 
   // Phase 3: エラー処理・エッジケーステスト
@@ -151,29 +287,88 @@ describe("Note", () => {
     expect(n.direct).toBe(false);
   });
 
-  it("intensityが0～200の整数として設定される", () => {
-    const n = new Note();
-    expect(n.intensity).toBeUndefined();
-    n.intensity = 100;
-    expect(n.intensity).toBe(100);
-    n.intensity = 100.9;
-    expect(n.intensity).toBe(100);
-    n.intensity = 201;
-    expect(n.intensity).toBe(200);
-    n.intensity = -1;
-    expect(n.intensity).toBe(0);
+  describe("intensity", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.intensity).toBeUndefined();
+    });
+
+    it("正常値を設定できる", () => {
+      n.intensity = 100;
+      expect(n.intensity).toBe(100);
+    });
+
+    it("小数は整数に丸められる", () => {
+      n.intensity = 100.9;
+      expect(n.intensity).toBe(100);
+    });
+
+    it("最大値200を設定できる", () => {
+      n.intensity = 200;
+      expect(n.intensity).toBe(200);
+    });
+
+    it("最大値を超えた値は200にクランプされる", () => {
+      n.intensity = 201;
+      expect(n.intensity).toBe(200);
+    });
+
+    it("最小値0を設定できる", () => {
+      n.intensity = 0;
+      expect(n.intensity).toBe(0);
+    });
+
+    it("最小値未満は0にクランプされる", () => {
+      n.intensity = -1;
+      expect(n.intensity).toBe(0);
+    });
   });
-  it("modulationが-200～200の整数として設定される", () => {
-    const n = new Note();
-    expect(n.modulation).toBeUndefined();
-    n.modulation = 100;
-    expect(n.modulation).toBe(100);
-    n.modulation = 100.9;
-    expect(n.modulation).toBe(100);
-    n.modulation = 201;
-    expect(n.modulation).toBe(200);
-    n.modulation = -201;
-    expect(n.modulation).toBe(-200);
+
+  describe("modulation", () => {
+    let n: Note;
+
+    beforeEach(() => {
+      n = new Note();
+    });
+
+    it("デフォルト値はundefinedである", () => {
+      expect(n.modulation).toBeUndefined();
+    });
+
+    it("正常値を設定できる", () => {
+      n.modulation = 100;
+      expect(n.modulation).toBe(100);
+    });
+
+    it("小数は整数に丸められる", () => {
+      n.modulation = 100.9;
+      expect(n.modulation).toBe(100);
+    });
+
+    it("最大値200を設定できる", () => {
+      n.modulation = 200;
+      expect(n.modulation).toBe(200);
+    });
+
+    it("最大値を超えた値は200にクランプされる", () => {
+      n.modulation = 201;
+      expect(n.modulation).toBe(200);
+    });
+
+    it("最小値-200を設定できる", () => {
+      n.modulation = -200;
+      expect(n.modulation).toBe(-200);
+    });
+
+    it("最小値未満は-200にクランプされる", () => {
+      n.modulation = -201;
+      expect(n.modulation).toBe(-200);
+    });
   });
 
   it("pitchesが-2048～2047の範囲で整数配列として設定される", () => {
