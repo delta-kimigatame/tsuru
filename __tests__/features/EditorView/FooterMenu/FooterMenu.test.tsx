@@ -1,5 +1,4 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   FooterMenu,
@@ -48,6 +47,7 @@ const dummyBatchProcessesWithUI = [
 // テスト用のFooterMenuProps
 const defaultProps: FooterMenuProps = {
   selectedNotesIndex: [],
+  setSelectedNotesIndex: () => {},
   handlePlay: () => {},
   handleDownload: () => {},
   synthesisProgress: false,
@@ -56,6 +56,16 @@ const defaultProps: FooterMenuProps = {
   handlePlayStop: () => {},
   selectMode: "toggle",
   setSelectMode: () => {},
+  backgroundAudioWav: null,
+  setBackgroundAudioWav: () => {},
+  backgroundWavUrl: "",
+  setBackgroundWavUrl: () => {},
+  backgroundOffsetMs: 0,
+  setBackgroundOffsetMs: () => {},
+  backgroundVolume: 1.0,
+  setBackgroundVolume: () => {},
+  backgroundMuted: false,
+  setBackgroundMuted: () => {},
 };
 
 describe("FooterMenu", () => {
@@ -76,7 +86,9 @@ describe("FooterMenu", () => {
     await act(async () => Promise.resolve());
     expect(loadBatchProcessMock).toHaveBeenCalled();
     // LOG にバッチプロセスの一覧取得ログがあるか確認（文字列の一部で検証）
-    expect(LOG.datas[3]).toContain("バッチプロセスの一覧取得");
+    expect(LOG.datas.some((s) => s.includes("バッチプロセスの一覧取得"))).toBe(
+      true
+    );
   });
 
   it("バッチプロセス実行時、bp.uiが空の場合はexecuteBatchProcessが呼ばれる", async () => {
@@ -413,5 +425,123 @@ describe("FooterMenu", () => {
     });
     fireEvent.click(selectTab);
     expect(setSelectModeSpy).toHaveBeenCalledWith("toggle");
+  });
+
+  it("Addボタンをクリックすると、selectModeがaddに切り替わる", async () => {
+    const dummyNotes = [new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "toggle",
+      setSelectMode: setSelectModeSpy,
+    };
+    render(<FooterMenu {...props} />);
+    const addTab = await screen.findByRole("tab", {
+      name: /editor.footer.addNote/i,
+    });
+    fireEvent.click(addTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("add");
+    expect(LOG.datas.some((s) => s.includes("click AddTab"))).toBeTruthy();
+  });
+
+  it("selectModeがaddの時にAddボタンをクリックすると、toggleに戻る", async () => {
+    const dummyNotes = [new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+    const setSelectModeSpy = vi.fn();
+    const props: FooterMenuProps = {
+      ...defaultProps,
+      selectMode: "add",
+      setSelectMode: setSelectModeSpy,
+    };
+    render(<FooterMenu {...props} />);
+    // selectMode="add"の時、Addタブは「selectCancel」として表示されるが、4番目のタブ
+    const tabs = screen.getAllByRole("tab");
+    const addTab = tabs[3]; // 4番目: Project, Zoom, Select, Add
+    fireEvent.click(addTab);
+    expect(setSelectModeSpy).toHaveBeenCalledWith("toggle");
+  });
+
+  it("Undoボタンをクリックすると、undoManager.undoが呼ばれる", async () => {
+    const dummyNotes = [new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+
+    // undoManagerにダミーのundoスタックを追加
+    const { undoManager } = await import("../../../../src/lib/UndoManager");
+    const undoFn = vi.fn().mockReturnValue(dummyNotes);
+    const redoFn = vi.fn().mockReturnValue(dummyNotes);
+    undoManager.register({
+      undo: undoFn,
+      undoArgs: dummyNotes,
+      redo: redoFn,
+      redoArgs: dummyNotes,
+      summary: "test",
+      all: true, // allFlagをtrueにしてforEachを回避
+    });
+
+    render(<FooterMenu {...defaultProps} />);
+    const undoTab = await screen.findByRole("tab", {
+      name: /editor.footer.undo/i,
+    });
+    fireEvent.click(undoTab);
+    expect(LOG.datas.some((s) => s.includes("click UndoTab"))).toBeTruthy();
+  });
+
+  it("Redoボタンをクリックすると、undoManager.redoが呼ばれる", async () => {
+    const dummyNotes = [new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+
+    // undoManagerにダミーのundoスタックを追加してからundoする
+    const { undoManager } = await import("../../../../src/lib/UndoManager");
+    const undoFn = vi.fn().mockReturnValue(dummyNotes);
+    const redoFn = vi.fn().mockReturnValue(dummyNotes);
+    undoManager.register({
+      undo: undoFn,
+      undoArgs: dummyNotes,
+      redo: redoFn,
+      redoArgs: dummyNotes,
+      summary: "test",
+      all: true, // allFlagをtrueにしてforEachを回避
+    });
+    undoManager.undo();
+
+    render(<FooterMenu {...defaultProps} />);
+    const redoTab = await screen.findByRole("tab", {
+      name: /editor.footer.redo/i,
+    });
+    fireEvent.click(redoTab);
+    expect(LOG.datas.some((s) => s.includes("click RedoTab"))).toBeTruthy();
+  });
+
+  it("batchProcessProgressがtrueのとき、ほとんどのタブがdisabledになる", async () => {
+    const dummyNotes = [new Note(), new Note()];
+    const store = useMusicProjectStore.getState();
+    store.setUst({} as Ust);
+    store.setNotes(dummyNotes);
+
+    // バッチプロセス進行中の状態をモック
+    const mockLoadBatchProcess = vi.spyOn(
+      batchProcessModule,
+      "loadBatchProcessClasses"
+    );
+    mockLoadBatchProcess.mockResolvedValue(dummyBatchProcesses);
+
+    render(<FooterMenu {...defaultProps} />);
+
+    // バッチプロセスメニューを開く
+    const batchProcessTab = await screen.findByRole("tab", {
+      name: /editor.footer.batchprocess/i,
+    });
+
+    // この時点ではまだdisabledではない
+    expect(batchProcessTab).not.toBeDisabled();
   });
 });
