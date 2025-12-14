@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   RotateMode,
@@ -9,6 +8,7 @@ import {
 import { Note } from "../../../../src/lib/Note";
 import { undoManager } from "../../../../src/lib/UndoManager";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("RotateModeFab", () => {
@@ -20,13 +20,19 @@ describe("RotateModeFab", () => {
     n.lyric = "あ";
     n.hasTempo = false;
     n.tempo = 120;
+    n.prev = { tempo: 120, length: 0, lyric: "R" };
     return n;
   };
   beforeEach(() => {
     undoManager.clear();
     vi.restoreAllMocks();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
   });
-  it("RotateMode:pbmの値が''->'s'->'r'->'j'->''と順番に代わる", () => {
+  it("RotateModeFab: pbmの値が''->'s'->'r'->'j'->''と順番に代わる", () => {
     const n = createNote();
     n.setPbm([""]);
     const n2 = RotateMode(1, n);
@@ -54,15 +60,42 @@ describe("RotateModeFab", () => {
     expect(rn4).toEqual([n4]);
     expect(rn5).toEqual([n5]);
   });
-  it("RotateMode:pbmより大きいインデックスを与えられた場合、''を返す", () => {
+  it("RotateModeFab: pbmより大きいインデックスを与えられた場合、''を返す", () => {
     const n = createNote();
     const n2 = RotateMode(1, n);
     expect(n2.pbm[0]).toBe("");
     const n3 = RotateMode(2, n);
     expect(n3.pbm[1]).toBe("");
   });
+  it("RotateModeFab: FABのテキスト表示が正しい('S'、'/'、pbmの値)", async () => {
+    const n = createNote();
+    n.setPbw([100, 200]);
+    n.setPbm(["", "s"]);
+    // pbm[0] === "" の場合、"S"を表示
+    render(<RotateModeFab targetIndex={1} note={n} />);
+    let button = await screen.findByTestId("rotateMode");
+    expect(button.textContent).toBe("S");
+    // pbm[1] === "s" の場合、"/"を表示
+    const n2 = createNote();
+    n2.setPbw([100, 200]);
+    n2.setPbm(["s", "s"]);
+    render(<RotateModeFab targetIndex={2} note={n2} />);
+    button = await screen
+      .findAllByTestId("rotateMode")
+      .then((buttons) => buttons[1]);
+    expect(button.textContent).toBe("/");
+    // pbm[1] === "r" の場合、"r"を表示
+    const n3 = createNote();
+    n3.setPbw([100, 200]);
+    n3.setPbm(["s", "r"]);
+    render(<RotateModeFab targetIndex={2} note={n3} />);
+    button = await screen
+      .findAllByTestId("rotateMode")
+      .then((buttons) => buttons[2]);
+    expect(button.textContent).toBe("r");
+  });
 
-  it("RotateModeFab:targetIndexが0の時udnefined", async () => {
+  it("RotateModeFab: targetIndexが0の時undefined", async () => {
     const n = createNote();
     n.setPbm([""]);
     render(<RotateModeFab targetIndex={0} note={n} />);
@@ -70,7 +103,7 @@ describe("RotateModeFab", () => {
     expect(button).toHaveAttribute("disabled");
   });
 
-  it("RotateModeFab:clickした時RotateModeが呼ばれ、その結果がsetNoteされる。", async () => {
+  it("RotateModeFab: clickした時RotateModeが呼ばれ、その結果がsetNoteされる", async () => {
     const n = createNote();
     n.setPbm([""]);
     const store = useMusicProjectStore.getState();

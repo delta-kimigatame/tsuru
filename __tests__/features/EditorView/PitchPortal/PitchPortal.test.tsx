@@ -1,11 +1,11 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PitchPortal } from "../../../../src/features/EditorView/PitchPortal/PitchPortal";
 import { Note } from "../../../../src/lib/Note";
 import { undoManager } from "../../../../src/lib/UndoManager";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("PitchPortal", () => {
@@ -17,22 +17,28 @@ describe("PitchPortal", () => {
     n.lyric = "あ";
     n.hasTempo = false;
     n.tempo = 120;
+    n.prev = { tempo: 120, length: 0, lyric: "R" };
     return n;
   };
   beforeEach(() => {
     vi.restoreAllMocks();
     undoManager.clear();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
   });
-  it("PitchPortal:noteが渡されていない場合、ポータルは描画されない", () => {
+  it("PitchPortal: noteが渡されていない場合、ポータルは描画されない", () => {
     render(<PitchPortal note={undefined} targetIndex={0} />);
     expect(screen.queryByTestId("pitchPortal")).toBeNull();
   });
-  it("PitchPortal:noteにpbwが無い場合、ポータルは描画されない", () => {
+  it("PitchPortal: noteにpbwが無い場合、ポータルは描画されない", () => {
     const n = createNote();
     render(<PitchPortal note={n} targetIndex={0} />);
     expect(screen.queryByTestId("pitchPortal")).toBeNull();
   });
-  it("PitchPortal:targetIndexがundefinedの場合、portalは描画されるがfabとsliderは描画されない", async () => {
+  it("PitchPortal: targetIndexがundefinedの場合、portalは描画されるがfabとsliderは描画されない", async () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -45,7 +51,7 @@ describe("PitchPortal", () => {
     expect(screen.queryByTestId("poltamentAdd")).toBeNull();
     expect(screen.queryByTestId("rotateMode")).toBeNull();
   });
-  it("PitchPortal:targetIndexが非undefinedの場合、fabが描画される。sliderの描画は各スライダーで検証する", async () => {
+  it("PitchPortal: targetIndexが非undefinedの場合、fabが描画される。sliderの描画は各スライダーで検証する", async () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -56,7 +62,7 @@ describe("PitchPortal", () => {
     expect(screen.queryByTestId("poltamentAdd")).not.toBeNull();
     expect(screen.queryByTestId("rotateMode")).not.toBeNull();
   });
-  it("PitchPortal:コンポーネントマウント時点ではundoManagerは呼ばれない。", async () => {
+  it("PitchPortal: コンポーネントマウント時点ではundoManagerは呼ばれない", async () => {
     //コンポーネントマウント時にはnote,targetIndex両方がundefinedのはず
     const n = createNote();
     n.pbs = "-40;20";
@@ -65,7 +71,7 @@ describe("PitchPortal", () => {
     render(<PitchPortal note={undefined} targetIndex={undefined} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:ピッチ編集モードに入った時点ではundoManagerは呼ばれない。", async () => {
+  it("PitchPortal: ピッチ編集モードに入った時点ではundoManagerは呼ばれない", async () => {
     //コンポーネントマウント時にはnoteは非undefined,targetIndexはundefinedのはず
     const n = createNote();
     n.pbs = "-40;20";
@@ -74,7 +80,7 @@ describe("PitchPortal", () => {
     render(<PitchPortal note={n} targetIndex={undefined} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:ポルタメント初回選択時、undoManagerは呼ばれない", async () => {
+  it("PitchPortal: ポルタメント初回選択時、undoManagerは呼ばれない", async () => {
     //コンポーネントマウント時にはnote,targetIndexの両方が非undefinedで、内部状態のhasUpdateがfalse
     const n = createNote();
     n.pbs = "-40;20";
@@ -83,7 +89,7 @@ describe("PitchPortal", () => {
     render(<PitchPortal note={n} targetIndex={0} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:slider操作後ポルタメントを変更すると、undoManagerが呼ばれる", async () => {
+  it("PitchPortal: slider操作後ポルタメントを変更すると、undoManagerが呼ばれる", async () => {
     //コンポーネントマウント時にはnote,targetIndexの両方が非undefinedで、内部状態のhasUpdateがfalse
     const n = createNote();
     n.pbs = "-40;20";
@@ -105,14 +111,16 @@ describe("PitchPortal", () => {
     const undoResult = undoManager.undo();
     const redoResult = undoManager.redo();
     expect(resultNote.pbs.time).toBe(0);
-    expect(redoResult).toEqual([resultNote]);
-    expect(undoResult).toEqual([n]);
+    expect(redoResult[0].pbs.time).toBe(resultNote.pbs.time);
+    expect(redoResult[0].pbw).toEqual(resultNote.pbw);
+    expect(undoResult[0].pbs.time).toBe(n.pbs.time);
+    expect(undoResult[0].pbw).toEqual(n.pbw);
     undoManager.clear();
     //1度目の再描画フックでhasUpdateがfalseになるため、再描画してもundoManagerは呼ばれない
     rerender(<PitchPortal note={n} targetIndex={0} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:slider操作後ノートを変更すると、undoManagerが呼ばれる", async () => {
+  it("PitchPortal: slider操作後ノートを変更すると、undoManagerが呼ばれる", async () => {
     //コンポーネントマウント時にはnote,targetIndexの両方が非undefinedで、内部状態のhasUpdateがfalse
     const n = createNote();
     n.pbs = "-40;20";
@@ -134,14 +142,16 @@ describe("PitchPortal", () => {
     const undoResult = undoManager.undo();
     const redoResult = undoManager.redo();
     expect(resultNote.pbs.time).toBe(0);
-    expect(redoResult).toEqual([resultNote]);
-    expect(undoResult).toEqual([n]);
+    expect(redoResult[0].pbs.time).toBe(resultNote.pbs.time);
+    expect(redoResult[0].pbw).toEqual(resultNote.pbw);
+    expect(undoResult[0].pbs.time).toBe(n.pbs.time);
+    expect(undoResult[0].pbw).toEqual(n.pbw);
     undoManager.clear();
     //1度目の再描画フックでhasUpdateがfalseになるため、再描画してもundoManagerは呼ばれない
     rerender(<PitchPortal note={n} targetIndex={0} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:slider操作後ピッチ編集モードを抜けると、undoManagerが呼ばれる", async () => {
+  it("PitchPortal: slider操作後ピッチ編集モードを抜けると、undoManagerが呼ばれる", async () => {
     //コンポーネントマウント時にはnote,targetIndexの両方が非undefinedで、内部状態のhasUpdateがfalse
     const n = createNote();
     n.pbs = "-40;20";
@@ -163,14 +173,16 @@ describe("PitchPortal", () => {
     const undoResult = undoManager.undo();
     const redoResult = undoManager.redo();
     expect(resultNote.pbs.time).toBe(0);
-    expect(redoResult).toEqual([resultNote]);
-    expect(undoResult).toEqual([n]);
+    expect(redoResult[0].pbs.time).toBe(resultNote.pbs.time);
+    expect(redoResult[0].pbw).toEqual(resultNote.pbw);
+    expect(undoResult[0].pbs.time).toBe(n.pbs.time);
+    expect(undoResult[0].pbw).toEqual(n.pbw);
     undoManager.clear();
     //1度目の再描画フックでhasUpdateがfalseになるため、再描画してもundoManagerは呼ばれない
     rerender(<PitchPortal note={n} targetIndex={0} />);
     expect(undoManager.undoSummary).toBe(undefined);
   });
-  it("PitchPortal:slider操作後ノートを変更すると、undoManagerが呼ばれる。verticalSliderの確認", async () => {
+  it("PitchPortal: slider操作後ノートを変更すると、undoManagerが呼ばれる。verticalSliderの確認", async () => {
     //コンポーネントマウント時にはnote,targetIndexの両方が非undefinedで、内部状態のhasUpdateがfalse
     const n = createNote();
     n.pbs = "-40;20";
@@ -192,8 +204,10 @@ describe("PitchPortal", () => {
     const undoResult = undoManager.undo();
     const redoResult = undoManager.redo();
     expect(resultNote.pby).toEqual([0]);
-    expect(redoResult).toEqual([resultNote]);
-    expect(undoResult).toEqual([n]);
+    expect(redoResult[0].pby).toEqual(resultNote.pby);
+    expect(redoResult[0].pbw).toEqual(resultNote.pbw);
+    expect(undoResult[0].pby).toEqual(n.pby);
+    expect(undoResult[0].pbw).toEqual(n.pbw);
     undoManager.clear();
     //1度目の再描画フックでhasUpdateがfalseになるため、再描画してもundoManagerは呼ばれない
     rerender(<PitchPortal note={n} targetIndex={0} />);

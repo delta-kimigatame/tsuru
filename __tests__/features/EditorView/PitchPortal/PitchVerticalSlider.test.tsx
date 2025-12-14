@@ -1,10 +1,10 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PitchVerticalSlider } from "../../../../src/features/EditorView/PitchPortal/PitchVerticalSlider";
 import { Note } from "../../../../src/lib/Note";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("PitchVerticalSlider", () => {
@@ -16,12 +16,18 @@ describe("PitchVerticalSlider", () => {
     n.lyric = "あ";
     n.hasTempo = false;
     n.tempo = 120;
+    n.prev = { tempo: 120, length: 0, lyric: "R" };
     return n;
   };
   beforeEach(() => {
     vi.restoreAllMocks();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
   });
-  it("PitchVerticalSlider:targetIndexがundefinedの時表示されない", () => {
+  it("PitchVerticalSlider: targetIndexがundefinedの時表示されない", () => {
     const n = createNote();
     render(
       <PitchVerticalSlider
@@ -32,7 +38,7 @@ describe("PitchVerticalSlider", () => {
     );
     expect(screen.queryByTestId("pitchVerticalSlider")).toBeNull();
   });
-  it("PitchVerticalSlider:noteがundefinedの時表示されない", () => {
+  it("PitchVerticalSlider: noteがundefinedの時表示されない", () => {
     const n = createNote();
     render(
       <PitchVerticalSlider
@@ -43,14 +49,16 @@ describe("PitchVerticalSlider", () => {
     );
     expect(screen.queryByTestId("pitchVerticalSlider")).toBeNull();
   });
-  it("PitchVerticalSlider:targetIndexが0でnote.prevがnullの時表示されない", () => {
+  it("PitchVerticalSlider: targetIndexが0でnote.prevがnullの時表示されない", () => {
     const n = createNote();
+    n.prev = null;
+    n.pbs = "-40;-20";
     render(
       <PitchVerticalSlider targetIndex={0} note={n} setHasUpdate={() => {}} />
     );
     expect(screen.queryByTestId("pitchVerticalSlider")).toBeNull();
   });
-  it("PitchVerticalSlider:targetIndexが0でnote.prevが非nullで、lyricがR以外の時表示されない", () => {
+  it("PitchVerticalSlider: targetIndexが0でnote.prevが非nullで、lyricがR以外の時表示されない", () => {
     const n = createNote();
     const pn = createNote();
     n.prev = pn;
@@ -59,7 +67,7 @@ describe("PitchVerticalSlider", () => {
     );
     expect(screen.queryByTestId("pitchVerticalSlider")).toBeNull();
   });
-  it("PitchVerticalSlider:targetIndexが0でnote.prevが非nullで、lyricがRの時表示され、初期値はpbsHeight", () => {
+  it("PitchVerticalSlider: targetIndexが0でnote.prevが非nullで、lyricがRの時表示され、初期値はpbsHeight", () => {
     const n = createNote();
     n.pbs = "-40;-20";
     const pn = createNote();
@@ -74,7 +82,7 @@ describe("PitchVerticalSlider", () => {
     });
     expect(slider).toHaveAttribute("aria-valuenow", "-20");
   });
-  it("PitchVerticalSlider:targetIndexが非0でnote.pbw.lengthと同値の時表示されない", () => {
+  it("PitchVerticalSlider: targetIndexが非0でnote.pbw.lengthと同値の時表示されない", () => {
     const n = createNote();
     n.pbs = "-40";
     n.setPbw([250, 250]);
@@ -88,7 +96,7 @@ describe("PitchVerticalSlider", () => {
     );
     expect(screen.queryByTestId("pitchVerticalSlider")).toBeNull();
   });
-  it("PitchVerticalSlider:targetIndexが非0かつ非末尾のとき、sliderが表示され、初期値はpby[targetIndex-1]", () => {
+  it("PitchVerticalSlider: targetIndexが非0かつ非末尾のとき、sliderが表示され、初期値はpby[targetIndex-1]", () => {
     const n = createNote();
     n.pbs = "-40";
     n.setPbw([250, 250]);
@@ -106,7 +114,43 @@ describe("PitchVerticalSlider", () => {
     });
     expect(slider).toHaveAttribute("aria-valuenow", "50");
   });
-  it("PitchVerticalSlider:targetIndexが0でnote.prevが非nullで、lyricがRの時操作するとpbsHeightが更新される", () => {
+  it("PitchVerticalSlider: targetIndexが非0でpbyがundefinedの時、初期値は0", () => {
+    const n = createNote();
+    n.pbs = "-40";
+    n.setPbw([250, 250]);
+    n.setPbm(["", ""]);
+    // pbyを設定しない
+    const pn = createNote();
+    pn.lyric = "R";
+    n.prev = pn;
+    render(
+      <PitchVerticalSlider targetIndex={1} note={n} setHasUpdate={() => {}} />
+    );
+    expect(screen.queryByTestId("pitchVerticalSlider")).not.toBeNull();
+    const slider = screen.getByRole("slider", {
+      name: /pitchVerticalSlider/i,
+    });
+    expect(slider).toHaveAttribute("aria-valuenow", "0");
+  });
+  it("PitchVerticalSlider: targetIndexが非0でpby.length <= targetIndex - 1の時、初期値は0", () => {
+    const n = createNote();
+    n.pbs = "-40";
+    n.setPbw([250, 250, 250]);
+    n.setPbm(["", "", ""]);
+    n.setPby([50]); // 長さが1しかない
+    const pn = createNote();
+    pn.lyric = "R";
+    n.prev = pn;
+    render(
+      <PitchVerticalSlider targetIndex={2} note={n} setHasUpdate={() => {}} />
+    );
+    expect(screen.queryByTestId("pitchVerticalSlider")).not.toBeNull();
+    const slider = screen.getByRole("slider", {
+      name: /pitchVerticalSlider/i,
+    });
+    expect(slider).toHaveAttribute("aria-valuenow", "0");
+  });
+  it("PitchVerticalSlider: targetIndexが0でnote.prevが非nullで、lyricがRの時操作するとpbsHeightが更新される", () => {
     const n = createNote();
     n.pbs = "-40;-20";
     const pn = createNote();
@@ -134,7 +178,7 @@ describe("PitchVerticalSlider", () => {
     const resultNote = useMusicProjectStore.getState().notes[1];
     expect(resultNote.pbs.height).toBe(40);
   });
-  it("PitchVerticalSlider:targetIndexが非0かつ非末尾のとき、操作するとpby[targetIndex-1]が更新される", () => {
+  it("PitchVerticalSlider: targetIndexが非0かつ非末尾のとき、操作するとpby[targetIndex-1]が更新される", () => {
     const n = createNote();
     n.pbs = "-40";
     n.setPbw([250, 250]);

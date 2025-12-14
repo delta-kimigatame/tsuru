@@ -1,10 +1,10 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PitchHorizontalSlider } from "../../../../src/features/EditorView/PitchPortal/PitchHorizontalSlider";
 import { Note } from "../../../../src/lib/Note";
 import { Ust } from "../../../../src/lib/Ust";
+import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
 describe("PitchHorizontalSlider", () => {
@@ -16,12 +16,18 @@ describe("PitchHorizontalSlider", () => {
     n.lyric = "あ";
     n.hasTempo = false;
     n.tempo = 120;
+    n.prev = { tempo: 120, length: 0, lyric: "R" };
     return n;
   };
   beforeEach(() => {
     vi.restoreAllMocks();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
   });
-  it("PitchHorizontalSlider:targetIndexがundefinedの時表示されない", () => {
+  it("PitchHorizontalSlider: targetIndexがundefinedの時表示されない", () => {
     const n = createNote();
     render(
       <PitchHorizontalSlider
@@ -32,7 +38,7 @@ describe("PitchHorizontalSlider", () => {
     );
     expect(screen.queryByTestId("pitchHorizontalSlider")).toBeNull();
   });
-  it("PitchHorizontalSlider:noteがundefinedの時表示されない", () => {
+  it("PitchHorizontalSlider: noteがundefinedの時表示されない", () => {
     const n = createNote();
     render(
       <PitchHorizontalSlider
@@ -43,8 +49,9 @@ describe("PitchHorizontalSlider", () => {
     );
     expect(screen.queryByTestId("pitchHorizontalSlider")).toBeNull();
   });
-  it("PitchHorizontalSlider:targetIndexが0かつ、note.prev===nullの時、minは0", () => {
+  it("PitchHorizontalSlider: targetIndexが0かつ、note.prev===nullの時、minは0", () => {
     const n = createNote();
+    n.prev = null;
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
     render(
@@ -56,7 +63,21 @@ describe("PitchHorizontalSlider", () => {
     expect(slider).toHaveAttribute("aria-valuemin", "0");
     expect(slider).toHaveAttribute("aria-valuemax", "100");
   });
-  it("PitchHorizontalSlider:targetIndexが0かつ、note.prevが定義されているとき、minは-prev.msLength", () => {
+  it("PitchHorizontalSlider: targetIndexが0かつ、note.prev===undefinedの時、minは0", () => {
+    const n = createNote();
+    n.prev = undefined;
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    render(
+      <PitchHorizontalSlider targetIndex={0} note={n} setHasUpdate={() => {}} />
+    );
+    const slider = screen.getByRole("slider", {
+      name: /pitchHorizontalSlider/i,
+    });
+    expect(slider).toHaveAttribute("aria-valuemin", "0");
+    expect(slider).toHaveAttribute("aria-valuemax", "100");
+  });
+  it("PitchHorizontalSlider: targetIndexが0かつ、note.prevが定義されているとき、minは-prev.msLength", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -71,7 +92,7 @@ describe("PitchHorizontalSlider", () => {
     expect(slider).toHaveAttribute("aria-valuemin", "-500");
     expect(slider).toHaveAttribute("aria-valuemax", "100");
   });
-  it("PitchHorizontalSlider:targetIndex非0かつ非最後のとき、minは0でmaxは次のpbwと対象pbwの和", () => {
+  it("PitchHorizontalSlider: targetIndex非0かつ非最後のとき、minは0でmaxは次のpbwと対象pbwの和", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -84,7 +105,7 @@ describe("PitchHorizontalSlider", () => {
     expect(slider).toHaveAttribute("aria-valuemin", "0");
     expect(slider).toHaveAttribute("aria-valuemax", "300");
   });
-  it("PitchHorizontalSlider:targetIndex非0かつ最後のとき、minは0でmaxは直前までのpbwとpbsTimeの和とn.msLengthの差", () => {
+  it("PitchHorizontalSlider: targetIndex非0かつ最後のとき、minは0でmaxは直前までのpbwとpbsTimeの和とn.msLengthの差", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -98,7 +119,7 @@ describe("PitchHorizontalSlider", () => {
     //ノート長が500ms、pbsTimeが-40でpbw0が100のため、440が期待される
     expect(slider).toHaveAttribute("aria-valuemax", "440");
   });
-  it("PitchHorizontalSlider:targetIndexが0かつ、slider操作はpbsTimeとpbw[0]を更新する", () => {
+  it("PitchHorizontalSlider: targetIndexが0かつ、slider操作はpbsTimeとpbw[0]を更新する", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -126,7 +147,7 @@ describe("PitchHorizontalSlider", () => {
     expect(resultNote.pbs.time).toBe(-60);
     expect(resultNote.pbw).toEqual([120, 200]);
   });
-  it("PitchHorizontalSlider:targetIndexが非0かつ非最後の場合、slider操作はpbwと次のpbwを更新する", () => {
+  it("PitchHorizontalSlider: targetIndexが非0かつ非最後の場合、slider操作はpbwと次のpbwを更新する", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
@@ -154,7 +175,7 @@ describe("PitchHorizontalSlider", () => {
     expect(resultNote.pbs.time).toBe(-40);
     expect(resultNote.pbw).toEqual([120, 180]);
   });
-  it("PitchHorizontalSlider:targetIndexが最後の場合、slider操作は最後のpbwを更新する", () => {
+  it("PitchHorizontalSlider: targetIndexが最後の場合、slider操作は最後のpbwを更新する", () => {
     const n = createNote();
     n.pbs = "-40;20";
     n.setPbw([100, 200]);
