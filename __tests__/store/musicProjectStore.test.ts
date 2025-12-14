@@ -12,7 +12,9 @@ describe("musicProjectStore", () => {
 
   beforeAll(async () => {
     // VoiceBankを読み込む準備
-    const buffer = fs.readFileSync("./__tests__/__fixtures__/testVB.zip");
+    const buffer = fs.readFileSync(
+      "./__tests__/__fixtures__/minimumTestVB.zip"
+    );
     const zip = new JSZip();
     const td = new TextDecoder("shift-jis");
     await zip.loadAsync(buffer, {
@@ -69,23 +71,28 @@ describe("musicProjectStore", () => {
   });
 
   it("setNoteProperty", () => {
+    // VoiceBankを設定(applyOtoで必要)
+    useMusicProjectStore.setState({ vb: vb });
     const { setNoteProperty } = useMusicProjectStore.getState();
     const n = new Note();
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.notenum = 60;
     n.hasTempo = false;
     n.tempo = 120;
     const n2 = new Note();
     n2.length = 480;
     n2.index = 0;
     n2.lyric = "あ";
+    n2.notenum = 61;
     n2.hasTempo = false;
     n2.tempo = 140;
     const n3 = new Note();
     n3.length = 480;
     n3.index = 0;
     n3.lyric = "あ";
+    n3.notenum = 62;
     n3.hasTempo = true;
     n3.tempo = 140;
     const initialStore = useMusicProjectStore.getState();
@@ -112,29 +119,35 @@ describe("musicProjectStore", () => {
   });
 
   it("setNote", () => {
+    // VoiceBankを設定(applyOtoで必要)
+    useMusicProjectStore.setState({ vb: vb });
     const { setNote } = useMusicProjectStore.getState();
     const n = new Note();
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.notenum = 60;
     n.hasTempo = false;
     n.tempo = 120;
     const n2 = new Note();
     n2.length = 480;
     n2.index = 1;
     n2.lyric = "あ";
-    n.hasTempo = false;
-    n.tempo = 140;
+    n2.notenum = 61;
+    n2.hasTempo = false;
+    n2.tempo = 140;
     const n3 = new Note();
     n3.length = 480;
-    n3.index = 0;
+    n3.index = 2;
     n3.lyric = "あ";
+    n3.notenum = 62;
     n3.hasTempo = true;
     n3.tempo = 140;
     const newNote = new Note();
     newNote.length = 240;
     newNote.index = 0;
     newNote.lyric = "い";
+    newNote.notenum = 63;
     newNote.hasTempo = false;
     newNote.tempo = 150;
     const initialStore = useMusicProjectStore.getState();
@@ -166,29 +179,35 @@ describe("musicProjectStore", () => {
   });
 
   it("setNotes", () => {
+    // VoiceBankを設定(applyOtoで必要)
+    useMusicProjectStore.setState({ vb: vb });
     const { setNotes } = useMusicProjectStore.getState();
     const n = new Note();
     n.length = 480;
     n.index = 0;
     n.lyric = "あ";
+    n.notenum = 60;
     n.hasTempo = false;
     n.tempo = 120;
     const n2 = new Note();
     n2.length = 480;
     n2.index = 1;
     n2.lyric = "あ";
+    n2.notenum = 61;
     n2.hasTempo = false;
     n2.tempo = 140;
     const n3 = new Note();
-    n2.length = 480;
-    n2.index = 1;
-    n2.lyric = "あ";
+    n3.length = 480;
+    n3.index = 2;
+    n3.lyric = "あ";
+    n3.notenum = 62;
     n3.hasTempo = true;
     n3.tempo = 140;
     const newNote = new Note();
     newNote.length = 240;
     newNote.index = 0;
     newNote.lyric = "い";
+    newNote.notenum = 63;
     newNote.hasTempo = false;
     newNote.tempo = 150;
     const notes = new Array<Note>();
@@ -244,10 +263,12 @@ describe("musicProjectStore", () => {
     note1.length = 480;
     note1.index = 0;
     note1.lyric = "あ";
+    note1.notenum = 60;
     const note2 = new Note();
     note2.length = 480;
     note2.index = 1;
     note2.lyric = "あ";
+    note2.notenum = 61;
     initialStore.notes = [note1, note2];
     // 現在の状態を保存
     const originalNotes = [...initialStore.notes];
