@@ -102,6 +102,9 @@ const dummyResampRequest: ResampRequest = {
   pitches: "AAAA",
 };
 
+// グローバルな Worker を DummyWorker に上書き
+global.Worker = DummyWorker as any;
+
 describe("ResampWorkerService", () => {
   let service: ResampWorkerService;
 

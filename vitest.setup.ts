@@ -2,26 +2,10 @@ import "@testing-library/jest-dom";
 
 HTMLElement.prototype.scrollTo = () => {};
 
-// Mock window.location
-if (typeof globalThis.window === "undefined") {
-  (globalThis as any).window = {};
-}
-Object.defineProperty(globalThis.window, "location", {
-  value: {
-    hostname: "localhost",
-    href: "http://localhost:3000",
-    pathname: "/",
-    search: "",
-    hash: "",
-  },
-  writable: true,
-  configurable: true,
-});
-
 global.Worker = class {
   onmessage: ((this: Worker, ev: MessageEvent) => any) | null = null;
   onerror: ((this: Worker, ev: ErrorEvent) => any) | null = null;
-  constructor(public scriptUrl: string | URL) {
+  constructor(public scriptUrl: string) {
     // 必要なら scriptUrl を検証する
   }
   postMessage(data: any) {
@@ -38,12 +22,3 @@ global.Worker = class {
   }
 };
 global.URL.createObjectURL = (blob: Blob) => "blob:dummy-url";
-
-// import.meta.urlをモック
-if (typeof global.import === "undefined") {
-  (global as any).import = {};
-}
-if (typeof (global as any).import.meta === "undefined") {
-  (global as any).import.meta = {};
-}
-(global as any).import.meta.url = "file:///test";
