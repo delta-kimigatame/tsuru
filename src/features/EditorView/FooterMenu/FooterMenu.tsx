@@ -389,9 +389,9 @@ export interface FooterMenuProps {
   /** 再生を終了するためのコールバック */
   handlePlayStop: () => void;
   /** 選択モード */
-  selectMode: "toggle" | "range" | "pitch" | "add";
+  selectMode: NoteSelectMode;
   /** 選択モードを更新するためのコールバック */
-  setSelectMode: (mode: "toggle" | "range" | "pitch" | "add") => void;
+  setSelectMode: (mode: NoteSelectMode) => void;
   backgroundAudioWav: Wave | null;
   /** 伴奏音声のデータ */
   setBackgroundAudioWav: (wav: Wave) => void;

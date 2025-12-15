@@ -1,8 +1,10 @@
 import React from "react";
 import { LOG } from "../lib/Logging";
+import type { NoteSelectMode } from "../types/noteSelectMode";
+import { getSVGPoint } from "../utils/PianorollTouch/pianorollCoordinates";
 
-export interface UsePianorollTouchOptions {
-  selectMode?: "toggle" | "range" | "pitch" | "add";
+export interface UsePianorollTouchParams {
+  selectMode?: NoteSelectMode;
   holdThreshold?: number;
   onTap?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
   onHold?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
@@ -95,7 +97,7 @@ export const usePianorollTouch = (
 
   // selectMode が変化したときに startIndex をリセットする
   React.useEffect(() => {
-    LOG.debug(`selectModeの変更検知,mode:${selectMode}`, "PianorollToutch");
+    LOG.debug(`selectModeの変更検知,mode:${selectMode}`, "PianorollTouch");
     setStartIndex(undefined);
   }, [selectMode]);
 
@@ -106,14 +108,4 @@ export const usePianorollTouch = (
     startIndex,
     setStartIndex,
   };
-};
-const getSVGPoint = (
-  svg: SVGSVGElement,
-  clientX: number,
-  clientY: number
-): DOMPoint => {
-  const pt = svg.createSVGPoint();
-  pt.x = clientX;
-  pt.y = clientY;
-  return pt.matrixTransform(svg.getScreenCTM()?.inverse());
 };

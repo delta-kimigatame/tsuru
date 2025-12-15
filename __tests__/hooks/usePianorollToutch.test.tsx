@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EDITOR_CONFIG } from "../../src/config/editor";
-import { usePianorollTouch } from "../../src/hooks/usePianorollToutch";
+import { usePianorollTouch } from "../../src/hooks/usePianorollTouch";
 
 const createFakeSVG = () => {
   return {

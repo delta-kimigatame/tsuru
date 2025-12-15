@@ -21,7 +21,7 @@ import {
 } from "./PianorollPitch";
 import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
-import { PianorollToutch } from "./PianorollTouch";
+import { PianorollTouch } from "./PianorollTouch";
 import { PianorollVibrato } from "./PianorollVibrato";
 import { PianorollWavForm } from "./PianorollWavForm";
 
@@ -286,7 +286,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             )}
           </g>
           <g id="touch">
-            <PianorollToutch
+            <PianorollTouch
               selectedNotesIndex={props.selectedNotesIndex}
               setSelectedNotesIndex={props.setSelectedNotesIndes}
               totalLength={totalLength}
@@ -356,7 +356,7 @@ export interface PianorollProps {
   /** ノートを選択するためのコールバック */
   setSelectedNotesIndes: (indexes: number[]) => void;
   /** 選択モード */
-  selectMode: "toggle" | "range" | "pitch" | "add";
+  selectMode: NoteSelectMode;
   /** ピッチターゲット */
   pitchTargetIndex?: number | undefined;
   /** ピッチターゲット更新のためのコールバック */

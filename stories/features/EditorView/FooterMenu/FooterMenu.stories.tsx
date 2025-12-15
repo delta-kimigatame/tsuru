@@ -7,6 +7,7 @@ import { useCookieStore } from "../../../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 import { sampleShortCVUst } from "../../../../src/storybook/sampledata";
 import { base64ToArrayBuffer } from "../../../../src/storybook/utils";
+import type { NoteSelectMode } from "../../../../src/types/noteSelectMode";
 
 const meta = {
   title: "features/EditorView/FooterMenu/FooterMenu",
@@ -31,9 +32,8 @@ export const Default: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
@@ -129,9 +129,8 @@ export const WithSelectedNotes: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([0, 1, 2]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
@@ -217,15 +216,14 @@ export const WithSelectedNotes: Story = {
 /**
  * 再生中の状態
  */
-export const Playing: Story = {
+export const PlayingState: Story = {
   decorators: [
     (Story) => {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(true);
@@ -303,9 +301,8 @@ export const Synthesizing: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(true);
       const [synthesisCount, setSynthesisCount] = React.useState(5);
       const [playing, setPlaying] = React.useState(false);
@@ -380,10 +377,8 @@ export const AddMode: Story = {
     (Story) => {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
-      >([]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("add");
+      >([0]);
+      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("add");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
@@ -462,9 +457,8 @@ export const RangeSelectMode: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<
-        "toggle" | "range" | "pitch" | "add"
-      >("range");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("range");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
