@@ -21,10 +21,10 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
  * @returns ファイルのArrayBuffer
  */
 export const loadVB = async (filename: string): Promise<ArrayBuffer> => {
-  // 開発環境ではルート直下、本番環境では/tsuru/storybook/配下を参照
+  // 開発環境ではルート直下、本番環境では/utalet/storybook/配下を参照
   const filePath =
     process.env.NODE_ENV === "production"
-      ? `/tsuru/storybook/${filename}`
+      ? `/utalet/storybook/${filename}`
       : `/${filename}`;
 
   const response = await fetch(filePath);
