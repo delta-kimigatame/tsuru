@@ -1,8 +1,8 @@
-import { PIANOROLL_CONFIG } from "../config/pianoroll";
-import { Note } from "../lib/Note";
-import { undoManager } from "../lib/UndoManager";
-import { last } from "./array";
-import { getFrqFromNotenum } from "./pitch";
+import { PIANOROLL_CONFIG } from "../../config/pianoroll";
+import { Note } from "../../lib/Note";
+import { undoManager } from "../../lib/UndoManager";
+import { last } from "../array";
+import { getFrqFromNotenum } from "../pitch";
 
 /**
  * 追加されるノートを生成する処理

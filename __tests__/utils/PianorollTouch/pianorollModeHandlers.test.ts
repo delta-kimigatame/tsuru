@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PIANOROLL_CONFIG } from "../../src/config/pianoroll";
-import { Note } from "../../src/lib/Note";
-import { undoManager } from "../../src/lib/UndoManager";
+import { PIANOROLL_CONFIG } from "../../../src/config/pianoroll";
+import { Note } from "../../../src/lib/Note";
+import { undoManager } from "../../../src/lib/UndoManager";
 import {
   handleAddModeTap,
   handlePitchModeTap,
   handleRangeModeTap,
   handleToggleModeTap,
-} from "../../src/utils/pianorollModeHandlers";
+} from "../../../src/utils/PianorollTouch/pianorollModeHandlers";
 
 // AudioContextのモック
 class MockAudioContext {

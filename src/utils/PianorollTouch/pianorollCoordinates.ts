@@ -1,7 +1,7 @@
-import { EDITOR_CONFIG } from "../config/editor";
-import { PIANOROLL_CONFIG } from "../config/pianoroll";
-import { Note } from "../lib/Note";
-import { last } from "./array";
+import { EDITOR_CONFIG } from "../../config/editor";
+import { PIANOROLL_CONFIG } from "../../config/pianoroll";
+import { Note } from "../../lib/Note";
+import { last } from "../array";
 
 /**
  * クライアント座標をSVG座標に変換する

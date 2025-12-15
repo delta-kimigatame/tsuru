@@ -1,7 +1,7 @@
-import { PIANOROLL_CONFIG } from "../config/pianoroll";
-import { LOG } from "../lib/Logging";
-import { Note } from "../lib/Note";
-import { range } from "./array";
+import { PIANOROLL_CONFIG } from "../../config/pianoroll";
+import { LOG } from "../../lib/Logging";
+import { Note } from "../../lib/Note";
+import { range } from "../array";
 import { AddNote, playPreviewTone } from "./noteOperations";
 import { getTargetNoteIndexFromX } from "./pianorollCoordinates";
 

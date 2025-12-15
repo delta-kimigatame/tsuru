@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Note } from "../../src/lib/Note";
-import { undoManager } from "../../src/lib/UndoManager";
-import { AddNote, createNewNote } from "../../src/utils/noteOperations";
+import { Note } from "../../../src/lib/Note";
+import { undoManager } from "../../../src/lib/UndoManager";
+import { AddNote, createNewNote } from "../../../src/utils/PianorollTouch/noteOperations";
 
 // AudioContextのモック
 class MockAudioContext {

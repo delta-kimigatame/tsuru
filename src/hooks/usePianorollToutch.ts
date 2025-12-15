@@ -1,6 +1,6 @@
 import React from "react";
 import { LOG } from "../lib/Logging";
-import { getSVGPoint } from "../utils/pianorollCoordinates";
+import { getSVGPoint } from "../utils/PianorollTouch/pianorollCoordinates";
 
 export interface UsePianorollTouchOptions {
   selectMode?: "toggle" | "range" | "pitch" | "add";

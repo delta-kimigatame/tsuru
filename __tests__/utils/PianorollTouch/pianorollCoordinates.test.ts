@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { PIANOROLL_CONFIG } from "../../src/config/pianoroll";
-import { Note } from "../../src/lib/Note";
+import { PIANOROLL_CONFIG } from "../../../src/config/pianoroll";
+import { Note } from "../../../src/lib/Note";
 import {
   getTargetNoteIndex,
   getTargetNoteIndexFromX,
   getTargetPpltamentIndex,
-} from "../../src/utils/pianorollCoordinates";
+} from "../../../src/utils/PianorollTouch/pianorollCoordinates";
 
 describe("pianorollCoordinates", () => {
   const createNote = (notenum: number) => {

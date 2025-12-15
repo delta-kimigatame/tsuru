@@ -12,13 +12,13 @@ import { range } from "../../../utils/array";
 import {
   getTargetNoteIndex,
   getTargetPpltamentIndex,
-} from "../../../utils/pianorollCoordinates";
+} from "../../../utils/PianorollTouch/pianorollCoordinates";
 import {
   handleAddModeTap,
   handlePitchModeTap,
   handleRangeModeTap,
   handleToggleModeTap,
-} from "../../../utils/pianorollModeHandlers";
+} from "../../../utils/PianorollTouch/pianorollModeHandlers";
 import { applyPitchChange } from "../../../utils/PianorollTouch/pitchEditOperations";
 import { validatePitchEditability } from "../../../utils/PianorollTouch/pitchEditValidation";
 import { calculateTimeConstraints } from "../../../utils/PianorollTouch/pitchTimeConstraints";

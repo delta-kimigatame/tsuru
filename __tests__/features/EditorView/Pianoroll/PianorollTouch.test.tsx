@@ -7,7 +7,7 @@ import {
   handlePitchModeTap,
   handleRangeModeTap,
   handleToggleModeTap,
-} from "../../../../src/utils/pianorollModeHandlers";
+} from "../../../../src/utils/PianorollTouch/pianorollModeHandlers";
 
 // AudioContextのモック
 class MockAudioContext {
