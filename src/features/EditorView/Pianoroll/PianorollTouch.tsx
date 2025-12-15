@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
+import { useDoubleTap } from "../../../hooks/useDoubleTap";
 import { usePianorollTouch } from "../../../hooks/usePianorollTouch";
 import { usePitchEditDrag } from "../../../hooks/usePitchEditDrag";
 import { LOG } from "../../../lib/Logging";
@@ -37,10 +38,12 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { ust, notes, setNotes, ustTempo, setUst } = useMusicProjectStore();
   const snackBarStore = useSnackBarStore();
-  const [lastTapTime, setLastTapTime] = React.useState<number>(0);
-  const [lastTapNoteIndex, setLastTapNoteIndex] = React.useState<
-    number | undefined
-  >(undefined);
+
+  // ダブルタップ判定
+  const doubleTap = useDoubleTap<number | undefined>({
+    threshold: EDITOR_CONFIG.DOUBLE_TAP_MS,
+    allowUndefined: true, // 空白領域のダブルタップを許可
+  });
 
   // ピッチ編集ドラッグ機能を使用
   const pitchEditDrag = usePitchEditDrag({
@@ -74,19 +77,13 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
       horizontalZoom,
       verticalZoom
     );
-    const tapTime = Date.now();
-    /** 同じノートを2回タップしたときの判定 */
-    const isDoubleTap =
-      targetNoteIndex !== undefined &&
-      targetNoteIndex === lastTapNoteIndex &&
-      tapTime - lastTapTime <= EDITOR_CONFIG.DOUBLE_TAP_MS;
-    /** ノート無しのダブルタップ判定 */
-    const isDoubleTapNone =
-      targetNoteIndex === undefined &&
-      lastTapNoteIndex === undefined &&
-      tapTime - lastTapTime <= EDITOR_CONFIG.DOUBLE_TAP_MS;
-    setLastTapTime(tapTime);
-    setLastTapNoteIndex(targetNoteIndex);
+
+    // ダブルタップ判定
+    const isDoubleTap = doubleTap.checkDoubleTap(targetNoteIndex);
+
+    // ノート無しのダブルタップ判定（undefinedを2回タップ）
+    const isDoubleTapNone = targetNoteIndex === undefined && isDoubleTap;
+
     if (
       targetNoteIndex === undefined &&
       targetPoltamentIndex === undefined &&
