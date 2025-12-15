@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { usePianorollTouch } from "../../../hooks/usePianorollTouch";
+import { usePitchEditDrag } from "../../../hooks/usePitchEditDrag";
 import { LOG } from "../../../lib/Logging";
 import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
@@ -19,11 +20,6 @@ import {
   handleRangeModeTap,
   handleToggleModeTap,
 } from "../../../utils/PianorollTouch/pianorollModeHandlers";
-import { applyPitchChange } from "../../../utils/PianorollTouch/pitchEditOperations";
-import { validatePitchEditability } from "../../../utils/PianorollTouch/pitchEditValidation";
-import { calculateTimeConstraints } from "../../../utils/PianorollTouch/pitchTimeConstraints";
-import { applyTimeChange } from "../../../utils/PianorollTouch/pitchTimeOperations";
-import { convertSvgXToTimeMs } from "../../../utils/PianorollTouch/svgToTimeConverter";
 
 /**
  * ピアノロール全体のタップイベントを検知するレイヤー
@@ -45,36 +41,21 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   const [lastTapNoteIndex, setLastTapNoteIndex] = React.useState<
     number | undefined
   >(undefined);
-  // ピッチ編集モード用のポインター追跡状態
-  const [isPitchDragging, setIsPitchDragging] = React.useState<boolean>(false);
-  const [pitchDragPointerId, setPitchDragPointerId] = React.useState<
-    number | undefined
-  >(undefined);
-  const [hasPitchDragged, setHasPitchDragged] = React.useState<boolean>(false);
 
-  // iOS対応: ピッチ編集時のbody全体のスクロール制御
-  React.useEffect(() => {
-    const shouldLockScroll =
-      props.selectMode === "pitch" && props.targetPoltament !== undefined;
-
-    if (shouldLockScroll) {
-      // body要素のスクロールを無効化
-      const originalBodyStyle = document.body.style.overflow;
-      const originalBodyTouchAction = document.body.style.touchAction;
-      const originalHtmlStyle = document.documentElement.style.overflow;
-
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
-      document.documentElement.style.overflow = "hidden";
-
-      return () => {
-        // クリーンアップ時に元のスタイルを復元
-        document.body.style.overflow = originalBodyStyle;
-        document.body.style.touchAction = originalBodyTouchAction;
-        document.documentElement.style.overflow = originalHtmlStyle;
-      };
-    }
-  }, [props.selectMode, props.targetPoltament]);
+  // ピッチ編集ドラッグ機能を使用
+  const pitchEditDrag = usePitchEditDrag({
+    selectMode: props.selectMode,
+    poltaments: props.poltaments,
+    targetPoltament: props.targetPoltament,
+    setTargetPoltament: props.setTargetPoltament,
+    selectedNotesIndex: props.selectedNotesIndex,
+    notes: notes,
+    setNotes: setNotes,
+    notesLeft: props.notesLeft,
+    ustTempo: ustTempo,
+    verticalZoom: verticalZoom,
+    horizontalZoom: horizontalZoom,
+  });
 
   /**
    * tap時の動作。props.selectModeにあわせてselectNotesIndexを更新する。
@@ -186,7 +167,7 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
 
   const handleHold = (coords: { x: number; y: number }, svgPoint) => {
     // ピッチドラッグ中はホールドを無効にする
-    if (isPitchDragging) {
+    if (pitchEditDrag.isPitchDragging) {
       return;
     }
 
@@ -235,42 +216,15 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   });
 
   /**
-   * ピッチ編集モード対応のポインターダウンハンドラー
+   * ポインターダウンハンドラー（ピッチ編集対応）
    */
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
-    // ピッチ編集モードの場合、ポインターダウン時に即座に判定
-    if (props.selectMode === "pitch") {
-      const pt = event.currentTarget.createSVGPoint();
-      pt.x = event.clientX;
-      pt.y = event.clientY;
-      const svgPoint = pt.matrixTransform(
-        event.currentTarget.getScreenCTM()?.inverse()
-      );
+    // ピッチ編集のハンドラーを先に実行
+    const pitchHandled = pitchEditDrag.handlePointerDown(event);
 
-      const targetPoltamentIndex =
-        props.poltaments === undefined
-          ? undefined
-          : getTargetPpltamentIndex(svgPoint, props.poltaments);
-
-      // ポルタメント上でのポインターダウンの場合、即座にドラッグ開始
-      if (targetPoltamentIndex !== undefined) {
-        event.preventDefault();
-        event.stopPropagation();
-        // iOS対応: touchstart/touchmove/touchendイベントもキャンセル
-        if (event.nativeEvent instanceof TouchEvent) {
-          event.nativeEvent.preventDefault();
-        }
-        // ポインターキャプチャーを設定してドラッグ追跡を確実にする
-        event.currentTarget.setPointerCapture(event.pointerId);
-        setPitchDragPointerId(event.pointerId);
-        setIsPitchDragging(true);
-
-        // ポルタメント選択も同時に実行
-        if (props.setTargetPoltament) {
-          props.setTargetPoltament(targetPoltamentIndex);
-        }
-        return; // 元のハンドラーは実行せずに終了
-      }
+    // ピッチ編集でイベントが処理された場合は元のハンドラーをスキップ
+    if (pitchHandled) {
+      return;
     }
 
     // 元のハンドラーを実行
@@ -278,142 +232,11 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   };
 
   /**
-   * ピッチ編集モード専用のポインター移動ハンドラー
-   */
-  const handlePitchPointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    // ピッチ編集モードの場合
-    if (props.selectMode === "pitch") {
-      // ポルタメントが選択されている場合のみスクロールを防止
-      if (props.targetPoltament !== undefined) {
-        event.preventDefault();
-        event.stopPropagation();
-        // iOS対応: touchstart/touchmove/touchendイベントもキャンセル
-        if (event.nativeEvent instanceof TouchEvent) {
-          event.nativeEvent.preventDefault();
-        }
-      } else {
-        // ポルタメントが選択されていない場合、ポインターキャプチャーをリリース
-        if (pitchDragPointerId === event.pointerId) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-          setPitchDragPointerId(undefined);
-          // ドラッグ状態も終了
-          setIsPitchDragging(false);
-          // ドラッグフラグもリセット
-          setHasPitchDragged(false);
-        }
-        return; // ポルタメント未選択時は早期終了
-      }
-    }
-
-    // ドラッグ中でない場合はここで終了
-    if (!isPitchDragging) return;
-
-    // 実際にマウス/タッチが動いたのでドラッグフラグをセット
-    setHasPitchDragged(true);
-
-    // ピッチ編集時のポインター移動処理を実装
-    // SVG座標の取得
-    const pt = event.currentTarget.createSVGPoint();
-    pt.x = event.clientX;
-    pt.y = event.clientY;
-    const svgPoint = pt.matrixTransform(
-      event.currentTarget.getScreenCTM()?.inverse()
-    );
-
-    // ### ピッチ編集と時間編集の処理
-    // ピッチ編集（上下方向）：pby配列またはpbs.heightを更新
-    // 時間編集（左右方向）：pbs.timeまたはpbw配列を更新し、隣接するpbwを補正
-    if (
-      props.selectedNotesIndex.length === 1 &&
-      props.targetPoltament !== undefined
-    ) {
-      const selectedNote = notes[props.selectedNotesIndex[0]];
-
-      if (!selectedNote) return;
-
-      // ピッチ編集の可否を判定
-      const { canEditPitch, canEditTime } = validatePitchEditability(
-        props.targetPoltament,
-        selectedNote
-      );
-
-      // 両方とも編集不可の場合は終了
-      if (!canEditPitch && !canEditTime) return;
-
-      const newNotes = notes.slice();
-      let updatedNote = newNotes[props.selectedNotesIndex[0]].deepCopy();
-
-      // ### ピッチ変更処理（上下方向）
-      if (canEditPitch) {
-        updatedNote = applyPitchChange(
-          updatedNote,
-          props.targetPoltament,
-          svgPoint,
-          verticalZoom
-        );
-      }
-
-      // ### 時間変更処理（左右方向）
-      if (canEditTime) {
-        // 指し示している時間を求める
-        const selectedNoteStartX =
-          props.notesLeft[props.selectedNotesIndex[0]] *
-          PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
-          horizontalZoom;
-
-        // SVG座標を時間(ms)に変換
-        const targetTimeMs = convertSvgXToTimeMs(
-          svgPoint,
-          selectedNoteStartX,
-          selectedNote,
-          ustTempo,
-          horizontalZoom
-        );
-
-        // 時間制約を計算
-        const { minTime, maxTime } = calculateTimeConstraints(
-          props.targetPoltament,
-          selectedNote
-        );
-
-        // 閾値内に補正
-        const clampedTime = Math.max(minTime, Math.min(maxTime, targetTimeMs));
-        // 時間変更を適用
-        updatedNote = applyTimeChange(
-          updatedNote,
-          props.targetPoltament,
-          clampedTime
-        );
-      }
-
-      newNotes[props.selectedNotesIndex[0]] = updatedNote;
-      setNotes(newNotes);
-    }
-  };
-
-  /**
-   * ピッチ編集モード専用のポインターアップハンドラー
+   * ポインターアップハンドラー（ピッチ編集対応）
    */
   const handlePitchPointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    // ドラッグ後の場合はタップイベントをスキップ
-    const shouldSkipTap = hasPitchDragged;
-
-    // ピッチモードでポインターキャプチャーをリリース
-    if (
-      props.selectMode === "pitch" &&
-      pitchDragPointerId === event.pointerId
-    ) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-      setPitchDragPointerId(undefined);
-    }
-
-    // ピッチドラッグを終了
-    if (isPitchDragging) {
-      setIsPitchDragging(false);
-    }
-
-    // ドラッグフラグをリセット
-    setHasPitchDragged(false);
+    // ピッチ編集のハンドラーを実行し、タップをスキップすべきか確認
+    const shouldSkipTap = pitchEditDrag.handlePointerUp(event);
 
     // ドラッグ後の場合はタップイベントを発火させない
     if (shouldSkipTap) {
@@ -425,27 +248,13 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   };
 
   /**
-   * ピッチ編集モード専用のポインターキャンセルハンドラー
+   * ポインターキャンセルハンドラー（ピッチ編集対応）
    */
   const handlePitchPointerCancel = (
     event: React.PointerEvent<SVGSVGElement>
   ) => {
-    // ピッチモードでポインターキャプチャーをリリース
-    if (
-      props.selectMode === "pitch" &&
-      pitchDragPointerId === event.pointerId
-    ) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-      setPitchDragPointerId(undefined);
-    }
-
-    // ピッチドラッグを終了
-    if (isPitchDragging) {
-      setIsPitchDragging(false);
-    }
-
-    // ドラッグフラグをリセット
-    setHasPitchDragged(false);
+    // ピッチ編集のハンドラーを実行
+    pitchEditDrag.handlePointerCancel(event);
 
     // 元のハンドラーも実行
     handlePointerCancel();
@@ -468,10 +277,10 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
         pointerEvents: "all",
         touchAction:
           props.selectMode === "pitch" &&
-          (props.targetPoltament !== undefined || isPitchDragging)
+          (props.targetPoltament !== undefined || pitchEditDrag.isPitchDragging)
             ? "none"
             : "auto",
-        cursor: isPitchDragging ? "grabbing" : "auto",
+        cursor: pitchEditDrag.isPitchDragging ? "grabbing" : "auto",
         userSelect: "none",
         WebkitUserSelect: "none",
         MozUserSelect: "none",
@@ -482,7 +291,7 @@ export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
       }}
       onPointerUp={handlePitchPointerUp}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePitchPointerMove}
+      onPointerMove={pitchEditDrag.handlePointerMove}
       onPointerCancel={handlePitchPointerCancel}
     >
       <rect
