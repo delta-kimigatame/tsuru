@@ -39,10 +39,10 @@ const preview: Preview = {
     options: {
       storySort: {
         order: [
-          "Tutorial", // チュートリアルを最優先
-          "Components",
-          "Features",
-          "App",
+          "Tutorial", // チュートリアルを最優先（未実装）
+          "components", // Componentsカテゴリ
+          "features", // Featuresカテゴリ
+          "BenchMark", // ベンチマークは最後
         ],
         method: "alphabetical",
       },
