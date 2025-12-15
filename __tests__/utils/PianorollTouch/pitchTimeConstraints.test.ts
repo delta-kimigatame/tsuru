@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { calculateTimeConstraints } from "../../src/utils/pitchTimeConstraints";
-import { createTestNote } from "../testHelpers/noteTestHelper";
+import { calculateTimeConstraints } from "../../../src/utils/PianorollTouch/pitchTimeConstraints";
+import { createTestNote } from "../../testHelpers/noteTestHelper";
 
 describe("calculateTimeConstraints", () => {
   it("最初のポルタメントの時間制約を計算", () => {

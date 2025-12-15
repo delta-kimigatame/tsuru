@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { convertSvgXToTimeMs } from "../../src/utils/svgToTimeConverter";
-import { createTestNote } from "../testHelpers/noteTestHelper";
+import { convertSvgXToTimeMs } from "../../../src/utils/PianorollTouch/svgToTimeConverter";
+import { createTestNote } from "../../testHelpers/noteTestHelper";
 
 // NOTES_WIDTH_RATE = (375 - 50) / 1920 = 325 / 1920
 const NOTES_WIDTH_RATE = 325 / 1920;

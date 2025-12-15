@@ -1,4 +1,4 @@
-import { Note } from "../lib/Note";
+import { Note } from "../../lib/Note";
 
 /**
  * SVGのX座標を時間（ms）に変換する

@@ -1,4 +1,4 @@
-import { Note } from "../lib/Note";
+import { Note } from "../../lib/Note";
 
 /**
  * 時間変更を適用する

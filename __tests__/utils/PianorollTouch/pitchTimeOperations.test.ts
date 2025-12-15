@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyTimeChange } from "../../src/utils/pitchTimeOperations";
-import { createTestNote } from "../testHelpers/noteTestHelper";
+import { applyTimeChange } from "../../../src/utils/PianorollTouch/pitchTimeOperations";
+import { createTestNote } from "../../testHelpers/noteTestHelper";
 
 describe("applyTimeChange", () => {
   it("最初のポルタメント（pbs.time）の時間を変更", () => {

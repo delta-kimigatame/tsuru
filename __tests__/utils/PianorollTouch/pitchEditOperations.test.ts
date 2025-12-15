@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyPitchChange } from "../../src/utils/pitchEditOperations";
-import { createTestNote } from "../testHelpers/noteTestHelper";
+import { applyPitchChange } from "../../../src/utils/PianorollTouch/pitchEditOperations";
+import { createTestNote } from "../../testHelpers/noteTestHelper";
 
 describe("applyPitchChange", () => {
   it("中間ポルタメントのピッチ値を更新する", () => {

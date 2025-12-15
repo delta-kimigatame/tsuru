@@ -1,4 +1,4 @@
-import { Note } from "../lib/Note";
+import { Note } from "../../lib/Note";
 
 /**
  * 時間変更の制約（最小値・最大値）を計算する

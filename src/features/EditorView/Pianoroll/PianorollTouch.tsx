@@ -19,11 +19,11 @@ import {
   handleRangeModeTap,
   handleToggleModeTap,
 } from "../../../utils/pianorollModeHandlers";
-import { applyPitchChange } from "../../../utils/pitchEditOperations";
-import { validatePitchEditability } from "../../../utils/pitchEditValidation";
-import { calculateTimeConstraints } from "../../../utils/pitchTimeConstraints";
-import { applyTimeChange } from "../../../utils/pitchTimeOperations";
-import { convertSvgXToTimeMs } from "../../../utils/svgToTimeConverter";
+import { applyPitchChange } from "../../../utils/PianorollTouch/pitchEditOperations";
+import { validatePitchEditability } from "../../../utils/PianorollTouch/pitchEditValidation";
+import { calculateTimeConstraints } from "../../../utils/PianorollTouch/pitchTimeConstraints";
+import { applyTimeChange } from "../../../utils/PianorollTouch/pitchTimeOperations";
+import { convertSvgXToTimeMs } from "../../../utils/PianorollTouch/svgToTimeConverter";
 
 /**
  * ピアノロール全体のタップイベントを検知するレイヤー

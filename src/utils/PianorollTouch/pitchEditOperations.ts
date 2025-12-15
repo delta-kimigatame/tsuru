@@ -1,5 +1,5 @@
-import { PIANOROLL_CONFIG } from "../config/pianoroll";
-import { Note } from "../lib/Note";
+import { PIANOROLL_CONFIG } from "../../config/pianoroll";
+import { Note } from "../../lib/Note";
 
 /**
  * ピッチ値の変更を適用する

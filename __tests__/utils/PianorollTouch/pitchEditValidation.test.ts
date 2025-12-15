@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { validatePitchEditability } from "../../src/utils/pitchEditValidation";
-import { createTestNote } from "../testHelpers/noteTestHelper";
+import { validatePitchEditability } from "../../../src/utils/PianorollTouch/pitchEditValidation";
+import { createTestNote } from "../../testHelpers/noteTestHelper";
 
 describe("validatePitchEditability", () => {
   it("最後のポルタメントではピッチ変更不可", () => {
@@ -101,11 +101,10 @@ describe("validatePitchEditability", () => {
       pbs: { time: -20, height: 0 },
       pbw: [50],
       pby: [10],
-      prev: null,
     });
 
-    const result = validatePitchEditability(1, note);
-    expect(result.canEditPitch).toBe(false); // 最後なのでピッチ変更不可
+    const result = validatePitchEditability(1, note); // pbw.length === 1
+    expect(result.canEditPitch).toBe(false);
     expect(result.canEditTime).toBe(true);
   });
 });

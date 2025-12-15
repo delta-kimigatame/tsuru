@@ -1,4 +1,4 @@
-import { Note } from "../lib/Note";
+import { Note } from "../../lib/Note";
 
 /**
  * ピッチ編集の可否を判定する
