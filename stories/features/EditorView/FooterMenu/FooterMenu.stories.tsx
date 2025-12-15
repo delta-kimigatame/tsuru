@@ -32,7 +32,8 @@ export const Default: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
@@ -128,7 +129,8 @@ export const WithSelectedNotes: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([0, 1, 2]);
-      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);
@@ -220,7 +222,8 @@ export const PlayingState: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(true);
@@ -298,7 +301,8 @@ export const Synthesizing: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("toggle");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("toggle");
       const [synthesisProgress, setSynthesisProgress] = React.useState(true);
       const [synthesisCount, setSynthesisCount] = React.useState(5);
       const [playing, setPlaying] = React.useState(false);
@@ -453,7 +457,8 @@ export const RangeSelectMode: Story = {
       const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
         number[]
       >([]);
-      const [selectMode, setSelectMode] = React.useState<NoteSelectMode>("range");
+      const [selectMode, setSelectMode] =
+        React.useState<NoteSelectMode>("range");
       const [synthesisProgress, setSynthesisProgress] = React.useState(false);
       const [synthesisCount, setSynthesisCount] = React.useState(0);
       const [playing, setPlaying] = React.useState(false);

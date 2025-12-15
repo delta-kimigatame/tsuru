@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useDoubleTap } from "../../../hooks/useDoubleTap";
-import type { NoteSelectMode } from "../../../types/noteSelectMode";
 import { usePianorollTouch } from "../../../hooks/usePianorollTouch";
 import { usePitchEditDrag } from "../../../hooks/usePitchEditDrag";
 import { LOG } from "../../../lib/Logging";
@@ -11,6 +10,7 @@ import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
+import type { NoteSelectMode } from "../../../types/noteSelectMode";
 import { range } from "../../../utils/array";
 import {
   getTargetNoteIndex,
