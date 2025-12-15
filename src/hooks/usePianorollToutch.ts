@@ -1,5 +1,6 @@
 import React from "react";
 import { LOG } from "../lib/Logging";
+import { getSVGPoint } from "../utils/pianorollCoordinates";
 
 export interface UsePianorollTouchOptions {
   selectMode?: "toggle" | "range" | "pitch" | "add";
@@ -106,14 +107,4 @@ export const usePianorollTouch = (
     startIndex,
     setStartIndex,
   };
-};
-const getSVGPoint = (
-  svg: SVGSVGElement,
-  clientX: number,
-  clientY: number
-): DOMPoint => {
-  const pt = svg.createSVGPoint();
-  pt.x = clientX;
-  pt.y = clientY;
-  return pt.matrixTransform(svg.getScreenCTM()?.inverse());
 };

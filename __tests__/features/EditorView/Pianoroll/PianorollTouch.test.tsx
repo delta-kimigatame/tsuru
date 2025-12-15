@@ -1,17 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PIANOROLL_CONFIG } from "../../../../src/config/pianoroll";
+import { Note } from "../../../../src/lib/Note";
+import { undoManager } from "../../../../src/lib/UndoManager";
 import {
-  AddNote,
-  getTargetNoteIndex,
-  getTargetNoteIndexFromX,
-  getTargetPpltamentIndex,
   handleAddModeTap,
   handlePitchModeTap,
   handleRangeModeTap,
   handleToggleModeTap,
-} from "../../../../src/features/EditorView/Pianoroll/PianorollTouch";
-import { Note } from "../../../../src/lib/Note";
-import { undoManager } from "../../../../src/lib/UndoManager";
+} from "../../../../src/utils/pianorollModeHandlers";
 
 // AudioContextのモック
 class MockAudioContext {
@@ -53,150 +49,6 @@ describe("PianorollToutchUtilty", () => {
   const notesLeft = [0, 480, 960];
   beforeEach(() => {
     undoManager.clear();
-  });
-  it("getTargetNoteIndexFromX:x座標に応じたindexを返す", () => {
-    expect(getTargetNoteIndexFromX(0, notes, notesLeft, 1)).toBe(0);
-    // 479 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomで0が返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        479 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        1
-      )
-    ).toBe(0);
-    // 480 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomで1が返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        480 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        1
-      )
-    ).toBe(1);
-    // 960 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomで2が返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        960 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        1
-      )
-    ).toBe(2);
-    // 1439 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomで2が返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        1439 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        1
-      )
-    ).toBe(2);
-    // 1440 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomでundefinedが返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        1440 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        1
-      )
-    ).toBe(undefined);
-    // 480 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoomで2が返るはず
-    expect(
-      getTargetNoteIndexFromX(
-        480 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-        notes,
-        notesLeft,
-        0.5
-      )
-    ).toBe(2);
-  });
-  it("getTargetNoteIndex:x座標とy座標を換算してノート上であればindexを返す", () => {
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 60) * PIANOROLL_CONFIG.KEY_HEIGHT },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(0);
-    expect(
-      getTargetNoteIndex(
-        {
-          x: 480 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-          y: (107 - 107) * PIANOROLL_CONFIG.KEY_HEIGHT,
-        },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(1);
-    expect(
-      getTargetNoteIndex(
-        {
-          x: 960 * PIANOROLL_CONFIG.NOTES_WIDTH_RATE,
-          y: (107 - 24) * PIANOROLL_CONFIG.KEY_HEIGHT,
-        },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(2);
-    // verticalZoomの影響確認
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 60) * PIANOROLL_CONFIG.KEY_HEIGHT * 2 },
-        notes,
-        notesLeft,
-        1,
-        2
-      )
-    ).toBe(0);
-  });
-  it("getTargetNoteIndex:x座標とy座標が一致しなければundefinedを返す", () => {
-    // これが上側境界になるはず
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 60) * PIANOROLL_CONFIG.KEY_HEIGHT },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(0);
-    // これが下側境界になるはず
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 59) * PIANOROLL_CONFIG.KEY_HEIGHT - 1 },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(0);
-    // これが下側境界より1pixel下になるはず
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 59) * PIANOROLL_CONFIG.KEY_HEIGHT },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(undefined);
-    // これが上側境界より1pixel上になるはず
-    expect(
-      getTargetNoteIndex(
-        { x: 0, y: (107 - 60) * PIANOROLL_CONFIG.KEY_HEIGHT - 1 },
-        notes,
-        notesLeft,
-        1,
-        1
-      )
-    ).toBe(undefined);
   });
 
   it("handleToggleModeTap:未選択の場合、ソートして追加される", () => {
@@ -353,99 +205,6 @@ describe("PianorollToutchUtilty", () => {
     const redoResult = undoManager.redo();
     expect(undoResult).toEqual(notes);
     expect(redoResult).toEqual(resultNotes);
-  });
-
-  // AddNote関数の直接テスト
-  it("AddNote: 空配列にノートを追加した場合は1つのノートを含む配列になる", () => {
-    const result = AddNote([], undefined, 60, "あ", 480, 120);
-    expect(result.length).toBe(1);
-    expect(result[0].notenum).toBe(60);
-    expect(result[0].lyric).toBe("あ");
-    expect(result[0].length).toBe(480);
-    expect(result[0].tempo).toBe(120);
-  });
-
-  it("AddNote: indexがundefinedの場合は末尾にノートを追加する", () => {
-    const result = AddNote(notes, undefined, 72, "い", 240, 120);
-    expect(result.length).toBe(4);
-    expect(result.slice(0, 3)).toEqual(notes);
-    expect(result[3].notenum).toBe(72);
-    expect(result[3].lyric).toBe("い");
-    expect(result[3].length).toBe(240);
-  });
-
-  it("AddNote: indexを指定した場合はその位置にノートを挿入する", () => {
-    const result = AddNote(notes, 1, 84, "う", 360, 120);
-    expect(result.length).toBe(4);
-    expect(result[0]).toEqual(notes[0]);
-    expect(result[1].notenum).toBe(84);
-    expect(result[1].lyric).toBe("う");
-    expect(result[1].length).toBe(360);
-    expect(result.slice(2, 4)).toEqual(notes.slice(1, 3));
-  });
-
-  it("AddNote: 追加したノートのテンポは前のノートから継承される", () => {
-    const notesWithTempo = [createNote(60), createNote(62)];
-    notesWithTempo[1].tempo = 140;
-    const result = AddNote(notesWithTempo, undefined, 64, "え", 480, 120);
-    expect(result[2].tempo).toBe(140);
-  });
-
-  // getTargetPpltamentIndex関数のテスト
-  it("getTargetPpltamentIndex: ポルタメント領域内をクリックした場合はインデックスを返す", () => {
-    const poltaments = [
-      { x: 100, y: 200 },
-      { x: 300, y: 400 },
-    ];
-    const result = getTargetPpltamentIndex({ x: 105, y: 205 }, poltaments);
-    expect(result).toBe(0);
-  });
-
-  it("getTargetPpltamentIndex: 複数のポルタメントがある場合は最も近いものを返す", () => {
-    const poltaments = [
-      { x: 100, y: 200 },
-      { x: 200, y: 300 },
-      { x: 300, y: 400 },
-    ];
-    const result = getTargetPpltamentIndex({ x: 205, y: 305 }, poltaments);
-    expect(result).toBe(1);
-  });
-
-  it("getTargetPpltamentIndex: 閾値より遠い場合はundefinedを返す", () => {
-    const poltaments = [{ x: 100, y: 200 }];
-    const result = getTargetPpltamentIndex({ x: 1000, y: 1000 }, poltaments);
-    expect(result).toBe(undefined);
-  });
-
-  it("getTargetPpltamentIndex: 空配列の場合はundefinedを返す", () => {
-    const result = getTargetPpltamentIndex({ x: 100, y: 200 }, []);
-    expect(result).toBe(undefined);
-  });
-
-  // エッジケーステスト
-  it("getTargetNoteIndexFromX: 空配列の場合は-1を返す", () => {
-    const result = getTargetNoteIndexFromX(0, [], [], 1);
-    expect(result).toBe(-1);
-  });
-
-  it("getTargetNoteIndexFromX: 負のX座標の場合は最後のノートより前のインデックスを返す", () => {
-    const result = getTargetNoteIndexFromX(-100, notes, notesLeft, 1);
-    // 負のX座標の場合、findIndexが0を返し、0-1=-1となり、notes.length-1が返される
-    expect(result).toBe(notes.length - 1);
-  });
-
-  it("getTargetNoteIndex: 範囲外のnotenumの場合はundefinedを返す", () => {
-    const result = getTargetNoteIndex(
-      {
-        x: 0,
-        y: -100, // 範囲外のY座標
-      } as DOMPoint,
-      notes,
-      notesLeft,
-      1,
-      1
-    );
-    expect(result).toBe(undefined);
   });
 
   it("handleToggleModeTap: 空の選択リストに追加した場合はソートされた配列になる", () => {
