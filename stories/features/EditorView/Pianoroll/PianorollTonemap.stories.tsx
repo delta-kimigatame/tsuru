@@ -1,38 +1,12 @@
-﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
+import { Meta, StoryObj } from "@storybook/react";
 import React from "react";
-import { PIANOROLL_CONFIG } from "../../../../src/config/pianoroll";
-import {
-  PianorollBackground,
-  PianorollBackgroundProps,
-} from "../../../../src/features/EditorView/Pianoroll/PianorollBackground";
+import { PianorollTonemap } from "../../../../src/features/EditorView/Pianoroll/PianorollTonemap";
 import { useCookieStore } from "../../../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 
-const DummyParent = (args: PianorollBackgroundProps) => {
-  const { verticalZoom, horizontalZoom } = useCookieStore();
-  // 4小節分の固定長を表示
-  const totalLength = 480 * 4 * 4; // 4拍子 * 4小節
-
-  return (
-    <svg
-      width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
-      height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
-      style={{
-        display: "block",
-        position: "relative",
-      }}
-    >
-      <g id="background">
-        <PianorollBackground {...args} totalLength={totalLength} />
-      </g>
-    </svg>
-  );
-};
-
-const meta: Meta<typeof DummyParent> = {
-  title: "features/EditorView/Pianoroll/PianorollBackground",
-  component: DummyParent,
+const meta: Meta<typeof PianorollTonemap> = {
+  title: "features/EditorView/Pianoroll/PianorollTonemap",
+  component: PianorollTonemap,
   tags: ["autodocs"],
 };
 
@@ -111,17 +85,17 @@ export const FSharpMajor: Story = {
 };
 
 /**
- * 水平ズーム2倍
- * グリッドの幅が広がる
+ * 縦ズーム2倍
+ * キーの高さが2倍になる
  */
-export const HorizontalZoom: Story = {
+export const VerticalZoom: Story = {
   decorators: [
     (Story) => {
       React.useEffect(() => {
         useCookieStore.setState({
           language: "ja",
-          verticalZoom: 1,
-          horizontalZoom: 2,
+          verticalZoom: 2,
+          horizontalZoom: 1,
         });
         useMusicProjectStore.setState({
           tone: 0,

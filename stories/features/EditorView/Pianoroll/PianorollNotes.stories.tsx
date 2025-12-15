@@ -1,119 +1,161 @@
 ﻿import { Meta, StoryObj } from "@storybook/react";
-// TODO: Migrate to @storybook/test when implementing interactions
 import React from "react";
 import { PIANOROLL_CONFIG } from "../../../../src/config/pianoroll";
 import { PianorollBackground } from "../../../../src/features/EditorView/Pianoroll/PianorollBackground";
-import {
-  PianorollNotes,
-  PianorollNotesProps,
-} from "../../../../src/features/EditorView/Pianoroll/PianorollNotes";
+import { PianorollNotes } from "../../../../src/features/EditorView/Pianoroll/PianorollNotes";
+import { Ust } from "../../../../src/lib/Ust";
 import { useCookieStore } from "../../../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import { sampleShortCVUst } from "../../../../src/storybook/sampledata";
+import { base64ToArrayBuffer } from "../../../../src/storybook/utils";
 
-const DummyParent = (args: PianorollNotesProps) => {
-  const { verticalZoom, horizontalZoom } = useCookieStore();
-  const { notes } = useMusicProjectStore();
-  const notesLeft = React.useMemo(() => {
-    if (notes.length === 0) return [];
-    const lefts = new Array<number>();
-    let totalLength = 0;
-    for (let i = 0; i < notes.length; i++) {
-      lefts.push(totalLength);
-      totalLength += notes[i].length;
-    }
-    return lefts;
-  }, [notes]);
-
-  const totalLength = React.useMemo(() => {
-    if (notes.length === 0) return 0;
-    return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
-  }, [notesLeft]);
-
-  return (
-    <svg
-      width={totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom}
-      height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
-      style={{
-        display: "block",
-        position: "relative",
-      }}
-    >
-      <g id="background">
-        <PianorollBackground {...args} totalLength={totalLength} />
-      </g>
-      <g id="notes">
-        <PianorollNotes
-          {...args}
-          totalLength={totalLength}
-          notesLeft={notesLeft}
-        />
-      </g>
-    </svg>
-  );
-};
-
-const meta: Meta<typeof DummyParent> = {
+const meta: Meta<typeof PianorollNotes> = {
   title: "features/EditorView/Pianoroll/PianorollNotes",
-  component: DummyParent,
+  component: PianorollNotes,
   tags: ["autodocs"],
 };
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+/**
+ * デフォルト：音符と休符の描画
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      const { verticalZoom, horizontalZoom } = useCookieStore();
+      const { notes } = useMusicProjectStore();
+      const [loading, setLoading] = React.useState(true);
 
-// TODO: Uncomment and migrate to @storybook/test when upgrading testing interactions
-// /** テスト用の処理。最低限必要なパラメータを持ったノートを指定数生成する */
-// const createNotes = (count: number): Note[] => {
-//   const newNotes = new Array<Note>();
-//   for (let i = 0; i < count; i++) {
-//     const n = new Note();
-//     n.index = 0;
-//     n.lyric = i % 3 === 0 ? "R" : "あ";
-//     n.length = 120 * ((i % 8) + 1);
-//     n.notenum = 107 - i;
-//     n.hasTempo = false;
-//     n.tempo = 120;
-//     newNotes.push(n);
-//   }
-//   return newNotes;
-// };
+      React.useEffect(() => {
+        useCookieStore.setState({
+          language: "ja",
+          verticalZoom: 1,
+          horizontalZoom: 1,
+        });
 
-// export const LightMode: Story = {
-//   name: "ライトモード",
-//   args: {
-//     selectedNotesIndex: [0, 1],
-//   },
-//   play: async () => {
-//     const store = useCookieStore.getState();
-//     const projectStore = useMusicProjectStore.getState();
-//     store.setMode("light");
-//     store.setColorTheme("default");
-//     store.setVerticalZoom(1);
-//     store.setHorizontalZoom(1);
-//     projectStore.setNoteProperty(0, "length", 480);
-//     const newNotes = createNotes(107 - 24 + 1);
-//     projectStore.setNotes(newNotes);
-//   },
-// };
+        const ust = new Ust();
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({ notes: ust.notes, vb: null });
+          setLoading(false);
+        });
+      }, []);
 
-// export const DarkMode: Story = {
-//   name: "ダークモード",
-//   args: {
-//     selectedNotesIndex: [0, 1],
-//   },
-//   play: async () => {
-//     const store = useCookieStore.getState();
-//     const projectStore = useMusicProjectStore.getState();
-//     store.setMode("dark");
-//     store.setColorTheme("default");
-//     store.setVerticalZoom(1);
-//     store.setHorizontalZoom(1);
-//     projectStore.setNoteProperty(0, "length", 480);
-//     const newNotes = createNotes(107 - 24 + 1);
-//     projectStore.setNotes(newNotes);
-//   },
-// };
+      const notesLeft = React.useMemo(() => {
+        if (notes.length === 0) return [];
+        const lefts = new Array<number>();
+        let totalLength = 0;
+        for (let i = 0; i < notes.length; i++) {
+          lefts.push(totalLength);
+          totalLength += notes[i].length;
+        }
+        return lefts;
+      }, [notes]);
 
-// Other stories with play functions commented out for @storybook/test migration...
+      const totalLength = React.useMemo(() => {
+        if (notes.length === 0) return 0;
+        return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
+      }, [notesLeft]);
+
+      if (loading || notes.length === 0) return <div>Loading...</div>;
+
+      return (
+        <svg
+          width={
+            totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+          }
+          height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
+          style={{
+            display: "block",
+            position: "relative",
+          }}
+        >
+          <g id="background">
+            <PianorollBackground totalLength={totalLength} />
+          </g>
+          <g id="notes">
+            <Story
+              args={{
+                selectedNotesIndex: [],
+                totalLength,
+                notesLeft,
+              }}
+            />
+          </g>
+        </svg>
+      );
+    },
+  ],
+};
+
+/**
+ * 音符選択状態の描画
+ */
+export const WithSelection: Story = {
+  decorators: [
+    (Story) => {
+      const { verticalZoom, horizontalZoom } = useCookieStore();
+      const { notes } = useMusicProjectStore();
+      const [loading, setLoading] = React.useState(true);
+
+      React.useEffect(() => {
+        useCookieStore.setState({
+          language: "ja",
+          verticalZoom: 1,
+          horizontalZoom: 1,
+        });
+
+        const ust = new Ust();
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({ notes: ust.notes, vb: null });
+          setLoading(false);
+        });
+      }, []);
+
+      const notesLeft = React.useMemo(() => {
+        if (notes.length === 0) return [];
+        const lefts = new Array<number>();
+        let totalLength = 0;
+        for (let i = 0; i < notes.length; i++) {
+          lefts.push(totalLength);
+          totalLength += notes[i].length;
+        }
+        return lefts;
+      }, [notes]);
+
+      const totalLength = React.useMemo(() => {
+        if (notes.length === 0) return 0;
+        return notesLeft.slice(-1)[0] + notes.slice(-1)[0].length;
+      }, [notesLeft]);
+
+      if (loading || notes.length === 0) return <div>Loading...</div>;
+
+      return (
+        <svg
+          width={
+            totalLength * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom
+          }
+          height={PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom}
+          style={{
+            display: "block",
+            position: "relative",
+          }}
+        >
+          <g id="background">
+            <PianorollBackground totalLength={totalLength} />
+          </g>
+          <g id="notes">
+            <Story
+              args={{
+                selectedNotesIndex: [0, 2, 4],
+                totalLength,
+                notesLeft,
+              }}
+            />
+          </g>
+        </svg>
+      );
+    },
+  ],
+};
