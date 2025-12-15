@@ -96,7 +96,7 @@ export const usePianorollTouch = (
 
   // selectMode が変化したときに startIndex をリセットする
   React.useEffect(() => {
-    LOG.debug(`selectModeの変更検知,mode:${selectMode}`, "PianorollToutch");
+    LOG.debug(`selectModeの変更検知,mode:${selectMode}`, "PianorollTouch");
     setStartIndex(undefined);
   }, [selectMode]);
 

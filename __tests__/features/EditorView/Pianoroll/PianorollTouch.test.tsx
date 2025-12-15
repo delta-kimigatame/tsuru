@@ -35,7 +35,7 @@ class MockAudioContext {
   AudioContext: MockAudioContext,
 };
 
-describe("PianorollToutchUtilty", () => {
+describe("PianorollTouchUtility", () => {
   const createNote = (notenum: number) => {
     const n = new Note();
     n.length = 480;

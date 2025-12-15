@@ -27,12 +27,12 @@ export const handlePitchModeTap = (
     // ポルタメントをタップした場合
     LOG.debug(
       `${selectedNotesIndex[0]}のポルタメント${targetPoltamentIndex}`,
-      "PianorollToutch"
+      "PianorollTouch"
     );
     setTargetPoltament(targetPoltamentIndex);
   } else if (notes[targetNoteIndex].lyric !== "R") {
     // ノートをタップした場合
-    LOG.debug(`${targetNoteIndex}に切替`, "PianorollToutch");
+    LOG.debug(`${targetNoteIndex}に切替`, "PianorollTouch");
     setSelectedNotesIndex([targetNoteIndex]);
   }
 };
@@ -50,13 +50,13 @@ export const handleToggleModeTap = (
 ) => {
   if (!selectedNotesIndex.includes(targetNoteIndex)) {
     //未選択の場合
-    LOG.debug(`${targetNoteIndex}を選択`, "PianorollToutch");
+    LOG.debug(`${targetNoteIndex}を選択`, "PianorollTouch");
     const newSelectNotesIndex = selectedNotesIndex.slice();
     newSelectNotesIndex.push(targetNoteIndex);
     setSelectedNotesIndex(newSelectNotesIndex.sort((a, b) => a - b));
   } else {
     //選択済みの場合
-    LOG.debug(`${targetNoteIndex}を選択解除`, "PianorollToutch");
+    LOG.debug(`${targetNoteIndex}を選択解除`, "PianorollTouch");
     setSelectedNotesIndex(
       selectedNotesIndex.filter((n) => n != targetNoteIndex)
     );
@@ -85,13 +85,13 @@ export const handleRangeModeTap = (
   snackBarText: string
 ) => {
   if (startIndex === undefined) {
-    LOG.debug(`${targetNoteIndex}を始点にセット`, "PianorollToutch");
+    LOG.debug(`${targetNoteIndex}を始点にセット`, "PianorollTouch");
     setStartIndex(targetNoteIndex);
     setSeverity("info");
     setValue(snackBarText); //範囲の終わりのノートを選択してください
     setOpen(true);
   } else {
-    LOG.debug(`${startIndex}～${targetNoteIndex}を選択`, "PianorollToutch");
+    LOG.debug(`${startIndex}～${targetNoteIndex}を選択`, "PianorollTouch");
     setSelectedNotesIndex(range(startIndex, targetNoteIndex));
   }
 };

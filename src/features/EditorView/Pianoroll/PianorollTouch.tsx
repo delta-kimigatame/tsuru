@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
-import { usePianorollTouch } from "../../../hooks/usePianorollToutch";
+import { usePianorollTouch } from "../../../hooks/usePianorollTouch";
 import { LOG } from "../../../lib/Logging";
 import { Ust } from "../../../lib/Ust";
 import { useCookieStore } from "../../../store/cookieStore";
@@ -36,7 +36,7 @@ import { convertSvgXToTimeMs } from "../../../utils/PianorollTouch/svgToTimeConv
  * @param props
  * @returns
  */
-export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
+export const PianorollTouch: React.FC<PianorollTouchProps> = (props) => {
   const { t } = useTranslation();
   const { verticalZoom, horizontalZoom } = useCookieStore();
   const { ust, notes, setNotes, ustTempo, setUst } = useMusicProjectStore();
@@ -116,7 +116,7 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
     }
     LOG.debug(
       `notes[${targetNoteIndex}] click,mode:${props.selectMode}`,
-      "PianorollToutch"
+      "PianorollTouch"
     );
     if (isDoubleTapNone) {
       if (props.selectedNotesIndex.length !== 0) {
@@ -500,7 +500,7 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
   );
 };
 
-export interface PianorollToutchProps {
+export interface PianorollTouchProps {
   selectedNotesIndex: Array<number>;
   setSelectedNotesIndex: (indexes: number[]) => void;
   notesLeft: Array<number>;

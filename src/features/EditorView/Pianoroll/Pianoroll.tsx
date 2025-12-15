@@ -21,7 +21,7 @@ import {
 } from "./PianorollPitch";
 import { PianorollSeekbar } from "./PianorollSeekbar";
 import { PianorollTonemap } from "./PianorollTonemap";
-import { PianorollToutch } from "./PianorollTouch";
+import { PianorollTouch } from "./PianorollTouch";
 import { PianorollVibrato } from "./PianorollVibrato";
 import { PianorollWavForm } from "./PianorollWavForm";
 
@@ -286,7 +286,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
             )}
           </g>
           <g id="touch">
-            <PianorollToutch
+            <PianorollTouch
               selectedNotesIndex={props.selectedNotesIndex}
               setSelectedNotesIndex={props.setSelectedNotesIndes}
               totalLength={totalLength}
