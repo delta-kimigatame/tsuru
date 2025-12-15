@@ -1,6 +1,7 @@
 import React from "react";
 import { PIANOROLL_CONFIG } from "../config/pianoroll";
 import { Note } from "../lib/Note";
+import type { NoteSelectMode } from "../types/noteSelectMode";
 import { getTargetPpltamentIndex } from "../utils/PianorollTouch/pianorollCoordinates";
 import { applyPitchChange } from "../utils/PianorollTouch/pitchEditOperations";
 import { validatePitchEditability } from "../utils/PianorollTouch/pitchEditValidation";
@@ -10,7 +11,7 @@ import { convertSvgXToTimeMs } from "../utils/PianorollTouch/svgToTimeConverter"
 
 export interface UsePitchEditDragParams {
   /** 現在の選択モード */
-  selectMode?: "toggle" | "range" | "pitch" | "add";
+  selectMode?: NoteSelectMode;
   /** ポルタメント座標配列 */
   poltaments?: Array<{ x: number; y: number }>;
   /** 現在選択されているポルタメントのインデックス */

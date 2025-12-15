@@ -1,9 +1,10 @@
 import React from "react";
 import { LOG } from "../lib/Logging";
+import type { NoteSelectMode } from "../types/noteSelectMode";
 import { getSVGPoint } from "../utils/PianorollTouch/pianorollCoordinates";
 
-export interface UsePianorollTouchOptions {
-  selectMode?: "toggle" | "range" | "pitch" | "add";
+export interface UsePianorollTouchParams {
+  selectMode?: NoteSelectMode;
   holdThreshold?: number;
   onTap?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
   onHold?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;

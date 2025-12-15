@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { EDITOR_CONFIG } from "../../../config/editor";
 import { PIANOROLL_CONFIG } from "../../../config/pianoroll";
 import { useDoubleTap } from "../../../hooks/useDoubleTap";
+import type { NoteSelectMode } from "../../../types/noteSelectMode";
 import { usePianorollTouch } from "../../../hooks/usePianorollTouch";
 import { usePitchEditDrag } from "../../../hooks/usePitchEditDrag";
 import { LOG } from "../../../lib/Logging";
@@ -311,7 +312,7 @@ export interface PianorollTouchProps {
   setSelectedNotesIndex: (indexes: number[]) => void;
   notesLeft: Array<number>;
   totalLength: number;
-  selectMode?: "toggle" | "range" | "pitch" | "add";
+  selectMode?: NoteSelectMode;
   setMenuAnchor: (anchor: { x: number; y: number }) => void;
   setLyricAnchor: (anchor: { x: number; y: number }) => void;
   poltaments?: Array<{ x: number; y: number }>;

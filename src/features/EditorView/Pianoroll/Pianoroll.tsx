@@ -356,7 +356,7 @@ export interface PianorollProps {
   /** ノートを選択するためのコールバック */
   setSelectedNotesIndes: (indexes: number[]) => void;
   /** 選択モード */
-  selectMode: "toggle" | "range" | "pitch" | "add";
+  selectMode: NoteSelectMode;
   /** ピッチターゲット */
   pitchTargetIndex?: number | undefined;
   /** ピッチターゲット更新のためのコールバック */

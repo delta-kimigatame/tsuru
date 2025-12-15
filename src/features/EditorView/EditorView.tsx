@@ -56,9 +56,8 @@ export const EditorView: React.FC<{
   /**
    * 選択モード
    */
-  const [selectMode, setSelectMode] = React.useState<
-    "toggle" | "range" | "pitch" | "add"
-  >("toggle");
+  const [selectMode, setSelectMode] =
+    React.useState<NoteSelectMode>("toggle");
   /** ピッチ編集対象のノート */
   const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
     number | undefined
