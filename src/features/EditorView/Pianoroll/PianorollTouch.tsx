@@ -19,6 +19,11 @@ import {
   handleRangeModeTap,
   handleToggleModeTap,
 } from "../../../utils/pianorollModeHandlers";
+import { applyPitchChange } from "../../../utils/pitchEditOperations";
+import { validatePitchEditability } from "../../../utils/pitchEditValidation";
+import { calculateTimeConstraints } from "../../../utils/pitchTimeConstraints";
+import { applyTimeChange } from "../../../utils/pitchTimeOperations";
+import { convertSvgXToTimeMs } from "../../../utils/svgToTimeConverter";
 
 /**
  * ピアノロール全体のタップイベントを検知するレイヤー
@@ -326,50 +331,26 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
 
       if (!selectedNote) return;
 
-      let canEditPitch = true;
-      let canEditTime = true;
-
-      // ### ピッチ編集の変更可否のルール
-      const isLastPortament = props.targetPoltament === selectedNote.pbw.length;
-      const isFirstPortament = props.targetPoltament === 0;
-      const canEditFirstPortament =
-        selectedNote.prev === null || selectedNote.prev?.lyric === "R";
-
-      // 最後のポルタメントはピッチ変更できない
-      if (isLastPortament) {
-        canEditPitch = false;
-      }
-
-      // 最初のポルタメントは条件付きでのみピッチ変更可能
-      if (isFirstPortament && !canEditFirstPortament) {
-        canEditPitch = false;
-      }
+      // ピッチ編集の可否を判定
+      const { canEditPitch, canEditTime } = validatePitchEditability(
+        props.targetPoltament,
+        selectedNote
+      );
 
       // 両方とも編集不可の場合は終了
       if (!canEditPitch && !canEditTime) return;
 
       const newNotes = notes.slice();
-      const updatedNote = newNotes[props.selectedNotesIndex[0]].deepCopy();
+      let updatedNote = newNotes[props.selectedNotesIndex[0]].deepCopy();
 
       // ### ピッチ変更処理（上下方向）
       if (canEditPitch) {
-        // 指し示している音高を小数点第一位まで求める
-        const targetPitch =
-          107 -
-          (svgPoint.y - (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom) / 2) /
-            (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom);
-        // note.notenumを減じ、10倍した値をpbyの該当インデックスに設定
-        const pitchBendValue = Math.round(
-          (targetPitch - selectedNote.notenum) * 10
+        updatedNote = applyPitchChange(
+          updatedNote,
+          props.targetPoltament,
+          svgPoint,
+          verticalZoom
         );
-
-        if (props.targetPoltament !== 0) {
-          const newPby = [...selectedNote.pby];
-          newPby[props.targetPoltament - 1] = pitchBendValue;
-          updatedNote.setPby(newPby);
-        } else {
-          updatedNote.pbs.height = pitchBendValue;
-        }
       }
 
       // ### 時間変更処理（左右方向）
@@ -379,109 +360,30 @@ export const PianorollToutch: React.FC<PianorollToutchProps> = (props) => {
           props.notesLeft[props.selectedNotesIndex[0]] *
           PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
           horizontalZoom;
-        const relativeX = svgPoint.x - selectedNoteStartX;
 
-        // 対象ノートより右側ではnote.tempoを、左側では前ノート（またはustTempo）を用いる
-        let tempo: number;
-        if (relativeX >= 0) {
-          tempo = selectedNote.tempo;
-        } else {
-          tempo = selectedNote.prev?.tempo ?? ustTempo;
-        }
+        // SVG座標を時間(ms)に変換
+        const targetTimeMs = convertSvgXToTimeMs(
+          svgPoint,
+          selectedNoteStartX,
+          selectedNote,
+          ustTempo,
+          horizontalZoom
+        );
 
-        // SVGをmsに変換（480tick = 1拍、1分 = 60秒）
-        const relativeXTick =
-          relativeX / PIANOROLL_CONFIG.NOTES_WIDTH_RATE / horizontalZoom;
-        const targetTimeMs = (relativeXTick * (60000 / tempo)) / 480;
-        // 閾値の計算（すべてノートの頭からの絶対時間で計算）
-        let minTime: number;
-        let maxTime: number;
-
-        if (isFirstPortament) {
-          // 最初のポルタメント：note.prev.msLengthを負の数とした値が最小値
-          minTime = selectedNote.prev?.msLength
-            ? -selectedNote.prev.msLength
-            : Number.NEGATIVE_INFINITY;
-
-          // 最大値：note.pbw[0]の値
-          maxTime =
-            selectedNote.pbw.length > 0
-              ? selectedNote.pbw[0]
-              : Number.POSITIVE_INFINITY;
-        } else if (isLastPortament) {
-          // 最後のポルタメント：pbs.time + 前のpbw値の合計値が最小値
-          const previousPortamentTime =
-            selectedNote.pbs.time +
-            selectedNote.pbw
-              .slice(0, props.targetPoltament - 1)
-              .reduce((sum, val) => sum + val, 0);
-          minTime = previousPortamentTime;
-
-          // 最大値： note.msLength
-          maxTime = selectedNote.msLength;
-        } else {
-          // それ以外のポルタメント：pbs.time + 前のpbw値の合計値が最小値
-          const previousPortamentTime =
-            selectedNote.pbs.time +
-            selectedNote.pbw
-              .slice(0, props.targetPoltament - 1)
-              .reduce((sum, val) => sum + val, 0);
-          minTime = previousPortamentTime;
-
-          // 最大値：次のpbw値
-          const nextPortamentTime =
-            Math.abs(selectedNote.pbs.time) +
-            selectedNote.pbw
-              .slice(0, props.targetPoltament)
-              .reduce((sum, val) => sum + val, 0);
-          maxTime = nextPortamentTime;
-        }
+        // 時間制約を計算
+        const { minTime, maxTime } = calculateTimeConstraints(
+          props.targetPoltament,
+          selectedNote
+        );
 
         // 閾値内に補正
         const clampedTime = Math.max(minTime, Math.min(maxTime, targetTimeMs));
-        // 更新対象の決定と更新
-        if (isFirstPortament) {
-          // 最初のポルタメント：pbs.timeを更新
-          const originalPbsTime = selectedNote.pbs.time;
-          updatedNote.pbs.time = clampedTime;
-
-          // pbs.timeの変更に合わせてpbw[0]を補正
-          if (selectedNote.pbw.length > 0) {
-            const newPbw = [...selectedNote.pbw];
-            // 元のpbs.timeと新しいpbs.timeの差分をpbw[0]に加算
-            const timeDifference = originalPbsTime - clampedTime;
-            newPbw[0] = newPbw[0] + timeDifference;
-            updatedNote.setPbw(newPbw);
-          }
-        } else {
-          // 最初のポルタメント以外：pbw[targetPoltament-1]を更新
-          const newPbw = [...selectedNote.pbw];
-
-          // clampedTimeはノートの頭からの絶対時間なので、
-          // pbw[targetPoltament-1]の値は、clampedTimeからpbs.timeと前のpbw値を引いた値
-          const previousPbwSum = newPbw
-            .slice(0, props.targetPoltament - 1)
-            .reduce((sum, val) => sum + val, 0);
-          const newPbwValue =
-            clampedTime - selectedNote.pbs.time - previousPbwSum;
-
-          // 元のpbw値との差分を計算
-          const originalPbwValue = newPbw[props.targetPoltament - 1];
-          const pbwDifference = newPbwValue - originalPbwValue;
-
-          // 選択しているpbwを更新
-          newPbw[props.targetPoltament - 1] = Math.max(0, newPbwValue);
-
-          // 次のpbwがある場合は、差分を次のpbwに反映
-          if (props.targetPoltament < newPbw.length) {
-            newPbw[props.targetPoltament] = Math.max(
-              0,
-              newPbw[props.targetPoltament] - pbwDifference
-            );
-          }
-
-          updatedNote.setPbw(newPbw);
-        }
+        // 時間変更を適用
+        updatedNote = applyTimeChange(
+          updatedNote,
+          props.targetPoltament,
+          clampedTime
+        );
       }
 
       newNotes[props.selectedNotesIndex[0]] = updatedNote;
