@@ -61,9 +61,18 @@ export default defineConfig(() => {
                 // clients.claim() を呼んで、既存タブにもすぐ新 SW を適用
                 clientsClaim: true,
                 maximumFileSizeToCacheInBytes: 4.5 * 1024 * 1024,
+                // Storybookパスを除外
+                navigateFallbackDenylist: [/^\/utalet\/storybook/],
                 runtimeCaching: [
                   {
-                    urlPattern: /.*\.(js|css|html|png|jpg|jpeg|svg)$/,
+                    // Storybookパスを除外してキャッシュ
+                    urlPattern: ({ url }) => {
+                      return (
+                        /.*\.(js|css|html|png|jpg|jpeg|svg)$/.test(
+                          url.pathname
+                        ) && !url.pathname.startsWith("/utalet/storybook")
+                      );
+                    },
                     handler: "NetworkFirst",
                     options: {
                       cacheName: "assets-cache",

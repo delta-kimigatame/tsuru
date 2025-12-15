@@ -1,23 +1,15 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import { Header } from "../../../src/components/Header/Header";
-import { getDesignTokens } from "../../../src/config/theme";
-import i18n from "../../../src/i18n/configs";
 
-// i18n を日本語に設定
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
-
-export default {
-  title: "01_ヘッダ/ヘッダ全体",
+const meta = {
+  title: "components/Header/Header",
   component: Header,
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof Header>;
 
-const Template: StoryFn = () => (
-  <ThemeProvider theme={lightTheme}>
-    <Header />
-  </ThemeProvider>
-);
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const Default = Template.bind({});
-Default.storyName = "デフォルト";
+export const Default: Story = {
+  args: {},
+};

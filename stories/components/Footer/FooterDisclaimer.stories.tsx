@@ -1,24 +1,17 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import FooterDisclaimer from "../../../src/components/Footer/FooterDisclaimer";
-import i18n from "../../../src/i18n/configs";
 
-i18n.changeLanguage("ja");
-export default {
-  title: "04_フッタ/フッタ部品/免責事項",
+const meta = {
+  title: "components/Footer/FooterDisclaimer",
   component: FooterDisclaimer,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof FooterDisclaimer>;
 
-// matchesを明示的に型定義
-interface FooterDisclaimerProps {
-  matches: boolean;
-}
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-const Template: StoryFn<FooterDisclaimerProps> = (args) => (
-  <FooterDisclaimer {...args} />
-);
-export const Default = Template.bind({});
-Default.args = {
-  matches: true,
+export const Default: Story = {
+  args: {
+    matches: true,
+  },
 };
-Default.storyName = "デフォルト";

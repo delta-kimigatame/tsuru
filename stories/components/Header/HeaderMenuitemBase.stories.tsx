@@ -1,30 +1,28 @@
 ﻿import InfoIcon from "@mui/icons-material/Info";
-import { Meta, StoryFn } from "@storybook/react";
-import {
-  HeaderMenuItemBase,
-  HeadermenuItemBaseProps,
-} from "../../../src/components/Header/HeaderMenuItemBase";
-export default {
-  title: "01_ヘッダ/共通部品/メニューアイテム",
+import type { Meta, StoryObj } from "@storybook/react";
+import { HeaderMenuItemBase } from "../../../src/components/Header/HeaderMenuItemBase";
+
+const meta = {
+  title: "components/Header/HeaderMenuItemBase",
   component: HeaderMenuItemBase,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof HeaderMenuItemBase>;
 
-const Template: StoryFn<HeadermenuItemBaseProps> = (args) => (
-  <HeaderMenuItemBase {...args} />
-);
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const Default = Template.bind({});
-Default.args = {
-  onClick: () => {},
-  text: "iconサンプル",
-  icon: <InfoIcon />,
+export const Default: Story = {
+  args: {
+    onClick: () => {},
+    text: "iconサンプル",
+    icon: <InfoIcon />,
+  },
 };
-Default.storyName = "通常のヘッダメニュー";
-export const AvatarTest = Template.bind({});
-AvatarTest.args = {
-  onClick: () => {},
-  text: "文字アイコン",
-  icon: "A",
+
+export const AvatarTest: Story = {
+  args: {
+    onClick: () => {},
+    text: "文字アイコン",
+    icon: "A",
+  },
 };
-AvatarTest.storyName = "文字アイコンのヘッダメニュー";

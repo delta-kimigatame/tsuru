@@ -1,97 +1,227 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import React from "react";
-import { getDesignTokens } from "../../../src/config/theme";
-import {
-  NotePropertyDialog,
-  NotePropertyDialogProps,
-} from "../../../src/features/EditorView/NotePropertyDialog";
-import i18n from "../../../src/i18n/configs";
+import { NotePropertyDialog } from "../../../src/features/EditorView/NotePropertyDialog";
 import { Note } from "../../../src/lib/Note";
-import { Ust } from "../../src/lib/Ust";
-import { useMusicProjectStore } from "../../src/store/musicProjectStore";
-const dummyNote = new Note();
-dummyNote.length = 480;
-dummyNote.tempo = 120;
-dummyNote.notenum = 60;
-dummyNote.lyric = "あ";
-dummyNote.preutter = 10;
-dummyNote.overlap = -5;
-dummyNote.stp = 3;
-const dummyRestNote = new Note();
-dummyRestNote.length = 480;
-dummyRestNote.tempo = 120;
-dummyRestNote.notenum = 60;
-dummyRestNote.lyric = "R";
-dummyRestNote.preutter = 10;
-dummyRestNote.overlap = -5;
-dummyRestNote.stp = 3;
+import { Ust } from "../../../src/lib/Ust";
+import { useCookieStore } from "../../../src/store/cookieStore";
+import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
+import { sampleShortCVUst } from "../../../src/storybook/sampledata";
+import { base64ToArrayBuffer } from "../../../src/storybook/utils";
 
-export default {
-  title: "03_4_ダイアログ/ノートプロパティ",
+const meta: Meta<typeof NotePropertyDialog> = {
+  title: "features/EditorView/NotePropertyDialog",
   component: NotePropertyDialog,
-  args: {
-    open: true,
-    note: dummyNote,
-    handleClose: () => {},
-    notes: [dummyNote],
-  },
-} as Meta;
-
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
-const darkTheme = createTheme(getDesignTokens("dark"));
-
-const DummyParent: React.FC<
-  NotePropertyDialogProps & { notes: Array<Note> }
-> = (args) => {
-  const useProject = useMusicProjectStore();
-  React.useEffect(() => {
-    useProject.setUst({} as Ust);
-    useProject.setNotes(args.notes);
-  }, []);
-  return (
-    <NotePropertyDialog
-      {...args}
-      open={useProject.notes.length !== 0 ? args.open : false}
-    />
-  );
+  tags: ["autodocs"],
 };
 
-const Template: StoryFn<NotePropertyDialogProps & { notes: Array<Note> }> = (
-  args
-) => <DummyParent {...args} />;
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const LightMode = Template.bind({});
-LightMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-LightMode.storyName = "ライトモード";
+/**
+ * デフォルト：ダイアログ非表示
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(false);
+      const [note, setNote] = React.useState<Note | undefined>(undefined);
 
-export const DarkMode = Template.bind({});
-DarkMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={darkTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-DarkMode.storyName = "ダークモード";
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
 
-export const RestNote = Template.bind({});
-RestNote.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-RestNote.args = {
-  note: dummyRestNote,
-  notes: [dummyRestNote],
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            note: note || ust.notes[0],
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
 };
-RestNote.storyName = "休符の場合";
+
+/**
+ * 標準的な音符のプロパティ編集
+ */
+export const EditingNote: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [note, setNote] = React.useState<Note | undefined>(undefined);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+          setNote(ust.notes[2]);
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      if (!note) return <div>Loading...</div>;
+
+      return (
+        <Story
+          args={{
+            note,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * 休符（R）のプロパティ編集
+ * 音符固有のパラメータ（preutter, overlap等）は非表示
+ */
+export const EditingRest: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [note, setNote] = React.useState<Note | undefined>(undefined);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          notes[1].lyric = "R"; // 休符に変更
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+          setNote(notes[1]);
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      if (!note) return <div>Loading...</div>;
+
+      return (
+        <Story
+          args={{
+            note,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * カスタムパラメータを持つ音符
+ * velocity, intensity, modulation等が設定済み
+ */
+export const WithCustomParameters: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [note, setNote] = React.useState<Note | undefined>(undefined);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          const customNote = notes[2];
+          customNote.preutter = 50;
+          customNote.overlap = -10;
+          customNote.stp = 5;
+          customNote.velocity = 150;
+          customNote.intensity = 120;
+          customNote.modulation = 50;
+          customNote.flags = "g-5";
+          customNote.direct = true;
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+          setNote(customNote);
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      if (!note) return <div>Loading...</div>;
+
+      return (
+        <Story
+          args={{
+            note,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * Tempoパラメータを持つ音符
+ */
+export const WithTempo: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [note, setNote] = React.useState<Note | undefined>(undefined);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          notes[3].tempo = 140;
+          notes[3].hasTempo = true;
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+          setNote(notes[3]);
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      if (!note) return <div>Loading...</div>;
+
+      return (
+        <Story
+          args={{
+            note,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};

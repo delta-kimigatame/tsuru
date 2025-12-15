@@ -1,30 +1,51 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
-import { HeaderMenuItemProps } from "../../../../src/components/Header/HeaderMenuItemBase";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import { HeaderMenuLanguage } from "../../../../src/features/Header/Menu/HeaderMenuLanguage";
 import { useCookieStore } from "../../../../src/store/cookieStore";
 
-// ダミーの言語設定用ストアを上書きする（Story 用）
-const dummyLanguage = "ja";
-// 例えば、useCookieStore の言語が更新される仕組みがあるなら、ここでその初期値を設定
-useCookieStore.setState({ language: dummyLanguage });
-
-export default {
-  title: "01_ヘッダ/ヘッダ部品/メニュー部品/言語ボタン",
+const meta: Meta<typeof HeaderMenuLanguage> = {
+  title: "features/Header/Menu/HeaderMenuLanguage",
   component: HeaderMenuLanguage,
-  argTypes: {},
-} as Meta;
-
-const Template: StoryFn<HeaderMenuItemProps> = (args) => (
-  <HeaderMenuLanguage {...args} />
-);
-
-export const Default = Template.bind({});
-Default.storyName = "デフォルト";
-Default.args = {
-  onClick: () => {},
-  onMenuClose: () => {
-    console.log("Menu closed");
+  tags: ["autodocs"],
+  args: {
+    onMenuClose: () => {},
   },
-  // HeaderMenuLanguage は内部で useCookieStore.getState().language を使用するため、
-  // 他に直接渡す props は特にないので、onClick, onMenuClose のみ
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Japanese: Story = {
+  decorators: [
+    (Story) => {
+      useCookieStore.setState({ language: "ja" });
+      return <Story />;
+    },
+  ],
+};
+
+export const English: Story = {
+  decorators: [
+    (Story) => {
+      useCookieStore.setState({ language: "en" });
+      return <Story />;
+    },
+  ],
+};
+
+export const Chinese: Story = {
+  decorators: [
+    (Story) => {
+      useCookieStore.setState({ language: "zh" });
+      return <Story />;
+    },
+  ],
+};
+
+export const Portuguese: Story = {
+  decorators: [
+    (Story) => {
+      useCookieStore.setState({ language: "pt" });
+      return <Story />;
+    },
+  ],
 };

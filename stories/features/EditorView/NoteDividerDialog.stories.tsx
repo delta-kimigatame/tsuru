@@ -1,95 +1,204 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import React from "react";
-import { getDesignTokens } from "../../../src/config/theme";
-import {
-  NoteDividerDialog,
-  NoteDividerDialogProps,
-} from "../../../src/features/EditorView/NoteDividerDialog";
-import i18n from "../../../src/i18n/configs";
-import { Note } from "../../../src/lib/Note";
-import { Ust } from "../../src/lib/Ust";
-import { useMusicProjectStore } from "../../src/store/musicProjectStore";
-const dummyNote = new Note();
-dummyNote.length = 480;
-dummyNote.tempo = 120;
-const shortNote = new Note();
-shortNote.length = 240;
-shortNote.tempo = 120;
-const longNote = new Note();
-longNote.length = 480 * 5 + 240;
-longNote.tempo = 120;
-export default {
-  title: "03_4_ダイアログ/ノート分割",
+import { NoteDividerDialog } from "../../../src/features/EditorView/NoteDividerDialog";
+import { Ust } from "../../../src/lib/Ust";
+import { useCookieStore } from "../../../src/store/cookieStore";
+import { useMusicProjectStore } from "../../../src/store/musicProjectStore";
+import { sampleShortCVUst } from "../../../src/storybook/sampledata";
+import { base64ToArrayBuffer } from "../../../src/storybook/utils";
+
+const meta: Meta<typeof NoteDividerDialog> = {
+  title: "features/EditorView/NoteDividerDialog",
   component: NoteDividerDialog,
-  args: { open: true, noteIndex: 0, handleClose: () => {}, notes: [dummyNote] },
-} as Meta;
-
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
-const darkTheme = createTheme(getDesignTokens("dark"));
-
-const DummyParent: React.FC<NoteDividerDialogProps & { notes: Array<Note> }> = (
-  args
-) => {
-  const useProject = useMusicProjectStore();
-  React.useEffect(() => {
-    useProject.setUst({} as Ust);
-    useProject.setNotes(args.notes);
-  }, []);
-  return (
-    <NoteDividerDialog
-      {...args}
-      open={useProject.notes.length !== 0 ? args.open : false}
-    />
-  );
+  tags: ["autodocs"],
 };
 
-const Template: StoryFn<NoteDividerDialogProps & { notes: Array<Note> }> = (
-  args
-) => <DummyParent {...args} />;
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const LightMode = Template.bind({});
-LightMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-LightMode.storyName = "ライトモード";
+/**
+ * デフォルト：ダイアログ非表示
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(false);
+      const [noteIndex, setNoteIndex] = React.useState<number>(0);
 
-export const DarkMode = Template.bind({});
-DarkMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={darkTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-DarkMode.storyName = "ダークモード";
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
 
-export const ShortNote = Template.bind({});
-ShortNote.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-ShortNote.args = {
-  notes: [shortNote],
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            noteIndex,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
 };
-ShortNote.storyName = "短いノートの場合";
-export const LongNote = Template.bind({});
-LongNote.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-LongNote.args = {
-  notes: [longNote],
+
+/**
+ * 標準的な長さのノート（480tick = 四分音符）を分割
+ */
+export const StandardNote: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [noteIndex, setNoteIndex] = React.useState<number>(2);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          useMusicProjectStore.setState({
+            notes: ust.notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            noteIndex,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
 };
-LongNote.storyName = "長いノートの場合";
+
+/**
+ * 短いノート（240tick = 八分音符）を分割
+ */
+export const ShortNote: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [noteIndex, setNoteIndex] = React.useState<number>(0);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          notes[0].length = 240; // 短いノートに変更
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            noteIndex,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * 長いノート（2640tick = 全音符 + 付点二分音符）を分割
+ */
+export const LongNote: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [noteIndex, setNoteIndex] = React.useState<number>(1);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          notes[1].length = 2640; // 長いノートに変更
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            noteIndex,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * 480で割り切れない長さのノート（500tick）を分割
+ * スライダーに最後のマークが追加される
+ */
+export const IrregularLength: Story = {
+  decorators: [
+    (Story) => {
+      const [open, setOpen] = React.useState(true);
+      const [noteIndex, setNoteIndex] = React.useState<number>(3);
+
+      const ust = new Ust();
+      React.useEffect(() => {
+        ust.load(base64ToArrayBuffer(sampleShortCVUst)).then(() => {
+          const notes = ust.notes.map((n) => n.deepCopy());
+          notes[3].length = 500; // 480で割り切れない長さ
+          useMusicProjectStore.setState({
+            notes,
+            vb: null,
+          });
+        });
+      }, []);
+
+      useCookieStore.setState({
+        language: "ja",
+      });
+
+      return (
+        <Story
+          args={{
+            noteIndex,
+            open,
+            handleClose: () => setOpen(false),
+          }}
+        />
+      );
+    },
+  ],
+};

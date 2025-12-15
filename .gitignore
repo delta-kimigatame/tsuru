@@ -9,3 +9,4 @@ storybookPublic/standardVCV.zip
 ansible.cfg
 deploy.yml
 deployStorybook.yml
+/docs/storybook

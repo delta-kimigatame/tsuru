@@ -1,99 +1,63 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
-import React from "react";
-import { getDesignTokens } from "../../../../src/config/theme";
-import {
-  FooterBatchProcessMenu,
-  FooterBatchProcessMenuProps,
-} from "../../../../src/features/EditorView/FooterMenu/FooterBatchProcessMenu";
-import i18n from "../../../../src/i18n/configs";
-import { BaseBatchProcess } from "../../../../src/lib/BaseBatchProcess";
+﻿import { Meta, StoryObj } from "@storybook/react";
+import { FooterBatchProcessMenu } from "../../../../src/features/EditorView/FooterMenu/FooterBatchProcessMenu";
+import { AddSuffixBatchProcess } from "../../../../src/lib/BatchProcess/AddSuffixBatchProcess";
+import { ApplyAutoFitBatchProcess } from "../../../../src/lib/BatchProcess/ApplyAutoFitBatchProcess";
+import { ApplyOtoBatchProcess } from "../../../../src/lib/BatchProcess/ApplyOtoBatchProcess";
+import { EnvelopeNormalizeBatchProcess } from "../../../../src/lib/BatchProcess/EnvelopeNormalizeBatchProcess";
+import { LengthQuantizeBatchProcess } from "../../../../src/lib/BatchProcess/LengthQuantizeBatchProcess";
+import { LyricBatchProcess } from "../../../../src/lib/BatchProcess/LyricBatchProcess";
+import { LyricTorestBatchProcess } from "../../../../src/lib/BatchProcess/LyricToRestBatchProcess";
+import { OctaveDownBatchProcess } from "../../../../src/lib/BatchProcess/OctaveDownBatchProcess";
+import { OctaveUpBatchProcess } from "../../../../src/lib/BatchProcess/OctaveUpBatchProcess";
+import { PreprocessingBatchProcess } from "../../../../src/lib/BatchProcess/PreprocessingBatchProcess";
+import { RemoveSuffixBatchProcess } from "../../../../src/lib/BatchProcess/RemoveSuffixBatchProcess";
+import { ResetEditBatchProcess } from "../../../../src/lib/BatchProcess/ResetEditBatchProcess";
 
-export default {
-  title: "03_1_エディタ下部メニュー/部品/一括処理メニュー",
+const meta: Meta<typeof FooterBatchProcessMenu> = {
+  title: "features/EditorView/FooterMenu/FooterBatchProcessMenu",
   component: FooterBatchProcessMenu,
-  argTypes: {},
-} as Meta;
-
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
-const darkTheme = createTheme(getDesignTokens("dark"));
-
-// ダミーのバッチプロセスクラス
-class DummyBatchProcess extends BaseBatchProcess {
-  title = "dummy.process";
-  summary = "ダミー処理";
-  protected _process(notes: any, options?: any): any {
-    return notes;
-  }
-}
-const dummyBatchProcesses = [
-  { title: "dummy.process", cls: DummyBatchProcess },
-  { title: "dummy.process", cls: DummyBatchProcess },
-  { title: "dummy.process", cls: DummyBatchProcess },
-];
-
-const Template: StoryFn<FooterBatchProcessMenuProps> = (args) => {
-  // アンカー要素用の ref と state
-  const anchorRef = React.useRef<HTMLDivElement>(null);
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-
-  React.useEffect(() => {
-    if (anchorRef.current) {
-      setAnchorEl(anchorRef.current);
-    }
-  }, []);
-
-  return (
-    <div>
-      <div
-        ref={anchorRef}
-        style={{
-          display: "inline-block",
-          padding: "8px",
-          background: "#eee",
-          marginBottom: "16px",
-        }}
-      >
-        アンカー要素
-      </div>
-      <FooterBatchProcessMenu
-        {...args}
-        anchor={anchorEl}
-        handleClose={() => {}}
-      />
-    </div>
-  );
+  tags: ["autodocs"],
 };
 
-export const LightMode = Template.bind({});
-LightMode.args = {
-  batchProcesses: dummyBatchProcesses,
-  process: (index: number) => {
-    console.log("Process called with index", index);
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// summaryでソート（実際の実装と同じ順序）
+const sampleBatchProcesses = [
+  {
+    title: new EnvelopeNormalizeBatchProcess().title,
+    cls: EnvelopeNormalizeBatchProcess,
+  },
+  {
+    title: new LengthQuantizeBatchProcess().title,
+    cls: LengthQuantizeBatchProcess,
+  },
+  { title: new AddSuffixBatchProcess().title, cls: AddSuffixBatchProcess },
+  { title: new LyricBatchProcess().title, cls: LyricBatchProcess },
+  { title: new LyricTorestBatchProcess().title, cls: LyricTorestBatchProcess },
+  {
+    title: new RemoveSuffixBatchProcess().title,
+    cls: RemoveSuffixBatchProcess,
+  },
+  { title: new OctaveDownBatchProcess().title, cls: OctaveDownBatchProcess },
+  { title: new OctaveUpBatchProcess().title, cls: OctaveUpBatchProcess },
+  {
+    title: new ApplyAutoFitBatchProcess().title,
+    cls: ApplyAutoFitBatchProcess,
+  },
+  { title: new ApplyOtoBatchProcess().title, cls: ApplyOtoBatchProcess },
+  {
+    title: new PreprocessingBatchProcess().title,
+    cls: PreprocessingBatchProcess,
+  },
+  { title: new ResetEditBatchProcess().title, cls: ResetEditBatchProcess },
+];
+
+export const Default: Story = {
+  args: {
+    anchor: document.createElement("div"),
+    handleClose: () => {},
+    batchProcesses: sampleBatchProcesses,
+    process: (index: number) => console.log(`Process ${index}`),
   },
 };
-LightMode.storyName = "ライトモード";
-LightMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={lightTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-
-export const DarkMode = Template.bind({});
-DarkMode.args = {
-  batchProcesses: dummyBatchProcesses,
-  process: (index: number) => {
-    console.log("Process called with index", index);
-  },
-};
-DarkMode.decorators = [
-  (Story) => (
-    <ThemeProvider theme={darkTheme}>
-      <Story />
-    </ThemeProvider>
-  ),
-];
-DarkMode.storyName = "ダークモード";

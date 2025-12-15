@@ -1,47 +1,36 @@
-﻿import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Meta, StoryFn } from "@storybook/react";
+﻿import type { Meta, StoryObj } from "@storybook/react";
 import { LogPaper } from "../../../src/components/Logging/LogPaper";
-import { getDesignTokens } from "../../../src/config/theme";
-import i18n from "../../../src/i18n/configs";
 import { LOG } from "../../../src/lib/Logging";
 
-export default {
-  title: "80_ログ/ログ表示共通部品",
+const meta = {
+  title: "components/Logging/LogPaper",
   component: LogPaper,
-  argTypes: {},
-} as Meta;
+  tags: ["autodocs"],
+} satisfies Meta<typeof LogPaper>;
 
-i18n.changeLanguage("ja");
-const lightTheme = createTheme(getDesignTokens("light"));
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-const Template: StoryFn = (args) => <LogPaper {...args} />;
-export const Default = Template.bind({});
-Default.args = {};
-Default.decorators = [
-  (Story) => {
-    LOG.clear();
-    LOG.debug("ログテスト", "storybook");
-    LOG.info("ログテスト", "storybook");
-    LOG.warn("ログテスト", "storybook");
-    LOG.error("ログテスト", "storybook");
-    return (
-      <ThemeProvider theme={lightTheme}>
-        <Story />
-      </ThemeProvider>
-    );
-  },
-];
-Default.storyName = "デフォルト";
-export const Empty = Template.bind({});
-Empty.args = {};
-Empty.decorators = [
-  (Story) => {
-    LOG.clear();
-    return (
-      <ThemeProvider theme={lightTheme}>
-        <Story />
-      </ThemeProvider>
-    );
-  },
-];
-Empty.storyName = "ログ無し";
+export const Default: Story = {
+  args: {},
+  decorators: [
+    (Story) => {
+      LOG.clear();
+      LOG.debug("ログテスト", "storybook");
+      LOG.info("ログテスト", "storybook");
+      LOG.warn("ログテスト", "storybook");
+      LOG.error("ログテスト", "storybook");
+      return <Story />;
+    },
+  ],
+};
+
+export const Empty: Story = {
+  args: {},
+  decorators: [
+    (Story) => {
+      LOG.clear();
+      return <Story />;
+    },
+  ],
+};

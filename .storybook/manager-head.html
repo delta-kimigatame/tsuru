@@ -1,0 +1,22 @@
+<!-- Google tag (gtag.js) for Storybook Manager -->
+<script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=G-Z99Z805D8C"
+></script>
+<script>
+  // Disable Google Analytics on localhost
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    window["ga-disable-G-Z99Z805D8C"] = true;
+  }
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+
+  gtag("config", "G-Z99Z805D8C");
+</script>

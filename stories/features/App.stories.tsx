@@ -1,197 +1,155 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
-import { userEvent, within } from "@storybook/testing-library";
+﻿import { Meta, StoryObj } from "@storybook/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import JSZip from "jszip";
 import React from "react";
 import { App } from "../../src/features/App";
 import { Ust } from "../../src/lib/Ust";
+import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
 import { useCookieStore } from "../../src/store/cookieStore";
 import { useMusicProjectStore } from "../../src/store/musicProjectStore";
-import { loadVB } from "../../src/storybook/utils";
+import { sampleShortCVUst } from "../../src/storybook/sampledata";
+import { base64ToArrayBuffer, loadVB } from "../../src/storybook/utils";
 
-export default {
-  title: "00_アプリ全体",
+const meta: Meta<typeof App> = {
+  title: "features/App",
   component: App,
-  args: {
-    mode: "system",
-    language: "ja",
-  },
-  parameters: {
-    viewport: {
-      defaultViewport: "responsive",
-      defaultOrientation: "portrait",
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/**
+ * デフォルト：トップ画面（音源未読み込み）
+ * Header、TopView、Footerが表示される
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      React.useEffect(() => {
+        useCookieStore.setState({
+          language: "ja",
+          mode: "system",
+          verticalZoom: 1,
+          horizontalZoom: 1,
+        });
+        useMusicProjectStore.setState({
+          vb: null,
+          notes: [],
+        });
+      }, []);
+
+      return <Story />;
     },
-  },
-} as Meta;
+  ],
+};
 
-const DummyParent: React.FC<DummyParentProps> = (args) => {
-  const store = useCookieStore();
-  const projectStore = useMusicProjectStore();
-  React.useEffect(() => {
-    store.setMode(args.mode);
-    store.setLanguage(args.language);
-    projectStore.setVb(null);
-    projectStore.setUst({} as Ust);
-    projectStore.setNotes([]);
-    projectStore.setUstFlags("");
-    projectStore.setUstTempo(120);
-    projectStore.setUst(null);
-  }, []);
-  return <App />;
-};
-interface DummyParentProps {
-  mode: "system";
-  language: "ja";
-}
+/**
+ * ライトモード：トップ画面
+ */
+export const LightMode: Story = {
+  decorators: [
+    (Story) => {
+      React.useEffect(() => {
+        useCookieStore.setState({
+          language: "ja",
+          mode: "light",
+          verticalZoom: 1,
+          horizontalZoom: 1,
+        });
+        useMusicProjectStore.setState({
+          vb: null,
+          notes: [],
+        });
+      }, []);
 
-const Template: StoryFn<DummyParentProps> = (args) => <DummyParent {...args} />;
-export const Default = Template.bind({});
-Default.storyName = "デフォルト(標準画面で、モードは端末設定)";
-export const LightMode = Template.bind({});
-LightMode.args = {
-  mode: "light",
+      return <Story />;
+    },
+  ],
 };
-LightMode.storyName = "ライトモード";
 
-export const DarkMode = Template.bind({});
-DarkMode.args = {
-  mode: "dark",
-};
-DarkMode.storyName = "ダークモード";
+/**
+ * ダークモード：トップ画面
+ */
+export const DarkMode: Story = {
+  decorators: [
+    (Story) => {
+      React.useEffect(() => {
+        useCookieStore.setState({
+          language: "ja",
+          mode: "dark",
+          verticalZoom: 1,
+          horizontalZoom: 1,
+        });
+        useMusicProjectStore.setState({
+          vb: null,
+          notes: [],
+        });
+      }, []);
 
-export const iphoneXLandscape = Template.bind({});
-iphoneXLandscape.args = {};
-iphoneXLandscape.parameters = {
-  viewport: {
-    defaultViewport: "iphonex",
-    defaultOrientation: "landscape",
-  },
+      return <Story />;
+    },
+  ],
 };
-iphoneXLandscape.storyName = "モバイル(横向き)";
-export const iphoneX = Template.bind({});
-iphoneX.args = {};
-iphoneX.parameters = {
-  viewport: {
-    defaultViewport: "iphonex",
-    defaultOrientation: "portrait",
-  },
-};
-iphoneX.storyName = "モバイル(縦向き)";
 
-export const ipadLandscape = Template.bind({});
-ipadLandscape.args = {};
-ipadLandscape.parameters = {
-  viewport: {
-    defaultViewport: "ipad",
-    defaultOrientation: "landscape",
-  },
-};
-ipadLandscape.storyName = "ipad(横向き)";
-export const ipad = Template.bind({});
-ipad.args = {};
-ipad.parameters = {
-  viewport: {
-    defaultViewport: "ipad",
-    defaultOrientation: "portrait",
-  },
-};
-ipad.storyName = "ipad(縦向き)";
-const testVBFileName = "minimumCV.zip";
-const td = new TextDecoder("Shift-JIS");
-const playEditorView = async ({ canvasElement, step }) => {
-  const canvas = within(canvasElement);
-  await step(
-    "隠しファイル入力にダミーのZIPファイルをアップロードする",
-    async () => {
-      const buffer = await loadVB(testVBFileName);
-      const fileInput = await canvas.findByTestId("file-input");
-      const dummyZip = new File([buffer], "minimumCV.zip", {
-        type: "application/zip",
-      });
-      await userEvent.upload(fileInput, dummyZip);
-    }
-  );
-  await step("LoadVBDialog が表示されるのを確認する", async () => {
-    const dialog = await within(document.body).findByRole(
-      "dialog",
-      {},
+/**
+ * エディタ画面（音源読み込み済み、規約同意をクリック）
+ * InfoVBDialogが開くので「全規約に同意」ボタンをクリックしてEditorViewを表示
+ */
+export const EditorView: Story = {
+  decorators: [
+    (Story) => {
+      const [loading, setLoading] = React.useState(true);
+
+      React.useEffect(() => {
+        const load = async () => {
+          useCookieStore.setState({
+            language: "ja",
+            mode: "system",
+            verticalZoom: 1,
+            horizontalZoom: 1,
+          });
+
+          // 音源を読み込み
+          const td = new TextDecoder("Shift-JIS");
+          const buffer = await loadVB("minimumCV.zip");
+          const zip = new JSZip();
+          await zip.loadAsync(buffer, {
+            decodeFileName: (bytes: Uint8Array) => td.decode(bytes),
+          });
+          const loadedVb = new VoiceBank(zip.files);
+          await loadedVb.initialize();
+          // agreeは未設定（InfoVBDialogが開く）
+
+          // USTを読み込み
+          const ust = new Ust();
+          await ust.load(base64ToArrayBuffer(sampleShortCVUst));
+
+          useMusicProjectStore.setState({
+            vb: loadedVb,
+            notes: ust.notes,
+          });
+          setLoading(false);
+        };
+        load();
+      }, []);
+
+      if (loading) return <div>Loading voicebank and notes...</div>;
+
+      return <Story />;
+    },
+  ],
+  play: async () => {
+    const user = userEvent.setup();
+
+    // InfoVBDialogの「全規約に同意」ボタンを待機
+    const agreeButton = await waitFor(
+      () => screen.getByRole("button", { name: /全規約に同意/i }),
       { timeout: 5000 }
     );
-    if (!dialog) {
-      throw new Error("LoadVBDialog が表示されていません");
-    }
-  });
-  await step("LoadVBDialog の OK ボタンをクリックする", async () => {
-    const okButton = await within(document.body).findByRole(
-      "button",
-      { name: /OK/i },
-      { timeout: 5000 }
-    );
-    await userEvent.click(okButton);
-  });
-  await step("InfoVBDialog の 全規約に同意 ボタンをクリックする", async () => {
-    const okButton = await within(document.body).findByRole(
-      "button",
-      { name: /全規約に同意/i },
-      { timeout: 5000 }
-    );
-    await userEvent.click(okButton);
-  });
-};
 
-export const DefaultEditorView = Template.bind({});
-DefaultEditorView.play = playEditorView;
-DefaultEditorView.storyName =
-  "エディタ画面・デフォルト(標準画面で、モードは端末設定)";
-
-export const LightModeEditorView = Template.bind({});
-LightModeEditorView.args = {
-  mode: "light",
-};
-LightModeEditorView.play = playEditorView;
-LightModeEditorView.storyName = "エディタ画面・ライトモード";
-
-export const DarkModeEditorView = Template.bind({});
-DarkMode.args = {
-  mode: "dark",
-};
-DarkModeEditorView.play = playEditorView;
-DarkModeEditorView.storyName = "エディタ画面・ダークモード";
-
-export const iphoneXLandscapeEditorView = Template.bind({});
-iphoneXLandscapeEditorView.parameters = {
-  viewport: {
-    defaultViewport: "iphonex",
-    defaultOrientation: "landscape",
+    // ボタンをクリック
+    await user.click(agreeButton);
   },
 };
-iphoneXLandscapeEditorView.play = playEditorView;
-iphoneXLandscapeEditorView.storyName = "エディタ画面・モバイル(横向き)";
-
-export const iphoneXEditorView = Template.bind({});
-iphoneXEditorView.parameters = {
-  viewport: {
-    defaultViewport: "iphonex",
-    defaultOrientation: "portrait",
-  },
-};
-iphoneXEditorView.play = playEditorView;
-iphoneXEditorView.storyName = "エディタ画面・モバイル(縦向き)";
-
-export const ipadLandscapeEditorView = Template.bind({});
-ipadLandscapeEditorView.parameters = {
-  viewport: {
-    defaultViewport: "ipad",
-    defaultOrientation: "landscape",
-  },
-};
-ipadLandscapeEditorView.play = playEditorView;
-ipadLandscapeEditorView.storyName = "エディタ画面・ipad(横向き)";
-
-export const ipadEditorView = Template.bind({});
-ipadEditorView.parameters = {
-  viewport: {
-    defaultViewport: "ipad",
-    defaultOrientation: "portrait",
-  },
-};
-ipadEditorView.play = playEditorView;
-ipadEditorView.storyName = "エディタ画面・ipad(縦向き)";

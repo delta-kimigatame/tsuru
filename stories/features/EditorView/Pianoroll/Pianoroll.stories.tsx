@@ -1,144 +1,285 @@
-﻿import { Meta, StoryFn } from "@storybook/react";
+﻿import { Meta, StoryObj } from "@storybook/react";
 import JSZip from "jszip";
-import {
-  Pianoroll,
-  PianorollProps,
-} from "../../../../src/features/EditorView/Pianoroll/Pianoroll";
-import { Note } from "../../../../src/lib/Note";
+import React from "react";
+import { Pianoroll } from "../../../../src/features/EditorView/Pianoroll/Pianoroll";
 import { Ust } from "../../../../src/lib/Ust";
 import { VoiceBank } from "../../../../src/lib/VoiceBanks/VoiceBank";
 import { useCookieStore } from "../../../../src/store/cookieStore";
-import { useMusicProjectStore } from "../../src/store/musicProjectStore";
-import { sampleLongCVUst } from "../../src/storybook/sampledata";
-import { base64ToArrayBuffer, loadVB } from "../../src/storybook/utils";
-import { last } from "../../src/utils/array";
+import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import { sampleShortCVUst } from "../../../../src/storybook/sampledata";
+import { base64ToArrayBuffer, loadVB } from "../../../../src/storybook/utils";
 
-export default {
-  title: "03_2_ピアノロール/全体",
+const meta: Meta<typeof Pianoroll> = {
+  title: "features/EditorView/Pianoroll/Pianoroll",
   component: Pianoroll,
-  args: { selectedNotesIndex: [], playing: false, playingMs: 0 },
-} as Meta<typeof Pianoroll>;
-
-const Template: StoryFn<PianorollProps> = (args) => <Pianoroll {...args} />;
-
-/** テスト用の処理。最低限必要なパラメータを持ったノートを指定数生成する */
-const createNotes = (count: number): Note[] => {
-  const newNotes = new Array<Note>();
-  for (let i = 0; i < count; i++) {
-    const n = new Note();
-    n.index = 0;
-    n.lyric = i % 3 === 0 ? "R" : "あ";
-    n.length = 120 * ((i % 8) + 1);
-    n.notenum = 107 - i;
-    n.hasTempo = false;
-    n.tempo = 120;
-    n.pbs = "-125;-10";
-    n.setPbw([250]);
-    n.prev = last(newNotes);
-    // n.prev.next = n;
-    newNotes.push(n);
-  }
-  return newNotes;
+  tags: ["autodocs"],
 };
 
-export const LightMode = Template.bind({});
-LightMode.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-  store.setHorizontalZoom(1);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-};
-LightMode.storyName = "ライトモード";
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-export const DarkMode = Template.bind({});
-DarkMode.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("dark");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-  store.setHorizontalZoom(1);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-};
-DarkMode.storyName = "ダークモード";
+/**
+ * デフォルト：ピアノロール全体表示
+ */
+export const Default: Story = {
+  decorators: [
+    (Story) => {
+      const [loading, setLoading] = React.useState(true);
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [lyricTargetIndex, setLyricTargetIndex] = React.useState<
+        number | undefined
+      >(undefined);
+      const [notesLeftMs, setNotesLeftMs] = React.useState<number[]>([]);
 
-export const VerticalZoom = Template.bind({});
-VerticalZoom.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(0.5);
-  store.setHorizontalZoom(1);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-};
-VerticalZoom.storyName = "音階方向縮小";
+      React.useEffect(() => {
+        const load = async () => {
+          useCookieStore.setState({
+            language: "ja",
+            verticalZoom: 1,
+            horizontalZoom: 1,
+          });
 
-export const HorizontalZoom = Template.bind({});
-HorizontalZoom.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-  store.setHorizontalZoom(0.5);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-};
-HorizontalZoom.storyName = "時間方向縮小";
+          // 音源を読み込み
+          const td = new TextDecoder("Shift-JIS");
+          const buffer = await loadVB("minimumCV.zip");
+          const zip = new JSZip();
+          await zip.loadAsync(buffer, {
+            decodeFileName: (bytes: Uint8Array) => td.decode(bytes),
+          });
+          const loadedVb = new VoiceBank(zip.files);
+          await loadedVb.initialize();
 
-export const Zoom = Template.bind({});
-Zoom.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(0.5);
-  store.setHorizontalZoom(0.5);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-};
-Zoom.storyName = "両方縮小";
+          // USTを読み込み
+          const ust = new Ust();
+          await ust.load(base64ToArrayBuffer(sampleShortCVUst));
 
-export const Portrait = Template.bind({});
-Portrait.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-  store.setHorizontalZoom(1);
-  const newNotes = createNotes(107 - 24 + 1);
-  projectStore.setNotes(newNotes);
-  const td = new TextDecoder("Shift-JIS");
-  const buffer = await loadVB("minimumCV.zip");
-  const zip = new JSZip();
-  await zip.loadAsync(buffer, {
-    decodeFileName: (fileNameBinary: Uint8Array) => td.decode(fileNameBinary),
-  });
-  const loadedVb = new VoiceBank(zip.files);
-  await loadedVb.initialize();
-  projectStore.setVb(loadedVb);
-};
-Portrait.storyName = "立ち絵表示";
+          useMusicProjectStore.setState({ notes: ust.notes, vb: loadedVb });
+          setLoading(false);
+        };
+        load();
+      }, []);
 
-export const RealUst = Template.bind({});
-RealUst.play = async () => {
-  const store = useCookieStore.getState();
-  const projectStore = useMusicProjectStore.getState();
-  store.setMode("light");
-  store.setColorTheme("default");
-  store.setVerticalZoom(1);
-  store.setHorizontalZoom(1);
-  const u = new Ust();
-  await u.load(base64ToArrayBuffer(sampleLongCVUst));
-  projectStore.setUst(u);
-  projectStore.setNotes(u.notes);
+      if (loading) return <div>Loading voicebank and notes...</div>;
+
+      return (
+        <Story
+          args={{
+            playing: false,
+            playingMs: 0,
+            selectedNotesIndex,
+            setSelectedNotesIndes: setSelectedNotesIndex,
+            selectMode: "toggle",
+            lyricTargetIndex,
+            setLyricTargetIndex,
+            setNotesLeftMs,
+          }}
+        />
+      );
+    },
+  ],
 };
-RealUst.storyName = "ust読込";
+
+/**
+ * 音符選択状態
+ */
+export const WithSelection: Story = {
+  decorators: [
+    (Story) => {
+      const [loading, setLoading] = React.useState(true);
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([0, 2, 4]);
+      const [lyricTargetIndex, setLyricTargetIndex] = React.useState<
+        number | undefined
+      >(undefined);
+      const [notesLeftMs, setNotesLeftMs] = React.useState<number[]>([]);
+
+      React.useEffect(() => {
+        const load = async () => {
+          useCookieStore.setState({
+            language: "ja",
+            verticalZoom: 1,
+            horizontalZoom: 1,
+          });
+
+          const td = new TextDecoder("Shift-JIS");
+          const buffer = await loadVB("minimumCV.zip");
+          const zip = new JSZip();
+          await zip.loadAsync(buffer, {
+            decodeFileName: (bytes: Uint8Array) => td.decode(bytes),
+          });
+          const loadedVb = new VoiceBank(zip.files);
+          await loadedVb.initialize();
+
+          const ust = new Ust();
+          await ust.load(base64ToArrayBuffer(sampleShortCVUst));
+
+          useMusicProjectStore.setState({ notes: ust.notes, vb: loadedVb });
+          setLoading(false);
+        };
+        load();
+      }, []);
+
+      if (loading) return <div>Loading voicebank and notes...</div>;
+
+      return (
+        <Story
+          args={{
+            playing: false,
+            playingMs: 0,
+            selectedNotesIndex,
+            setSelectedNotesIndes: setSelectedNotesIndex,
+            selectMode: "toggle",
+            lyricTargetIndex,
+            setLyricTargetIndex,
+            setNotesLeftMs,
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * 再生中
+ */
+export const Playing: Story = {
+  decorators: [
+    (Story) => {
+      const [loading, setLoading] = React.useState(true);
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [lyricTargetIndex, setLyricTargetIndex] = React.useState<
+        number | undefined
+      >(undefined);
+      const [notesLeftMs, setNotesLeftMs] = React.useState<number[]>([]);
+
+      React.useEffect(() => {
+        const load = async () => {
+          useCookieStore.setState({
+            language: "ja",
+            verticalZoom: 1,
+            horizontalZoom: 1,
+          });
+
+          const td = new TextDecoder("Shift-JIS");
+          const buffer = await loadVB("minimumCV.zip");
+          const zip = new JSZip();
+          await zip.loadAsync(buffer, {
+            decodeFileName: (bytes: Uint8Array) => td.decode(bytes),
+          });
+          const loadedVb = new VoiceBank(zip.files);
+          await loadedVb.initialize();
+
+          const ust = new Ust();
+          await ust.load(base64ToArrayBuffer(sampleShortCVUst));
+
+          useMusicProjectStore.setState({ notes: ust.notes, vb: loadedVb });
+          setLoading(false);
+        };
+        load();
+      }, []);
+
+      if (loading) return <div>Loading voicebank and notes...</div>;
+
+      return (
+        <Story
+          args={{
+            playing: true,
+            playingMs: 1500,
+            selectedNotesIndex,
+            setSelectedNotesIndes: setSelectedNotesIndex,
+            selectMode: "toggle",
+            lyricTargetIndex,
+            setLyricTargetIndex,
+            setNotesLeftMs,
+          }}
+        />
+      );
+    },
+  ],
+};
+
+/**
+ * ピッチ編集モード：ポルタメント点表示
+ * note[1]にポルタメント点を設定し、pitchTargetIndexで選択状態を表示
+ */
+export const WithPortamento: Story = {
+  decorators: [
+    (Story) => {
+      const [loading, setLoading] = React.useState(true);
+      const [selectedNotesIndex, setSelectedNotesIndex] = React.useState<
+        number[]
+      >([]);
+      const [lyricTargetIndex, setLyricTargetIndex] = React.useState<
+        number | undefined
+      >(undefined);
+      const [notesLeftMs, setNotesLeftMs] = React.useState<number[]>([]);
+      const [pitchTargetIndex, setPitchTargetIndex] = React.useState<
+        number | undefined
+      >(1);
+      const [targetPoltament, setTargetPoltament] = React.useState<
+        number | undefined
+      >(undefined);
+
+      React.useEffect(() => {
+        const load = async () => {
+          useCookieStore.setState({
+            language: "ja",
+            verticalZoom: 1,
+            horizontalZoom: 1,
+          });
+
+          const td = new TextDecoder("Shift-JIS");
+          const buffer = await loadVB("minimumCV.zip");
+          const zip = new JSZip();
+          await zip.loadAsync(buffer, {
+            decodeFileName: (bytes: Uint8Array) => td.decode(bytes),
+          });
+          const loadedVb = new VoiceBank(zip.files);
+          await loadedVb.initialize();
+
+          const ust = new Ust();
+          await ust.load(base64ToArrayBuffer(sampleShortCVUst));
+
+          // note[1]にポルタメント点を設定
+          if (ust.notes.length > 1) {
+            const note = ust.notes[1];
+            note.pbsTime = 15.0; // 開始時刻
+            note.pbsHeight = -5; // 開始高さ（前のノートから-0.5音下）
+            note.setPbw([30, 50, 40]); // 各ポルタメント点の時間幅
+            note.setPby([10, 30, 0]); // 各ポルタメント点の高さ
+          }
+
+          useMusicProjectStore.setState({ notes: ust.notes, vb: loadedVb });
+          setLoading(false);
+        };
+        load();
+      }, []);
+
+      if (loading) return <div>Loading voicebank and notes...</div>;
+
+      return (
+        <Story
+          args={{
+            playing: false,
+            playingMs: 0,
+            selectedNotesIndex,
+            setSelectedNotesIndes: setSelectedNotesIndex,
+            selectMode: "pitch",
+            lyricTargetIndex,
+            setLyricTargetIndex,
+            setNotesLeftMs,
+            pitchTargetIndex,
+            setPitchTargetIndex,
+            targetPoltament,
+            setTargetPoltament,
+          }}
+        />
+      );
+    },
+  ],
+};
