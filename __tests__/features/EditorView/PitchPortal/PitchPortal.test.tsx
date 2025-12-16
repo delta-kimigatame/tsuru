@@ -7,6 +7,7 @@ import { undoManager } from "../../../../src/lib/UndoManager";
 import { Ust } from "../../../../src/lib/Ust";
 import { VoiceBank } from "../../../../src/lib/VoiceBank";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
+import * as pitchPatternModule from "../../../../src/utils/pitchPattern";
 
 describe("PitchPortal", () => {
   const createNote = (): Note => {
@@ -212,5 +213,185 @@ describe("PitchPortal", () => {
     //1度目の再描画フックでhasUpdateがfalseになるため、再描画してもundoManagerは呼ばれない
     rerender(<PitchPortal note={n} targetIndex={0} />);
     expect(undoManager.undoSummary).toBe(undefined);
+  });
+});
+
+describe("PitchPortal - Pitch Pattern Buttons", () => {
+  const createNote = (): Note => {
+    const n = new Note();
+    n.index = 0;
+    n.length = 480;
+    n.notenum = 60;
+    n.lyric = "あ";
+    n.hasTempo = false;
+    n.tempo = 120;
+    n.atPreutter = 50;
+    n.prev = undefined;
+    return n;
+  };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    const store = useMusicProjectStore.getState();
+    store.setVb({
+      oto: {},
+      getOtoRecord: vi.fn().mockReturnValue(null),
+    } as unknown as VoiceBank);
+    store.setUst({} as Ust);
+  });
+
+  it("ピッチパターンボタン: noteにpbwがある場合、4つのピッチパターンボタンが表示される", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    expect(screen.getByTestId("belowPitchButton")).toBeInTheDocument();
+    expect(screen.getByTestId("abovePitchButton")).toBeInTheDocument();
+    expect(screen.getByTestId("accentPitchButton")).toBeInTheDocument();
+    expect(screen.getByTestId("reservePitchButton")).toBeInTheDocument();
+  });
+
+  it("ピッチパターンボタン: belowPitchボタンをクリックするとbelowPitch関数が呼ばれる", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    const store = useMusicProjectStore.getState();
+    store.setNotes([n]);
+
+    const belowPitchSpy = vi.spyOn(pitchPatternModule, "belowPitch");
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    const button = screen.getByTestId("belowPitchButton");
+    fireEvent.click(button);
+
+    expect(belowPitchSpy).toHaveBeenCalledTimes(1);
+    expect(belowPitchSpy).toHaveBeenCalledWith(
+      expect.any(Note),
+      0, // tone
+      false // isMinor
+    );
+  });
+
+  it("ピッチパターンボタン: abovePitchボタンをクリックするとabovePitch関数が呼ばれる", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    const store = useMusicProjectStore.getState();
+    store.setNotes([n]);
+
+    const abovePitchSpy = vi.spyOn(pitchPatternModule, "abovePitch");
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    const button = screen.getByTestId("abovePitchButton");
+    fireEvent.click(button);
+
+    expect(abovePitchSpy).toHaveBeenCalledTimes(1);
+    expect(abovePitchSpy).toHaveBeenCalledWith(
+      expect.any(Note),
+      0, // tone
+      false // isMinor
+    );
+  });
+
+  it("ピッチパターンボタン: accentPitchボタンをクリックするとaccentPitch関数が呼ばれる", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    const store = useMusicProjectStore.getState();
+    store.setNotes([n]);
+
+    const accentPitchSpy = vi.spyOn(pitchPatternModule, "accentPitch");
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    const button = screen.getByTestId("accentPitchButton");
+    fireEvent.click(button);
+
+    expect(accentPitchSpy).toHaveBeenCalledTimes(1);
+    expect(accentPitchSpy).toHaveBeenCalledWith(
+      expect.any(Note),
+      0, // tone
+      false // isMinor
+    );
+  });
+
+  it("ピッチパターンボタン: reservePitchボタンをクリックするとreservePitch関数が呼ばれる", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    const store = useMusicProjectStore.getState();
+    store.setNotes([n]);
+
+    const reservePitchSpy = vi.spyOn(pitchPatternModule, "reservePitch");
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    const button = screen.getByTestId("reservePitchButton");
+    fireEvent.click(button);
+
+    expect(reservePitchSpy).toHaveBeenCalledTimes(1);
+    expect(reservePitchSpy).toHaveBeenCalledWith(
+      expect.any(Note),
+      0, // tone
+      false // isMinor
+    );
+  });
+
+  it("ピッチパターンボタン: tone=5, isMinor=trueの状態でボタンをクリックすると正しいパラメータで呼ばれる", () => {
+    const n = createNote();
+    n.pbs = "-40;20";
+    n.setPbw([100, 200]);
+    n.setPby([50]);
+
+    const store = useMusicProjectStore.getState();
+    store.setNotes([n]);
+    store.setTone(5);
+    store.setIsMinor(true);
+
+    const belowPitchSpy = vi.spyOn(pitchPatternModule, "belowPitch");
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    const button = screen.getByTestId("belowPitchButton");
+    fireEvent.click(button);
+
+    expect(belowPitchSpy).toHaveBeenCalledWith(
+      expect.any(Note),
+      5, // tone
+      true // isMinor
+    );
+  });
+
+  it("ピッチパターンボタン: noteがundefinedの場合、ボタンは表示されない", () => {
+    render(<PitchPortal note={undefined} targetIndex={undefined} />);
+
+    expect(screen.queryByTestId("belowPitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("abovePitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("accentPitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reservePitchButton")).not.toBeInTheDocument();
+  });
+
+  it("ピッチパターンボタン: noteにpbwが無い場合、ボタンは表示されない", () => {
+    const n = createNote();
+
+    render(<PitchPortal note={n} targetIndex={undefined} />);
+
+    expect(screen.queryByTestId("belowPitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("abovePitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("accentPitchButton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reservePitchButton")).not.toBeInTheDocument();
   });
 });

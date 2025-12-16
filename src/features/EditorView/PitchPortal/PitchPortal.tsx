@@ -136,6 +136,7 @@ export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
                 <IconButton
                   onClick={() => handleApplyPitchPattern(belowPitch)}
                   size="small"
+                  data-testid="belowPitchButton"
                 >
                   {isFromPattern ? (
                     <FromBelowPitchIcon sx={{ color: pitchColor }} />
@@ -146,6 +147,7 @@ export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
                 <IconButton
                   onClick={() => handleApplyPitchPattern(abovePitch)}
                   size="small"
+                  data-testid="abovePitchButton"
                 >
                   {isFromPattern ? (
                     <FromAbovePitchIcon sx={{ color: pitchColor }} />
@@ -156,6 +158,7 @@ export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
                 <IconButton
                   onClick={() => handleApplyPitchPattern(accentPitch)}
                   size="small"
+                  data-testid="accentPitchButton"
                 >
                   {isFromPattern ? (
                     <FromAccentPitchIcon sx={{ color: pitchColor }} />
@@ -166,6 +169,7 @@ export const PitchPortal: React.FC<PitchPortalProps> = (props) => {
                 <IconButton
                   onClick={() => handleApplyPitchPattern(reservePitch)}
                   size="small"
+                  data-testid="reservePitchButton"
                 >
                   {isFromPattern ? (
                     <FromReservePitchIcon sx={{ color: pitchColor }} />
