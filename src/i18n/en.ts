@@ -66,6 +66,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2025/12/17\r\n[Added] Added pitch pattern feature",
       "2025/12/16\r\n[Fix] Internal processing improvements.",
       "2025/12/14\r\n[Fix] Fixed an issue where undo history was not cleared when initializing a project.",
       "2025/12/09\r\n[Fix] Fixed a bug where the editor could not even be opened when there was a note with invalid parameters.",
