@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/18\r\n[Fix] Corrigido um problema em que desfazer/refazer não funcionava corretamente ao alterar o alias ou o comprimento da nota no menu de pressionar longamente a nota",
       "2025/12/17\r\n[Adição] Adicionada função de padrão de pitch",
       "2025/12/16\r\n[Correção] Melhorias no processamento interno.",
       "2025/12/14\r\n[Correção] Corrigido um problema onde o histórico de desfazer não era limpo ao inicializar um projeto.",

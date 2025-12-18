@@ -123,7 +123,6 @@ export const aliasSelect = (note: Note, newLyric: string): Note => {
     redo: redo,
     redoArgs: { note: oldNote, newLyric: newLyric },
     summary: `エイリアス変更。:${newLyric}`,
-    all: true,
   });
   return aliasSelectCore(note, newLyric);
 };

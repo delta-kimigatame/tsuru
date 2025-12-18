@@ -134,7 +134,6 @@ export const lengthSelect = (note: Note, newLength: number): Note => {
     redo: redo,
     redoArgs: { note: oldNote, newLength: newLength },
     summary: `長さ変更。:${newLength}`,
-    all: true,
   });
   return lengthSelectCore(note, newLength);
 };
