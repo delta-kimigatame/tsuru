@@ -548,7 +548,7 @@ export class JPAutoPhonemizer extends BasePhonemizer {
         vcOtoRecord,
         vcTargetNoteLength
       );
-      if (vcTargetNoteLength <= note.targetLength - note.oto.velocity) {
+      if (vcTargetNoteLength <= note.targetLength - (note.oto?.velocity ?? 0)) {
         params.push({ resamp: undefined, append: undefined });
         const baseNotePitchOffset =
           (note.atPreutter ? note.atPreutter : 0) +

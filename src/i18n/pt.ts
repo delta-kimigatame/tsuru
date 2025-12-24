@@ -68,6 +68,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      '2025/12/24\r\n[Correção] Corrigido um bug que causava erro ao usar o phonemizer "(Japonês) VCV automático (com suporte a CVVC)" quando a entrada Oto do VC existia, mas a entrada Oto do CV não existia.',
       "2025/12/18\r\n[Fix] Corrigido um problema em que desfazer/refazer não funcionava corretamente ao alterar o alias ou o comprimento da nota no menu de pressionar longamente a nota",
       "2025/12/17\r\n[Adição] Adicionada função de padrão de pitch",
       "2025/12/16\r\n[Correção] Melhorias no processamento interno.",
