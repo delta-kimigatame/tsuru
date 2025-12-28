@@ -33,6 +33,7 @@ export class Ust {
    */
   constructor() {
     this._tempo = 120;
+    this.flags = "";
   }
 
   /**
@@ -77,7 +78,8 @@ export class Ust {
       if (lines[i].startsWith("Tempo=")) {
         this.tempo = parseFloat(lines[i].replace("Tempo=", ""));
       } else if (lines[i].startsWith("Flags=")) {
-        this.flags = lines[i].replace("Flags=", "");
+        const v = lines[i].replace("Flags=", "").trim();
+        this.flags = v === "undefined" ? "" : v;
       }
     }
   }

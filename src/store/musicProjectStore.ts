@@ -155,8 +155,10 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       setUstFlags: (flags) =>
         set((state) => {
           //ustの更新は通知しなくていいので直接更新
-          state.ust.flags = flags;
-          return { ustFlags: flags };
+          const normalized =
+            flags === undefined || flags === "undefined" ? "" : flags;
+          state.ust.flags = normalized;
+          return { ustFlags: normalized };
         }),
 
       setNoteProperty: (index, key, value) =>
