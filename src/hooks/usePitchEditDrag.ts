@@ -88,20 +88,16 @@ export const usePitchEditDrag = (
       selectMode === "pitch" && targetPoltament !== undefined;
 
     if (shouldLockScroll) {
-      // body要素のスクロールを無効化
-      const originalBodyStyle = document.body.style.overflow;
-      const originalBodyTouchAction = document.body.style.touchAction;
-      const originalHtmlStyle = document.documentElement.style.overflow;
-
+      // ピッチ編集モードかつポルタメント選択中はスクロールを無効化
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
       document.documentElement.style.overflow = "hidden";
 
       return () => {
         // クリーンアップ時に元のスタイルを復元
-        document.body.style.overflow = originalBodyStyle;
-        document.body.style.touchAction = originalBodyTouchAction;
-        document.documentElement.style.overflow = originalHtmlStyle;
+        document.body.style.overflow = "";
+        document.body.style.touchAction = "";
+        document.documentElement.style.overflow = "";
       };
     }
   }, [selectMode, targetPoltament]);
