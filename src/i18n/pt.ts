@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2025/12/31\r\n[Correção] Ajuste nos temas de cores. Os temas de cores anteriores foram mantidos como temas legados.",
       "2025/12/28\r\n[Correção] Corrigido um problema em que a rolagem não era restaurada após editar o pitch.\r\n[Correção] Corrigido um problema em que, ao carregar USTs sem flags, a flag recebia 'undefined' e era interpretada como a flag 'e'.",
       '2025/12/24\r\n[Correção] Corrigido um bug que causava erro ao usar o phonemizer "(Japonês) VCV automático (com suporte a CVVC)" quando a entrada Oto do VC existia, mas a entrada Oto do CV não existia.',
       "2025/12/18\r\n[Fix] Corrigido um problema em que desfazer/refazer não funcionava corretamente ao alterar o alias ou o comprimento da nota no menu de pressionar longamente a nota",
