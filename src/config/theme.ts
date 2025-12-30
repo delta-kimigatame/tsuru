@@ -27,6 +27,16 @@ const pallets = {
   aqua: { primary: lightBlue, secondary: red },
   pink: { primary: pink, secondary: green },
   brown: { primary: brown, secondary: green },
+  legacyDefault: { primary: deepPurple, secondary: red },
+  legacyRed: { primary: red, secondary: green },
+  legacyOrange: { primary: orange, secondary: green },
+  legacyYellow: { primary: yellow, secondary: red },
+  legacyLightgreen: { primary: lightGreen, secondary: red },
+  legacyGreen: { primary: green, secondary: red },
+  legacyBlue: { primary: blue, secondary: red },
+  legacyAqua: { primary: lightBlue, secondary: red },
+  legacyPink: { primary: pink, secondary: green },
+  legacyBrown: { primary: brown, secondary: green },
 };
 
 /**
