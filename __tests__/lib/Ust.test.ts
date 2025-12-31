@@ -95,7 +95,7 @@ describe("Ust", () => {
     );
     const u = new Ust();
     expect(u.tempo).toBe(120);
-    expect(u.flags).toBeUndefined();
+    expect(u.flags).toBe("");
     await u.load(ustBuf);
     expect(u.tempo).toBe(150);
     expect(u.flags).toBe("B50");
@@ -122,7 +122,7 @@ describe("Ust", () => {
     );
     const u = new Ust();
     expect(u.tempo).toBe(120);
-    expect(u.flags).toBeUndefined();
+    expect(u.flags).toBe("");
     await u.load(ustBuf);
     expect(u.tempo).toBe(150);
     expect(u.flags).toBe("B50");
