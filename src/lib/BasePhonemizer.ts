@@ -45,9 +45,10 @@ export abstract class BasePhonemizer {
   /**
    * 内部ノートの最後のphonemeを返す処理のphonemizer固有の実装部分
    * @param note 対象ノート
+   * @param vb UTAU音源
    * @returns phoneme
    */
-  protected abstract _getLastPhoneme(note: Note): string;
+  protected abstract _getLastPhoneme(note: Note, vb: BaseVoiceBank): string;
 
   /**
    * 原音設定値を読み込んでatPre,atOve,atStp,atAlias,atFileNameを更新する処理のphonemizer固有の実装部分
@@ -96,10 +97,11 @@ export abstract class BasePhonemizer {
   /**
    * 内部ノートの最後のphonemeを返す処理のエンドポイント
    * @param note 対象ノート
+   * @param vb UTAU音源
    * @returns phoneme
    */
-  public getLastPhoneme(note: Note | undefined): string {
-    return this._getLastPhoneme(note);
+  public getLastPhoneme(note: Note | undefined, vb: BaseVoiceBank): string {
+    return this._getLastPhoneme(note, vb);
   }
 
   /**

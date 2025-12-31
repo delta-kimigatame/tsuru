@@ -1,3 +1,8 @@
+/**
+ * ########## TODO ##########
+ * - 前のノートとvoiceColorやsuffixが異なる場合、VCVよりCVVCを優先する処理(prevの情報が必要だが引数に与えられておらず、BasePhonemizer自体の修正が必要)
+ */
+
 import OtoRecord from "utauoto/dist/OtoRecord";
 import { defaultNote } from "../../config/note";
 import { defaultParam } from "../../types/note";
@@ -7,282 +12,97 @@ import { encodePitch } from "../../utils/pitch";
 import { BasePhonemizer } from "../BasePhonemizer";
 import { Note } from "../Note";
 import { BaseVoiceBank } from "../VoiceBanks/BaseVoiceBank";
+import { PresampConsonantParams } from "../VoiceBanks/Presamp";
 
-const reg = /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
-const VCVCheck = /[-aiuron] ([ぁ-んァ-ヶ]+)/;
-const vowelA =
-  /[あかさたなはまやらわがざだばぱぁゃゎアカサタナハマヤラワガザダバパァャヮ]$/;
-const vowelI =
-  /[いきしちにひみゐりぎじぢびぴぃイキシチニヒミヰリギジヂビピィ]$/;
-const vowelU =
-  /[うくすつぬふむゆるぅゅぐずづぶぷウクスツヌフムユルゥグズヅブプヴゥュ]$/;
-const vowelE =
-  /[えけせてねへめゑれぇげぜでべぺエケセテネヘメヱレェゲゼデベペ]$/;
-const vowelO =
-  /[おこそとのほもよろをごぞどぼぽぉょオコソトノホモヨロヲゴゾドボポォョ]$/;
-const vowelN = /ん$/;
-const CVVowels = /^[あいうえおん]$/;
-
-interface ConsonantParam {
-  /** 子音要素のエイリアス */
-  consonant: string;
-  /** 子音要素に対応する単独音エイリアスの種類 */
-  cvs: string[];
-  /** ノート長決定方法の種類 stretchはVC要素の伸縮範囲、preutterは次のCV要素のpreutter値、valueはlengthValueの長さを参照する */
-  type: "stretch" | "preutter" | "value";
-  /** 子音長(ms) */
-  lengthValue: number;
-  /**クロスフェード要否 */
-  crossfade: boolean;
-}
-const consonantParams: ConsonantParam[] = [
+const defaultVowelsReg = [
   {
-    consonant: "k",
-    cvs: ["k", "か", "く", "け", "こ"],
-    type: "stretch",
-    lengthValue: 100,
-    crossfade: false,
+    reg: /[あかさたなはまやらわがざだばぱぁゃゎアカサタナハマヤラワガザダバパァャヮ]$/,
+    symbol: "a",
   },
   {
-    consonant: "ky",
-    cvs: ["ky", "きゃ", "き", "きゅ", "きぇ", "きょ"],
-    type: "stretch",
-    lengthValue: 130,
-    crossfade: false,
+    reg: /[いきしちにひみゐりぎじぢびぴぃイキシチニヒミヰリギジヂビピィ]$/,
+    symbol: "i",
   },
   {
-    consonant: "s",
-    cvs: ["s", "さ", "すぃ", "す", "せ", "そ"],
-    type: "preutter",
-    lengthValue: 150,
-    crossfade: true,
+    reg: /[うくすつぬふむゆるぅゅぐずづぶぷウクスツヌフムユルゥグズヅブプヴゥュ]$/,
+    symbol: "u",
   },
   {
-    consonant: "sh",
-    cvs: ["sh", "しゃ", "し", "しゅ", "しぇ", "しょ"],
-    type: "preutter",
-    lengthValue: 200,
-    crossfade: true,
+    reg: /[えけせてねへめゑれぇげぜでべぺエケセテネヘメヱレェゲゼデベペ]$/,
+    symbol: "e",
   },
   {
-    consonant: "t",
-    cvs: ["t", "た", "とぅ", "て", "と"],
-    type: "stretch",
-    lengthValue: 100,
-    crossfade: false,
+    reg: /[おこそとのほもよろをごぞどぼぽぉょオコソトノホモヨロヲゴゾドボポォョ]$/,
+    symbol: "o",
   },
   {
-    consonant: "ty",
-    cvs: ["ty", "てゃ", "てぃ", "てゅ", "てぇ", "てょ"],
-    type: "stretch",
-    lengthValue: 75,
-    crossfade: false,
-  },
-  {
-    consonant: "ch",
-    cvs: ["ch", "ちゃ", "ち", "ちゅ", "ちぇ", "ちょ"],
-    type: "preutter",
-    lengthValue: 150,
-    crossfade: false,
-  },
-  {
-    consonant: "ts",
-    cvs: ["ts", "つ", "つぁ", "つぃ", "つぇ", "つぉ"],
-    type: "preutter",
-    lengthValue: 170,
-    crossfade: false,
-  },
-  {
-    consonant: "n",
-    cvs: ["n", "な", "ぬ", "ね", "の"],
-    type: "preutter",
-    lengthValue: 70,
-    crossfade: true,
-  },
-  {
-    consonant: "ny",
-    cvs: ["ny", "にゃ", "に", "にゅ", "にぇ", "にょ"],
-    type: "preutter",
-    lengthValue: 70,
-    crossfade: true,
-  },
-  {
-    consonant: "h",
-    cvs: ["h", "は", "へ", "ほ"],
-    type: "preutter",
-    lengthValue: 110,
-    crossfade: true,
-  },
-  {
-    consonant: "hy",
-    cvs: ["hy", "ひゃ", "ひ", "ひゅ", "ひぇ", "ひょ"],
-    type: "preutter",
-    lengthValue: 100,
-    crossfade: true,
-  },
-  {
-    consonant: "f",
-    cvs: ["f", "ふぁ", "ふ", "ふぃ", "ふぇ", "ふぉ"],
-    type: "preutter",
-    lengthValue: 130,
-    crossfade: true,
-  },
-  {
-    consonant: "m",
-    cvs: ["m", "ま", "む", "め", "も"],
-    type: "preutter",
-    lengthValue: 75,
-    crossfade: true,
-  },
-  {
-    consonant: "my",
-    cvs: ["my", "みゃ", "み", "みゅ", "みぇ", "みょ"],
-    type: "preutter",
-    lengthValue: 60,
-    crossfade: true,
-  },
-  {
-    consonant: "y",
-    cvs: ["y", "や", "ゆ", "いぇ", "よ", "いぃ"],
-    type: "preutter",
-    lengthValue: 30,
-    crossfade: true,
-  },
-  {
-    consonant: "r",
-    cvs: ["r", "ら", "る", "れ", "ろ"],
-    type: "preutter",
-    lengthValue: 70,
-    crossfade: true,
-  },
-  {
-    consonant: "ry",
-    cvs: ["ry", "りゃ", "り", "りゅ", "りぇ", "りょ"],
-    type: "preutter",
-    lengthValue: 70,
-    crossfade: true,
-  },
-  {
-    consonant: "w",
-    cvs: ["w", "わ", "を", "うぃ", "うぇ", "うぉ"],
-    type: "preutter",
-    lengthValue: 50,
-    crossfade: true,
-  },
-  {
-    consonant: "g",
-    cvs: ["g", "が", "ぐ", "げ", "ご"],
-    type: "stretch",
-    lengthValue: 80,
-    crossfade: false,
-  },
-  {
-    consonant: "gy",
-    cvs: ["gy", "ぎゃ", "ぎ", "ぎゅ", "ぎぇ", "ぎょ"],
-    type: "stretch",
-    lengthValue: 60,
-    crossfade: false,
-  },
-  {
-    consonant: "z",
-    cvs: ["z", "ざ", "ずぃ", "ず", "ぜ", "ぞ"],
-    type: "preutter",
-    lengthValue: 80,
-    crossfade: true,
-  },
-  {
-    consonant: "j",
-    cvs: ["j", "じゃ", "じ", "じゅ", "じぇ", "じょ"],
-    type: "preutter",
-    lengthValue: 110,
-    crossfade: true,
-  },
-  {
-    consonant: "d",
-    cvs: ["d", "だ", "どぅ", "で", "ど"],
-    type: "stretch",
-    lengthValue: 60,
-    crossfade: false,
-  },
-  {
-    consonant: "dy",
-    cvs: ["dy", "でゃ", "でぃ", "でゅ", "でぇ", "でょ"],
-    type: "stretch",
-    lengthValue: 75,
-    crossfade: false,
-  },
-  {
-    consonant: "b",
-    cvs: ["b", "ば", "ぶ", "べ", "ぼ"],
-    type: "stretch",
-    lengthValue: 50,
-    crossfade: false,
-  },
-  {
-    consonant: "by",
-    cvs: ["by", "びゃ", "び", "びゅ", "びぇ", "びょ"],
-    type: "stretch",
-    lengthValue: 45,
-    crossfade: false,
-  },
-  {
-    consonant: "p",
-    cvs: ["p", "ぱ", "ぷ", "ぺ", "ぽ"],
-    type: "stretch",
-    lengthValue: 100,
-    crossfade: false,
-  },
-  {
-    consonant: "py",
-    cvs: ["py", "ぴゃ", "ぴ", "ぴゅ", "ぴぇ", "ぴょ"],
-    type: "stretch",
-    lengthValue: 100,
-    crossfade: false,
-  },
-  {
-    consonant: "ng",
-    cvs: ["ng", "ガ", "グ", "ゲ", "ゴ"],
-    type: "preutter",
-    lengthValue: 50,
-    crossfade: true,
-  },
-  {
-    consonant: "ngy",
-    cvs: ["ngy", "ギャ", "ギ", "ギュ", "ギェ", "ギョ"],
-    type: "preutter",
-    lengthValue: 40,
-    crossfade: true,
-  },
-  {
-    consonant: "v",
-    cvs: ["v", "ヴぁ", "ヴ", "ヴぃ", "ヴぇ", "ヴぉ"],
-    type: "preutter",
-    lengthValue: 100,
-    crossfade: true,
-  },
-  {
-    consonant: "・",
-    cvs: ["・あ", "・い", "・う", "・え", "・お", "・ん"],
-    type: "stretch",
-    lengthValue: 50,
-    crossfade: false,
+    reg: /ん$/,
+    symbol: "n",
   },
 ];
 
-export class JPAutoPhonemizer extends BasePhonemizer {
-  name = "phonemizer.JPAutoPhonemizer";
+export class JPPresampPhonemizer extends BasePhonemizer {
+  name = "phonemizer.JPPresampPhonemizer";
   protected getOtoRecord(
-    vb,
-    prevPhoneme,
-    lyric,
-    notenum,
-    voiceColor,
+    vb: BaseVoiceBank,
+    prevPhoneme: string,
+    note: Note,
+    lyric: string,
+    notenum: number,
+    voiceColor: string,
     vcMode: boolean = false
   ): OtoRecord | null {
+    /** vb.presampが存在する場合、vb.presamp.CVRegexをregとし、なければJPAutoと同じ初期値を使う */
+    const reg: RegExp =
+      vb.presamp !== undefined
+        ? vb.presamp.CVRegex
+        : /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
     /** lyricが空文字列の場合nullを返す */
     if (lyric === "") {
       return null;
     }
+    /** 1つ前のノートのsuffixPartを求める */
+    const prevLyric = note.prev ? note.prev.lyric : "";
+    const prevMatch = reg.exec(prevLyric);
+    const prevSuffix = prevMatch ? prevMatch[3] : "";
+    if (lyric === "R") {
+      /**presamp.iniが存在しない場合nullを返す */
+      if (!vb.presamp) {
+        return null;
+      }
+      /** vb.presamp.endingTypeがnoneかfinalの場合nullを返す */
+      if (
+        vb.presamp.endingType === "none" ||
+        vb.presamp.endingType === "final"
+      ) {
+        return null;
+      }
+      /** prevPhonemeが"-"の場合もnullを返す */
+      if (prevPhoneme === "-") {
+        return null;
+      }
+      /** prevPhonemeに対応する%V%を求める。prevPhonemeが"-"である以上必ず有効な値が見つかるはず */
+      const vowelType = vb.presamp.vowels.find((v) => v.symbol === prevPhoneme);
+      const vowelRepresentative = vowelType.representative;
+
+      /** replaceを使って、suffix無しのエイリアスを求める。%v%→prevPhoneme、%V%→vowelLeader,%VCPAD%→vb.presa,p.alias.vcpad,%VCVPAD%→vb.presamp.alias.vcvpad */
+      const alias = vb.presamp.alias.endingRest
+        .replace(/%v%/g, prevPhoneme)
+        .replace(/%V%/g, vowelRepresentative)
+        .replace(/%VCPAD%/g, vb.presamp.alias.vcPad)
+        .replace(/%VCVPAD%/g, vb.presamp.alias.vcvPad);
+
+      const withSuffixEndingRecord = vb.getOtoRecord(
+        alias + prevSuffix,
+        notenum,
+        voiceColor
+      );
+      if (withSuffixEndingRecord) return withSuffixEndingRecord;
+      const endingRecord = vb.getOtoRecord(alias, notenum, voiceColor);
+      if (endingRecord) return endingRecord;
+      return null;
+    }
+
     /** 変換要否を判定する。!マークがある場合変換しない */
     if (lyric.includes("!")) {
       return vb.getOtoRecord(lyric.replace("!", ""), notenum, voiceColor);
@@ -294,23 +114,74 @@ export class JPAutoPhonemizer extends BasePhonemizer {
     const suffixPart = vcMode ? "" : match[3];
     /** prefix.map無効フラグはmatch[2]に含まれてないため、別途含まれているか確認しておく*/
     const noPrefixMap: boolean = lyric.includes("?");
-
-    /** suffix付き連続音のエイリアスの有無をチェックし、非nullならその値を返す */
-    const withSuffixVCVRecord = vb.getOtoRecord(
-      (noPrefixMap ? "?" : "") + prevPhoneme + " " + cvPart + suffixPart,
-      notenum,
-      voiceColor
+    const mapPart = vb.getSuffix(notenum, voiceColor);
+    const prevMapPart = vb.getSuffix(
+      note.prev ? note.prev.notenum : notenum,
+      note.prev ? note.prev.voiceColor : voiceColor
     );
-    if (withSuffixVCVRecord) return withSuffixVCVRecord;
 
-    /** 連続音エイリアスの有無をチェックし、非nullならその値を返す */
-    const VCVRecord = vb.getOtoRecord(
-      (noPrefixMap ? "?" : "") + prevPhoneme + " " + cvPart,
-      notenum,
-      voiceColor
-    );
-    if (VCVRecord) return VCVRecord;
+    const currentConsonant = this.getNextConsonant(note, vb);
+    /**
+     * 前のノートとsuffix,map,voiceColorの結合値が異なる場合CVVC変換可能性をチェックする。
+     * これらの条件下において、CVVC変換可能の場合、VCVよりも優先される
+     * currentConsonantが存在しない場合、そもそもCVVC変換は不可能であるためチェックしない
+     */
+    if (
+      currentConsonant &&
+      note.prev !== null &&
+      note.prev !== undefined &&
+      note.prev.lyric !== "R" &&
+      suffixPart + voiceColor + mapPart !==
+        prevSuffix + note.prev?.voiceColor + prevMapPart
+    ) {
+      /** currentConsonantが存在しない場合、そもそも */
+      /** 前のノートがVCを生成できるか */
+      const vcOtoRecord = this.getOtoRecord(
+        vb,
+        this.getLastPhoneme(note.prev, vb),
+        note.prev,
+        currentConsonant.symbol,
+        note.prev.notenum,
+        note.prev.voiceColor ? note.prev.voiceColor : "",
+        true
+      );
+      /** vcOtoRecordが見つからない場合、これ以上チェックしない */
+      if (vcOtoRecord !== null) {
+        const withSuffixCVRecord = vb.getOtoRecord(
+          (noPrefixMap ? "?" : "") + cvPart + suffixPart,
+          notenum,
+          voiceColor
+        );
+        if (withSuffixCVRecord) return withSuffixCVRecord;
 
+        const CVRecord = vb.getOtoRecord(
+          (noPrefixMap ? "?" : "") + cvPart,
+          notenum,
+          voiceColor
+        );
+
+        if (CVRecord) return CVRecord;
+      }
+    }
+
+    /** priorityが設定されている場合、VCVは生成しない */
+    if (vb.presamp && !vb.presamp.priority.includes(cvPart)) {
+      /** suffix付き連続音のエイリアスの有無をチェックし、非nullならその値を返す */
+      const withSuffixVCVRecord = vb.getOtoRecord(
+        (noPrefixMap ? "?" : "") + prevPhoneme + " " + cvPart + suffixPart,
+        notenum,
+        voiceColor
+      );
+      if (withSuffixVCVRecord) return withSuffixVCVRecord;
+
+      /** 連続音エイリアスの有無をチェックし、非nullならその値を返す */
+      const VCVRecord = vb.getOtoRecord(
+        (noPrefixMap ? "?" : "") + prevPhoneme + " " + cvPart,
+        notenum,
+        voiceColor
+      );
+      if (VCVRecord) return VCVRecord;
+    }
     /** フレーズの先頭ノートではない場合、母音結合エイリアスの有無をチェックする */
     if (prevPhoneme !== "-") {
       const withSuffixAutoConnectCVRecord = vb.getOtoRecord(
@@ -333,8 +204,6 @@ export class JPAutoPhonemizer extends BasePhonemizer {
       notenum,
       voiceColor
     );
-    if (withSuffixCVRecord) return withSuffixCVRecord;
-
     if (withSuffixCVRecord) return withSuffixCVRecord;
     const CVRecord = vb.getOtoRecord(
       (noPrefixMap ? "?" : "") + cvPart,
@@ -361,6 +230,7 @@ export class JPAutoPhonemizer extends BasePhonemizer {
     const record = this.getOtoRecord(
       vb,
       prevPhoneme,
+      note,
       note.lyric,
       note.notenum,
       note.voiceColor ? note.voiceColor : ""
@@ -441,18 +311,20 @@ export class JPAutoPhonemizer extends BasePhonemizer {
       note.envelope.value[0] = 0;
     }
   }
-
   protected _getLastPhoneme(note: Note | undefined, vb: BaseVoiceBank): string {
     if (!note) return "-";
+    const reg: RegExp =
+      vb.presamp !== undefined
+        ? vb.presamp.CVRegex
+        : /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
+
+    const vowelRegs =
+      vb.presamp !== undefined ? vb.presamp.vowelRegs : defaultVowelsReg;
     const match = reg.exec(note.lyric);
     if (!match) return "-";
-    else if (vowelA.test(match[2])) return "a";
-    else if (vowelI.test(match[2])) return "i";
-    else if (vowelU.test(match[2])) return "u";
-    else if (vowelE.test(match[2])) return "e";
-    else if (vowelO.test(match[2])) return "o";
-    else if (vowelN.test(match[2])) return "n";
-    else return "-";
+
+    const found = vowelRegs.find((v) => v.reg.test(match[2]));
+    return found ? found.symbol : "-";
   }
   protected _getLastLength(note: Note): number {
     return note.msLength;
@@ -463,8 +335,14 @@ export class JPAutoPhonemizer extends BasePhonemizer {
    * @param note 対象のノート
    * @returns
    */
-  getNextConsonant(note: Note): ConsonantParam | null {
+  getNextConsonant(
+    note: Note,
+    vb: BaseVoiceBank
+  ): PresampConsonantParams | null {
     if (!note) return null;
+    if (vb.presamp === undefined) return null;
+    const VCVCheck: RegExp = vb.presamp.VCVRegExp;
+    const reg: RegExp = vb.presamp.CVRegex;
     /** 入力値がVCVの場合はnullを返す */
     const isVcv = VCVCheck.exec(note.lyric);
     if (isVcv) return null;
@@ -478,24 +356,41 @@ export class JPAutoPhonemizer extends BasePhonemizer {
     if (!match) return null;
     const cv = match[2];
     /** CV要素に対応するConsonantParamを探す */
-    for (const consonantParam of consonantParams) {
-      if (consonantParam.cvs.includes(cv)) {
+    for (const consonantParam of vb.presamp.consonants) {
+      if (consonantParam.CVs.includes(cv)) {
         return consonantParam;
       }
     }
     return null;
   }
+
+  getNextPriority(note: Note, vb: BaseVoiceBank): boolean {
+    if (!note) return false;
+    if (vb.presamp === undefined) return false;
+    const VCVCheck: RegExp = vb.presamp.VCVRegExp;
+    const reg: RegExp = vb.presamp.CVRegex;
+    /** 入力値がVCVの場合はnullを返す */
+    const isVcv = VCVCheck.exec(note.lyric);
+    if (isVcv) return false;
+    /** CV要素が見つからなければnullを返す */
+    const match = reg.exec(note.lyric);
+    if (!match) return false;
+    const cv = match[2];
+    return vb.presamp.priority.includes(cv);
+  }
+
   protected _getNotesCount(vb: BaseVoiceBank, note: Note): number {
     /**
      * 次のノートの子音を確認し、nullが返ってきた場合はparamsは1つ。
      * 非nullが返ってきた場合、[lastPhoneme nextConsonant]がotoに存在するかチェックし、存在すればparamsを2つに分割する。
      * otoが存在しなければparamsは1つ。
      */
-    const nextConsonant = this.getNextConsonant(note.next);
+    const nextConsonant = this.getNextConsonant(note.next, vb);
     const vcOtoRecord = this.getOtoRecord(
       vb,
       this.getLastPhoneme(note, vb),
-      nextConsonant ? nextConsonant.consonant : "",
+      note,
+      nextConsonant ? nextConsonant.symbol : "",
       note.notenum,
       note.voiceColor ? note.voiceColor : "",
       true
@@ -523,11 +418,12 @@ export class JPAutoPhonemizer extends BasePhonemizer {
      * 非nullが返ってきた場合、[lastPhoneme nextConsonant]がotoに存在するかチェックし、存在すればparamsを2つに分割する。
      * otoが存在しなければparamsは1つ。
      */
-    const nextConsonant = this.getNextConsonant(note.next);
+    const nextConsonant = this.getNextConsonant(note.next, vb);
     const vcOtoRecord = this.getOtoRecord(
       vb,
       this.getLastPhoneme(note, vb),
-      nextConsonant ? nextConsonant.consonant : "",
+      note,
+      nextConsonant ? nextConsonant.symbol : "",
       note.notenum,
       note.voiceColor ? note.voiceColor : "",
       true
@@ -536,7 +432,9 @@ export class JPAutoPhonemizer extends BasePhonemizer {
     let cvOutputMs = note.outputMs;
     let cvEnvelope = note.envelope ? note.envelope : defaultValue.envelope;
     const cvPitch = note.getRenderPitch();
-    /** vcOtoRecordが非nullかつ、追加するVCの長さがノート全体の長さから固定範囲を除いたものより小さいならばparamsを追加し先に2つ目のparamsを設定する */
+    /** vcOtoRecordが非nullかつ、追加するVCの長さがノート全体の長さから固定範囲を除いたものより小さいならばparamsを追加し先に2つ目のparamsを設定する
+     * また、vcOtoRecordが非nullかつ、次のノートのpriority設定がtrueの場合もparamsを追加し2つ目のparamsを設定する
+     */
     if (vcOtoRecord !== null) {
       const vcTargetNoteLength = this.getVCTargetLength(
         note,
@@ -548,7 +446,10 @@ export class JPAutoPhonemizer extends BasePhonemizer {
         vcOtoRecord,
         vcTargetNoteLength
       );
-      if (vcTargetNoteLength <= note.targetLength - (note.oto?.velocity ?? 0)) {
+      if (
+        vcTargetNoteLength <= note.targetLength - (note.oto?.velocity ?? 0) ||
+        this.getNextPriority(note.next, vb)
+      ) {
         params.push({ resamp: undefined, append: undefined });
         const baseNotePitchOffset =
           (note.atPreutter ? note.atPreutter : 0) +
@@ -697,13 +598,12 @@ export class JPAutoPhonemizer extends BasePhonemizer {
 
     return params;
   }
-
   getVCTargetLength(
     note: Note,
     vcOtoRecord: OtoRecord,
-    consonantParam: ConsonantParam
+    consonantParam: PresampConsonantParams
   ): number {
-    if (consonantParam.type === "stretch") {
+    if (!consonantParam.useCVLength) {
       /** stretchの場合vcOtoRecordのpreからblankの間の長さを返す。 */
       /** blankが負の数の場合、blankの絶対値はoffsetからblankまでの長さmsを意味する。 */
       if (vcOtoRecord.blank < 0) {
@@ -713,17 +613,14 @@ export class JPAutoPhonemizer extends BasePhonemizer {
           return note.next.oto.pre - note.next.oto.overlap;
         }
         /** blankが正の場合、blankはwavファイル末尾から左方向にブランクの位置をmsで表すが、wavの読込とかをここでするのは計算量的に好ましくないので、preutterの場合の設定を用いる */
-        return note.next ? note.next.oto.pre : consonantParam.lengthValue;
+        return note.next ? note.next.oto.pre : 60;
       }
-    } else if (consonantParam.type === "preutter") {
+    } else {
       /** preutterの場合、次のノートの原音設定上のpreutterを返す。nextがnullの場合はlengthValueを返す。更にnote.nextが存在し、note.next.oto.overlapが負の数の場合に限って、overlapを減ずる */
       if (note.next && note.next.oto.overlap < 0) {
         return note.next.oto.pre - note.next.oto.overlap;
       }
-      return note.next ? note.next.oto.pre : consonantParam.lengthValue;
-    } else {
-      /** その他の場合は、consonantParamのlengthValueを返す */
-      return consonantParam.lengthValue;
+      return note.next ? note.next.oto.pre : 60;
     }
   }
 
@@ -753,6 +650,8 @@ export class JPAutoPhonemizer extends BasePhonemizer {
       returnParams.overlap = realOverlap;
       returnParams.stp = realStp;
     }
+    /** 各パラメータ算出後に、preutterでoverlapを上書きする */
+    returnParams.overlap = returnParams.preutter;
     return returnParams;
   }
 }

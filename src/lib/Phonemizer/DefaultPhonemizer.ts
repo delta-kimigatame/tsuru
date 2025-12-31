@@ -82,7 +82,7 @@ export class DefaultPhonemizer extends BasePhonemizer {
     }
   }
 
-  protected _getLastPhoneme(note: Note): string {
+  protected _getLastPhoneme(note: Note, vb: BaseVoiceBank): string {
     return "";
   }
   protected _getLastLength(note: Note): number {

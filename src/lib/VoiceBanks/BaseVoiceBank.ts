@@ -245,6 +245,19 @@ export abstract class BaseVoiceBank {
       return this._oto.GetRecordFromAlias(alias);
     }
   }
+
+  /**
+   * colorとnotenumを使ってprefix.mapからsuffixを返す。
+   * @param notenum ノートの音高
+   * @param color ボイスカラー
+   * @returns prefix.mapから取得したsuffix
+   */
+  getSuffix(notenum: number, color: string = ""): string {
+    const c = Object.keys(this._prefixmaps).includes(color) ? color : "";
+    const p = this._prefixmaps[c].getValue(notenum);
+    return p.suffix;
+  }
+
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名

@@ -1,5 +1,6 @@
 import OtoRecord from "utauoto/dist/OtoRecord";
 import { Note } from "../Note";
+import { BaseVoiceBank } from "../VoiceBanks/BaseVoiceBank";
 import { JPCVorVCVPhonemizer } from "./JPCVorVCVPhonemizer";
 
 const reg = /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
@@ -165,7 +166,7 @@ export class RomajiJPCVorVCVPhonemizer extends JPCVorVCVPhonemizer {
   private convertRomajiToHiragana(romaji: string): string {
     return this.romajiToHiraganaTable[romaji] || romaji;
   }
-  protected _getLastPhoneme(note: Note | undefined): string {
+  protected _getLastPhoneme(note: Note | undefined, vb: BaseVoiceBank): string {
     if (!note) return "-";
     const hiraganaLyric = this.convertRomajiToHiragana(note.lyric);
     const match = reg.exec(hiraganaLyric);

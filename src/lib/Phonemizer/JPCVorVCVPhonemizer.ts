@@ -107,7 +107,7 @@ export class JPCVorVCVPhonemizer extends BasePhonemizer {
     }
     const prevPhoneme =
       note.prev !== undefined
-        ? note.prev.phonemizer.getLastPhoneme(note.prev)
+        ? note.prev.phonemizer.getLastPhoneme(note.prev, vb)
         : "-";
     const record = this.getOtoRecord(
       vb,
@@ -193,7 +193,7 @@ export class JPCVorVCVPhonemizer extends BasePhonemizer {
     }
   }
 
-  protected _getLastPhoneme(note: Note | undefined): string {
+  protected _getLastPhoneme(note: Note | undefined, vb: BaseVoiceBank): string {
     if (!note) return "-";
     const match = reg.exec(note.lyric);
     if (!match) return "-";

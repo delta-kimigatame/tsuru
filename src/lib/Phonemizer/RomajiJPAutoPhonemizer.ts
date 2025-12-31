@@ -1,5 +1,6 @@
 import OtoRecord from "utauoto/dist/OtoRecord";
 import { Note } from "../Note";
+import { BaseVoiceBank } from "../VoiceBanks/BaseVoiceBank";
 import { JPAutoPhonemizer } from "./JPAutoPhonemizer";
 
 const reg = /^([^ぁ-んァ-ヶ]*)([ぁ-んァ-ヶ]+)([^ ]*)$/;
@@ -432,7 +433,7 @@ export class RomajiJPAutoPhonemizer extends JPAutoPhonemizer {
     );
   }
 
-  protected _getLastPhoneme(note: Note | undefined): string {
+  protected _getLastPhoneme(note: Note | undefined, vb: BaseVoiceBank): string {
     if (!note) return "-";
     const hiraganaLyric = this.convertRomajiToHiragana(note.lyric);
     const match = reg.exec(hiraganaLyric);
