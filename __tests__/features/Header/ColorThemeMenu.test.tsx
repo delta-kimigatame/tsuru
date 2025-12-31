@@ -29,13 +29,15 @@ describe("ColorThemeMenu", () => {
   });
 
   // 3. 全ての色テーマ項目が表示される
-  it("全ての色テーマが表示される", () => {
+  it("表示数はlegacyで始まらないカラーテーマの数+1", () => {
     render(
       <ColorThemeMenu anchor={mockAnchor} onMenuClose={mockOnMenuClose} />
     );
     const menuItems = screen.getAllByRole("menuitem");
     // colorsの数だけmenuitemが存在することを確認
-    expect(menuItems.length).toBe(colors.length);
+    expect(menuItems.length).toBe(
+      colors.filter((color) => !color.startsWith("legacy")).length + 1
+    );
   });
 
   // 4. 色テーマ項目をクリックするとsetColorThemeが呼ばれる
