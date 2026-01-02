@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/01/02\r\n[Added] Added pitch snap to scale feature to batch processing\r\n[Added] Temporarily added Japanese presamp to phonemizer (under development)\r\n[Fix] Adjusted log granularity",
       "2025/12/31\r\n[Fix] Adjusted color themes. Previous color themes are retained as legacy themes.",
       "2025/12/28\r\n[Fix] Fixed an issue where scrolling would not be restored after pitch editing.\r\n[Fix] Fixed an issue where loading UST files without flags could result in flags being set to 'undefined', causing them to be recognized as the 'e' flag.",
       '2025/12/24\r\n[Fix] Fixed a bug where an error occurred when using the phonemizer "(Japanese) Automatic VCV(with CVVC)" if the VC oto entry existed but the CV oto entry did not.',
