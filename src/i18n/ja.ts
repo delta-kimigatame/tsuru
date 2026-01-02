@@ -452,6 +452,7 @@ export const translationJa = {
     RomajiJPCVorVCVPhonemizer: "(日本語)ローマ字自動連続音",
     JPAutoPhonemizer: "(日本語)自動連続音(CVVC対応)",
     RomajiJPAutoPhonemizer: "(日本語)ローマ字自動連続音(CVVC対応)",
+    JPPresampPhonemizer: "(日本語)presamp準拠(開発中)",
   },
   footer: {
     disclaimer:

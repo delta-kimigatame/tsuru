@@ -456,6 +456,8 @@ export const translationPt = {
     JPAutoPhonemizer: "(Japonês) VCV automático (com suporte a CVVC)",
     RomajiJPAutoPhonemizer:
       "(Japonês) VCV automático em romaji (com suporte a CVVC)",
+    JPPresampPhonemizer:
+      "(Japonês) compatível com presamp (em desenvolvimento)",
   },
   footer: {
     disclaimer:
