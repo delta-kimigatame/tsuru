@@ -20,14 +20,14 @@ export const useMenu = (
    * メニューを開く処理
    */
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => {
-    LOG.info("メニューを開く", logContext);
+    LOG.debug("メニューを開く", logContext);
     setAnchor(e.currentTarget);
   };
   /**
    * メニューを閉じる処理
    */
   const handleClose = () => {
-    LOG.info("メニューを閉じる", logContext);
+    LOG.debug("メニューを閉じる", logContext);
     setAnchor(null);
   };
   return [anchor, handleOpen, handleClose];

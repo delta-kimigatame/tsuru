@@ -22,7 +22,7 @@ export const useThemeMode = (): PaletteMode => {
   const computedMode = React.useMemo<PaletteMode>(() => {
     const mode_: PaletteMode =
       mode !== "system" ? mode : prefersDarkMode ? "dark" : "light";
-    LOG.info("モードの取得", "useThemeMode");
+    LOG.debug("モードの取得", "useThemeMode");
     LOG.debug(
       `cookie:${mode}、端末設定:${prefersDarkMode}、採用:${mode_}`,
       "useThemeMode"
