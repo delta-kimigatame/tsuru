@@ -710,7 +710,7 @@ export class Presamp {
   /** 母音単体ノートを判別する正規表現 */
   get CVVowels(): RegExp {
     const representatives =
-      "^" + this.vowels.map((v) => v.representative).join("") + "$";
+      "^[" + this.vowels.map((v) => v.representative).join("") + "]$";
     return new RegExp(representatives);
   }
 
