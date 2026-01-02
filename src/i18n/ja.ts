@@ -301,6 +301,7 @@ export const translationJa = {
     octaveUp: "1オクターブ上げる",
     octaveDown: "1オクターブ下げる",
     envelopeNormalize: "エンベロープ正規化",
+    pitchSnapBatchProcess: " ピッチを音階に合わせる",
     applyOtoBatchProcess: {
       title: "原音設定値を適用",
     },

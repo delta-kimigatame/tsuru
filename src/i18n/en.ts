@@ -299,6 +299,7 @@ export const translationEn = {
     octaveUp: "Raise by 1 Octave",
     octaveDown: "Lower by 1 Octave",
     envelopeNormalize: "Envelope Normalization",
+    pitchSnapBatchProcess: "Snap Pitch to Scale",
     applyOtoBatchProcess: {
       title: "Apply Oto Settings",
     },
