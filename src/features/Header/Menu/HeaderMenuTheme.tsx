@@ -31,7 +31,7 @@ export const HeaderMenuTheme: React.FC<HeaderMenuItemProps> = (props) => {
    * テーマメニューとヘッダーメニューの両方を閉じる
    */
   const handleMenuClose = () => {
-    LOG.info("モードメニューを閉じる", "HeaderMenuTheme");
+    LOG.debug("モードメニューを閉じる", "HeaderMenuTheme");
     setAnchor(null);
     props.onMenuClose();
   };

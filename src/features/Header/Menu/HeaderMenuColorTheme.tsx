@@ -32,7 +32,7 @@ export const HeaderMenuColorTheme: React.FC<HeaderMenuItemProps> = (props) => {
    * 色設定メニューとヘッダーメニューの両方を閉じる
    */
   const handleMenuClose = () => {
-    LOG.info("色設定メニューを閉じる", "HeaderMenuColorTheme");
+    LOG.debug("色設定メニューを閉じる", "HeaderMenuColorTheme");
     setAnchor(null);
     props.onMenuClose();
   };

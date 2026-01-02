@@ -63,7 +63,7 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
    * あわせてファイル読み込みを中止する
    */
   const handleClose = () => {
-    LOG.info("音源読込ダイアログを閉じる", "LoadVBDialog");
+    LOG.debug("音源読込ダイアログを閉じる", "LoadVBDialog");
     props.setDialogOpen(false);
     props.setProcessing(false);
   };

@@ -30,7 +30,7 @@ export const HeaderMenuLog: React.FC<HeaderMenuItemProps> = (props) => {
   };
 
   const handleClose = () => {
-    LOG.info("ログダイアログのクローズ", "HeaderMenuLog");
+    LOG.debug("ログダイアログのクローズ", "HeaderMenuLog");
     setOpen(true);
     props.onMenuClose();
   };

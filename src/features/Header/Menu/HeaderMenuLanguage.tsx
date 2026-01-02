@@ -29,7 +29,7 @@ export const HeaderMenuLanguage: React.FC<HeaderMenuItemProps> = (props) => {
    * 言語メニューとヘッダーメニューの両方を閉じる
    */
   const handleMenuClose = () => {
-    LOG.info("言語メニューを閉じる", "HeaderMenuLanguage");
+    LOG.debug("言語メニューを閉じる", "HeaderMenuLanguage");
     setAnchor(null);
     props.onMenuClose();
   };

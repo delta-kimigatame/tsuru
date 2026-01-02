@@ -83,7 +83,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
    * ダイアログを閉じる処理
    */
   const handleClose = () => {
-    LOG.info("音源情報ダイアログを閉じる", "InfoVBDialog");
+    LOG.debug("音源情報ダイアログを閉じる", "InfoVBDialog");
     props.setOpen(false);
   };
 
@@ -103,7 +103,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
       hasSample: vb.sample !== undefined,
       hasPortrait: vb.portrait !== undefined,
     });
-    LOG.info("音源情報ダイアログを閉じる", "InfoVBDialog");
+    LOG.debug("音源情報ダイアログを閉じる", "InfoVBDialog");
     props.setOpen(false);
   };
 

@@ -29,7 +29,7 @@ export const HeaderMenu: React.FC = () => {
    * メニューを閉じる動作
    */
   const handleClose = () => {
-    LOG.info("ヘッダメニューを閉じる", "HeaderMenu");
+    LOG.debug("ヘッダメニューを閉じる", "HeaderMenu");
     setAnchor(null);
   };
   return (

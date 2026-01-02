@@ -15,7 +15,7 @@ export const BatchProcessDialog: React.FC<BatchProcessDialogProps> = (
    * あわせてファイル読み込みを中止する
    */
   const handleClose = () => {
-    LOG.info("バッチプロセスダイアログを閉じる", "BatchProcessDialog");
+    LOG.debug("バッチプロセスダイアログを閉じる", "BatchProcessDialog");
     props.setDialogOpen(false);
     props.setProcessing(false);
   };
