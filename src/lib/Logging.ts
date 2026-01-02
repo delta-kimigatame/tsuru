@@ -42,11 +42,21 @@ class Logging {
 
   /**
    * デバッグログを蓄積する
+   * 開発環境以外では何もしない
    * @param value ログメッセージ
    * @param source ログ送出元となったコンポーネントやクラス
    */
   debug = (value: any, source: string): void => {
-    this.log(LogLevel.DEBUG, value, source);
+    /** nodeなどwindowがundefinedの場合は開発環境なのでログ出力 */
+    if (typeof window === "undefined") {
+      this.log(LogLevel.DEBUG, value, source);
+      return;
+    }
+    const hostname = window.location.hostname;
+    /** 本番環境ではdebugログは記録しない */
+    if (hostname === "localhost" || /^[0-9.]+$/.test(hostname)) {
+      this.log(LogLevel.DEBUG, value, source);
+    }
   };
 
   /**
