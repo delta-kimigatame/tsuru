@@ -167,20 +167,27 @@ export class Wavtool {
   ): void {
     const wp = new WaveProcessing();
 
-    /** 伴奏wavの開始フレーム */
-    const startFrame = Math.floor(
+    const offsetFrames = Math.floor(
       (offsetMs / 1000) * renderingConfig.frameRate
     );
-    /** 伴奏wavの終了フレーム。開始フレーム+wavtoolが保持しているフレーム数 */
-    const endFrame = startFrame + this._data.length;
+
+    /** 伴奏wavの読み込み開始位置（正の場合は0に補正） */
+    const backgroundStartFrame = Math.max(0, offsetFrames);
+    /** this._dataへの書き込み開始位置（正の場合は0に補正） */
+    const dataStartFrame = Math.max(0, -offsetFrames);
+    /** 合成する長さ */
+    const mixLength = Math.min(
+      this._data.length - dataStartFrame,
+      backgroundWav.data.length - backgroundStartFrame
+    );
+
+    if (mixLength <= 0) return;
 
     /** 伴奏データのLchの正規化。必要範囲のみ */
     const backgroundData = wp.LogicalNormalize(
       backgroundWav.data.slice(
-        startFrame,
-        endFrame > backgroundWav.data.length
-          ? backgroundWav.data.length
-          : endFrame
+        backgroundStartFrame,
+        backgroundStartFrame + mixLength
       ),
       backgroundWav.bitDepth
     );
@@ -188,20 +195,19 @@ export class Wavtool {
     if (backgroundWav.rData) {
       const rData = wp.LogicalNormalize(
         backgroundWav.rData.slice(
-          startFrame,
-          endFrame > backgroundWav.rData.length
-            ? backgroundWav.rData.length
-            : endFrame
+          backgroundStartFrame,
+          backgroundStartFrame + mixLength
         ),
         backgroundWav.bitDepth
       );
-      backgroundData.map((v, i) => (backgroundData[i] = (v + rData[i]) / 2));
+      backgroundData.forEach(
+        (v, i) => (backgroundData[i] = (v + rData[i]) / 2)
+      );
     }
 
     /** 音量を考慮しながらmixダウンする。 */
-    this._data = this._data.map((v, i) => {
-      const bgValue = backgroundData[i] ? backgroundData[i] * volume : 0;
-      return v + bgValue;
-    });
+    for (let i = 0; i < mixLength; i++) {
+      this._data[dataStartFrame + i] += backgroundData[i] * volume;
+    }
   }
 }
