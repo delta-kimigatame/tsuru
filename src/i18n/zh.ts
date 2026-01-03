@@ -223,6 +223,8 @@ export const translationZh = {
       audioClear: "清除伴奏",
       estimateBpm: "BPM检测 (实验性)",
       audioOffsetEstimate: "自动调整时间偏移",
+      backgroundAudioPlay: "仅播放选择范围的伴奏",
+      backgroundAudioPlayFromNotesEnd: "从音符结束位置播放伴奏",
       isMinor: "小调",
       isShowPortrait: "显示角色立绘",
     },

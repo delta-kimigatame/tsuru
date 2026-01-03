@@ -82,11 +82,15 @@ export const EditorView: React.FC<{
   const [backgroundWavUrl, setBackgroundWavUrl] = React.useState<string>();
   // 伴奏用のオフセット値（ミリ秒）
   const [backgroundOffsetMs, setBackgroundOffsetMs] = React.useState<number>(0);
-  // 伴奏音声の再生状態を管理
-  const [backgroundAudioPlaying, setBackgroundAudioPlaying] =
-    React.useState<boolean>(false);
   const [backgroundVolume, setBackgroundVolume] = React.useState<number>(0.5); // 0.0 - 1.0
   const [backgroundMuted, setBackgroundMuted] = React.useState<boolean>(false);
+  // ノート末尾から伴奏のみを再生する際の時間(小節数)
+  const [backgroundPlayDuration, setBackgroundPlayDuration] =
+    React.useState<number>(4);
+  const [backgroundPlayEndMs, setBackgroundPlayEndMs] =
+    React.useState<number>(0);
+
+  const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
 
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -326,9 +330,14 @@ export const EditorView: React.FC<{
   const handlePlayStop = () => {
     LOG.debug("再生終了", "EditorView");
     setPlaying(false);
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    setBackgroundAudioPlaying(false);
+    if (audioRef.current !== null) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (backgroundAudioRef.current !== null) {
+      backgroundAudioRef.current.pause();
+      backgroundAudioRef.current.currentTime = 0;
+    }
     setPlayingMs(0);
   };
 
@@ -360,6 +369,91 @@ export const EditorView: React.FC<{
     backgroundMuted,
     backgroundAudioWav,
   ]);
+
+  /** 現在選択中のノート部分に対して、伴奏のみを再生する処理 */
+  const playBackgroundAudio = () => {
+    LOG.info("伴奏のみ再生処理開始", "EditorView");
+    // backgroundAudioRefが存在しない場合何もしない
+    if (backgroundAudioRef.current === null) return;
+    // ノートを選択していない場合何もしない
+    if (selectNotesIndex.length === 0) return 0;
+    /** 選択範囲の最小インデックス */
+    const minIndex = Math.min(...selectNotesIndex);
+    /** 選択範囲の最大インデックス */
+    const maxIndex = Math.max(...selectNotesIndex);
+    if (minIndex < 0 || minIndex >= notesLeftMs.length) return 0;
+    /** 選択されたノートの最初の時間 */
+    const noteOffsetMs = notesLeftMs[minIndex] - notes[minIndex].atPreutter;
+    /** 選択されたノートの終了時間*/
+    const noteEndMs = notesLeftMs[maxIndex] + notes[maxIndex].msLength;
+    /** 再生開始時間、0でクランプ */
+    const playStartMs = Math.max(0, noteOffsetMs - backgroundOffsetMs);
+    /** 再生終了時間、オーディオ長でクランプ */
+    const playEndMs = Math.min(
+      noteEndMs - backgroundOffsetMs,
+      (backgroundAudioRef.current.duration ?? Infinity) * 1000
+    );
+    LOG.debug(`再生範囲: ${playStartMs} ms から ${playEndMs} ms`, "EditorView");
+    setBackgroundPlayEndMs(playEndMs);
+    // 再生時間をセット
+    backgroundAudioRef.current.currentTime = playStartMs / 1000;
+    // 音量セット
+    backgroundAudioRef.current.volume = backgroundVolume;
+    // 単体再生のため必ずミュート解除
+    backgroundAudioRef.current.muted = false;
+    // 再生
+    backgroundAudioRef.current.play();
+    setPlaying(true);
+  };
+
+  /** ノートの末尾から、指定時間伴奏を再生する処理 */
+  const playBackgroundAudioFromNotesEnd = () => {
+    // backgroundAudioRefが存在しない場合何もしない
+    if (backgroundAudioRef.current === null) return;
+
+    const lastNoteIndex = notes.length - 1;
+    /** 再生開始時間=最後のノートの末尾。notes.length===0の場合は0 */
+    const playStartMs =
+      notes.length === 0
+        ? 0
+        : notesLeftMs[lastNoteIndex] + notes[lastNoteIndex].msLength;
+    /** 小節数`backgroundPlayDuration`とBPM`notes[lastNoteIndex].tempo`を使って再生時間(ms)を求める。 */
+    const backgroundPlayDurationMs =
+      backgroundPlayDuration * (60000 / notes[lastNoteIndex].tempo) * 4;
+    // 再生終了時間 playStartMs + backgroundPlayDurationMs、オーディオ長でクランプ
+    const playEndMs = Math.min(
+      playStartMs + backgroundPlayDurationMs,
+      (backgroundAudioRef.current.duration ?? Infinity) * 1000
+    );
+    LOG.debug(`再生範囲: ${playStartMs} ms から ${playEndMs} ms`, "EditorView");
+    setBackgroundPlayEndMs(playEndMs);
+    // 再生時間をセット
+    backgroundAudioRef.current.currentTime = playStartMs / 1000;
+    // 音量セット
+    backgroundAudioRef.current.volume = backgroundVolume;
+    // 単体再生のため必ずミュート解除
+    backgroundAudioRef.current.muted = false;
+    // 再生
+    backgroundAudioRef.current.play();
+    setPlaying(true);
+  };
+
+  /** バックグラウンドaudioの更新を検知し、終了時間を超えたら停止する処理 */
+  const handleBackgroundAudioTimeUpdate = () => {
+    setPlayingMs(backgroundAudioRef.current.currentTime * 1000);
+    if (backgroundAudioRef.current.currentTime * 1000 >= backgroundPlayEndMs) {
+      LOG.debug(
+        `伴奏再生終了。終了時間: ${
+          backgroundAudioRef.current.currentTime * 1000
+        } ms`,
+        "EditorView"
+      );
+      backgroundAudioRef.current.pause();
+      setPlaying(false);
+      setPlayingMs(0);
+    }
+  };
+
   return (
     <>
       <Pianoroll
@@ -403,6 +497,9 @@ export const EditorView: React.FC<{
         setBackgroundVolume={setBackgroundVolume}
         backgroundMuted={backgroundMuted}
         setBackgroundMuted={setBackgroundMuted}
+        playBackgroundAudio={playBackgroundAudio}
+        playBackgroundAudioFromNotesEnd={playBackgroundAudioFromNotesEnd}
+        setBackgroundPlayDuration={setBackgroundPlayDuration}
       />
       {selectMode === "pitch" && (
         <PitchPortal
@@ -427,6 +524,17 @@ export const EditorView: React.FC<{
             data-testid="audio"
             onEnded={handlePlayStop}
             onTimeUpdate={handleTimeUpdate}
+          ></audio>
+        </>
+      )}
+      {backgroundWavUrl !== undefined && (
+        <>
+          <audio
+            src={backgroundWavUrl}
+            ref={backgroundAudioRef}
+            data-testid="background-audio"
+            onEnded={() => setPlaying(false)}
+            onTimeUpdate={handleBackgroundAudioTimeUpdate}
           ></audio>
         </>
       )}

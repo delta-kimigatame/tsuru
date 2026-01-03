@@ -225,6 +225,8 @@ export const translationEn = {
       audioClear: "Remove",
       estimateBpm: "BPM Detection (experimental)",
       audioOffsetEstimate: "Auto-Adjust Timing",
+      backgroundAudioPlay: "Play Selected Only",
+      backgroundAudioPlayFromNotesEnd: "Play After Notes",
       isMinor: "Minor",
       isShowPortrait: "Show character portrait",
     },

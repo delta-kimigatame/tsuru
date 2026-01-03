@@ -227,6 +227,8 @@ export const translationJa = {
       audioClear: "伴奏クリア",
       estimateBpm: "BPM自動検出(β)",
       audioOffsetEstimate: "タイミング自動調整",
+      backgroundAudioPlay: "選択範囲の伴奏のみ再生",
+      backgroundAudioPlayFromNotesEnd: "ノート終了位置から伴奏再生",
       isMinor: "マイナー(短調)",
       isShowPortrait: "立ち絵表示",
     },

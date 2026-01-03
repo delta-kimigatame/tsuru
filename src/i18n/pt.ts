@@ -229,6 +229,8 @@ export const translationPt = {
       audioClear: "Remover",
       estimateBpm: "Detecção de BPM (experimental)",
       audioOffsetEstimate: "Ajustar tempo automaticamente",
+      backgroundAudioPlay: "Tocar Seleção",
+      backgroundAudioPlayFromNotesEnd: "Tocar Após Notas",
       isMinor: "Menor",
       isShowPortrait: "Exibir retrato do personagem",
     },

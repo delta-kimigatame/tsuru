@@ -23,6 +23,7 @@ import { LOG } from "../../../lib/Logging";
 import { undoManager } from "../../../lib/UndoManager";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
+import { NoteSelectMode } from "../../../types/noteSelectMode";
 import { executeBatchProcess } from "../../../utils/batchProcess";
 import { loadBatchProcessClasses } from "../../../utils/loadBatchProcess";
 import { BatchProcessDialog } from "../../BatchProcess/BatchProcessDialog";
@@ -349,6 +350,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         setBackgroundVolume={props.setBackgroundVolume}
         backgroundMuted={props.backgroundMuted}
         setBackgroundMuted={props.setBackgroundMuted}
+        playBackgroundAudio={props.playBackgroundAudio}
+        playBackgroundAudioFromNotesEnd={props.playBackgroundAudioFromNotesEnd}
+        setBackgroundPlayDuration={props.setBackgroundPlayDuration}
       />
       <FooterZoomMenu
         anchor={zoomMenuAnchor}
@@ -411,4 +415,10 @@ export interface FooterMenuProps {
   backgroundMuted: boolean;
   /** 伴奏音声のミュート状態を更新するためのコールバック */
   setBackgroundMuted: (muted: boolean) => void;
+  /** 伴奏のみ再生する処理 */
+  playBackgroundAudio: () => void;
+  /** ノート末尾から伴奏のみを再生する処理 */
+  playBackgroundAudioFromNotesEnd: () => void;
+  /** ノート末尾から伴奏のみを再生する時間(小節数)を設定するためのコールバック */
+  setBackgroundPlayDuration: (duration: number) => void;
 }

@@ -1,3 +1,4 @@
+import { PlayArrow } from "@mui/icons-material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -10,6 +11,7 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import {
   Box,
   Checkbox,
+  Divider,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -217,6 +219,18 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     props.handleClose();
   };
 
+  const handlePlayBackgroundAudioClick = () => {
+    LOG.info("伴奏音声の再生", "FooterAudioTrackMenu");
+    props.playBackgroundAudio();
+    props.handleClose();
+  };
+
+  const handlePlayBackgroundAudioFromNotesEndClick = () => {
+    LOG.info("伴奏音声の再生", "FooterAudioTrackMenu");
+    props.playBackgroundAudioFromNotesEnd();
+    props.handleClose();
+  };
+
   return (
     <>
       <input
@@ -384,6 +398,42 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
             <ListItemText>{t("editor.footer.audioOffsetReset")}</ListItemText>
           </ListItemText>
         </MenuItem>
+        <Divider />
+        <MenuItem
+          disabled={
+            props.backgroundWavUrl === "" ||
+            props.backgroundWavUrl === null ||
+            props.backgroundWavUrl === undefined
+          }
+          onClick={handlePlayBackgroundAudioClick}
+        >
+          <ListItemIcon>
+            <PlayArrow />
+          </ListItemIcon>
+          <ListItemText>
+            <ListItemText>
+              {t("editor.footer.backgroundAudioPlay")}
+            </ListItemText>
+          </ListItemText>
+        </MenuItem>
+        <MenuItem
+          disabled={
+            props.backgroundWavUrl === "" ||
+            props.backgroundWavUrl === null ||
+            props.backgroundWavUrl === undefined
+          }
+          onClick={handlePlayBackgroundAudioFromNotesEndClick}
+        >
+          <ListItemIcon>
+            <PlayArrow />
+          </ListItemIcon>
+          <ListItemText>
+            <ListItemText>
+              {t("editor.footer.backgroundAudioPlayFromNotesEnd")}
+            </ListItemText>
+          </ListItemText>
+        </MenuItem>
+        <Divider />
         <MenuItem
           disabled={
             props.backgroundWavUrl === "" ||
@@ -428,4 +478,10 @@ export interface FooterAudioTrackMenuProps {
   backgroundMuted: boolean;
   /** 伴奏音声のミュート状態を更新するためのコールバック */
   setBackgroundMuted: (muted: boolean) => void;
+  /** 伴奏のみ再生する処理 */
+  playBackgroundAudio: () => void;
+  /** ノート末尾から伴奏のみを再生する処理 */
+  playBackgroundAudioFromNotesEnd: () => void;
+  /** ノート末尾から伴奏のみを再生する時間(小節数)を設定するためのコールバック */
+  setBackgroundPlayDuration: (duration: number) => void;
 }
