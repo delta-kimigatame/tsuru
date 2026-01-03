@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/01/03\r\n[Adição] Adicionada função de reprodução apenas de acompanhamento. É possível reproduzir apenas o intervalo selecionado ou reproduzir a partir do final das notas.\r\n[Correção] Corrigido problema onde dados de acompanhamento estéreo de 48000Hz não podiam ser reproduzidos\r\n[Correção] Corrigido problema onde o acompanhamento não era reproduzido ao mover a posição de reprodução na direção positiva",
       "2026/01/02\r\n[Adição] Adicionada função de ajustar pitch à escala no processamento em lote\r\n[Adição] Adicionado temporariamente Japanese presamp à conversão automática de letras (em desenvolvimento)\r\n[Correção] Ajuste na granularidade do log",
       "2025/12/31\r\n[Correção] Ajuste nos temas de cores. Os temas de cores anteriores foram mantidos como temas legados.",
       "2025/12/28\r\n[Correção] Corrigido um problema em que a rolagem não era restaurada após editar o pitch.\r\n[Correção] Corrigido um problema em que, ao carregar USTs sem flags, a flag recebia 'undefined' e era interpretada como a flag 'e'.",
