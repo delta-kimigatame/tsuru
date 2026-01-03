@@ -8,6 +8,7 @@ import { SynthesisWorker } from "../../services/synthesis";
 import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
+import { NoteSelectMode } from "../../types/noteSelectMode";
 import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
