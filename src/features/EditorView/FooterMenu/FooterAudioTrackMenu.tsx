@@ -80,15 +80,16 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     try {
       // arrayBufferを取得（onLoadなし）
       const arrayBuffer = await file.arrayBuffer();
+      const w = new Wave(arrayBuffer);
+      w.sampleRate = renderingConfig.frameRate;
+      w.VolumeNormalize();
+      w.bitDepth = 16;
       // Blobから再作成してObject URLを生成
-      const blob = new Blob([arrayBuffer], { type: file.type });
+      const wBuf = await w.Output();
+      const blob = new Blob([wBuf], { type: file.type });
       const objectUrl = URL.createObjectURL(blob);
 
       props.setBackgroundWavUrl(objectUrl);
-      const w = new Wave(arrayBuffer);
-      w.sampleRate = renderingConfig.frameRate;
-      w.bitDepth = 16;
-      w.VolumeNormalize();
       props.setBackgroundAudioWav(w);
       props.setBackgroundOffsetMs(0);
       setTextInputValue("0");
