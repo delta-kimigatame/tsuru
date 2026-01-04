@@ -4,6 +4,7 @@
 
 import yaml from "js-yaml";
 
+import { Oto } from "utauoto";
 import { Wave } from "utauwav";
 
 import { readTextFile } from "../../services/readTextFile";
@@ -49,10 +50,15 @@ export class VoiceBankFiles extends BaseVoiceBank {
       const root =
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       if (this._filenames.includes(root + filename)) {
-        const buf = await this._files[
-          this._filenames.indexOf(root + filename)
-        ].arrayBuffer();
-        resolve(new Wave(buf));
+        try {
+          const buf = await this._files[
+            this._filenames.indexOf(root + filename)
+          ].arrayBuffer();
+          const wave = new Wave(buf);
+          resolve(wave);
+        } catch (error) {
+          reject(error);
+        }
       } else {
         reject(`${root + filename} not found.`);
       }
@@ -70,10 +76,15 @@ export class VoiceBankFiles extends BaseVoiceBank {
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
       if (this._filenames.includes(root + frqFilename)) {
-        const buf = await this._files[
-          this._filenames.indexOf(root + frqFilename)
-        ].arrayBuffer();
-        resolve(new Frq({ buf: buf }));
+        try {
+          const buf = await this._files[
+            this._filenames.indexOf(root + frqFilename)
+          ].arrayBuffer();
+          const frq = new Frq({ buf: buf });
+          resolve(frq);
+        } catch (error) {
+          reject(error);
+        }
       } else {
         reject(`${root + frqFilename} not found.`);
       }
@@ -92,6 +103,9 @@ export class VoiceBankFiles extends BaseVoiceBank {
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
     }
+    // 再初期化時に以前のデータをクリア
+    this._oto = new Oto();
+    this._prefixmaps = {};
     return new Promise(async (resolve, reject) => {
       this._root = characterTxtPath.split("/").slice(0, -1).join("/");
       this.extractCharacterTxt(characterTxtPath, encoding)

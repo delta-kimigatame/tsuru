@@ -5,6 +5,7 @@
 import yaml from "js-yaml";
 import type JSZip from "jszip";
 
+import { Oto } from "utauoto";
 import { Wave } from "utauwav";
 
 import { extractFileFromZip } from "../../services/extractFileFromZip";
@@ -61,8 +62,13 @@ export class VoiceBank extends BaseVoiceBank {
       const root =
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       if (Object.keys(this._zip).includes(root + filename)) {
-        const buf = await extractFileFromZip(this._zip[root + filename]);
-        resolve(new Wave(buf));
+        try {
+          const buf = await extractFileFromZip(this._zip[root + filename]);
+          const wave = new Wave(buf);
+          resolve(wave);
+        } catch (error) {
+          reject(error);
+        }
       } else {
         reject(`${root + filename} not found.`);
       }
@@ -81,8 +87,13 @@ export class VoiceBank extends BaseVoiceBank {
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
       if (Object.keys(this._zip).includes(root + frqFilename)) {
-        const buf = await extractFileFromZip(this._zip[root + frqFilename]);
-        resolve(new Frq({ buf: buf }));
+        try {
+          const buf = await extractFileFromZip(this._zip[root + frqFilename]);
+          const frq = new Frq({ buf: buf });
+          resolve(frq);
+        } catch (error) {
+          reject(error);
+        }
       } else {
         reject(`${root + frqFilename} not found.`);
       }
@@ -101,6 +112,9 @@ export class VoiceBank extends BaseVoiceBank {
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
     }
+    // 再初期化時に以前のデータをクリア
+    this._oto = new Oto();
+    this._prefixmaps = {};
     return new Promise(async (resolve, reject) => {
       this._root = characterTxtPath.split("/").slice(0, -1).join("/");
       this.extractCharacterTxt(characterTxtPath, encoding)
