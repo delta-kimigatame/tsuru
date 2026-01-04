@@ -202,6 +202,25 @@ export const translationPt = {
       noResults: "Nenhum resultado encontrado",
       noRecords: "Nenhum alias disponível",
     },
+    diagnostics: {
+      tabName: "Diagnósticos",
+      runButton: "Executar Diagnósticos",
+      running: "Executando diagnósticos...",
+      summary: "Erros: {{errors}}, Avisos: {{warnings}}",
+      noIssues: "Nenhum problema encontrado",
+      description:
+        "Verifique a integridade da fonte de voz. Clique no botão para iniciar os diagnósticos.",
+      errorSection: "Erros",
+      warningSection: "Avisos",
+      types: {
+        wav_without_oto: "Arquivo WAV sem registro oto",
+        missing_frq: "Arquivo FRQ não encontrado",
+        invalid_wav_format:
+          "Formato WAV inválido (correto: 44100Hz/16bit/mono)",
+        oto_without_wav: "Registro oto referencia arquivo WAV ausente",
+        no_stretch_range: "Nenhum intervalo de estiramento disponível",
+      },
+    },
     agreeButton: "Concordo com todos os termos",
   },
   editor: {

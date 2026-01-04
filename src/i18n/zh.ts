@@ -193,6 +193,23 @@ export const translationZh = {
       noResults: "未找到结果",
       noRecords: "没有别名",
     },
+    diagnostics: {
+      tabName: "音源诊断",
+      runButton: "执行诊断",
+      running: "诊断中...",
+      summary: "错误: {{errors}}个，警告: {{warnings}}个",
+      noIssues: "未发现问题",
+      description: "检查音源完整性。点击按钮开始诊断。",
+      errorSection: "错误",
+      warningSection: "警告",
+      types: {
+        wav_without_oto: "没有oto记录的WAV文件",
+        missing_frq: "找不到FRQ文件",
+        invalid_wav_format: "WAV格式不正确（正确: 44100Hz/16bit/mono）",
+        oto_without_wav: "Oto记录引用的WAV文件不存在",
+        no_stretch_range: "没有可用的伸缩范围",
+      },
+    },
     agreeButton: "同意全部条款",
   },
   editor: {

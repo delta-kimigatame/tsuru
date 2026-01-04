@@ -199,6 +199,25 @@ export const translationJa = {
       noResults: "検索結果が見つかりません",
       noRecords: "エイリアスがありません",
     },
+    diagnostics: {
+      tabName: "音源診断",
+      runButton: "診断を実行",
+      running: "診断中...",
+      summary: "エラー: {{errors}}件、警告: {{warnings}}件",
+      noIssues: "問題は見つかりませんでした",
+      description:
+        "音源データの整合性をチェックします。ボタンを押して診断を開始してください。",
+      errorSection: "エラー",
+      warningSection: "警告",
+      types: {
+        wav_without_oto: "原音設定がないwavファイル",
+        missing_frq: "frqファイルが見つかりません",
+        invalid_wav_format:
+          "wavフォーマットが不正です（正: 44100Hz/16bit/mono）",
+        oto_without_wav: "原音設定が参照するwavファイルが見つかりません",
+        no_stretch_range: "伸縮範囲が存在しません",
+      },
+    },
     agreeButton: "全規約に同意",
   },
   editor: {

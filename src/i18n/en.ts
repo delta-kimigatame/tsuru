@@ -197,6 +197,24 @@ export const translationEn = {
       noResults: "No results found",
       noRecords: "No aliases available",
     },
+    diagnostics: {
+      tabName: "Diagnostics",
+      runButton: "Run Diagnostics",
+      running: "Running diagnostics...",
+      summary: "Errors: {{errors}}, Warnings: {{warnings}}",
+      noIssues: "No issues found",
+      description:
+        "Check voice bank integrity. Click the button to start diagnostics.",
+      errorSection: "Errors",
+      warningSection: "Warnings",
+      types: {
+        wav_without_oto: "WAV file without oto record",
+        missing_frq: "FRQ file not found",
+        invalid_wav_format: "Invalid WAV format (correct: 44100Hz/16bit/mono)",
+        oto_without_wav: "Oto record references missing WAV file",
+        no_stretch_range: "No stretch range available",
+      },
+    },
     agreeButton: "Agree to All",
   },
   editor: {

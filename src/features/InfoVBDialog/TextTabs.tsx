@@ -10,12 +10,13 @@ import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import { EncodingOption } from "../../utils/EncodingMapping";
 import { OtoAliasView } from "./OtoAliasView";
 import { TextTabContent } from "./TextTabContent";
+import { VoiceBankDiagnostics } from "./VoiceBankDiagnostics";
 
 /**
  * InfoVBDialogにおいて、zip内に含まれるテキストを表示するためのタブ
  * rootにreadme.txtが含まれる場合defaultの要素として表示する。
  * character.txtとinstall.txtはUTAUの設定ファイルのため表示しない。
- * エイリアス一覧タブも含む。
+ * エイリアス一覧タブと音源診断タブも含む。
  * @param props
  * @returns
  */
@@ -66,9 +67,10 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
     setValue(newValue);
   };
 
-  // タブの総数（テキストファイル数 + エイリアス一覧タブ1つ）
-  const totalTabCount = textFileList ? textFileList.length + 1 : 1;
+  // タブの総数（テキストファイル数 + エイリアス一覧タブ + 診断タブ）
+  const totalTabCount = textFileList ? textFileList.length + 2 : 2;
   const aliasTabIndex = textFileList ? textFileList.length : 0;
+  const diagnosticsTabIndex = aliasTabIndex + 1;
 
   return (
     <>
@@ -93,6 +95,13 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
                   value={aliasTabIndex}
                 />
               )}
+              {/* 音源診断タブ */}
+              {props.vb && (
+                <Tab
+                  label={t("infoVBDialog.diagnostics.tabName")}
+                  value={diagnosticsTabIndex}
+                />
+              )}
             </Tabs>
             {textFileList &&
               textFileList.map((f, i) => (
@@ -111,6 +120,12 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
             {props.vb && (
               <TabPanel value={aliasTabIndex} sx={{ p: 1 }}>
                 <OtoAliasView vb={props.vb} />
+              </TabPanel>
+            )}
+            {/* 音源診断パネル */}
+            {props.vb && (
+              <TabPanel value={diagnosticsTabIndex} sx={{ p: 1 }}>
+                <VoiceBankDiagnostics vb={props.vb} />
               </TabPanel>
             )}
           </TabContext>
