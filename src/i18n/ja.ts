@@ -220,6 +220,7 @@ export const translationJa = {
         oto_without_wav: "原音設定が参照するwavファイルが見つかりません",
         no_stretch_range: "伸縮範囲が存在しません",
         oto_outside_root: "音源ルートフォルダ外のoto.iniファイル",
+        config_file_misplaced: "読み込まれない設定ファイル",
       },
       help: {
         wav_without_oto: {
@@ -264,6 +265,13 @@ export const translationJa = {
           impact: "character.txtの配置が間違っている可能性があります。",
           solution:
             "Gakuyaで音源を再パッケージングし、character.txtの配置を修正してください。",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
+        },
+        config_file_misplaced: {
+          description: "設定ファイルが適切な個所に配置されていません。",
+          impact: "この設定ファイルは読み込まれません。",
+          solution: "Gakuyaで設定ファイルを修正することができます。",
           toolName: "Gakuya",
           toolUrl: "https://k-uta.jp/gakuya/",
         },

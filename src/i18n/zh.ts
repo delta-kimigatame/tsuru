@@ -212,6 +212,7 @@ export const translationZh = {
         oto_without_wav: "Oto记录引用的WAV文件不存在",
         no_stretch_range: "没有可用的伸缩范围",
         oto_outside_root: "音源根文件夹外的oto.ini文件",
+        config_file_misplaced: "未加载的配置文件",
       },
       help: {
         wav_without_oto: {
@@ -254,6 +255,13 @@ export const translationZh = {
             "检测到音源根文件夹（character.txt所在文件夹）外的oto.ini文件。",
           impact: "character.txt的位置可能不正确。",
           solution: "使用Gakuya重新打包音源并修正character.txt的位置。",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
+        },
+        config_file_misplaced: {
+          description: "配置文件未放置在正确的位置。",
+          impact: "此配置文件将不会被加载。",
+          solution: "可以使用Gakuya修复配置文件。",
           toolName: "Gakuya",
           toolUrl: "https://k-uta.jp/gakuya/",
         },

@@ -217,6 +217,7 @@ export const translationEn = {
         oto_without_wav: "Oto record references missing WAV file",
         no_stretch_range: "No stretch range available",
         oto_outside_root: "oto.ini file outside voice bank root folder",
+        config_file_misplaced: "Configuration file not loaded",
       },
       help: {
         wav_without_oto: {
@@ -262,6 +263,14 @@ export const translationEn = {
           impact: "The placement of character.txt may be incorrect.",
           solution:
             "Repackage the voice bank using Gakuya and fix the character.txt placement.",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
+        },
+        config_file_misplaced: {
+          description:
+            "Configuration file is not placed in the correct location.",
+          impact: "This configuration file will not be loaded.",
+          solution: "You can fix the configuration file using Gakuya.",
           toolName: "Gakuya",
           toolUrl: "https://k-uta.jp/gakuya/",
         },

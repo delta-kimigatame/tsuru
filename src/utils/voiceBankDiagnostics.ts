@@ -27,6 +27,7 @@ export enum DiagnosticType {
   WAV_WITHOUT_OTO = "wav_without_oto",
   MISSING_FRQ = "missing_frq",
   OTO_OUTSIDE_ROOT = "oto_outside_root",
+  CONFIG_FILE_MISPLACED = "config_file_misplaced",
 
   // Errors
   INVALID_WAV_FORMAT = "invalid_wav_format",
@@ -52,6 +53,9 @@ export const DIAGNOSTIC_TYPE_METADATA: Record<
   [DiagnosticType.WAV_WITHOUT_OTO]: { severity: DiagnosticSeverity.WARNING },
   [DiagnosticType.MISSING_FRQ]: { severity: DiagnosticSeverity.WARNING },
   [DiagnosticType.OTO_OUTSIDE_ROOT]: { severity: DiagnosticSeverity.WARNING },
+  [DiagnosticType.CONFIG_FILE_MISPLACED]: {
+    severity: DiagnosticSeverity.WARNING,
+  },
   [DiagnosticType.INVALID_WAV_FORMAT]: { severity: DiagnosticSeverity.ERROR },
   [DiagnosticType.OTO_WITHOUT_WAV]: { severity: DiagnosticSeverity.ERROR },
   [DiagnosticType.NO_STRETCH_RANGE]: { severity: DiagnosticSeverity.ERROR },
@@ -80,6 +84,9 @@ export async function diagnoseVoiceBank(
 
     const otoOutsideRoot = await checkOtoOutsideRoot(vb);
     warnings.push(...otoOutsideRoot);
+
+    const configMisplaced = await checkConfigFileMisplaced(vb);
+    warnings.push(...configMisplaced);
 
     // Error チェック
     const invalidFormat = await checkWavFormat(vb);
@@ -360,6 +367,47 @@ async function checkOtoOutsideRoot(
     );
   } catch (error) {
     LOG.debug(`checkOtoOutsideRootでエラー: ${error}`, "VoiceBankDiagnostics");
+  }
+
+  return warnings;
+}
+
+/**
+ * 設定ファイルが正しい位置に配置されているかチェック
+ */
+async function checkConfigFileMisplaced(
+  vb: BaseVoiceBank
+): Promise<DiagnosticItem[]> {
+  LOG.debug("設定ファイル配置チェック開始", "VoiceBankDiagnostics");
+  const warnings: DiagnosticItem[] = [];
+
+  try {
+    const root = vb.root !== undefined ? vb.root + "/" : "";
+    const configFiles = ["prefix.map", "character.yaml", "presamp.ini"];
+
+    for (const configFile of configFiles) {
+      const correctPath = root + configFile;
+      const allMatches = vb.filenames.filter((f) => f.endsWith(configFile));
+      const misplacedFiles = allMatches.filter((f) => f !== correctPath);
+
+      for (const file of misplacedFiles) {
+        warnings.push({
+          type: DiagnosticType.CONFIG_FILE_MISPLACED,
+          message: "config_file_misplaced",
+          details: file,
+        });
+      }
+    }
+
+    LOG.debug(
+      `配置ミスの設定ファイル: ${warnings.length}件`,
+      "VoiceBankDiagnostics"
+    );
+  } catch (error) {
+    LOG.debug(
+      `checkConfigFileMisplacedでエラー: ${error}`,
+      "VoiceBankDiagnostics"
+    );
   }
 
   return warnings;
