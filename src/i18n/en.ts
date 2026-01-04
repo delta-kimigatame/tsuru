@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/01/05\r\n[Fix] Fixed an issue where oto.ini files from other folders were incorrectly loaded under certain conditions, when only oto.ini files under character.txt folder should be loaded",
       "2026/01/04_2\r\n[Fix] Fixed an issue where oto configuration data loaded with the previous encoding remained when changing the character encoding in the voice bank info dialog\r\n[Fix] Fixed an issue where the diagnostics process would stop when corrupted FRQ files exist",
       "2026/01/04\r\n[Added] Countermeasure for app crashes when using browser's auto-translation feature\r\n[Added] Enhanced error display content when voice bank loading fails\r\n[Added] Added alias list tab to voice bank dialog\r\n[Added] Added diagnostics tab to voice bank dialog",
       "2026/01/03\r\n[Added] Added accompaniment-only playback feature. You can play only the selected range or play from the end of notes.\r\n[Fix] Fixed an issue where 48000Hz stereo accompaniment data could not be played\r\n[Fix] Fixed an issue where accompaniment would not play when moving the playback position in the positive direction",

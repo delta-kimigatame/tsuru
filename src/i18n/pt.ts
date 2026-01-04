@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/01/05\r\n[Correção] Corrigido problema onde arquivos oto.ini de outras pastas eram carregados incorretamente sob certas condições, quando apenas arquivos oto.ini na pasta do character.txt deveriam ser carregados",
       "2026/01/04_2\r\n[Correção] Corrigido problema onde dados de configuração oto carregados com a codificação anterior permaneciam ao alterar a codificação de caracteres no diálogo de informações do banco de voz\r\n[Correção] Corrigido problema onde o processo de diagnóstico parava quando existiam arquivos FRQ corrompidos",
       "2026/01/04\r\n[Adição] Medida contra falhas do aplicativo ao usar a função de tradução automática do navegador\r\n[Adição] Enriquecimento do conteúdo de exibição de erro ao falhar no carregamento do banco de voz\r\n[Adição] Adicionada aba de lista de aliases ao diálogo de banco de voz\r\n[Adição] Adicionada aba de diagnósticos ao diálogo de banco de voz",
       "2026/01/03\r\n[Adição] Adicionada função de reprodução apenas de acompanhamento. É possível reproduzir apenas o intervalo selecionado ou reproduzir a partir do final das notas.\r\n[Correção] Corrigido problema onde dados de acompanhamento estéreo de 48000Hz não podiam ser reproduzidos\r\n[Correção] Corrigido problema onde o acompanhamento não era reproduzido ao mover a posição de reprodução na direção positiva",
