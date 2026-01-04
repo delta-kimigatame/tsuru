@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/01/04\r\n[Added] Countermeasure for app crashes when using browser's auto-translation feature\r\n[Added] Enhanced error display content when voice bank loading fails\r\n[Added] Added alias list tab to voice bank dialog\r\n[Added] Added diagnostics tab to voice bank dialog",
       "2026/01/03\r\n[Added] Added accompaniment-only playback feature. You can play only the selected range or play from the end of notes.\r\n[Fix] Fixed an issue where 48000Hz stereo accompaniment data could not be played\r\n[Fix] Fixed an issue where accompaniment would not play when moving the playback position in the positive direction",
       "2026/01/02\r\n[Added] Added pitch snap to scale feature to batch processing\r\n[Added] Temporarily added Japanese presamp to phonemizer (under development)\r\n[Fix] Adjusted log granularity",
       "2025/12/31\r\n[Fix] Adjusted color themes. Previous color themes are retained as legacy themes.",
