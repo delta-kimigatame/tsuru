@@ -1,11 +1,17 @@
 import ErrorIcon from "@mui/icons-material/Error";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import WarningIcon from "@mui/icons-material/Warning";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
   CircularProgress,
   Divider,
+  Link,
   List,
   ListItem,
   ListItemIcon,
@@ -17,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import {
   diagnoseVoiceBank,
+  DiagnosticType,
   type DiagnosticItem,
   type DiagnosticResult,
 } from "../../utils/voiceBankDiagnostics";
@@ -30,6 +37,31 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
   const { t } = useTranslation();
   const [loading, setLoading] = React.useState<boolean>(false);
   const [result, setResult] = React.useState<DiagnosticResult | null>(null);
+
+  // 診断結果をタイプごとにグルーピング（フックは条件分岐の外で呼び出す）
+  const groupedErrors = React.useMemo(() => {
+    if (!result) return new Map<DiagnosticType, DiagnosticItem[]>();
+    const map = new Map<DiagnosticType, DiagnosticItem[]>();
+    result.errors.forEach((item) => {
+      if (!map.has(item.type)) {
+        map.set(item.type, []);
+      }
+      map.get(item.type)!.push(item);
+    });
+    return map;
+  }, [result]);
+
+  const groupedWarnings = React.useMemo(() => {
+    if (!result) return new Map<DiagnosticType, DiagnosticItem[]>();
+    const map = new Map<DiagnosticType, DiagnosticItem[]>();
+    result.warnings.forEach((item) => {
+      if (!map.has(item.type)) {
+        map.set(item.type, []);
+      }
+      map.get(item.type)!.push(item);
+    });
+    return map;
+  }, [result]);
 
   /**
    * 診断を実行
@@ -121,11 +153,14 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
               {t("infoVBDialog.diagnostics.errorSection")} (
               {result.errors.length})
             </Typography>
-            <List dense disablePadding>
-              {result.errors.map((item, index) => (
-                <DiagnosticListItem key={index} item={item} severity="error" />
-              ))}
-            </List>
+            {Array.from(groupedErrors.entries()).map(([type, items]) => (
+              <DiagnosticTypeSection
+                key={type}
+                type={type}
+                items={items}
+                severity="error"
+              />
+            ))}
             {result.warnings.length > 0 && <Divider sx={{ my: 2 }} />}
           </Box>
         )}
@@ -141,15 +176,14 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
               {t("infoVBDialog.diagnostics.warningSection")} (
               {result.warnings.length})
             </Typography>
-            <List dense disablePadding>
-              {result.warnings.map((item, index) => (
-                <DiagnosticListItem
-                  key={index}
-                  item={item}
-                  severity="warning"
-                />
-              ))}
-            </List>
+            {Array.from(groupedWarnings.entries()).map(([type, items]) => (
+              <DiagnosticTypeSection
+                key={type}
+                type={type}
+                items={items}
+                severity="warning"
+              />
+            ))}
           </Box>
         )}
       </Box>
@@ -170,6 +204,89 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
       >
         {t("infoVBDialog.diagnostics.runButton")}
       </Button>
+    </Box>
+  );
+};
+
+/**
+ * 診断タイプごとのセクション（ヘルプ + 項目リスト）
+ */
+const DiagnosticTypeSection: React.FC<{
+  type: DiagnosticType;
+  items: DiagnosticItem[];
+  severity: "error" | "warning";
+}> = ({ type, items, severity }) => {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = React.useState(false);
+
+  const helpKey = `infoVBDialog.diagnostics.help.${type}`;
+
+  return (
+    <Box sx={{ mb: 1 }}>
+      {/* ヘルプアコーディオン */}
+      <Accordion
+        expanded={expanded}
+        onChange={(_, isExpanded) => setExpanded(isExpanded)}
+        sx={{
+          boxShadow: "none",
+          border: "1px solid",
+          borderColor: "divider",
+          "&:before": { display: "none" },
+          mb: 0.5,
+        }}
+      >
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            minHeight: 36,
+            "&.Mui-expanded": { minHeight: 36 },
+            "& .MuiAccordionSummary-content": {
+              margin: "6px 0",
+              "&.Mui-expanded": { margin: "6px 0" },
+            },
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <InfoOutlinedIcon
+              sx={{ fontSize: "0.9rem", color: "text.secondary" }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {t(`infoVBDialog.diagnostics.types.${type}`)}
+            </Typography>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails sx={{ pt: 0, pb: 1 }}>
+          <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
+            {t(`${helpKey}.description`)}
+          </Typography>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mb: 0.5 }}
+          >
+            {t(`${helpKey}.impact`)}
+          </Typography>
+          <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
+            {t(`${helpKey}.solution`)}
+          </Typography>
+          <Link
+            href={t(`${helpKey}.toolUrl`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="caption"
+            sx={{ fontSize: "0.7rem" }}
+          >
+            {t(`${helpKey}.toolName`)} ↗
+          </Link>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 診断項目リスト */}
+      <List dense disablePadding>
+        {items.map((item, index) => (
+          <DiagnosticListItem key={index} item={item} severity={severity} />
+        ))}
+      </List>
     </Box>
   );
 };

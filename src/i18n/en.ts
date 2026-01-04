@@ -214,6 +214,45 @@ export const translationEn = {
         oto_without_wav: "Oto record references missing WAV file",
         no_stretch_range: "No stretch range available",
       },
+      help: {
+        wav_without_oto: {
+          description: "This WAV file cannot be used in the app.",
+          impact: "This is normal if it contains sample voices.",
+          solution: "If needed, add oto configuration using LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+        missing_frq: {
+          description: "Frequency table file (frq) does not exist.",
+          impact:
+            "Playback may take time, and auto-generation failure causes noise.",
+          solution: "You can generate frequency tables with Gakuya.",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
+        },
+        invalid_wav_format: {
+          description: "WAV file format is invalid.",
+          impact: "Playback related to this WAV file will fail.",
+          solution: "Unify the format using UtauWavFormatter.",
+          toolName: "UtauWavFormatter",
+          toolUrl: "https://k-uta.jp/UtauWavFormatter/",
+        },
+        oto_without_wav: {
+          description: "WAV file referenced by oto configuration not found.",
+          impact: "Using this alias will fail playback.",
+          solution: "Fix the oto configuration using LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+        no_stretch_range: {
+          description:
+            "No stretch range (velocity/fixed range to cutoff/blank) exists.",
+          impact: "Using this alias will fail playback.",
+          solution: "Fix the oto configuration using LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+      },
     },
     agreeButton: "Agree to All",
   },

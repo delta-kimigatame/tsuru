@@ -34,6 +34,28 @@ export enum DiagnosticType {
 }
 
 /**
+ * 診断タイプの重要度
+ */
+export enum DiagnosticSeverity {
+  WARNING = "warning",
+  ERROR = "error",
+}
+
+/**
+ * 診断タイプのメタデータ
+ */
+export const DIAGNOSTIC_TYPE_METADATA: Record<
+  DiagnosticType,
+  { severity: DiagnosticSeverity }
+> = {
+  [DiagnosticType.WAV_WITHOUT_OTO]: { severity: DiagnosticSeverity.WARNING },
+  [DiagnosticType.MISSING_FRQ]: { severity: DiagnosticSeverity.WARNING },
+  [DiagnosticType.INVALID_WAV_FORMAT]: { severity: DiagnosticSeverity.ERROR },
+  [DiagnosticType.OTO_WITHOUT_WAV]: { severity: DiagnosticSeverity.ERROR },
+  [DiagnosticType.NO_STRETCH_RANGE]: { severity: DiagnosticSeverity.ERROR },
+};
+
+/**
  * 音源の診断を実行する
  * @param vb 診断対象の音源
  * @returns 診断結果

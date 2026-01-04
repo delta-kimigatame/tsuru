@@ -220,6 +220,46 @@ export const translationPt = {
         oto_without_wav: "Registro oto referencia arquivo WAV ausente",
         no_stretch_range: "Nenhum intervalo de estiramento disponível",
       },
+      help: {
+        wav_without_oto: {
+          description: "Este arquivo WAV não pode ser usado no aplicativo.",
+          impact: "Isso é normal se contiver vozes de amostra.",
+          solution: "Se necessário, adicione a configuração oto usando LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+        missing_frq: {
+          description: "Arquivo de tabela de frequência (frq) não existe.",
+          impact:
+            "A reprodução pode levar tempo e a falha na geração automática causa ruído.",
+          solution: "Você pode gerar tabelas de frequência com Gakuya.",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
+        },
+        invalid_wav_format: {
+          description: "O formato do arquivo WAV é inválido.",
+          impact: "A reprodução relacionada a este arquivo WAV falhará.",
+          solution: "Unifique o formato usando UtauWavFormatter.",
+          toolName: "UtauWavFormatter",
+          toolUrl: "https://k-uta.jp/UtauWavFormatter/",
+        },
+        oto_without_wav: {
+          description:
+            "Arquivo WAV referenciado pela configuração oto não encontrado.",
+          impact: "Usar este alias falhará na reprodução.",
+          solution: "Corrija a configuração oto usando LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+        no_stretch_range: {
+          description:
+            "Não existe intervalo de extensão (velocity/intervalo fixo até cutoff/blank).",
+          impact: "Usar este alias falhará na reprodução.",
+          solution: "Corrija a configuração oto usando LABERU.",
+          toolName: "LABERU",
+          toolUrl: "https://k-uta.jp/laberu/",
+        },
+      },
     },
     agreeButton: "Concordo com todos os termos",
   },
