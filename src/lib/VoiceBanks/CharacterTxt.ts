@@ -73,6 +73,10 @@ export class CharacterTxt {
     if (values.version) {
       this._version = values.version;
     }
+    /** 読み込みが終了した時点で`this._name`が未定義の場合、何かがおかしいのでエラーを返す */
+    if (!this._name) {
+      throw new Error("Invalid character.txt.");
+    }
   }
 
   /**

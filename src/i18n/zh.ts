@@ -153,6 +153,7 @@ export const translationZh = {
     linkThirdParty: "第三方应用",
     linkRecstar: "录音应用 RecStar（sdercolin）",
     linkUtaformatix: "工程文件转换工具 UtaFormatix（sdercolin）",
+    invalidFile: "所选文件不是 zip 文件。请选择 zip 文件。",
   },
   loadVBDialog: {
     title: "读取 ZIP 文件",
@@ -160,6 +161,12 @@ export const translationZh = {
     encoding: "字符编码",
     submit: "确定",
     error: "读取失败。该文件不是有效的 UTAU 音源。",
+    encryptedError: "此 zip 文件已加密。无法读取加密文件。",
+    unzipError: "解压 zip 文件失败。文件可能已损坏。",
+    characterTxtNotFoundError:
+      "未找到 character.txt。UTAU 音源需要 character.txt 文件。",
+    invalidCharacterTxtError:
+      "解析 character.txt 失败。请检查 character.txt 格式是否正确。",
   },
   infoVBDialog: {
     characterInfo: {

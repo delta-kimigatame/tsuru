@@ -156,6 +156,8 @@ export const translationJa = {
     linkThirdParty: "第三者アプリ",
     linkRecstar: "録音アプリ RecStar(sdercolin)",
     linkUtaformatix: "プロジェクトファイル変換 UtaFormatix(sdercolin)",
+    invalidFile:
+      "選択されたファイルはzipファイルではありません。zipファイルを選択してください。",
   },
   loadVBDialog: {
     title: "ZIP読込",
@@ -163,6 +165,14 @@ export const translationJa = {
     encoding: "文字コード",
     submit: "OK",
     error: "読込失敗しました。このファイルはUTAU音源ではありません。",
+    encryptedError:
+      "このzipファイルは暗号化されています。暗号化されているファイルは読み込みできません。",
+    unzipError:
+      "zipファイルの解凍に失敗しました。ファイルが壊れている可能性があります。",
+    characterTxtNotFoundError:
+      "character.txtが見つかりませんでした。UTAU音源にはcharacter.txtが必要です。",
+    invalidCharacterTxtError:
+      "character.txtの解析に失敗しました。character.txtの形式が正しいか確認してください。",
   },
   infoVBDialog: {
     characterInfo: {

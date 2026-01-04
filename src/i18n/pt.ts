@@ -158,6 +158,8 @@ export const translationPt = {
     linkThirdParty: "Apps de terceiros",
     linkRecstar: "App de gravação RecStar (sdercolin)",
     linkUtaformatix: "Conversor de arquivos de projeto UtaFormatix (sdercolin)",
+    invalidFile:
+      "O arquivo selecionado não é um arquivo zip. Por favor, selecione um arquivo zip.",
   },
   loadVBDialog: {
     title: "Leitura de ZIP",
@@ -165,6 +167,14 @@ export const translationPt = {
     encoding: "Codificação de caracteres",
     submit: "OK",
     error: "Falha ao ler. Este arquivo não é uma fonte de voz UTAU.",
+    encryptedError:
+      "Este arquivo zip está criptografado. Arquivos criptografados não podem ser carregados.",
+    unzipError:
+      "Falha ao extrair o arquivo zip. O arquivo pode estar corrompido.",
+    characterTxtNotFoundError:
+      "character.txt não foi encontrado. Fontes de voz UTAU requerem um arquivo character.txt.",
+    invalidCharacterTxtError:
+      "Falha ao analisar character.txt. Por favor, verifique se o formato do character.txt está correto.",
   },
   infoVBDialog: {
     characterInfo: {

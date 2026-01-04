@@ -155,6 +155,8 @@ export const translationEn = {
     linkThirdParty: "Third-party tools",
     linkRecstar: "Recording tool: RecStar (sdercolin)",
     linkUtaformatix: "Project file converter: UtaFormatix (sdercolin)",
+    invalidFile:
+      "The selected file is not a zip file. Please select a zip file.",
   },
   loadVBDialog: {
     title: "Read Zip",
@@ -162,6 +164,13 @@ export const translationEn = {
     encoding: "character code",
     submit: "OK",
     error: "Load Error.This file is not UTAU VoiceBank.",
+    encryptedError:
+      "This zip file is encrypted. Encrypted files cannot be loaded.",
+    unzipError: "Failed to extract the zip file. The file may be corrupted.",
+    characterTxtNotFoundError:
+      "character.txt was not found. UTAU voicebanks require a character.txt file.",
+    invalidCharacterTxtError:
+      "Failed to parse character.txt. Please check if the character.txt format is correct.",
   },
   infoVBDialog: {
     characterInfo: {

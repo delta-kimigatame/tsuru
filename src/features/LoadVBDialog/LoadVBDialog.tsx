@@ -56,6 +56,24 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
         );
         setProcessing(false);
         setZipFiles(z.files);
+      })
+      .catch((e) => {
+        console.log(e.message);
+        LOG.error(
+          `encoding:${encoding}に基づきzipファイルのロード失敗:${e}`,
+          "LoadVBDialog"
+        );
+        snackBarStore.setSeverity("error");
+        if (e.message === "Encrypted zip are not supported") {
+          snackBarStore.setValue(t("loadVBDialog.encryptedError"));
+        } else {
+          snackBarStore.setValue(t("loadVBDialog.unzipError"));
+        }
+        snackBarStore.setOpen(true);
+        props.setDialogOpen(false);
+        setProcessing(false);
+        props.setDialogOpen(false);
+        props.setProcessing(false);
       });
   };
   /**
@@ -90,7 +108,16 @@ export const LoadVBDialog: React.FC<LoadVBDialogProps> = (props) => {
       .catch((e) => {
         LOG.error("zipをvoicebankとしてinitialize失敗", "LoadVBDialog");
         snackBarStore.setSeverity("error");
-        snackBarStore.setValue(t("loadVBDialog.error"));
+        if (e.message === "character.txt not found.") {
+          snackBarStore.setValue(t("loadVBDialog.characterTxtNotFoundError"));
+        } else if (
+          e.message === "Invalid character.txt." ||
+          e.message === "txtかnameのどちらかが必要です"
+        ) {
+          snackBarStore.setValue(t("loadVBDialog.invalidCharacterTxtError"));
+        } else {
+          snackBarStore.setValue(t("loadVBDialog.error"));
+        }
         snackBarStore.setOpen(true);
         props.setDialogOpen(false);
         props.setProcessing(false);

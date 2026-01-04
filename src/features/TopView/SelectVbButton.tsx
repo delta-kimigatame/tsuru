@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button, CircularProgress, Typography } from "@mui/material";
 import { LOG } from "../../lib/Logging";
+import { useSnackBarStore } from "../../store/snackBarStore";
 
 /**
  * このアプリケーションにおける最初のUTAU音源読込処理を実行するためのボタンです。
@@ -16,6 +17,8 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
   /** 隠し表示する<input>へのref */
   const inputRef = React.useRef(null);
   const { t } = useTranslation();
+  /** snackbarの操作 */
+  const snackBarStore = useSnackBarStore();
 
   /**
    * ボタンをクリックした際の動作。
@@ -38,12 +41,19 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
    * 実際のファイルの読込はloadVBDialogで行う。
    * @param e
    */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       LOG.warn(
         "音源zipの選択がキャンセルされたか失敗しました",
         "SelectVBButton"
       );
+      return;
+    }
+    const fileCheck = await isZipFile(e.target.files[0]);
+    if (!fileCheck) {
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("top.invalidFile"));
+      snackBarStore.setOpen(true);
       return;
     }
     props.setProcessing(true);
@@ -55,6 +65,26 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
     props.setReadFile(e.target.files[0]);
     LOG.info(`音源読込ダイアログの表示`, "SelectVBButton");
     props.setDialogOpen(true);
+  };
+
+  /**
+   * ファイルがZIPファイルかどうかを判定する
+   * @param file 判定するファイル
+   * @returns ZIPファイルの場合true
+   */
+  const isZipFile = async (file: File): Promise<boolean> => {
+    if (file.size < 4) return false;
+
+    const header = await file.slice(0, 4).arrayBuffer();
+    const bytes = new Uint8Array(header);
+
+    // ZIPファイルのマジックナンバー: 50 4B 03 04 (PK\x03\x04)
+    return (
+      bytes[0] === 0x50 &&
+      bytes[1] === 0x4b &&
+      bytes[2] === 0x03 &&
+      bytes[3] === 0x04
+    );
   };
 
   return (

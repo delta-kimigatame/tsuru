@@ -92,29 +92,33 @@ export class VoiceBankFiles extends BaseVoiceBank {
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
     }
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       this._root = characterTxtPath.split("/").slice(0, -1).join("/");
-      this.extractCharacterTxt(characterTxtPath, encoding).then(async (c) => {
-        this._character = c;
-        const asyncs = new Array<Promise<void>>();
-        this.extractCharacterYaml().then(async () => {
-          this.subbanksToPrefixmaps();
-          asyncs.push(this.extractReadme(encoding));
-          asyncs.push(this.extractIcon());
-          asyncs.push(this.extractSample());
-          asyncs.push(this.extractPortrait());
-          asyncs.push(this.extractPrefixmaps(encoding));
-          asyncs.push(this.extractOtoAll(encoding));
-          asyncs.push(this.extractPresampIni());
-          Promise.all(asyncs).then(() => {
-            if (!Object.keys(this._prefixmaps).includes("")) {
-              this._prefixmaps[""] = new PrefixMap();
-            }
-            this._initialized = true;
-            resolve();
+      this.extractCharacterTxt(characterTxtPath, encoding)
+        .then(async (c) => {
+          this._character = c;
+          const asyncs = new Array<Promise<void>>();
+          this.extractCharacterYaml().then(async () => {
+            this.subbanksToPrefixmaps();
+            asyncs.push(this.extractReadme(encoding));
+            asyncs.push(this.extractIcon());
+            asyncs.push(this.extractSample());
+            asyncs.push(this.extractPortrait());
+            asyncs.push(this.extractPrefixmaps(encoding));
+            asyncs.push(this.extractOtoAll(encoding));
+            asyncs.push(this.extractPresampIni());
+            Promise.all(asyncs).then(() => {
+              if (!Object.keys(this._prefixmaps).includes("")) {
+                this._prefixmaps[""] = new PrefixMap();
+              }
+              this._initialized = true;
+              resolve();
+            });
           });
+        })
+        .catch((error) => {
+          reject(error);
         });
-      });
     });
   }
   /**
@@ -123,13 +127,11 @@ export class VoiceBankFiles extends BaseVoiceBank {
    * @param encoding character.txtを読み込む際の文字コード
    */
   async extractCharacterTxt(path: string, encoding): Promise<CharacterTxt> {
-    return new Promise(async (resolve) => {
-      const characterBuf = await this._files[
-        this._filenames.indexOf(path)
-      ].arrayBuffer();
-      const character = await readTextFile(characterBuf, encoding);
-      resolve(new CharacterTxt({ txt: character }));
-    });
+    const characterBuf = await this._files[
+      this._filenames.indexOf(path)
+    ].arrayBuffer();
+    const character = await readTextFile(characterBuf, encoding);
+    return new CharacterTxt({ txt: character });
   }
   /**
    * character.txtにおいてimageで定義されているファイルがzip内にあれば、this._iconを更新する。

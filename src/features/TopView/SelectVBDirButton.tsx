@@ -55,10 +55,20 @@ export const SelectVBDirButton: React.FC<SelectVBDirButtonProps> = (props) => {
     try {
       await vbdir.initialize();
       setVb(vbdir);
-    } catch {
+    } catch (e) {
       LOG.error("dirをvoicebankとしてinitialize失敗", "SelectVBDirButton");
       snackBarStore.setSeverity("error");
-      snackBarStore.setValue(t("loadVBDialog.error"));
+      console.log(e.message);
+      if (e.message === "character.txt not found.") {
+        snackBarStore.setValue(t("loadVBDialog.characterTxtNotFoundError"));
+      } else if (
+        e.message === "Invalid character.txt." ||
+        e.message === "txtかnameのどちらかが必要です"
+      ) {
+        snackBarStore.setValue(t("loadVBDialog.invalidCharacterTxtError"));
+      } else {
+        snackBarStore.setValue(t("loadVBDialog.error"));
+      }
       snackBarStore.setOpen(true);
       props.setProcessing(false);
     }
