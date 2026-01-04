@@ -6,13 +6,16 @@ import JSZip from "jszip";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LOG } from "../../lib/Logging";
+import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import { EncodingOption } from "../../utils/EncodingMapping";
+import { OtoAliasView } from "./OtoAliasView";
 import { TextTabContent } from "./TextTabContent";
 
 /**
  * InfoVBDialogにおいて、zip内に含まれるテキストを表示するためのタブ
  * rootにreadme.txtが含まれる場合defaultの要素として表示する。
  * character.txtとinstall.txtはUTAUの設定ファイルのため表示しない。
+ * エイリアス一覧タブも含む。
  * @param props
  * @returns
  */
@@ -62,9 +65,14 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
     LOG.debug(`タブの変更。${newValue}`, "TextTabs");
     setValue(newValue);
   };
+
+  // タブの総数（テキストファイル数 + エイリアス一覧タブ1つ）
+  const totalTabCount = textFileList ? textFileList.length + 1 : 1;
+  const aliasTabIndex = textFileList ? textFileList.length : 0;
+
   return (
     <>
-      {textFileList === undefined ? (
+      {textFileList === undefined && !props.vb ? (
         <Box sx={{ m: 1 }}>{t("infoVBDialog.TextTabs.notFound")}</Box>
       ) : (
         <>
@@ -76,20 +84,35 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
               scrollButtons="auto"
               aria-label="textfile tabs"
             >
-              {textFileList.map((f, i) => (
-                <Tab label={f} value={i} />
-              ))}
-            </Tabs>
-            {textFileList.map((f, i) => (
-              <TabPanel key={f} value={i}>
-                <TextTabContent
-                  textFile={
-                    props.zipFiles !== null ? props.zipFiles[f] : props.files[f]
-                  }
-                  encoding={props.encoding}
+              {textFileList &&
+                textFileList.map((f, i) => <Tab key={f} label={f} value={i} />)}
+              {/* エイリアス一覧タブ */}
+              {props.vb && (
+                <Tab
+                  label={t("infoVBDialog.aliasView.tabName")}
+                  value={aliasTabIndex}
                 />
+              )}
+            </Tabs>
+            {textFileList &&
+              textFileList.map((f, i) => (
+                <TabPanel key={f} value={i} sx={{ p: 1 }}>
+                  <TextTabContent
+                    textFile={
+                      props.zipFiles !== null
+                        ? props.zipFiles[f]
+                        : props.files[f]
+                    }
+                    encoding={props.encoding}
+                  />
+                </TabPanel>
+              ))}
+            {/* エイリアス一覧パネル */}
+            {props.vb && (
+              <TabPanel value={aliasTabIndex} sx={{ p: 1 }}>
+                <OtoAliasView vb={props.vb} />
               </TabPanel>
-            ))}
+            )}
           </TabContext>
         </>
       )}
@@ -109,6 +132,8 @@ export interface TextTabsProps {
   files: { [key: string]: File };
   /** テキストファイルを読み込むための文字コード */
   encoding: EncodingOption;
+  /** VoiceBankインスタンス（エイリアス一覧表示用） */
+  vb: BaseVoiceBank | null;
 }
 
 /**

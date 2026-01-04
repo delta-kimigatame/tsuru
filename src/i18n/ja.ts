@@ -189,6 +189,16 @@ export const translationJa = {
     TextTabContent: {
       error: "テキストファイルの読み込みに失敗しました。",
     },
+    aliasView: {
+      tabName: "エイリアス一覧",
+      searchPlaceholder: "検索...",
+      recordCount: "全 {{total}} 件中 {{filtered}} 件を表示",
+      aliasColumn: "エイリアス",
+      filenameColumn: "ファイル",
+      folderColumn: "フォルダ",
+      noResults: "検索結果が見つかりません",
+      noRecords: "エイリアスがありません",
+    },
     agreeButton: "全規約に同意",
   },
   editor: {

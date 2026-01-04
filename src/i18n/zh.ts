@@ -183,6 +183,16 @@ export const translationZh = {
     TextTabContent: {
       error: "读取文本文件失败。",
     },
+    aliasView: {
+      tabName: "别名列表",
+      searchPlaceholder: "搜索...",
+      recordCount: "显示 {{filtered}} / {{total}} 条记录",
+      aliasColumn: "别名",
+      filenameColumn: "文件",
+      folderColumn: "文件夹",
+      noResults: "未找到结果",
+      noRecords: "没有别名",
+    },
     agreeButton: "同意全部条款",
   },
   editor: {

@@ -149,6 +149,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
                 zipFiles={vb.zip}
                 files={vb.files}
                 encoding={encoding}
+                vb={vb}
               />
             ) : (
               <CircularProgress />

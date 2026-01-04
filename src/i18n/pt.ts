@@ -192,6 +192,16 @@ export const translationPt = {
     TextTabContent: {
       error: "Falha ao ler o arquivo de texto.",
     },
+    aliasView: {
+      tabName: "Lista de Aliases",
+      searchPlaceholder: "Pesquisar...",
+      recordCount: "Mostrando {{filtered}} de {{total}} registros",
+      aliasColumn: "Alias",
+      filenameColumn: "Arquivo",
+      folderColumn: "Pasta",
+      noResults: "Nenhum resultado encontrado",
+      noRecords: "Nenhum alias disponível",
+    },
     agreeButton: "Concordo com todos os termos",
   },
   editor: {

@@ -187,6 +187,16 @@ export const translationEn = {
     TextTabContent: {
       error: "can't read txtfile.",
     },
+    aliasView: {
+      tabName: "Alias List",
+      searchPlaceholder: "Search...",
+      recordCount: "Showing {{filtered}} of {{total}} records",
+      aliasColumn: "Alias",
+      filenameColumn: "File",
+      folderColumn: "Folder",
+      noResults: "No results found",
+      noRecords: "No aliases available",
+    },
     agreeButton: "Agree to All",
   },
   editor: {
