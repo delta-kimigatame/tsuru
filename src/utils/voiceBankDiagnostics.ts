@@ -26,6 +26,7 @@ export enum DiagnosticType {
   // Warnings
   WAV_WITHOUT_OTO = "wav_without_oto",
   MISSING_FRQ = "missing_frq",
+  OTO_OUTSIDE_ROOT = "oto_outside_root",
 
   // Errors
   INVALID_WAV_FORMAT = "invalid_wav_format",
@@ -50,6 +51,7 @@ export const DIAGNOSTIC_TYPE_METADATA: Record<
 > = {
   [DiagnosticType.WAV_WITHOUT_OTO]: { severity: DiagnosticSeverity.WARNING },
   [DiagnosticType.MISSING_FRQ]: { severity: DiagnosticSeverity.WARNING },
+  [DiagnosticType.OTO_OUTSIDE_ROOT]: { severity: DiagnosticSeverity.WARNING },
   [DiagnosticType.INVALID_WAV_FORMAT]: { severity: DiagnosticSeverity.ERROR },
   [DiagnosticType.OTO_WITHOUT_WAV]: { severity: DiagnosticSeverity.ERROR },
   [DiagnosticType.NO_STRETCH_RANGE]: { severity: DiagnosticSeverity.ERROR },
@@ -75,6 +77,9 @@ export async function diagnoseVoiceBank(
 
     const missingFrq = await checkMissingFrq(vb);
     warnings.push(...missingFrq);
+
+    const otoOutsideRoot = await checkOtoOutsideRoot(vb);
+    warnings.push(...otoOutsideRoot);
 
     // Error チェック
     const invalidFormat = await checkWavFormat(vb);
@@ -322,6 +327,42 @@ async function checkStretchRange(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
   }
 
   return errors;
+}
+
+/**
+ * 音源ルートフォルダ外のoto.iniファイルをチェック
+ */
+async function checkOtoOutsideRoot(
+  vb: BaseVoiceBank
+): Promise<DiagnosticItem[]> {
+  LOG.debug(
+    "音源ルートフォルダ外のoto.iniチェック開始",
+    "VoiceBankDiagnostics"
+  );
+  const warnings: DiagnosticItem[] = [];
+
+  try {
+    const root = vb.root !== undefined ? vb.root + "/" : "";
+    const allOtoFiles = vb.filenames.filter((f) => f.endsWith("oto.ini"));
+    const outsideOtoFiles = allOtoFiles.filter((f) => !f.startsWith(root));
+
+    for (const otoFile of outsideOtoFiles) {
+      warnings.push({
+        type: DiagnosticType.OTO_OUTSIDE_ROOT,
+        message: "oto_outside_root",
+        details: otoFile,
+      });
+    }
+
+    LOG.debug(
+      `音源ルート外のoto.ini: ${warnings.length}件`,
+      "VoiceBankDiagnostics"
+    );
+  } catch (error) {
+    LOG.debug(`checkOtoOutsideRootでエラー: ${error}`, "VoiceBankDiagnostics");
+  }
+
+  return warnings;
 }
 
 /**

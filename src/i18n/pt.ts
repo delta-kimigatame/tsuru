@@ -222,6 +222,7 @@ export const translationPt = {
           "Formato WAV inválido (correto: 44100Hz/16bit/mono)",
         oto_without_wav: "Registro oto referencia arquivo WAV ausente",
         no_stretch_range: "Nenhum intervalo de estiramento disponível",
+        oto_outside_root: "Arquivo oto.ini fora da pasta raiz da fonte de voz",
       },
       help: {
         wav_without_oto: {
@@ -261,6 +262,15 @@ export const translationPt = {
           solution: "Corrija a configuração oto usando LABERU.",
           toolName: "LABERU",
           toolUrl: "https://k-uta.jp/laberu/",
+        },
+        oto_outside_root: {
+          description:
+            "Arquivo oto.ini detectado fora da pasta raiz da fonte de voz (onde existe character.txt).",
+          impact: "A posição do character.txt pode estar incorreta.",
+          solution:
+            "Reempacote a fonte de voz usando Gakuya e corrija a posição do character.txt.",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
         },
       },
     },

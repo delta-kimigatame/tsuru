@@ -81,6 +81,14 @@ export abstract class BaseVoiceBank {
   get initialized(): boolean {
     return this._initialized;
   }
+
+  /**
+   * 全ファイル名の一覧（rootフィルタリング前）
+   */
+  get filenames(): string[] {
+    return this._filenames;
+  }
+
   /**
    * character.txtで定義された音源名
    */

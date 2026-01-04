@@ -219,6 +219,7 @@ export const translationJa = {
           "wavフォーマットが不正です（正: 44100Hz/16bit/mono）",
         oto_without_wav: "原音設定が参照するwavファイルが見つかりません",
         no_stretch_range: "伸縮範囲が存在しません",
+        oto_outside_root: "音源ルートフォルダ外のoto.iniファイル",
       },
       help: {
         wav_without_oto: {
@@ -256,6 +257,15 @@ export const translationJa = {
           solution: "LABERUで原音設定を修正してください。",
           toolName: "LABERU",
           toolUrl: "https://k-uta.jp/laberu/",
+        },
+        oto_outside_root: {
+          description:
+            "音源ルートフォルダ（character.txtがあるフォルダ）外のoto.iniファイルが検出されました。",
+          impact: "character.txtの配置が間違っている可能性があります。",
+          solution:
+            "Gakuyaで音源を再パッケージングし、character.txtの配置を修正してください。",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
         },
       },
     },

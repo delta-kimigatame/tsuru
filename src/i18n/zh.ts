@@ -211,6 +211,7 @@ export const translationZh = {
         invalid_wav_format: "WAV格式不正确（正确: 44100Hz/16bit/mono）",
         oto_without_wav: "Oto记录引用的WAV文件不存在",
         no_stretch_range: "没有可用的伸缩范围",
+        oto_outside_root: "音源根文件夹外的oto.ini文件",
       },
       help: {
         wav_without_oto: {
@@ -247,6 +248,14 @@ export const translationZh = {
           solution: "使用LABERU修复原音设定。",
           toolName: "LABERU",
           toolUrl: "https://k-uta.jp/laberu/",
+        },
+        oto_outside_root: {
+          description:
+            "检测到音源根文件夹（character.txt所在文件夹）外的oto.ini文件。",
+          impact: "character.txt的位置可能不正确。",
+          solution: "使用Gakuya重新打包音源并修正character.txt的位置。",
+          toolName: "Gakuya",
+          toolUrl: "https://k-uta.jp/gakuya/",
         },
       },
     },
