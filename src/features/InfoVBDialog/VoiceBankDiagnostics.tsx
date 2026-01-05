@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { LOG } from "../../lib/Logging";
 import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import {
   diagnoseVoiceBank,
@@ -77,10 +78,42 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
           diagnoseVoiceBank(vb)
             .then((diagnosticResult) => {
               setResult(diagnosticResult);
+              LOG.gtag("vbDiagnostics", {
+                // Warnings
+                wav_without_oto:
+                  diagnosticResult.warnings.some(
+                    (w) => w.type === "wav_without_oto"
+                  ) || false,
+                missing_frq:
+                  diagnosticResult.warnings.some(
+                    (w) => w.type === "missing_frq"
+                  ) || false,
+                oto_outside_root:
+                  diagnosticResult.warnings.some(
+                    (w) => w.type === "oto_outside_root"
+                  ) || false,
+                config_file_misplaced:
+                  diagnosticResult.warnings.some(
+                    (w) => w.type === "config_file_misplaced"
+                  ) || false,
+                // Errors
+                invalid_wav_format:
+                  diagnosticResult.errors.some(
+                    (e) => e.type === "invalid_wav_format"
+                  ) || false,
+                oto_without_wav:
+                  diagnosticResult.errors.some(
+                    (e) => e.type === "oto_without_wav"
+                  ) || false,
+                no_stretch_range:
+                  diagnosticResult.errors.some(
+                    (e) => e.type === "no_stretch_range"
+                  ) || false,
+              });
               setLoading(false);
             })
             .catch((error) => {
-              console.error("診断エラー:", error);
+              LOG.error(`診断エラー:${error.message}`, "VoiceBankDiagnostics");
               setLoading(false);
             });
         });
