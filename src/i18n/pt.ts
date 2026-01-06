@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/01/06\r\n[Adicionado] Adicionada aba prefix.map ao diálogo de informações do banco de voz",
       "2026/01/05_2\r\n[Correção] Diagnósticos do banco de voz aprimorados",
       "2026/01/05\r\n[Correção] Corrigido problema onde arquivos oto.ini de outras pastas eram carregados incorretamente sob certas condições, quando apenas arquivos oto.ini na pasta do character.txt deveriam ser carregados",
       "2026/01/04_2\r\n[Correção] Corrigido problema onde dados de configuração oto carregados com a codificação anterior permaneciam ao alterar a codificação de caracteres no diálogo de informações do banco de voz\r\n[Correção] Corrigido problema onde o processo de diagnóstico parava quando existiam arquivos FRQ corrompidos",

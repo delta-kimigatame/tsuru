@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/01/06\r\n[Added] Added prefix.map tab to voice bank information dialog",
       "2026/01/05_2\r\n[Fix] Enhanced voice bank diagnostics",
       "2026/01/05\r\n[Fix] Fixed an issue where oto.ini files from other folders were incorrectly loaded under certain conditions, when only oto.ini files under character.txt folder should be loaded",
       "2026/01/04_2\r\n[Fix] Fixed an issue where oto configuration data loaded with the previous encoding remained when changing the character encoding in the voice bank info dialog\r\n[Fix] Fixed an issue where the diagnostics process would stop when corrupted FRQ files exist",
