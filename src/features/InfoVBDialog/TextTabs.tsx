@@ -9,6 +9,7 @@ import { LOG } from "../../lib/Logging";
 import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import { EncodingOption } from "../../utils/EncodingMapping";
 import { OtoAliasView } from "./OtoAliasView";
+import { PrefixMapView } from "./PrefixMapView";
 import { TextTabContent } from "./TextTabContent";
 import { VoiceBankDiagnostics } from "./VoiceBankDiagnostics";
 
@@ -67,10 +68,11 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
     setValue(newValue);
   };
 
-  // タブの総数（テキストファイル数 + エイリアス一覧タブ + 診断タブ）
-  const totalTabCount = textFileList ? textFileList.length + 2 : 2;
+  // タブの総数（テキストファイル数 + エイリアス一覧タブ + prefix.mapタブ + 診断タブ）
+  const totalTabCount = textFileList ? textFileList.length + 3 : 3;
   const aliasTabIndex = textFileList ? textFileList.length : 0;
-  const diagnosticsTabIndex = aliasTabIndex + 1;
+  const prefixMapTabIndex = aliasTabIndex + 1;
+  const diagnosticsTabIndex = prefixMapTabIndex + 1;
 
   return (
     <>
@@ -93,6 +95,13 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
                 <Tab
                   label={t("infoVBDialog.aliasView.tabName")}
                   value={aliasTabIndex}
+                />
+              )}
+              {/* prefix.mapタブ */}
+              {props.vb && (
+                <Tab
+                  label={t("infoVBDialog.prefixMapView.tabName")}
+                  value={prefixMapTabIndex}
                 />
               )}
               {/* 音源診断タブ */}
@@ -120,6 +129,12 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
             {props.vb && (
               <TabPanel value={aliasTabIndex} sx={{ p: 1 }}>
                 <OtoAliasView vb={props.vb} />
+              </TabPanel>
+            )}
+            {/* prefix.mapパネル */}
+            {props.vb && (
+              <TabPanel value={prefixMapTabIndex} sx={{ p: 1 }}>
+                <PrefixMapView vb={props.vb} />
               </TabPanel>
             )}
             {/* 音源診断パネル */}

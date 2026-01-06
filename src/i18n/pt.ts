@@ -206,6 +206,14 @@ export const translationPt = {
       noResults: "Nenhum resultado encontrado",
       noRecords: "Nenhum alias disponível",
     },
+    prefixMapView: {
+      tabName: "prefix.map",
+      pitchColumn: "Tom",
+      prefixColumn: "prefix",
+      suffixColumn: "suffix",
+      voiceColorLabel: "Cor de Voz",
+      noData: "prefix.map não configurado",
+    },
     diagnostics: {
       tabName: "Diagnósticos",
       runButton: "Executar Diagnósticos",

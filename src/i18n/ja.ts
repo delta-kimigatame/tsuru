@@ -203,6 +203,14 @@ export const translationJa = {
       noResults: "検索結果が見つかりません",
       noRecords: "エイリアスがありません",
     },
+    prefixMapView: {
+      tabName: "prefix.map",
+      pitchColumn: "音高",
+      prefixColumn: "prefix",
+      suffixColumn: "suffix",
+      voiceColorLabel: "ボイスカラー",
+      noData: "prefix.mapが設定されていません",
+    },
     diagnostics: {
       tabName: "音源診断",
       runButton: "診断を実行",

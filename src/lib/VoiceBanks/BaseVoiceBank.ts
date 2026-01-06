@@ -267,6 +267,21 @@ export abstract class BaseVoiceBank {
   }
 
   /**
+   * colorとnotenumを使ってprefix.mapからprefix/suffixを返す。
+   * @param notenum ノートの音高
+   * @param color ボイスカラー
+   * @returns prefix.mapから取得したprefix/suffix
+   */
+  getPrefixMap(
+    notenum: number,
+    color: string = ""
+  ): { prefix: string; suffix: string } {
+    const c = Object.keys(this._prefixmaps).includes(color) ? color : "";
+    const mapValue = this._prefixmaps[c].getValue(notenum);
+    return { prefix: mapValue.prefix, suffix: mapValue.suffix };
+  }
+
+  /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名
    * @returns　wavデータ

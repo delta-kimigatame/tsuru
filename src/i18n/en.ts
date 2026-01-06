@@ -201,6 +201,14 @@ export const translationEn = {
       noResults: "No results found",
       noRecords: "No aliases available",
     },
+    prefixMapView: {
+      tabName: "prefix.map",
+      pitchColumn: "Pitch",
+      prefixColumn: "prefix",
+      suffixColumn: "suffix",
+      voiceColorLabel: "Voice Color",
+      noData: "prefix.map not configured",
+    },
     diagnostics: {
       tabName: "Diagnostics",
       runButton: "Run Diagnostics",

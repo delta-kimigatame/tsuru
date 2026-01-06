@@ -197,6 +197,14 @@ export const translationZh = {
       noResults: "未找到结果",
       noRecords: "没有别名",
     },
+    prefixMapView: {
+      tabName: "prefix.map",
+      pitchColumn: "音高",
+      prefixColumn: "prefix",
+      suffixColumn: "suffix",
+      voiceColorLabel: "音色",
+      noData: "未设置prefix.map",
+    },
     diagnostics: {
       tabName: "音源诊断",
       runButton: "执行诊断",
