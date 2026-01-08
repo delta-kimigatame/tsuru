@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/01/08\r\n【修复】修复了根据zip压缩环境的不同，即使文件夹配置正确也可能无法读取音源配置文件的问题",
       "2026/01/06\r\n【新增】在音源信息对话框中添加prefix.map标签页",
       "2026/01/05_2\r\n【修复】增强音源诊断功能",
       "2026/01/05\r\n【修复】修复了在特定条件下，本应只读取character.txt所在文件夹下的oto.ini文件，却错误地读取了其他文件夹的oto.ini文件的问题",

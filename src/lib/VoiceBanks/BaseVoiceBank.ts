@@ -315,7 +315,8 @@ export abstract class BaseVoiceBank {
    * @param encoding oto.ini読み込み時の文字コード
    */
   async extractOtoAll(encoding): Promise<void> {
-    const root = this._root !== undefined ? this._root + "/" : "";
+    const root =
+      this._root !== undefined && this._root !== "" ? this._root + "/" : "";
     return new Promise(async (resolve) => {
       const otoPaths = this._filenames
         .filter((f) => f.endsWith("oto.ini"))

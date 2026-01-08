@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/01/08\r\n[Correção] Corrigido problema onde arquivos de configuração do banco de voz não podiam ser carregados apesar da disposição correta das pastas, dependendo do ambiente de compactação zip",
       "2026/01/06\r\n[Adicionado] Adicionada aba prefix.map ao diálogo de informações do banco de voz",
       "2026/01/05_2\r\n[Correção] Diagnósticos do banco de voz aprimorados",
       "2026/01/05\r\n[Correção] Corrigido problema onde arquivos oto.ini de outras pastas eram carregados incorretamente sob certas condições, quando apenas arquivos oto.ini na pasta do character.txt deveriam ser carregados",

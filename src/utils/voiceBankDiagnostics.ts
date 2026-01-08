@@ -349,7 +349,7 @@ async function checkOtoOutsideRoot(
   const warnings: DiagnosticItem[] = [];
 
   try {
-    const root = vb.root !== undefined ? vb.root + "/" : "";
+    const root = vb.root !== undefined && vb.root !== "" ? vb.root + "/" : "";
     const allOtoFiles = vb.filenames.filter((f) => f.endsWith("oto.ini"));
     const outsideOtoFiles = allOtoFiles.filter((f) => !f.startsWith(root));
 
@@ -382,7 +382,7 @@ async function checkConfigFileMisplaced(
   const warnings: DiagnosticItem[] = [];
 
   try {
-    const root = vb.root !== undefined ? vb.root + "/" : "";
+    const root = vb.root !== undefined && vb.root !== "" ? vb.root + "/" : "";
     const configFiles = ["prefix.map", "character.yaml", "presamp.ini"];
 
     for (const configFile of configFiles) {
