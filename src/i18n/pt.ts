@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/02/16\r\n[Adição] Adicionado anúncio do evento na página inicial",
       "2026/01/08\r\n[Correção] Corrigido problema onde arquivos de configuração do banco de voz não podiam ser carregados apesar da disposição correta das pastas, dependendo do ambiente de compactação zip",
       "2026/01/06\r\n[Adicionado] Adicionada aba prefix.map ao diálogo de informações do banco de voz",
       "2026/01/05_2\r\n[Correção] Diagnósticos do banco de voz aprimorados",
@@ -153,6 +154,31 @@ export const translationPt = {
       "2025/03/23\nCorrigido um problema em que fontes de voz UTAU com determinados caracteres no nome do arquivo não podiam ser usadas.\nCorrigido um problema de distorção imediata do som.\nFunção de log aprimorada para futuras correções de bugs.",
       "2025/03/22\nAgora é possível usar fontes de voz que não podiam ser usadas corretamente antes. (Quando o overlap é negativo, quando o arquivo wav está na raiz da fonte, quando não há alias definido nas configurações, quando não há frq)\nAgora é possível carregar ust que não podiam ser carregados corretamente antes. (Quando há inconsistências nos parâmetros de pitch)\nAjustado o layout da tela de exibição de logs.",
       "2025/03/21\nPrimeira versão publicada.",
+    ],
+    campaign: {
+      title: "Informações do evento",
+      about: "Visão geral",
+      datetime: "Período",
+      regulation: "Regras de participação",
+      eventTag: "Tag para as postagens",
+    },
+    campaigns: [
+      {
+        title: "Festival UTAlet 1º",
+        about:
+          "Em 21/03/2026 o UTAlet completa 1 ano. Vamos postar vídeos de UTAlet!",
+        startDatetime: "14/03/2026",
+        endDatetime: "21/03/2026",
+        eventTag: "UTAlet1stFest",
+        regulations: [
+          "Publique seu vídeo durante o período do evento.",
+          "Músicas originais, covers, vídeos de aula... vale tudo se usar UTAlet!",
+          "Colaborações com outros softwares de síntese também são OK!",
+          "Respeite os termos de uso de cada banco de voz.",
+          "Recomendamos o NicoNico, mas outros sites de vídeo também são OK.",
+          "Siga as regras do site onde você publicar.",
+        ],
+      },
     ],
     linkTitle: "Links",
     linkSynthesis: "Software principal",

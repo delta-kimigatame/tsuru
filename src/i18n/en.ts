@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/02/16\r\n[Added] Added event announcement to the top page",
       "2026/01/08\r\n[Fix] Fixed an issue where voice bank configuration files could not be loaded despite correct folder placement, depending on the zip environment",
       "2026/01/06\r\n[Added] Added prefix.map tab to voice bank information dialog",
       "2026/01/05_2\r\n[Fix] Enhanced voice bank diagnostics",
@@ -150,6 +151,31 @@ export const translationEn = {
       "2025/03/23\nFixed an issue where UTA fails to process voice banks with filenames containing specific characters.\nFixed an issue that caused immediate audio distortion.\nEnhanced logging functionality for improved troubleshooting in future updates.",
       "2025/03/22\nVoiceBanks that were not UTA'd properly can now be UTA'd normally. (in cases where the overlap is a negative number, when the wav file is in the original sound root, when no alias is set in oto, or when frq is missing)\nust that could not be loaded normally can now be loaded. (in cases where pitch-related parameters are inconsistent)\nAdjusted the layout of the log display screen",
       "2025/03/21\nRelease",
+    ],
+    campaign: {
+      title: "Event Info",
+      about: "Overview",
+      datetime: "Schedule",
+      regulation: "Participation Rules",
+      eventTag: "Tag for submissions",
+    },
+    campaigns: [
+      {
+        title: "UTAlet 1st Festival",
+        about:
+          "UTAlet turns 1 year old on March 21, 2026. Let’s post your UTAlet videos!",
+        startDatetime: "Mar 14, 2026",
+        endDatetime: "Mar 21, 2026",
+        eventTag: "UTAlet1stFest",
+        regulations: [
+          "Post your video during the event period.",
+          "Original songs, covers, tutorials... anything made with UTAlet is welcome!",
+          "Collaborations with other synthesis software are OK too.",
+          "Follow each voicebank’s terms of use.",
+          "NicoNico is recommended, but other video sites are OK.",
+          "Follow the rules of the site where you post.",
+        ],
+      },
     ],
     linkTitle: "Links",
     linkSynthesis: "Core synthesis software",

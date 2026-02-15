@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/02/16\r\n【新增】在首页添加活动告知",
       "2026/01/08\r\n【修复】修复了根据zip压缩环境的不同，即使文件夹配置正确也可能无法读取音源配置文件的问题",
       "2026/01/06\r\n【新增】在音源信息对话框中添加prefix.map标签页",
       "2026/01/05_2\r\n【修复】增强音源诊断功能",
@@ -148,6 +149,30 @@ export const translationZh = {
       "2025/03/23\r\n【修复】修复文件名中含特定字符的 UTAU 音源无法使用的问题。\r\n【修复】修复易发生爆音的问题。\r\n【修复】为未来故障排查增强日志功能",
       "2025/03/22\r\n【修复】修复原本无法使用的音源现已可正常使用（如 overlap 为负数、wav 文件位于原音根目录、Alias 未设置、frq 缺失等情况）。\r\n【修复】修复部分无法正常读取的 ust 文件（如音高参数不一致）。\r\n【修复】调整日志显示页面的布局",
       "2025/03/21\r\n【新增】首个版本发布",
+    ],
+    campaign: {
+      title: "投稿活动信息",
+      about: "活动简介",
+      datetime: "举办时间",
+      regulation: "参与规则",
+      eventTag: "投稿作品标签",
+    },
+    campaigns: [
+      {
+        title: "UTAlet 1st Festival",
+        about: "2026年3月21日是 UTAlet 一周年。一起投稿你的 UTAlet 视频吧！",
+        startDatetime: "2026年3月14日",
+        endDatetime: "2026年3月21日",
+        eventTag: "UTAlet1stFest",
+        regulations: [
+          "活动期间投稿视频即可参与！",
+          "原创曲、翻唱、教程视频……只要使用 UTAlet 就可以！",
+          "与其他合成软件联动/合作也没问题！",
+          "请遵守各音源库的使用条款。",
+          "推荐投稿到 Niconico，其他视频平台也可以。",
+          "请遵守投稿网站的规则。",
+        ],
+      },
     ],
     linkTitle: "链接",
     linkSynthesis: "主程序",
