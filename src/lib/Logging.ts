@@ -52,7 +52,11 @@ class Logging {
       this.log(LogLevel.DEBUG, value, source);
       return;
     }
-    const hostname = window.location.hostname;
+    const hostname = window.location?.hostname;
+    if (!hostname) {
+      this.log(LogLevel.DEBUG, value, source);
+      return;
+    }
     /** 本番環境ではdebugログは記録しない */
     if (hostname === "localhost" || /^[0-9.]+$/.test(hostname)) {
       this.log(LogLevel.DEBUG, value, source);
