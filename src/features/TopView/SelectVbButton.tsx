@@ -75,7 +75,16 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
   const isZipFile = async (file: File): Promise<boolean> => {
     if (file.size < 4) return false;
 
-    const header = await file.slice(0, 4).arrayBuffer();
+    const slice = file.slice(0, 4);
+    const header =
+      typeof slice.arrayBuffer === "function"
+        ? await slice.arrayBuffer()
+        : await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(slice);
+          });
     const bytes = new Uint8Array(header);
 
     // ZIPファイルのマジックナンバー: 50 4B 03 04 (PK\x03\x04)

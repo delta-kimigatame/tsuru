@@ -1,5 +1,5 @@
 import { ThemeProvider, createTheme } from "@mui/material";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getDesignTokens } from "../../../src/config/theme";
 import {
@@ -10,6 +10,12 @@ import i18n from "../../../src/i18n/configs";
 
 i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
+
+if (!Blob.prototype.arrayBuffer) {
+  Blob.prototype.arrayBuffer = function () {
+    return Promise.resolve(new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer);
+  };
+}
 
 describe("SelectVBButton", () => {
   let setProcessing: () => void;
@@ -44,16 +50,22 @@ describe("SelectVBButton", () => {
     expect(setReadFile).toHaveBeenCalledWith(null);
   });
 
-  it("ファイルが選択されるとsetProcessing、setReadFile、setDialogOpenが呼ばれる", () => {
+  it("ファイルが選択されるとsetProcessing、setReadFile、setDialogOpenが呼ばれる", async () => {
     renderComponent();
     const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    const file = new File(["dummy content"], "test.zip", {
-      type: "application/zip",
-    });
+    const file = new File(
+      [new Uint8Array([0x50, 0x4b, 0x03, 0x04]), "dummy content"],
+      "test.zip",
+      {
+        type: "application/zip",
+      }
+    );
     fireEvent.change(fileInput, { target: { files: [file] } });
-    expect(setProcessing).toHaveBeenCalledWith(true);
-    expect(setReadFile).toHaveBeenCalledWith(file);
-    expect(setDialogOpen).toHaveBeenCalledWith(true);
+    await waitFor(() => {
+      expect(setProcessing).toHaveBeenCalledWith(true);
+      expect(setReadFile).toHaveBeenCalledWith(file);
+      expect(setDialogOpen).toHaveBeenCalledWith(true);
+    });
   });
 
   it("ファイルが選択されなかった場合は何も実行されない", () => {

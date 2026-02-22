@@ -1,5 +1,5 @@
 import { ThemeProvider, createTheme } from "@mui/material";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getDesignTokens } from "../../../src/config/theme";
@@ -8,6 +8,12 @@ import i18n from "../../../src/i18n/configs";
 
 i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
+
+if (!Blob.prototype.arrayBuffer) {
+  Blob.prototype.arrayBuffer = function () {
+    return Promise.resolve(new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer);
+  };
+}
 
 // モック化
 vi.mock("../../../src/features/LoadVBDialog/LoadVBDialog", () => ({
@@ -54,13 +60,19 @@ describe("LoadVBUnit", () => {
     const user = userEvent.setup();
 
     const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    const file = new File(["dummy content"], "test.zip", {
-      type: "application/zip",
-    });
+    const file = new File(
+      [new Uint8Array([0x50, 0x4b, 0x03, 0x04]), "dummy content"],
+      "test.zip",
+      {
+        type: "application/zip",
+      }
+    );
 
     await user.upload(fileInput, file);
 
-    const dialog = screen.getByTestId("load-vb-dialog");
-    expect(dialog).toBeInTheDocument();
+    await waitFor(() => {
+      const dialog = screen.getByTestId("load-vb-dialog");
+      expect(dialog).toBeInTheDocument();
+    });
   });
 });
