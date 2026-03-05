@@ -88,7 +88,7 @@ interface MusicProjectStore {
   setNoteProperty: <K extends keyof Note>(
     index: number,
     key: K,
-    value: Note[K]
+    value: Note[K],
   ) => void;
 
   /**
@@ -136,10 +136,11 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
 
       setUstTempo: (tempo) =>
         set((state) => {
+          const normalizedTempo = Number.isFinite(tempo) ? tempo : 120;
           const updatedNotes = [...state.notes];
           updatedNotes.forEach((_, i) => {
             if (i === 0 && !updatedNotes[0].hasTempo) {
-              updatedNotes[i].tempo = tempo;
+              updatedNotes[i].tempo = normalizedTempo;
             } else if (
               updatedNotes[i].prev !== undefined &&
               !updatedNotes[i].hasTempo
@@ -148,8 +149,10 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
             }
           });
           //ustの更新は通知しなくていいので直接更新
-          state.ust.tempo = tempo;
-          return { ustTempo: tempo, notes: updatedNotes };
+          if (state.ust) {
+            state.ust.tempo = normalizedTempo;
+          }
+          return { ustTempo: normalizedTempo, notes: updatedNotes };
         }),
 
       setUstFlags: (flags) =>
@@ -271,7 +274,7 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
           if (parsed.state?.ustText) {
             const restoredUst = new Ust();
             restoredUst.loadText(
-              parsed.state.ustText.replace(/\r/g, "").split("\n")
+              parsed.state.ustText.replace(/\r/g, "").split("\n"),
             );
             if (restoredUst.notes.length !== 0) {
               state.setUst(restoredUst);
@@ -287,6 +290,6 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
           state.setNotes([]);
         }
       },
-    }
-  )
+    },
+  ),
 );

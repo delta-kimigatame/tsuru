@@ -15,13 +15,13 @@ import { LOG } from "../../lib/Logging";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 
 export const ProjectSettingDialog: React.FC<ProjectSettingDialogProps> = (
-  props
+  props,
 ) => {
   const { t } = useTranslation();
   const { ustTempo, ustFlags, setUstTempo, setUstFlags } =
     useMusicProjectStore();
 
-  const [tempo, setTempo] = React.useState<number>(120);
+  const [tempo, setTempo] = React.useState<number | "">(120);
   const [flags, setFlags] = React.useState<string>("");
   React.useEffect(() => {
     setTempo(ustTempo);
@@ -33,9 +33,11 @@ export const ProjectSettingDialog: React.FC<ProjectSettingDialogProps> = (
   const handleButtonClick = () => {
     LOG.info(
       `USTのパラメータ変更。tempo:${tempo}、フラグ:${flags}`,
-      "ProjectSettingDialog"
+      "ProjectSettingDialog",
     );
-    setUstTempo(tempo);
+    const sanitizedTempo =
+      typeof tempo === "number" && Number.isFinite(tempo) ? tempo : 120;
+    setUstTempo(sanitizedTempo);
     setUstFlags(flags);
     props.handleClose();
   };
@@ -68,7 +70,14 @@ export const ProjectSettingDialog: React.FC<ProjectSettingDialogProps> = (
                 label={t("editor.ustSetting.tempo")}
                 data-testid="ustTempo"
                 value={tempo}
-                onChange={(e) => setTempo(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    setTempo("");
+                    return;
+                  }
+                  setTempo(Number(value));
+                }}
               />
               <TextField
                 fullWidth

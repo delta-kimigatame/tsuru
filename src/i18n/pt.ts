@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/03/06\r\n[Correção] Corrigido um problema em que salvar o tempo do projeto em branco armazenava um valor inválido.\r\n[Correção] Corrigido um problema em que a informação de tempo não era salva ao exportar um UST após definir o tempo na primeira nota.",
       "2026/02/16\r\n[Adição] Adicionado anúncio do evento na página inicial",
       "2026/01/08\r\n[Correção] Corrigido problema onde arquivos de configuração do banco de voz não podiam ser carregados apesar da disposição correta das pastas, dependendo do ambiente de compactação zip",
       "2026/01/06\r\n[Adicionado] Adicionada aba prefix.map ao diálogo de informações do banco de voz",

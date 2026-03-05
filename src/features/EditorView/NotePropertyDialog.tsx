@@ -47,7 +47,7 @@ const initialFormData: NoteState = {
 };
 
 export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
-  props
+  props,
 ) => {
   const { t } = useTranslation();
   const { setNote, vb } = useMusicProjectStore();
@@ -120,7 +120,7 @@ export const NotePropertyDialog: React.FC<NotePropertyDialogProps> = (
       `ノート編集確定。index:${
         props.note.index
       }、編集後パラメータ:${JSON.stringify(finalFormState)}`,
-      "NotePropertyDialog"
+      "NotePropertyDialog",
     );
     const n = NoteEdit(props.note.deepCopy(), finalFormState);
     setNote(n.index, n);
@@ -578,6 +578,7 @@ const NoteEditCore = (n: Note, state: NoteState): Note => {
     n.hasTempo = false;
   } else if (n.prev === undefined || n.prev === null) {
     n.tempo = state.tempo;
+    n.hasTempo = true;
   } else if (n.prev.tempo !== state.tempo) {
     n.tempo = state.tempo;
     n.hasTempo = true;
