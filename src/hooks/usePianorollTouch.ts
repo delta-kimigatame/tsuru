@@ -18,14 +18,14 @@ export interface UsePianorollTouchReturn {
 }
 
 export const usePianorollTouch = (
-  options: UsePianorollTouchOptions
+  options: UsePianorollTouchOptions,
 ): UsePianorollTouchReturn => {
   const { selectMode, holdThreshold = 300, onTap, onHold } = options;
   const [touchStart, setTouchStart] = React.useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [startIndex, setStartIndex] = React.useState<number | undefined>(
-    undefined
+    undefined,
   );
   const holdTimerRef = React.useRef<number | null>(null);
 
@@ -35,7 +35,7 @@ export const usePianorollTouch = (
    */
   const startHoldTimer = (
     coords: { x: number; y: number },
-    svgPoint: DOMPoint
+    svgPoint: DOMPoint,
   ) => {
     holdTimerRef.current = window.setTimeout(() => {
       if (onHold) {
@@ -57,13 +57,16 @@ export const usePianorollTouch = (
 
   // ポインターダウンイベント
   const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "mouse" && event.button === 1) {
+      return;
+    }
     const pt = event.currentTarget.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
     const svgPoint = getSVGPoint(
       event.currentTarget,
       event.clientX,
-      event.clientY
+      event.clientY,
     );
     // 「add」以外の場合はタッチ開始時刻を記録
     if (selectMode !== "add") {
@@ -74,11 +77,15 @@ export const usePianorollTouch = (
 
   // ポインターアップイベント
   const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "mouse" && event.button === 1) {
+      clearHoldTimer();
+      return;
+    }
     clearHoldTimer();
     const svgPoint = getSVGPoint(
       event.currentTarget,
       event.clientX,
-      event.clientY
+      event.clientY,
     );
     // タッチ開始時刻がなければ tap として処理（基本は起こらない）
     if (touchStart === undefined || Date.now() - touchStart < holdThreshold) {
