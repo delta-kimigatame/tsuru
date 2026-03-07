@@ -89,30 +89,30 @@ export class CharacterTxt {
     const lines: Array<string> = txt.replace(/\r/g, "").split("\n");
     const values: CharacterTxtValue = { name: "" };
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith("name=")) {
-        values.name = lines[i].replace("name=", "");
-      } else if (lines[i].startsWith("image=")) {
-        values.image = lines[i].replace("image=", "");
-      } else if (lines[i].startsWith("sample=")) {
-        values.sample = lines[i].replace("sample=", "");
-      } else if (lines[i].startsWith("author=")) {
-        values.author = lines[i].replace("author=", "");
-      } else if (lines[i].startsWith("web=")) {
-        values.web = lines[i].replace("web=", "");
-      } else if (lines[i].startsWith("version=")) {
-        values.version = lines[i].replace("version=", "");
-      } else if (lines[i].startsWith("name:")) {
-        values.name = lines[i].replace("name:", "");
-      } else if (lines[i].startsWith("image:")) {
-        values.image = lines[i].replace("image:", "");
-      } else if (lines[i].startsWith("sample:")) {
-        values.sample = lines[i].replace("sample:", "");
-      } else if (lines[i].startsWith("author:")) {
-        values.author = lines[i].replace("author:", "");
-      } else if (lines[i].startsWith("web:")) {
-        values.web = lines[i].replace("web:", "");
-      } else if (lines[i].startsWith("version:")) {
-        values.version = lines[i].replace("version:", "");
+      const line = lines[i].trim();
+      if (!line) {
+        continue;
+      }
+      const match = line.match(/^([^:=：＝]+)\s*[:=：＝]\s*(.*)$/);
+      if (!match) {
+        continue;
+      }
+      const rawKey = match[1].trim();
+      const value = match[2];
+      const key = rawKey === "名前" ? "name" : rawKey.toLowerCase();
+
+      if (key === "name") {
+        values.name = value;
+      } else if (key === "image") {
+        values.image = value;
+      } else if (key === "sample") {
+        values.sample = value;
+      } else if (key === "author") {
+        values.author = value;
+      } else if (key === "web") {
+        values.web = value;
+      } else if (key === "version") {
+        values.version = value;
       }
     }
     return values;

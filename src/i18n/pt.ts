@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/03/07_2\r\n[Correção] Corrigido um problema em que bancos de voz com o nome escrito como `名前` no character.txt não eram lidos corretamente.",
       "2026/03/07\r\n[Adição] Adicionado processamento em lote para aleatorizar o pitch\r\n[Correção] Corrigido um problema em que o clique do botão do meio abria o menu da nota no PC.",
       "2026/03/06\r\n[Correção] Corrigido um problema em que salvar o tempo do projeto em branco armazenava um valor inválido.\r\n[Correção] Corrigido um problema em que a informação de tempo não era salva ao exportar um UST após definir o tempo na primeira nota.",
       "2026/02/16\r\n[Adição] Adicionado anúncio do evento na página inicial",

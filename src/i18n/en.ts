@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/03/07_2\r\n[Fix] Fixed an issue where voicebank names written as Japanese `名前` in character.txt could not be read correctly.",
       "2026/03/07\r\n[Added] Added a batch process to randomize pitch\r\n[Fix] Fixed an issue where middle-click opened the note menu on PC.",
       "2026/03/06\r\n[Fix] Fixed an issue where saving the project tempo as empty stored an invalid value.\r\n[Fix] Fixed an issue where tempo info was missing when exporting a UST after setting tempo on the first note.",
       "2026/02/16\r\n[Added] Added event announcement to the top page",
