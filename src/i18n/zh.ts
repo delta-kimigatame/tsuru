@@ -429,6 +429,7 @@ export const translationZh = {
     octaveDown: "降低 1 个八度",
     envelopeNormalize: "包络线归一化",
     pitchSnapBatchProcess: "将音高对齐到音阶",
+    pitchHumanizeBatchProcess: "随机摇晃音高",
     applyOtoBatchProcess: {
       title: "应用原音设置值",
     },

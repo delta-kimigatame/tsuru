@@ -440,6 +440,7 @@ export const translationEn = {
     octaveDown: "Lower by 1 Octave",
     envelopeNormalize: "Envelope Normalization",
     pitchSnapBatchProcess: "Snap Pitch to Scale",
+    pitchHumanizeBatchProcess: "Randomize Pitch",
     applyOtoBatchProcess: {
       title: "Apply Oto Settings",
     },
