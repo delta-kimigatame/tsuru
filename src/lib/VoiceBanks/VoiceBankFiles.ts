@@ -35,7 +35,7 @@ export class VoiceBankFiles extends BaseVoiceBank {
         .map((f) => [
           f.webkitRelativePath.normalize("NFC").replace(root, ""),
           f,
-        ])
+        ]),
     );
   }
 
@@ -51,9 +51,10 @@ export class VoiceBankFiles extends BaseVoiceBank {
         this._root !== undefined && this._root !== "" ? this._root + "/" : "";
       if (this._filenames.includes(root + filename)) {
         try {
-          const buf = await this._files[
-            this._filenames.indexOf(root + filename)
-          ].arrayBuffer();
+          const buf =
+            await this._files[
+              this._filenames.indexOf(root + filename)
+            ].arrayBuffer();
           const wave = new Wave(buf);
           resolve(wave);
         } catch (error) {
@@ -77,9 +78,10 @@ export class VoiceBankFiles extends BaseVoiceBank {
       const frqFilename = wavFilename.replace(".wav", "_wav.frq");
       if (this._filenames.includes(root + frqFilename)) {
         try {
-          const buf = await this._files[
-            this._filenames.indexOf(root + frqFilename)
-          ].arrayBuffer();
+          const buf =
+            await this._files[
+              this._filenames.indexOf(root + frqFilename)
+            ].arrayBuffer();
           const frq = new Frq({ buf: buf });
           resolve(frq);
         } catch (error) {
@@ -98,7 +100,7 @@ export class VoiceBankFiles extends BaseVoiceBank {
    */
   async initialize(encoding: string = "SJIS"): Promise<void> {
     const characterTxtPath = this._filenames.find((f) =>
-      f.endsWith("character.txt")
+      f.endsWith("character.txt"),
     );
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
@@ -141,9 +143,8 @@ export class VoiceBankFiles extends BaseVoiceBank {
    * @param encoding character.txtを読み込む際の文字コード
    */
   async extractCharacterTxt(path: string, encoding): Promise<CharacterTxt> {
-    const characterBuf = await this._files[
-      this._filenames.indexOf(path)
-    ].arrayBuffer();
+    const characterBuf =
+      await this._files[this._filenames.indexOf(path)].arrayBuffer();
     const character = await readTextFile(characterBuf, encoding);
     return new CharacterTxt({ txt: character });
   }
@@ -155,14 +156,15 @@ export class VoiceBankFiles extends BaseVoiceBank {
       if (
         this._character.image !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._character.image.replace(/\\/g, "/")
+          this._root + "/" + this._character.image.replace(/\\/g, "/"),
         )
       ) {
-        this._icon = await this._files[
-          this._filenames.indexOf(
-            this._root + "/" + this._character.image.replace(/\\/g, "/")
-          )
-        ].arrayBuffer();
+        this._icon =
+          await this._files[
+            this._filenames.indexOf(
+              this._root + "/" + this._character.image.replace(/\\/g, "/"),
+            )
+          ].arrayBuffer();
       }
       resolve();
     });
@@ -175,14 +177,15 @@ export class VoiceBankFiles extends BaseVoiceBank {
       if (
         this._character.sample !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._character.sample.replace(/\\/g, "/")
+          this._root + "/" + this._character.sample.replace(/\\/g, "/"),
         )
       ) {
-        this._sample = await this._files[
-          this._filenames.indexOf(
-            this._root + "/" + this._character.sample.replace(/\\/g, "/")
-          )
-        ].arrayBuffer();
+        this._sample =
+          await this._files[
+            this._filenames.indexOf(
+              this._root + "/" + this._character.sample.replace(/\\/g, "/"),
+            )
+          ].arrayBuffer();
       }
       resolve();
     });
@@ -194,9 +197,10 @@ export class VoiceBankFiles extends BaseVoiceBank {
   async extractReadme(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/readme.txt")) {
-        const readmeBuf = await this._files[
-          this._filenames.indexOf(this._root + "/readme.txt")
-        ].arrayBuffer();
+        const readmeBuf =
+          await this._files[
+            this._filenames.indexOf(this._root + "/readme.txt")
+          ].arrayBuffer();
         this._readme = await readTextFile(readmeBuf, encoding);
       }
       resolve();
@@ -208,10 +212,15 @@ export class VoiceBankFiles extends BaseVoiceBank {
   async extractCharacterYaml(): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/character.yaml")) {
-        const yamlBuf = await this._files[
-          this._filenames.indexOf(this._root + "/character.yaml")
-        ].arrayBuffer();
-        this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
+        try {
+          const yamlBuf =
+            await this._files[
+              this._filenames.indexOf(this._root + "/character.yaml")
+            ].arrayBuffer();
+          this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
+        } catch {
+          this._characterYaml = undefined;
+        }
       }
       resolve();
     });
@@ -227,14 +236,17 @@ export class VoiceBankFiles extends BaseVoiceBank {
       if (
         this._characterYaml.portrait !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
+          this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/"),
         )
       ) {
-        this._portrait = await this._files[
-          this._filenames.indexOf(
-            this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/")
-          )
-        ].arrayBuffer();
+        this._portrait =
+          await this._files[
+            this._filenames.indexOf(
+              this._root +
+                "/" +
+                this._characterYaml.portrait.replace(/\\/g, "/"),
+            )
+          ].arrayBuffer();
       }
       resolve();
     });
@@ -246,11 +258,12 @@ export class VoiceBankFiles extends BaseVoiceBank {
   async extractPrefixmaps(encoding): Promise<void> {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/prefix.map")) {
-        const prefixmapBuf = await this._files[
-          this._filenames.indexOf(this._root + "/prefix.map")
-        ].arrayBuffer();
+        const prefixmapBuf =
+          await this._files[
+            this._filenames.indexOf(this._root + "/prefix.map")
+          ].arrayBuffer();
         this._prefixmaps[""] = new PrefixMap(
-          await readTextFile(prefixmapBuf, encoding)
+          await readTextFile(prefixmapBuf, encoding),
         );
       }
       resolve();
@@ -264,7 +277,7 @@ export class VoiceBankFiles extends BaseVoiceBank {
    */
   async extractOto(path: string, encoding: string): Promise<void> {
     const reg = new RegExp(
-      "^" + this._root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      "^" + this._root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
     );
     return new Promise(async (resolve) => {
       const dirPath = path
@@ -273,9 +286,8 @@ export class VoiceBankFiles extends BaseVoiceBank {
         .join("/")
         .replace(reg, "")
         .replace(/^\//, "");
-      const otoBuf = await this._files[
-        this._filenames.indexOf(path)
-      ].arrayBuffer();
+      const otoBuf =
+        await this._files[this._filenames.indexOf(path)].arrayBuffer();
       readTextFile(otoBuf, encoding).then((otoTxt) => {
         this._oto.ParseOto(dirPath, otoTxt);
         resolve();
@@ -288,9 +300,10 @@ export class VoiceBankFiles extends BaseVoiceBank {
     return new Promise(async (resolve) => {
       if (this._filenames.includes(this._root + "/presamp.ini")) {
         this._presamp = new Presamp();
-        const iniBuf = await this._files[
-          this._filenames.indexOf(this._root + "/presamp.ini")
-        ].arrayBuffer();
+        const iniBuf =
+          await this._files[
+            this._filenames.indexOf(this._root + "/presamp.ini")
+          ].arrayBuffer();
         const iniTxt = await readTextFile(iniBuf, "UTF8");
         this._presamp.parseIni(iniTxt);
         console.log(this._presamp);

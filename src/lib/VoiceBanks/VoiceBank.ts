@@ -42,10 +42,8 @@ export class VoiceBank extends BaseVoiceBank {
    */
   private getFullPath(filename: string): string {
     if (this._root === "" || this._root === undefined) {
-      console.log("test出力", this._root, filename);
       return filename;
     }
-    console.log("test出力", this._root, this._root + "/" + filename);
     return this._root + "/" + filename;
   }
 
@@ -60,7 +58,7 @@ export class VoiceBank extends BaseVoiceBank {
       return Object.fromEntries(
         Object.entries(this._zip)
           .filter(([key, value]) => key.startsWith(root))
-          .map(([key, value]) => [key.replace(root, ""), value])
+          .map(([key, value]) => [key.replace(root, ""), value]),
       );
     }
   }
@@ -121,7 +119,7 @@ export class VoiceBank extends BaseVoiceBank {
    */
   async initialize(encoding: string = "SJIS"): Promise<void> {
     const characterTxtPath = this._filenames.find((f) =>
-      f.endsWith("character.txt")
+      f.endsWith("character.txt"),
     );
     if (characterTxtPath === undefined) {
       throw new Error("character.txt not found.");
@@ -177,7 +175,7 @@ export class VoiceBank extends BaseVoiceBank {
     return new Promise(async (resolve) => {
       if (this._character.image !== undefined) {
         const iconPath = this.getFullPath(
-          this._character.image.replace(/\\/g, "/")
+          this._character.image.replace(/\\/g, "/"),
         );
         if (this._filenames.includes(iconPath)) {
           this._icon = await extractFileFromZip(this._zip[iconPath]);
@@ -193,7 +191,7 @@ export class VoiceBank extends BaseVoiceBank {
     return new Promise(async (resolve) => {
       if (this._character.sample !== undefined) {
         const samplePath = this.getFullPath(
-          this._character.sample.replace(/\\/g, "/")
+          this._character.sample.replace(/\\/g, "/"),
         );
         if (this._filenames.includes(samplePath)) {
           this._sample = await extractFileFromZip(this._zip[samplePath]);
@@ -223,8 +221,12 @@ export class VoiceBank extends BaseVoiceBank {
     return new Promise(async (resolve) => {
       const yamlPath = this.getFullPath("character.yaml");
       if (this._filenames.includes(yamlPath)) {
-        const yamlBuf = await extractFileFromZip(this._zip[yamlPath]);
-        this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
+        try {
+          const yamlBuf = await extractFileFromZip(this._zip[yamlPath]);
+          this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
+        } catch {
+          this._characterYaml = undefined;
+        }
       }
       resolve();
     });
@@ -239,7 +241,7 @@ export class VoiceBank extends BaseVoiceBank {
     return new Promise(async (resolve) => {
       if (this._characterYaml.portrait !== undefined) {
         const portraitPath = this.getFullPath(
-          this._characterYaml.portrait.replace(/\\/g, "/")
+          this._characterYaml.portrait.replace(/\\/g, "/"),
         );
         if (this._filenames.includes(portraitPath)) {
           this._portrait = await extractFileFromZip(this._zip[portraitPath]);
@@ -258,7 +260,7 @@ export class VoiceBank extends BaseVoiceBank {
       if (this._filenames.includes(prefixMapPath)) {
         const prefixmapBuf = await extractFileFromZip(this._zip[prefixMapPath]);
         this._prefixmaps[""] = new PrefixMap(
-          await readTextFile(prefixmapBuf, encoding)
+          await readTextFile(prefixmapBuf, encoding),
         );
       }
       resolve();
@@ -272,7 +274,7 @@ export class VoiceBank extends BaseVoiceBank {
    */
   async extractOto(path: string, encoding: string): Promise<void> {
     const reg = new RegExp(
-      "^" + this._root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      "^" + this._root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
     );
     return new Promise(async (resolve) => {
       const dirPath = path
