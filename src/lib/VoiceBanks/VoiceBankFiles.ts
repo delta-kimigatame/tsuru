@@ -8,6 +8,7 @@ import { Oto } from "utauoto";
 import { Wave } from "utauwav";
 
 import { readTextFile } from "../../services/readTextFile";
+import { LOG } from "../Logging";
 import { BaseVoiceBank } from "./BaseVoiceBank";
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
@@ -153,16 +154,18 @@ export class VoiceBankFiles extends BaseVoiceBank {
    */
   async extractIcon(): Promise<void> {
     return new Promise(async (resolve) => {
+      const image = this._character.image;
+      if (typeof image !== "string" || image.trim() === "") {
+        resolve();
+        return;
+      }
       if (
-        this._character.image !== undefined &&
-        this._filenames.includes(
-          this._root + "/" + this._character.image.replace(/\\/g, "/"),
-        )
+        this._filenames.includes(this._root + "/" + image.replace(/\\/g, "/"))
       ) {
         this._icon =
           await this._files[
             this._filenames.indexOf(
-              this._root + "/" + this._character.image.replace(/\\/g, "/"),
+              this._root + "/" + image.replace(/\\/g, "/"),
             )
           ].arrayBuffer();
       }
@@ -174,16 +177,18 @@ export class VoiceBankFiles extends BaseVoiceBank {
    */
   async extractSample(): Promise<void> {
     return new Promise(async (resolve) => {
+      const sample = this._character.sample;
+      if (typeof sample !== "string" || sample.trim() === "") {
+        resolve();
+        return;
+      }
       if (
-        this._character.sample !== undefined &&
-        this._filenames.includes(
-          this._root + "/" + this._character.sample.replace(/\\/g, "/"),
-        )
+        this._filenames.includes(this._root + "/" + sample.replace(/\\/g, "/"))
       ) {
         this._sample =
           await this._files[
             this._filenames.indexOf(
-              this._root + "/" + this._character.sample.replace(/\\/g, "/"),
+              this._root + "/" + sample.replace(/\\/g, "/"),
             )
           ].arrayBuffer();
       }
@@ -219,6 +224,7 @@ export class VoiceBankFiles extends BaseVoiceBank {
             ].arrayBuffer();
           this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
         } catch {
+          LOG.warn("character.yamlの読み込みに失敗しました", "VoiceBankFiles");
           this._characterYaml = undefined;
         }
       }
@@ -233,18 +239,20 @@ export class VoiceBankFiles extends BaseVoiceBank {
       return;
     }
     return new Promise(async (resolve) => {
+      const portrait = this._characterYaml.portrait;
+      if (typeof portrait !== "string" || portrait.trim() === "") {
+        resolve();
+        return;
+      }
       if (
-        this._characterYaml.portrait !== undefined &&
         this._filenames.includes(
-          this._root + "/" + this._characterYaml.portrait.replace(/\\/g, "/"),
+          this._root + "/" + portrait.replace(/\\/g, "/"),
         )
       ) {
         this._portrait =
           await this._files[
             this._filenames.indexOf(
-              this._root +
-                "/" +
-                this._characterYaml.portrait.replace(/\\/g, "/"),
+              this._root + "/" + portrait.replace(/\\/g, "/"),
             )
           ].arrayBuffer();
       }

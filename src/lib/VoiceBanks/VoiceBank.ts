@@ -10,6 +10,7 @@ import { Wave } from "utauwav";
 
 import { extractFileFromZip } from "../../services/extractFileFromZip";
 import { readTextFile } from "../../services/readTextFile";
+import { LOG } from "../Logging";
 import { BaseVoiceBank } from "./BaseVoiceBank";
 import { CharacterTxt } from "./CharacterTxt";
 import { PrefixMap } from "./PrefixMap";
@@ -173,13 +174,14 @@ export class VoiceBank extends BaseVoiceBank {
    */
   async extractIcon(): Promise<void> {
     return new Promise(async (resolve) => {
-      if (this._character.image !== undefined) {
-        const iconPath = this.getFullPath(
-          this._character.image.replace(/\\/g, "/"),
-        );
-        if (this._filenames.includes(iconPath)) {
-          this._icon = await extractFileFromZip(this._zip[iconPath]);
-        }
+      const image = this._character.image;
+      if (typeof image !== "string" || image.trim() === "") {
+        resolve();
+        return;
+      }
+      const iconPath = this.getFullPath(image.replace(/\\/g, "/"));
+      if (this._filenames.includes(iconPath)) {
+        this._icon = await extractFileFromZip(this._zip[iconPath]);
       }
       resolve();
     });
@@ -189,13 +191,14 @@ export class VoiceBank extends BaseVoiceBank {
    */
   async extractSample(): Promise<void> {
     return new Promise(async (resolve) => {
-      if (this._character.sample !== undefined) {
-        const samplePath = this.getFullPath(
-          this._character.sample.replace(/\\/g, "/"),
-        );
-        if (this._filenames.includes(samplePath)) {
-          this._sample = await extractFileFromZip(this._zip[samplePath]);
-        }
+      const sample = this._character.sample;
+      if (typeof sample !== "string" || sample.trim() === "") {
+        resolve();
+        return;
+      }
+      const samplePath = this.getFullPath(sample.replace(/\\/g, "/"));
+      if (this._filenames.includes(samplePath)) {
+        this._sample = await extractFileFromZip(this._zip[samplePath]);
       }
       resolve();
     });
@@ -225,6 +228,7 @@ export class VoiceBank extends BaseVoiceBank {
           const yamlBuf = await extractFileFromZip(this._zip[yamlPath]);
           this._characterYaml = yaml.load(await readTextFile(yamlBuf, "UTF8"));
         } catch {
+          LOG.warn("character.yamlの読み込みに失敗しました", "VoiceBank");
           this._characterYaml = undefined;
         }
       }
@@ -239,13 +243,14 @@ export class VoiceBank extends BaseVoiceBank {
       return;
     }
     return new Promise(async (resolve) => {
-      if (this._characterYaml.portrait !== undefined) {
-        const portraitPath = this.getFullPath(
-          this._characterYaml.portrait.replace(/\\/g, "/"),
-        );
-        if (this._filenames.includes(portraitPath)) {
-          this._portrait = await extractFileFromZip(this._zip[portraitPath]);
-        }
+      const portrait = this._characterYaml.portrait;
+      if (typeof portrait !== "string" || portrait.trim() === "") {
+        resolve();
+        return;
+      }
+      const portraitPath = this.getFullPath(portrait.replace(/\\/g, "/"));
+      if (this._filenames.includes(portraitPath)) {
+        this._portrait = await extractFileFromZip(this._zip[portraitPath]);
       }
       resolve();
     });

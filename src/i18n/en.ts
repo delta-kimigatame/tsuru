@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/03/27\r\n[Fix] When icon/sample file paths in character.txt or portrait path in character.yaml are invalid, the app now skips only those invalid entries and continues loading the voicebank.",
       "2026/03/20\r\n[Fix] When loading a voicebank that contains an invalid character.yaml, the app now ignores character.yaml and continues loading the voicebank.",
       "2026/03/07_2\r\n[Fix] Fixed an issue where voicebank names written as Japanese `名前` in character.txt could not be read correctly.",
       "2026/03/07\r\n[Added] Added a batch process to randomize pitch\r\n[Fix] Fixed an issue where middle-click opened the note menu on PC.",

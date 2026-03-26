@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/03/27\r\n[Correção] Quando os caminhos de ícone/amostra em character.txt ou o caminho do retrato em character.yaml são inválidos, o app agora ignora apenas os itens inválidos e continua carregando o banco de voz.",
       "2026/03/20\r\n[Correção] Ao carregar um banco de voz que contém um character.yaml inválido, o app agora ignora o character.yaml e continua o carregamento do banco de voz.",
       "2026/03/07_2\r\n[Correção] Corrigido um problema em que bancos de voz com o nome escrito como `名前` no character.txt não eram lidos corretamente.",
       "2026/03/07\r\n[Adição] Adicionado processamento em lote para aleatorizar o pitch\r\n[Correção] Corrigido um problema em que o clique do botão do meio abria o menu da nota no PC.",
