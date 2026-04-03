@@ -9,7 +9,7 @@ import { BasePaper } from "../../components/common/BasePaper";
 import { LOG } from "../../lib/Logging";
 
 /** 表示するキャンペーンのインデックス */
-const campaignIndex = 0;
+const campaignIndex = 1;
 
 export const CampaignPaper: React.FC = () => {
   const { t } = useTranslation();
