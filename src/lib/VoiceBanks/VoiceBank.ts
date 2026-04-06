@@ -128,34 +128,41 @@ export class VoiceBank extends BaseVoiceBank {
     // 再初期化時に以前のデータをクリア
     this._oto = new Oto();
     this._prefixmaps = {};
-    return new Promise(async (resolve, reject) => {
-      this._root = characterTxtPath.split("/").slice(0, -1).join("/");
-      this.extractCharacterTxt(characterTxtPath, encoding)
-        .then(async (c) => {
-          this._character = c;
-          const asyncs = new Array<Promise<void>>();
-          this.extractCharacterYaml().then(async () => {
-            this.subbanksToPrefixmaps();
-            asyncs.push(this.extractReadme(encoding));
-            asyncs.push(this.extractIcon());
-            asyncs.push(this.extractSample());
-            asyncs.push(this.extractPortrait());
-            asyncs.push(this.extractPrefixmaps(encoding));
-            asyncs.push(this.extractOtoAll(encoding));
-            asyncs.push(this.extractPresampIni());
-            Promise.all(asyncs).then(() => {
-              if (!Object.keys(this._prefixmaps).includes("")) {
-                this._prefixmaps[""] = new PrefixMap();
-              }
-              this._initialized = true;
-              resolve();
-            });
-          });
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+    this._root = characterTxtPath.split("/").slice(0, -1).join("/");
+
+    // 必須: 失敗時はエラーをそのまま伝播
+    this._character = await this.extractCharacterTxt(
+      characterTxtPath,
+      encoding,
+    );
+
+    // オプション: 失敗しても続行
+    await this.extractCharacterYaml().catch(() => {});
+
+    // character.yaml が読み込めた場合のみ実行
+    if (this._characterYaml !== undefined) {
+      this.subbanksToPrefixmaps();
+    }
+
+    const asyncs: Promise<void>[] = [
+      this.extractReadme(encoding),
+      this.extractIcon(),
+      this.extractSample(),
+      this.extractPrefixmaps(encoding),
+      this.extractOtoAll(encoding),
+      this.extractPresampIni(),
+    ];
+    // character.yaml が読み込めた場合のみ実行
+    if (this._characterYaml !== undefined) {
+      asyncs.push(this.extractPortrait());
+    }
+
+    await Promise.allSettled(asyncs);
+
+    if (!Object.keys(this._prefixmaps).includes("")) {
+      this._prefixmaps[""] = new PrefixMap();
+    }
+    this._initialized = true;
   }
 
   /**

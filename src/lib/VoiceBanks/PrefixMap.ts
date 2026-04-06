@@ -16,11 +16,18 @@ export class PrefixMap {
    * @returns
    */
   getValue(key: number | string): MapValue {
-    if (typeof key === "number") {
-      return this.values[107 - key];
-    } else {
-      return this.values[107 - toneToNoteNum(key)];
+    const value =
+      typeof key === "number"
+        ? this.values[107 - key]
+        : this.values[107 - toneToNoteNum(key)];
+    if (value !== undefined) {
+      return value;
     }
+    return {
+      tone: typeof key === "number" ? noteNumToTone(key) : key,
+      prefix: "",
+      suffix: "",
+    };
   }
 
   /**

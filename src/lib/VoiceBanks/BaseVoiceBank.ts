@@ -181,7 +181,7 @@ export abstract class BaseVoiceBank {
   get colors(): Array<string> {
     if (this._characterYaml && this._characterYaml.subbanks) {
       return Array.from(
-        new Set(this._characterYaml.subbanks.map((subbank) => subbank.color))
+        new Set(this._characterYaml.subbanks.map((subbank) => subbank.color)),
       );
     } else {
       return [];
@@ -274,7 +274,7 @@ export abstract class BaseVoiceBank {
    */
   getPrefixMap(
     notenum: number,
-    color: string = ""
+    color: string = "",
   ): { prefix: string; suffix: string } {
     const c = Object.keys(this._prefixmaps).includes(color) ? color : "";
     const mapValue = this._prefixmaps[c].getValue(notenum);
