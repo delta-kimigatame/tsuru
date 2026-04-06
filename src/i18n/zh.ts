@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/04/06\r\n【修复】修复了 presamp.ini 中存在空行时无法读取的问题。",
       "2026/03/27\r\n【修复】当 character.txt 中的图标/示例音频路径，或 character.yaml 中的立绘路径无效时，现已只跳过无效项并继续加载音源。",
       "2026/03/20\r\n【修复】读取包含无效 character.yaml 的音源时，现已改为忽略 character.yaml 并继续读取音源。",
       "2026/03/07_2\r\n【修复】修复了 character.txt 中音源名使用日文“名前”标记时无法正确读取的问题。",

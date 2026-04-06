@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/04/06\r\n[Fix] Fixed an issue where empty lines in presamp.ini prevented the file from being loaded.",
       "2026/03/27\r\n[Fix] When icon/sample file paths in character.txt or portrait path in character.yaml are invalid, the app now skips only those invalid entries and continues loading the voicebank.",
       "2026/03/20\r\n[Fix] When loading a voicebank that contains an invalid character.yaml, the app now ignores character.yaml and continues loading the voicebank.",
       "2026/03/07_2\r\n[Fix] Fixed an issue where voicebank names written as Japanese `名前` in character.txt could not be read correctly.",

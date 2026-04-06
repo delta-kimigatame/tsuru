@@ -563,7 +563,9 @@ export class Presamp {
       | "endingType"
       | "endingMode" = "";
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith("[VOWEL]")) {
+      if (lines[i].trim() === "") {
+        continue;
+      } else if (lines[i].startsWith("[VOWEL]")) {
         section = "vowel";
         this.vowels = [];
       } else if (lines[i].startsWith("[CONSONANT]")) {
@@ -769,8 +771,8 @@ export class Presamp {
       return {
         reg: new RegExp(
           v.CVs.map((c) => c.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")).join(
-            "|"
-          ) + "$"
+            "|",
+          ) + "$",
         ),
         symbol: v.symbol,
       };
