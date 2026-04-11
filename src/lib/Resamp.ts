@@ -150,15 +150,12 @@ export class Resamp {
       timeAxis,
       renderingConfig.frameRate,
     );
-    const applyOpeningSp: Array<Float64Array> = this.applyOpening(
+    const applyWarpSp = this.applyWarpFormant(
       sp.spectral,
       flags["O"],
-    );
-    const applyTensionSp: Array<Float64Array> = this.applyTension(
-      applyOpeningSp,
       flags["T"],
     );
-    const applyGenderSp = this.applyGender(applyTensionSp, flags["g"]);
+    const applyGenderSp = this.applyGender(applyWarpSp, flags["g"]);
     const ap =
       flags["B"] === 0
         ? sp.spectral.map((arr) => new Float64Array(arr.length))
@@ -734,6 +731,75 @@ export class Resamp {
       const weight = Math.exp(-((f - fc) ** 2) / (2 * sigma * sigma));
       const ratio = 1 + k * weight;
       return f * ratio;
+    });
+
+    const new_sp: Array<Float64Array> = sp.map(
+      (arr) => new Float64Array(arr.length),
+    );
+
+    sp.forEach((s, frameIndex) => {
+      const spectrum1 = s.map((v) => Math.log(Math.max(v, 1e-12)));
+
+      const spectrum2 = this.gFlagInterp(
+        freq_axis1,
+        spectrum1,
+        half_fft + 1,
+        freq_axis2,
+        half_fft + 1,
+        new Array(half_fft + 1).fill(0),
+      );
+
+      for (let j = 0; j <= half_fft; j++) {
+        new_sp[frameIndex][j] = Math.exp(spectrum2[j]);
+      }
+
+      // 補間外の安全処理
+      const maxMappedFreq = freq_axis1[half_fft];
+      const maxIndex = Math.min(
+        half_fft,
+        Math.floor((maxMappedFreq / fs) * fft_size),
+      );
+
+      for (let j = maxIndex + 1; j <= half_fft; j++) {
+        new_sp[frameIndex][j] = new_sp[frameIndex][maxIndex];
+      }
+    });
+
+    return new_sp;
+  }
+
+  applyWarpFormant(
+    sp: Array<Float64Array>,
+    OFlag: number,
+    TFlag: number,
+  ): Array<Float64Array> {
+    if (OFlag === 0 && TFlag === 0) {
+      return sp;
+    }
+    const fs = 44100;
+    const fcO = 1000; // Opening: F1中心（指数減衰）
+    const kO = OFlag / 100;
+    const fcT = 1500; // Tension: F2中心（ガウス型）
+    const sigmaT = 500;
+    const kT = (TFlag / 100) * 0.5;
+
+    const half_fft = sp[0].length - 1;
+    const fft_size = half_fft * 2;
+
+    const freq_axis2 = Array.from(
+      { length: half_fft + 1 },
+      (_, i) => (i / fft_size) * fs,
+    );
+
+    // Opening → Tension の順に連続適用した合成ワーピングを1パスで表現。
+    // 出力周波数 f に対して:
+    //   1. Tension: f → f_inter = f * (1 + kT * wT(f))
+    //   2. Opening: f_inter → f_orig = f_inter * (1 + kO * wO(f_inter))
+    const freq_axis1 = freq_axis2.map((f) => {
+      const weightT = Math.exp(-((f - fcT) ** 2) / (2 * sigmaT * sigmaT));
+      const fInter = f * (1 + kT * weightT);
+      const weightO = Math.exp(-fInter / fcO);
+      return fInter * (1 + kO * weightO);
     });
 
     const new_sp: Array<Float64Array> = sp.map(
