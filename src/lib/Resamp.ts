@@ -165,16 +165,14 @@ export class Resamp {
     const ap =
       flags["B"] === 0
         ? sp.spectral.map((arr) => new Float64Array(arr.length))
-        : flags["B"] === 100
-          ? sp.spectral.map((arr) => new Float64Array(arr.length).fill(1))
-          : this.world.D4C(
-              request.inputWavData,
-              request.frqData,
-              timeAxis,
-              sp.fft_size,
-              renderingConfig.frameRate,
-              0,
-            );
+        : this.world.D4C(
+            request.inputWavData,
+            request.frqData,
+            timeAxis,
+            sp.fft_size,
+            renderingConfig.frameRate,
+            0,
+          );
     const breasedAp = this.applyBreath(ap, flags["B"]);
     const stretchParams = this.stretch(
       Array.from(request.frqData),
@@ -941,17 +939,21 @@ export class Resamp {
    * Bフラグを非周期性指標に反映する
    * @param ap 非周期性指標
    * @param BFlag Bフラグ値。0～100の整数
-   * @returns 反映後の非周期性指標。BFlagが0,5,100のときそのまま返す。0～50の時は、0の時全ての値が0になるように減算する。50～100のときは100ですべての値が1となるように増加する。
+   * @returns 反映後の非周期性指標。BFlagが0,50,100のときそのまま返す。0～50の時は、0の時全ての値が0になるように減算する。50～100のときは周波数依存レートでap=1へ近づける（高域ほど強くノイズ化）。
    */
   applyBreath(ap: Array<Float64Array>, BFlag: number): Array<Float64Array> {
-    if (BFlag === 0 || BFlag === 100 || BFlag === 50) return ap;
+    if (BFlag === 0 || BFlag === 50) return ap;
     else if (BFlag < 50) {
       return ap.map((arr) => arr.map((value) => (value * BFlag * 2) / 100));
     } else if (BFlag > 50) {
+      const rate = (BFlag * 2 - 100) / 100;
+      // alpha_minをBFlagに応じて変化させ、B=100で全周波数ビンがap=1.0に収束する
+      const alphaMin = 0.5 + 0.5 * ((BFlag - 50) / 50);
       return ap.map((arr) =>
-        arr.map((value) => {
-          const rate = (BFlag * 2 - 100) / 100;
-          return value * (1 - rate) + rate;
+        arr.map((value, j) => {
+          const freqRatio = arr.length > 1 ? j / (arr.length - 1) : 1;
+          const effectiveRate = rate * (alphaMin + (1 - alphaMin) * freqRatio);
+          return value * (1 - effectiveRate) + effectiveRate;
         }),
       );
     }
