@@ -36,6 +36,7 @@ export class Resamp {
     { name: "O", type: "number", min: -100, max: 100, default: 0 }, //Openingフラグ。F1付近のスペクトルワープで疑似的に開口度を調整する。+で開く、-で閉じる。
     { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。F2付近のスペクトルワープで疑似的に張りを調整する。+で張る、-で緩める。
     { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。0は素通し、100に近いほどフォルマント強調
+    { name: "C", type: "number", min: -100, max: 100, default: 0 }, //クリアネスフラグ。スペクトルの平坦化でクリアネスを調整する。-でこもらせる、+でクリアにする。
     { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
     { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
     { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
@@ -161,7 +162,8 @@ export class Resamp {
       flags["T"],
     );
     const applyGenderSp = this.applyGender(applyWarpSp, flags["g"]);
-    const applySharpSp = this.applySharp(applyGenderSp, flags["S"]);
+    const applyClearnessSp = this.applyClearness(applyGenderSp, flags["C"]);
+    const applySharpSp = this.applySharp(applyClearnessSp, flags["S"]);
     const ap =
       flags["B"] === 0
         ? sp.spectral.map((arr) => new Float64Array(arr.length))
@@ -838,6 +840,55 @@ export class Resamp {
       }
     });
 
+    return new_sp;
+  }
+
+  /**
+   * Cフラグをスペクトルに反映する（クリアネス調整）
+   * 正の値では低域を減衰し高域を増幅することでスペクトルを平坦化（クリア・明瞭）にする。
+   * 負の値ではその逆（こもった音）。C=0は素通し。
+   * C±50が通常運用範囲（±6 dBのスペクトルティルト）、C±100は過適応（±12 dB）。
+   * ゲインカーブはlog周波数軸上で線形ランプとし、50 Hz〜Nyquistにまたがる。
+   * @param sp スペクトル包絡
+   * @param CFlag Cフラグ値。-100〜100
+   * @returns 反映後のスペクトル包絡
+   */
+  applyClearness(sp: Array<Float64Array>, CFlag: number): Array<Float64Array> {
+    if (CFlag === 0) {
+      return sp;
+    }
+
+    // C=50 → ±6 dBティルト（通常運用で十分）、C=100 → ±12 dB（過適応）
+    const maxGain_dB = 12;
+    const amount = (CFlag / 100) * maxGain_dB;
+
+    const half_fft = sp[0].length - 1;
+    const fft_size = half_fft * 2;
+    const fs = 44100;
+
+    // ゲインカーブをlog周波数軸上で事前計算（50 Hz〜Nyquistをピボット区間とする）
+    const f_ref_low = 50;
+    const f_ref_high = fs / 2;
+    const log_f_low = Math.log2(f_ref_low);
+    const log_f_high = Math.log2(f_ref_high);
+    const gains = new Float64Array(half_fft + 1);
+    for (let i = 0; i <= half_fft; i++) {
+      const f = Math.max((i * fs) / fft_size, f_ref_low);
+      const norm = (Math.log2(f) - log_f_low) / (log_f_high - log_f_low); // [0, 1]
+      gains[i] = amount * (2 * norm - 1); // 低域: -amount dB, 高域: +amount dB
+    }
+
+    const new_sp: Array<Float64Array> = sp.map(
+      (arr) => new Float64Array(arr.length),
+    );
+    sp.forEach((s, frameIndex) => {
+      for (let j = 0; j <= half_fft; j++) {
+        new_sp[frameIndex][j] = Math.max(
+          s[j] * Math.pow(10, gains[j] / 20),
+          1e-12,
+        );
+      }
+    });
     return new_sp;
   }
 
