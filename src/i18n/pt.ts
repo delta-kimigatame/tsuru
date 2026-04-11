@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/04/11\r\n[Adição] Foram adicionadas novas flags\r\nFlag O: padrão 0, intervalo -100 a 100, abertura/fechamento da boca\r\nFlag T: padrão 0, intervalo -100 a 100, tensão\r\nFlag S: padrão 0, intervalo -100 a 100, ênfase de formante (clareza/nitidez)\r\nFlag b: padrão 0, intervalo -100 a 100, brilho\r\nFlag Mo, igual à flag O (assumindo UST criado para moresampler)\r\nFlag Mt, igual à flag T (assumindo UST criado para moresampler)\r\nFlag MG, igual à flag w (assumindo UST criado para moresampler)\r\nFlag ME, igual à flag S (assumindo UST criado para moresampler)\r\n[Correção] Revisado o processamento da flag B.",
       "2026/04/07\r\n[Correção] Quando o carregamento de alguns arquivos de configuração falha, apenas esse arquivo é ignorado e o carregamento continua.\r\n[Correção] Corrigido um problema em que, quando alguns tons estão ausentes no prefix.map, os tons acima dos ausentes agora funcionam corretamente.",
       "2026/04/06\r\n[Correção] Corrigido um problema em que linhas vazias em presamp.ini impediam o carregamento do arquivo.",
       "2026/03/27\r\n[Correção] Quando os caminhos de ícone/amostra em character.txt ou o caminho do retrato em character.yaml são inválidos, o app agora ignora apenas os itens inválidos e continua carregando o banco de voz.",

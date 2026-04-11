@@ -10,11 +10,11 @@ export const useInitializeApp = (): void => {
   const initialized = React.useRef(false);
   if (!initialized.current) {
     LOG.info("アプリケーションの初期化", "useInitializeApp");
-    LOG.debug(`build: ${__BUILD_TIMESTAMP__}`, "useInitializeApp");
+    LOG.info(`build: ${__BUILD_TIMESTAMP__}`, "useInitializeApp");
     LOG.debug(window.navigator.userAgent, "useInitializeApp");
     LOG.debug(
       "画面サイズ:" + [window.innerWidth, window.innerHeight],
-      "useInitializeApp"
+      "useInitializeApp",
     );
     initialized.current = true;
   }

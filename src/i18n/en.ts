@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/04/11\r\n[Add] Added new flags\r\nO flag: default 0, range -100 to 100, mouth opening/closing\r\nT flag: default 0, range -100 to 100, tension\r\nS flag: default 0, range -100 to 100, formant emphasis (clearness/sharpness)\r\nb flag: default 0, range -100 to 100, brightness\r\nMo flag, same as O flag (for UST files created for moresampler)\r\nMt flag, same as T flag (for UST files created for moresampler)\r\nMG flag, same as w flag (for UST files created for moresampler)\r\nME flag, same as S flag (for UST files created for moresampler)\r\n[Fix] Revised the processing of the B flag.",
       "2026/04/07\r\n[Fix] When loading some configuration files fails, only that file is ignored and loading continues.\r\n[Fix] Fixed an issue where, if some pitches are missing in prefix.map, pitches above the missing ones now work correctly.",
       "2026/04/06\r\n[Fix] Fixed an issue where empty lines in presamp.ini prevented the file from being loaded.",
       "2026/03/27\r\n[Fix] When icon/sample file paths in character.txt or portrait path in character.yaml are invalid, the app now skips only those invalid entries and continues loading the voicebank.",

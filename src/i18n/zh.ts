@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/04/11\r\n【新增】添加了新参数标志\r\nO标志：默认0，范围-100～100，口的开合\r\nT标志：默认0，范围-100～100，张力\r\nS标志：默认0，范围-100～100，共振峰增强（清晰度/锐度）\r\nb标志：默认0，范围-100～100，亮度\r\nMo标志，与O标志相同（适用于为moresampler制作的UST）\r\nMt标志，与T标志相同（适用于为moresampler制作的UST）\r\nMG标志，与w标志相同（适用于为moresampler制作的UST）\r\nME标志，与S标志相同（适用于为moresampler制作的UST）\r\n【修复】重新调整了B标志的处理方式。",
       "2026/04/07\r\n【修复】当部分配置文件读取失败时，现已修改为仅跳过该文件并继续读取其余内容。\r\n【修复】修复了 prefix.map 中部分音阶缺失时，缺失音阶以上的音阶无法正常工作的问题。",
       "2026/04/06\r\n【修复】修复了 presamp.ini 中存在空行时无法读取的问题。",
       "2026/03/27\r\n【修复】当 character.txt 中的图标/示例音频路径，或 character.yaml 中的立绘路径无效时，现已只跳过无效项并继续加载音源。",
