@@ -4,10 +4,11 @@ export interface FlagKeys {
   max?: number;
   type: "number" | "bool";
   default: number | undefined;
+  alias?: string;
 }
 export const parseFlags = (
   value: string,
-  flagKeys: FlagKeys[]
+  flagKeys: FlagKeys[],
 ): { [key: string]: number | undefined } => {
   if (value === undefined) {
     value = "";
@@ -24,6 +25,7 @@ export const parseFlags = (
         result[f.name] = f.default;
       }
     });
+  const foundFlags = new Set<string>();
   flagKeys
     .filter((f) => f.type === "number")
     .forEach((f) => {
@@ -37,8 +39,18 @@ export const parseFlags = (
         const flagValue =
           f.max === undefined ? flagValue_ : Math.min(f.max, flagValue_);
         result[f.name] = flagValue;
+        foundFlags.add(f.name);
       } else {
         result[f.name] = f.default;
+      }
+    });
+
+  // エイリアスフラグの解決: 正規フラグが未指定で、エイリアスフラグが指定されていれば正規フラグへ反映する
+  flagKeys
+    .filter((f) => f.alias !== undefined)
+    .forEach((f) => {
+      if (!foundFlags.has(f.alias) && foundFlags.has(f.name)) {
+        result[f.alias] = result[f.name];
       }
     });
 

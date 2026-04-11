@@ -35,6 +35,9 @@ export class Resamp {
     { name: "w", type: "number", min: 0, max: 100, default: 0 },
     { name: "O", type: "number", min: -100, max: 100, default: 0 },
     { name: "T", type: "number", min: -100, max: 100, default: 0 },
+    { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
+    { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
+    { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
   ];
 
   /**
