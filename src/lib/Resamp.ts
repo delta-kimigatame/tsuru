@@ -26,18 +26,20 @@ export class Resamp {
    * フラグ定義
    */
   flagKeys: FlagKeys[] = [
-    { name: "G", type: "bool", default: undefined },
-    { name: "g", type: "number", min: -100, max: 100, default: 0 },
-    { name: "B", type: "number", min: 0, max: 100, default: 50 },
-    { name: "t", type: "number", min: -100, max: 100, default: 0 },
-    { name: "P", type: "number", min: 0, max: 100, default: 86 },
-    { name: "e", type: "bool", default: undefined },
-    { name: "w", type: "number", min: 0, max: 100, default: 0 },
-    { name: "O", type: "number", min: -100, max: 100, default: 0 },
-    { name: "T", type: "number", min: -100, max: 100, default: 0 },
+    { name: "G", type: "bool", default: undefined }, // Generateフラグ、周波数表を強制的に再生成
+    { name: "g", type: "number", min: -100, max: 100, default: 0 }, //genderフラグ、スペクトル包絡全体をワープ
+    { name: "B", type: "number", min: 0, max: 100, default: 50 }, //Breath、現在の実装では簡易的に非周期性指標の増減
+    { name: "t", type: "number", min: -100, max: 100, default: 0 }, //toneフラグ、音高をcent単位で調整
+    { name: "P", type: "number", min: 0, max: 100, default: 86 }, //ピークコンプレッサーの強さ。0で無し、100で-6dBに正規化
+    { name: "e", type: "bool", default: undefined }, //伸縮方法フラグ、trueでworldStretchのeFlagをtrueにして伸縮。falseでeFlagをfalseにして伸縮。eFlagがtrueのとき、伸ばす際は元のフレームを等間隔に複製するのではなく、複製するフレームを交互に前後から選ぶ方法で伸ばす。これにより、より自然な伸び方になることがある。
+    { name: "w", type: "number", min: 0, max: 100, default: 0 }, //グロウルの強さ。
+    { name: "O", type: "number", min: -100, max: 100, default: 0 }, //Openingフラグ。F1付近のスペクトルワープで疑似的に開口度を調整する。+で開く、-で閉じる。
+    { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。F2付近のスペクトルワープで疑似的に張りを調整する。+で張る、-で緩める。
+    { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。0は素通し、100に近いほどフォルマント強調
     { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
     { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
     { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
+    { name: "ME", type: "number", min: -100, max: 100, default: 0, alias: "S" }, //moresampler互換性のためのSフラグのエイリアス。SがなくMEがあれば、MEをSとして扱う。
   ];
 
   /**
@@ -159,6 +161,7 @@ export class Resamp {
       flags["T"],
     );
     const applyGenderSp = this.applyGender(applyWarpSp, flags["g"]);
+    const applySharpSp = this.applySharp(applyGenderSp, flags["S"]);
     const ap =
       flags["B"] === 0
         ? sp.spectral.map((arr) => new Float64Array(arr.length))
@@ -175,7 +178,7 @@ export class Resamp {
     const breasedAp = this.applyBreath(ap, flags["B"]);
     const stretchParams = this.stretch(
       Array.from(request.frqData),
-      applyGenderSp,
+      applySharpSp,
       breasedAp,
       Array.from(request.ampData),
       request.targetMs,
@@ -834,6 +837,54 @@ export class Resamp {
 
       for (let j = maxIndex + 1; j <= half_fft; j++) {
         new_sp[frameIndex][j] = new_sp[frameIndex][maxIndex];
+      }
+    });
+
+    return new_sp;
+  }
+
+  applySharp(sp: Array<Float64Array>, SFlag: number): Array<Float64Array> {
+    if (SFlag === 0) {
+      return sp;
+    }
+
+    const amount = (SFlag / 100) * 2; // S=50で差分等倍(十分な強調)、S=100で差分2倍(過強調)
+    const half_fft = sp[0].length - 1;
+
+    // ガウシアンカーネルの半径をfft解像度に比例させ、フォルマント帯域幅を概ね一定にする
+    const kernelRadius = Math.max(2, Math.round(half_fft / 64));
+    const sigma = kernelRadius / 2;
+    const weights = Array.from({ length: 2 * kernelRadius + 1 }, (_, i) => {
+      const d = i - kernelRadius;
+      return Math.exp(-(d * d) / (2 * sigma * sigma));
+    });
+
+    const new_sp: Array<Float64Array> = sp.map(
+      (arr) => new Float64Array(arr.length),
+    );
+
+    sp.forEach((s, frameIndex) => {
+      const logSpec = s.map((v) => Math.log(Math.max(v, 1e-12)));
+
+      // ガウシアン平滑化（アンシャープマスクのブラーとして使用）
+      const blurred = new Float64Array(half_fft + 1);
+      for (let j = 0; j <= half_fft; j++) {
+        let sum = 0;
+        let wsum = 0;
+        for (let k = -kernelRadius; k <= kernelRadius; k++) {
+          const idx = Math.max(0, Math.min(half_fft, j + k));
+          const w = weights[k + kernelRadius];
+          sum += w * logSpec[idx];
+          wsum += w;
+        }
+        blurred[j] = sum / wsum;
+      }
+
+      // アンシャープマスク: sharpened = original + amount * (original - blurred)
+      for (let j = 0; j <= half_fft; j++) {
+        new_sp[frameIndex][j] = Math.exp(
+          logSpec[j] + amount * (logSpec[j] - blurred[j]),
+        );
       }
     });
 
