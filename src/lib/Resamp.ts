@@ -176,9 +176,10 @@ export class Resamp {
             0,
           );
     const breasedAp = this.applyBreath(ap, flags["B"]);
+    const breathSp = this.applyBreathSp(applySharpSp, flags["B"]);
     const stretchParams = this.stretch(
       Array.from(request.frqData),
-      applySharpSp,
+      breathSp,
       breasedAp,
       Array.from(request.ampData),
       request.targetMs,
@@ -987,6 +988,42 @@ export class Resamp {
   }
 
   /**
+   * Bフラグに応じてスペクトル包絡のエネルギーを周波数依存で下げる（試験的）
+   * 吐息では低域（グロッタル基音）のエネルギーが消えるため、低域ほど強く減衰する。
+   * @param sp スペクトル包絡
+   * @param BFlag Bフラグ値。0～100の整数
+   * @returns BFlag<=50のとき無変更。B>50のとき低域を最大-20dB、高域を最大-6dBとする周波数依存減衰を適用。
+   */
+  applyBreathSp(sp: Array<Float64Array>, BFlag: number): Array<Float64Array> {
+    if (BFlag <= 50) return sp;
+    const rate = (BFlag - 50) / 50;
+    const half_fft = sp[0].length - 1;
+    const fs = 44100;
+    const fft_size = half_fft * 2;
+    // 低域ほど強く減衰させる重みの時定数（Hz）
+    const cutoff = 500;
+
+    // ビンごとのゲインを事前計算
+    // gain_dB = (-14 * lowWeight - 6) * rate
+    // lowWeight=1(DC)のとき -20*rate dB、lowWeight≈0(高域)のとき -6*rate dB
+    const gains = new Float64Array(half_fft + 1);
+    for (let j = 0; j <= half_fft; j++) {
+      const freq = (j / fft_size) * fs;
+      const lowWeight = Math.exp(-freq / cutoff);
+      const gain_dB = (-14 * lowWeight - 6) * rate;
+      gains[j] = Math.pow(10, gain_dB / 20);
+    }
+
+    return sp.map((arr) => {
+      const result = new Float64Array(arr.length);
+      for (let j = 0; j <= half_fft; j++) {
+        result[j] = Math.max(arr[j] * gains[j], 1e-12);
+      }
+      return result;
+    });
+  }
+
+  /**
    * Bフラグを非周期性指標に反映する
    * @param ap 非周期性指標
    * @param BFlag Bフラグ値。0～100の整数
@@ -998,13 +1035,14 @@ export class Resamp {
       return ap.map((arr) => arr.map((value) => (value * BFlag * 2) / 100));
     } else if (BFlag > 50) {
       const rate = (BFlag * 2 - 100) / 100;
-      // alpha_minをBFlagに応じて変化させ、B=100で全周波数ビンがap=1.0に収束する
-      const alphaMin = 0.5 + 0.5 * ((BFlag - 50) / 50);
+      // 低域のap目標を0.5に留め、高域のみ1.0に収束させる。
+      // 低域ビンまでap=1にすると有声スペクトル包絡の低域成分がノイズ励振され喉鳴りになるため、
+      // 低域は周期成分を残しつつ高域のみシューシュー息感を出す。
       return ap.map((arr) =>
         arr.map((value, j) => {
           const freqRatio = arr.length > 1 ? j / (arr.length - 1) : 1;
-          const effectiveRate = rate * (alphaMin + (1 - alphaMin) * freqRatio);
-          return value * (1 - effectiveRate) + effectiveRate;
+          const apTarget = 0.5 + 0.5 * freqRatio;
+          return value + rate * (apTarget - value);
         }),
       );
     }
