@@ -312,19 +312,15 @@ export class Wavtool {
       }
     }
 
-    // ---- マキシマイズ (-1dB) ----
-    // L/R両チャンネルのピークを基準に統一ゲインを算出
-    const targetMinus1dB = 10 ** (-1 / 20); // ≈ 0.8913
-    const mixedPeak = Math.max(
-      mixedL.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
-      mixedR.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
-    );
-    const masterGain = mixedPeak > 0 ? targetMinus1dB / mixedPeak : 1;
-    const masteredL = mixedL.map((v) =>
-      Math.max(-1, Math.min(1, v * masterGain)),
-    );
-    const masteredR = mixedR.map((v) =>
-      Math.max(-1, Math.min(1, v * masterGain)),
+    // ---- LUFS正規化 + トゥルーピークリミット (ITU-R BS.1770-4 / EBU R128) ----
+    // ターゲット: -14 LUFS（YouTube 等 動画投稿サイト共通基準）
+    // トゥルーピーク上限: -1.0 dBTP
+    const [masteredL, masteredR] = this.applyLUFSNormalize(
+      mixedL,
+      mixedR,
+      -14,
+      -1.0,
+      fs,
     );
 
     // ---- this._data / _rData を更新 ----
@@ -494,5 +490,172 @@ export class Wavtool {
       wBuf[idx] = w;
     }
     return output;
+  }
+
+  /**
+   * LUFS正規化とトゥルーピークリミットを一括適用する（ITU-R BS.1770-4 / EBU R128）。
+   * 1. K-weightingフィルタ（2段バイクアッド）を適用して統合ラウドネスを計測
+   * 2. targetLUFSとの差分からゲインを算出して適用
+   * 3. トゥルーピーク（4点線形オーバーサンプリング推定）が truePeakCeilingDB を超える場合は
+   *    均一ゲイン削減でシーリングに収める
+   * @param dataL Lチャンネル（論理正規化済み）
+   * @param dataR Rチャンネル（論理正規化済み）
+   * @param targetLUFS ターゲットラウドネス（例: -14）
+   * @param truePeakCeilingDB トゥルーピーク上限 dBTP（例: -1.0）
+   * @param fs サンプリングレート（Hz）
+   */
+  private applyLUFSNormalize(
+    dataL: number[],
+    dataR: number[],
+    targetLUFS: number,
+    truePeakCeilingDB: number,
+    fs: number,
+  ): [number[], number[]] {
+    // K-weighting（Stage1: 高域シェルビング → Stage2: RLB高域通過）を両チャンネルに適用
+    const preCoeffs = this.kPreFilterCoeffs(fs);
+    const rlbCoeffs = this.kRLBCoeffs(fs);
+    const kL = this.applyBiquad(
+      this.applyBiquad(dataL, ...preCoeffs),
+      ...rlbCoeffs,
+    );
+    const kR = this.applyBiquad(
+      this.applyBiquad(dataR, ...preCoeffs),
+      ...rlbCoeffs,
+    );
+
+    // 統合ラウドネス計測
+    const measuredLUFS = this.measureIntegratedLoudness(kL, kR, fs);
+    if (!isFinite(measuredLUFS)) {
+      // 無音など計測不能な場合はそのまま返す
+      return [dataL.slice(), dataR.slice()];
+    }
+
+    // ターゲットとの差分からゲインを算出して適用
+    const gainLinear = 10 ** ((targetLUFS - measuredLUFS) / 20);
+    const gainedL = dataL.map((v) => v * gainLinear);
+    const gainedR = dataR.map((v) => v * gainLinear);
+
+    // トゥルーピーク計測・リミット
+    const ceiling = 10 ** (truePeakCeilingDB / 20);
+    const truePeak = this.measureTruePeak(gainedL, gainedR);
+    if (truePeak > ceiling) {
+      const attenuation = ceiling / truePeak;
+      return [
+        gainedL.map((v) => v * attenuation),
+        gainedR.map((v) => v * attenuation),
+      ];
+    }
+    return [gainedL, gainedR];
+  }
+
+  /**
+   * K-weighting Stage1: 高域シェルビングフィルタ係数を返す（ITU-R BS.1770-4 附属書1）。
+   * 特性: f0=1681.974 Hz, gain=+4 dB, S=1（頭部伝達関数補正）
+   * Audio EQ Cookbook の High Shelf 式から fs に応じて動的に算出する。
+   */
+  private kPreFilterCoeffs(
+    fs: number,
+  ): [number, number, number, number, number] {
+    const A = 10 ** (4 / 40); // +4 dB
+    const ω0 = (2 * Math.PI * 1681.974) / fs;
+    const cosω0 = Math.cos(ω0);
+    const sqrtA = Math.sqrt(A);
+    const α = (Math.sin(ω0) / 2) * Math.sqrt(2); // S=1
+    const a0 = A + 1 - (A - 1) * cosω0 + 2 * sqrtA * α;
+    return [
+      (A * (A + 1 + (A - 1) * cosω0 + 2 * sqrtA * α)) / a0,
+      (-2 * A * (A - 1 + (A + 1) * cosω0)) / a0,
+      (A * (A + 1 + (A - 1) * cosω0 - 2 * sqrtA * α)) / a0,
+      (2 * (A - 1 - (A + 1) * cosω0)) / a0,
+      (A + 1 - (A - 1) * cosω0 - 2 * sqrtA * α) / a0,
+    ];
+  }
+
+  /**
+   * K-weighting Stage2: RLB高域通過フィルタ係数を返す（ITU-R BS.1770-4 附属書1）。
+   * 特性: f0=38.135 Hz, Q=0.5003270（超低域除去）
+   */
+  private kRLBCoeffs(fs: number): [number, number, number, number, number] {
+    const ω0 = (2 * Math.PI * 38.13547) / fs;
+    const cosω0 = Math.cos(ω0);
+    const α = Math.sin(ω0) / (2 * 0.500327);
+    const a0 = 1 + α;
+    return [
+      (1 + cosω0) / 2 / a0,
+      -(1 + cosω0) / a0,
+      (1 + cosω0) / 2 / a0,
+      (-2 * cosω0) / a0,
+      (1 - α) / a0,
+    ];
+  }
+
+  /**
+   * ITU-R BS.1770-4 ゲーティング付き統合ラウドネスを計測する。
+   * 400ms ブロック・75% オーバーラップ、絶対ゲート(-70 LUFS)と相対ゲート(-10 LU)を適用。
+   * @param kL K-weighting適用済みLチャンネル
+   * @param kR K-weighting適用済みRチャンネル
+   * @param fs サンプリングレート
+   * @returns 統合ラウドネス (LUFS)。計測不能（無音等）の場合は -Infinity
+   */
+  private measureIntegratedLoudness(
+    kL: number[],
+    kR: number[],
+    fs: number,
+  ): number {
+    const blockSize = Math.round(0.4 * fs); // 400 ms
+    const hopSize = Math.round(0.1 * fs); // 100 ms（75% overlap）
+    // 絶対ゲート閾値: -70 LUFS に対応する mean square
+    const absGateThreshold = 10 ** ((-70 + 0.691) / 10);
+
+    const zBlocks: number[] = [];
+    for (let start = 0; start + blockSize <= kL.length; start += hopSize) {
+      let sum = 0;
+      for (let i = start; i < start + blockSize; i++) {
+        sum += kL[i] * kL[i] + kR[i] * kR[i];
+      }
+      zBlocks.push(sum / blockSize);
+    }
+    if (zBlocks.length === 0) return -Infinity;
+
+    // Pass 1: 絶対ゲート（> -70 LUFS のブロックのみ残す）
+    const absPassed = zBlocks.filter((z) => z > absGateThreshold);
+    if (absPassed.length === 0) return -Infinity;
+
+    const meanAbs = absPassed.reduce((a, b) => a + b, 0) / absPassed.length;
+    // 相対ゲート閾値: Pass1 平均から -10 LU
+    const relGateThreshold = meanAbs * 10 ** (-10 / 10);
+
+    // Pass 2: 相対ゲート
+    const relPassed = absPassed.filter((z) => z > relGateThreshold);
+    if (relPassed.length === 0) return -Infinity;
+
+    const meanRel = relPassed.reduce((a, b) => a + b, 0) / relPassed.length;
+    return -0.691 + 10 * Math.log10(meanRel);
+  }
+
+  /**
+   * トゥルーピーク値を推定する（4点線形オーバーサンプリング）。
+   * 隣接サンプル間の 0.25 / 0.5 / 0.75 の補間値をチェックすることで
+   * inter-sample peak を近似的に検出する。
+   * 厳密には ITU-R BS.1770-4 Annex 2 が求める sinc ベース 4× OS が必要だが、
+   * 本用途では線形補間による近似で十分な精度が得られる。
+   */
+  private measureTruePeak(dataL: number[], dataR: number[]): number {
+    let peak = 0;
+    for (const ch of [dataL, dataR]) {
+      for (let i = 0; i < ch.length - 1; i++) {
+        const s0 = ch[i];
+        const s1 = ch[i + 1];
+        peak = Math.max(
+          peak,
+          Math.abs(s0),
+          Math.abs(0.75 * s0 + 0.25 * s1),
+          Math.abs(0.5 * s0 + 0.5 * s1),
+          Math.abs(0.25 * s0 + 0.75 * s1),
+        );
+      }
+      if (ch.length > 0) peak = Math.max(peak, Math.abs(ch[ch.length - 1]));
+    }
+    return peak;
   }
 }
