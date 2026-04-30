@@ -1,9 +1,11 @@
 import { COOKIE_KEYS, cookieDefaults } from "../config/cookie";
 import { LOG } from "../lib/Logging";
 import { ColorTheme } from "../types/colorTheme";
+import { ExportMode } from "../types/exportMode";
 import { Language } from "../types/language";
 import { Mode } from "../types/mode";
 import { defaultParam } from "../types/note";
+import { PlayMode } from "../types/playMode";
 import { useCookie } from "./useCookie";
 
 /**
@@ -107,6 +109,23 @@ export const useProjectCookie = () => {
   ) as unknown as boolean;
 
   /**
+   * 再生モードを取得します。
+   * クッキーが存在しない場合は、デフォルトで `cookieDefaults.playMode` を返します。
+   */
+  const playMode = getStringCookie(
+    COOKIE_KEYS.playMode,
+    cookieDefaults.playMode
+  ) as PlayMode;
+  /**
+   * エクスポートモードを取得します。
+   * クッキーが存在しない場合は、デフォルトで `cookieDefaults.exportMode` を返します。
+   */
+  const exportMode = getStringCookie(
+    COOKIE_KEYS.exportMode,
+    cookieDefaults.exportMode
+  ) as ExportMode;
+
+  /**
    * モードをクッキーに保存します。
    * @param newMode 更新するモード（`light`, `dark`, `system`）
    */
@@ -175,6 +194,18 @@ export const useProjectCookie = () => {
       newBackgroundResamp.toString()
     );
   };
+  /**
+   * 再生モードをクッキーに保存します。
+   * @param newPlayMode 更新する再生モード
+   */
+  const setPlayMode = (newPlayMode: PlayMode) =>
+    setStringCookie(COOKIE_KEYS.playMode, newPlayMode);
+  /**
+   * エクスポートモードをクッキーに保存します。
+   * @param newExportMode 更新するエクスポートモード
+   */
+  const setExportMode = (newExportMode: ExportMode) =>
+    setStringCookie(COOKIE_KEYS.exportMode, newExportMode);
 
   LOG.debug(
     `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote},verticalZoom:${verticalZoom},horizontalZoom:${horizontalZoom}`,
@@ -191,6 +222,8 @@ export const useProjectCookie = () => {
     fastResamp,
     useCache,
     backgroundResamp,
+    playMode,
+    exportMode,
     setMode,
     setLanguage,
     setColorTheme,
@@ -201,5 +234,7 @@ export const useProjectCookie = () => {
     setFastResamp,
     setUseCache,
     setBackgroundResamp,
+    setPlayMode,
+    setExportMode,
   };
 };
