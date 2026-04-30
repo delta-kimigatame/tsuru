@@ -240,7 +240,16 @@ export class Wavtool {
    * ### 引数関係
    * - 設定パラメータとしてのvolumeは無視し、offsetMsは伴奏の開始位置を調整するために使用する。
    */
-  mixAndMaster(backgroundWav: Wave, offsetMs: number, volume: number): void {
+  /**
+   * @param extendToBackground true の場合、ボーカル終端以降の伴奏のみ区間も出力に含める。
+   *                            false の場合はボーカル長までに制限する（部分選択再生時）。
+   */
+  mixAndMaster(
+    backgroundWav: Wave,
+    offsetMs: number,
+    volume: number,
+    extendToBackground: boolean = false,
+  ): void {
     const fs = renderingConfig.frameRate;
     const wp = new WaveProcessing();
 
@@ -270,21 +279,15 @@ export class Wavtool {
     const mixedL = vocalData.slice();
     const mixedR = vocalData.slice();
     if (mixLength > 0) {
-      // 伴奏のLchを正規化
+      // 伴奏を全区間まとめて正規化（ゲインの一貫性のため：ミックス区間と延長区間で同一ゲインを使用）
       const bgLData = wp.LogicalNormalize(
-        backgroundWav.data.slice(
-          backgroundStartFrame,
-          backgroundStartFrame + mixLength,
-        ),
+        backgroundWav.data.slice(backgroundStartFrame),
         backgroundWav.bitDepth,
       );
       // Rchがあれば正規化、なければLchを複製（モノラル伴奏）
       const bgRData = backgroundWav.rData
         ? wp.LogicalNormalize(
-            backgroundWav.rData.slice(
-              backgroundStartFrame,
-              backgroundStartFrame + mixLength,
-            ),
+            backgroundWav.rData.slice(backgroundStartFrame),
             backgroundWav.bitDepth,
           )
         : bgLData.slice();
@@ -305,10 +308,18 @@ export class Wavtool {
       );
       const bgGain = bgPeak > 0 ? targetLinear / bgPeak : 0;
 
-      // ゲインを適用しながらL/Rそれぞれにミックス
+      // ゲインを適用しながらL/Rそれぞれにミックス（既存処理）
       for (let i = 0; i < mixLength; i++) {
         mixedL[dataStartFrame + i] += bgLData[i] * bgGain;
         mixedR[dataStartFrame + i] += bgRData[i] * bgGain;
+      }
+
+      // ボーカル終端以降の伴奏のみ区間を追記
+      if (extendToBackground) {
+        for (let i = mixLength; i < bgLData.length; i++) {
+          mixedL.push(bgLData[i] * bgGain);
+          mixedR.push(bgRData[i] * bgGain);
+        }
       }
     }
 

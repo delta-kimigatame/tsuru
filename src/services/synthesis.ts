@@ -121,6 +121,7 @@ export class SynthesisWorker {
         backgroundAudio.wav,
         backgroundAudio.offsetMs,
         backgroundAudio.volume,
+        selectNotes.length === 0,
       );
     }
 
