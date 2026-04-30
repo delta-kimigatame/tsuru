@@ -50,7 +50,7 @@ export class SynthesisWorker {
       offsetMs: number;
       volume: number;
       mute: boolean;
-    }
+    },
   ): Promise<ArrayBuffer> {
     this.wavtool = new Wavtool();
     this.workersPool.clearTasks();
@@ -60,7 +60,7 @@ export class SynthesisWorker {
     const targetIndexes = ust.getCacheIndex(vb, selectNotes);
     LOG.info("音声合成開始", "synthesis,SynthesisWorker");
     this.resampResults = requestParams.map((p, i) =>
-      this.resamp(p, vb, targetIndexes[i])
+      this.resamp(p, vb, targetIndexes[i]),
     );
     await this.append(requestParams, 0, setSynthesisCount);
     LOG.info("音声合成終了", "synthesis,SynthesisWorker");
@@ -70,7 +70,57 @@ export class SynthesisWorker {
       this.wavtool.mixBackgroundAudio(
         backgroundAudio.wav,
         backgroundAudio.offsetMs,
-        backgroundAudio.volume
+        backgroundAudio.volume,
+      );
+    }
+
+    /** 16bit/44100HzのWaveオブジェクトのbuffer */
+    try {
+      LOG.info("wavに変換", "synthesis,SynthesisWorker");
+      const wavBuf = this.wavtool.output();
+      return wavBuf;
+    } catch (error) {
+      LOG.error("wav変換に失敗しました", "synthesis,SynthesisWorker");
+      throw error;
+    }
+  }
+  /**
+   * 編集中の楽譜データを用いて、wavファイルを生成する。
+   * @param selectNotes 再生するノートのインデックス列。空の配列が渡された場合、全ノートが対象となる。
+   * @returns 16bit/44100Hzのwavデータを表すArrayBuffer
+   */
+  async synthesisAndMaster(
+    selectNotes: Array<number>,
+    setSynthesisCount: (number) => void = (value) => {},
+    backgroundAudio?: {
+      wav: Wave;
+      offsetMs: number;
+      volume: number;
+      mute: boolean;
+    },
+  ): Promise<ArrayBuffer> {
+    this.wavtool = new Wavtool();
+    this.workersPool.clearTasks();
+    const { vb, ust } = useMusicProjectStore.getState();
+    const { defaultNote, workersCount } = useCookieStore.getState();
+    const requestParams = ust.getRequestParam(vb, defaultNote, selectNotes);
+    const targetIndexes = ust.getCacheIndex(vb, selectNotes);
+    LOG.info("音声合成開始", "synthesis,SynthesisWorker");
+    this.resampResults = requestParams.map((p, i) =>
+      this.resamp(p, vb, targetIndexes[i]),
+    );
+    await this.append(requestParams, 0, setSynthesisCount);
+    LOG.info("音声合成終了", "synthesis,SynthesisWorker");
+
+    if (backgroundAudio && !backgroundAudio.mute) {
+      LOG.info(
+        "バックグラウンドオーディオを合成(マスタリング)",
+        "synthesis,SynthesisWorker",
+      );
+      this.wavtool.mixAndMaster(
+        backgroundAudio.wav,
+        backgroundAudio.offsetMs,
+        backgroundAudio.volume,
       );
     }
 
@@ -99,18 +149,18 @@ export class SynthesisWorker {
       append: AppendRequestBase;
     },
     vb: BaseVoiceBank,
-    index: number
+    index: number,
   ): Promise<Float64Array> => {
     if (param.resamp === undefined && param.append.inputWav !== undefined) {
       LOG.debug(
         `$direct_true。index:${index},request:${JSON.stringify(param.append)}`,
-        "synthesis,SynthesisWorker"
+        "synthesis,SynthesisWorker",
       );
       const promise = getWaveData(
         param.append.inputWav,
         param.append.stp,
         param.append.length,
-        vb
+        vb,
       ).then((result) => {
         return Float64Array.from(result);
       });
@@ -119,7 +169,7 @@ export class SynthesisWorker {
     if (param.resamp === undefined) {
       /** 休符の場合0埋めで返す */
       const requireLength = Math.ceil(
-        (param.append.length / 1000) * renderingConfig.frameRate
+        (param.append.length / 1000) * renderingConfig.frameRate,
       );
       LOG.debug(`休符。長さ:${requireLength}`, "synthesis,SynthesisWorker");
       return new Float64Array(requireLength);
@@ -128,15 +178,15 @@ export class SynthesisWorker {
       if (resampCache.checkKey(index, key)) {
         LOG.debug(
           `キャッシュヒット。index:${index},request:${JSON.stringify(
-            param.resamp
+            param.resamp,
           )}`,
-          "synthesis,SynthesisWorker"
+          "synthesis,SynthesisWorker",
         );
         return resampCache.get(index, key);
       } else {
         LOG.debug(
           `workerpoolにセット。request:${JSON.stringify(param.resamp)}`,
-          "synthesis,SynthesisWorker"
+          "synthesis,SynthesisWorker",
         );
         const promise = this.workersPool
           .runResamp(param.resamp, vb, index)
@@ -167,7 +217,7 @@ export class SynthesisWorker {
       append: AppendRequestBase;
     }>,
     index: number = 0,
-    setSynthesisCount: (number) => void
+    setSynthesisCount: (number) => void,
   ): Promise<void> => {
     // 全てのタスクが処理済みの場合は終了
     if (index >= this.resampResults.length) {
@@ -185,9 +235,9 @@ export class SynthesisWorker {
     try {
       LOG.debug(
         `wavtoolで結合。${index},params:${JSON.stringify(
-          params[index].append
+          params[index].append,
         )}`,
-        "synthesis,SynthesisWorker"
+        "synthesis,SynthesisWorker",
       );
       setSynthesisCount(index);
       this.wavtool.append({
