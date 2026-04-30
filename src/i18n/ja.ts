@@ -369,6 +369,8 @@ export const translationJa = {
       playStop: "停止",
       playModeSimple: "通常",
       playModeMaster: "マスター",
+      exportModeVocal: "ボーカル",
+      exportModeMaster: "伴奏付",
       wav: "wav保存",
       ustLoadError:
         "ustファイルの読み込みに失敗しました。ファイルを確認してください。",

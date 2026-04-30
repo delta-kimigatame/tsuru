@@ -48,7 +48,7 @@ import { FooterZoomMenu } from "./FooterZoomMenu";
 export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const { t } = useTranslation();
   const { setNotes, notes, vb } = useMusicProjectStore();
-  const { playMode, setPlayMode } = useCookieStore();
+  const { playMode, setPlayMode, exportMode, setExportMode } = useCookieStore();
   const snackBarStore = useSnackBarStore();
   const [ustLoadProgress, setUstLoadProgress] = React.useState<boolean>(false);
   const [batchProcesses, setBatchProcesses] = React.useState<
@@ -349,17 +349,51 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
         <Tab
-          icon={
-            props.synthesisProgress ? <CircularProgress /> : <DownloadIcon />
-          }
           label={
-            props.synthesisProgress
-              ? `${props.synthesisCount}/${
-                  props.selectedNotesIndex.length !== 0
-                    ? props.selectedNotesIndex.length
-                    : notes.length
-                }`
-              : t("editor.footer.wav")
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 0.25,
+              }}
+            >
+              {!props.synthesisProgress && (
+                <Chip
+                  label={
+                    exportMode === "master" && props.backgroundAudioWav
+                      ? t("editor.footer.exportModeMaster")
+                      : t("editor.footer.exportModeVocal")
+                  }
+                  size="small"
+                  color={
+                    exportMode === "master" && props.backgroundAudioWav
+                      ? "primary"
+                      : "default"
+                  }
+                  disabled={!props.backgroundAudioWav}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportMode(exportMode === "master" ? "vocal" : "master");
+                  }}
+                  sx={{ height: 14, fontSize: "0.55rem", cursor: "pointer" }}
+                />
+              )}
+              {props.synthesisProgress ? (
+                <CircularProgress />
+              ) : (
+                <DownloadIcon />
+              )}
+              <span>
+                {props.synthesisProgress
+                  ? `${props.synthesisCount}/${
+                      props.selectedNotesIndex.length !== 0
+                        ? props.selectedNotesIndex.length
+                        : notes.length
+                    }`
+                  : t("editor.footer.wav")}
+              </span>
+            </Box>
           }
           onClick={props.handleDownload}
           sx={{ flex: 1, p: 0 }}

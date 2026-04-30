@@ -368,6 +368,8 @@ export const translationEn = {
       playStop: "Stop",
       playModeSimple: "Simple",
       playModeMaster: "Master",
+      exportModeVocal: "Vocal",
+      exportModeMaster: "w/BGM",
       wav: "Save WAV",
       ustLoadError: "Failed to load the UST file. Please check the file.",
       verticalZoomIn: "Zoom In (Vertical)",

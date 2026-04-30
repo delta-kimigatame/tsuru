@@ -358,6 +358,8 @@ export const translationZh = {
       playStop: "停止",
       playModeSimple: "普通",
       playModeMaster: "母带",
+      exportModeVocal: "人声",
+      exportModeMaster: "带伴奏",
       wav: "保存 wav",
       ustLoadError: "ust 文件加载失败，请检查文件。",
       verticalZoomIn: "纵向放大",
