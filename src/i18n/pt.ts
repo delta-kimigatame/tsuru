@@ -374,6 +374,8 @@ export const translationPt = {
       addNote: "Adicionar nota",
       play: "Reproduzir",
       playStop: "Parar",
+      playModeSimple: "Simples",
+      playModeMaster: "Master",
       wav: "Salvar WAV",
       ustLoadError: "Falha ao carregar o arquivo UST. Verifique o arquivo.",
       verticalZoomIn: "Ampliar (vertical)",

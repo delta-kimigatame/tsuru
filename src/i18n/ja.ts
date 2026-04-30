@@ -367,6 +367,8 @@ export const translationJa = {
       addNote: "ノート追加",
       play: "再生",
       playStop: "停止",
+      playModeSimple: "通常",
+      playModeMaster: "マスター",
       wav: "wav保存",
       ustLoadError:
         "ustファイルの読み込みに失敗しました。ファイルを確認してください。",

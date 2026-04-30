@@ -356,6 +356,8 @@ export const translationZh = {
       addNote: "添加音符",
       play: "播放",
       playStop: "停止",
+      playModeSimple: "普通",
+      playModeMaster: "母带",
       wav: "保存 wav",
       ustLoadError: "ust 文件加载失败，请检查文件。",
       verticalZoomIn: "纵向放大",
