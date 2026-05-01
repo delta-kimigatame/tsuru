@@ -1,1 +1,1 @@
-export type ExportMode = "vocal" | "master";
+export type ExportMode = "vocal" | "master" | "movie";

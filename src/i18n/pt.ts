@@ -379,6 +379,7 @@ export const translationPt = {
       playModeMaster: "Master",
       exportModeVocal: "Vocal",
       exportModeMaster: "c/Fundo",
+      exportModeMovie: "Vídeo",
       wav: "Salvar WAV",
       ustLoadError: "Falha ao carregar o arquivo UST. Verifique o arquivo.",
       verticalZoomIn: "Ampliar (vertical)",
@@ -400,6 +401,13 @@ export const translationPt = {
       backgroundAudioPlayFromNotesEnd: "Tocar Após Notas",
       isMinor: "Menor",
       isShowPortrait: "Exibir retrato do personagem",
+    },
+    videoExport: {
+      title: "Configurações de exportação de vídeo",
+      selectImage: "Selecionar imagem de fundo",
+      confirm: "Exportar",
+      cancel: "Cancelar",
+      notSupported: "Este navegador não suporta exportação de vídeo",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

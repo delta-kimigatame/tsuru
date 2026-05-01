@@ -372,6 +372,7 @@ export const translationJa = {
       playModeMaster: "マスター",
       exportModeVocal: "ボーカル",
       exportModeMaster: "伴奏付",
+      exportModeMovie: "動画",
       wav: "wav保存",
       ustLoadError:
         "ustファイルの読み込みに失敗しました。ファイルを確認してください。",
@@ -394,6 +395,13 @@ export const translationJa = {
       backgroundAudioPlayFromNotesEnd: "ノート終了位置から伴奏再生",
       isMinor: "マイナー(短調)",
       isShowPortrait: "立ち絵表示",
+    },
+    videoExport: {
+      title: "動画エクスポート設定",
+      selectImage: "背景画像を選択",
+      confirm: "エクスポート",
+      cancel: "キャンセル",
+      notSupported: "このブラウザは動画出力に未対応です",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

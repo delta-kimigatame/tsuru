@@ -361,20 +361,29 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
               {!props.synthesisProgress && (
                 <Chip
                   label={
-                    exportMode === "master" && props.backgroundAudioWav
-                      ? t("editor.footer.exportModeMaster")
-                      : t("editor.footer.exportModeVocal")
+                    exportMode === "movie"
+                      ? t("editor.footer.exportModeMovie")
+                      : exportMode === "master" && props.backgroundAudioWav
+                        ? t("editor.footer.exportModeMaster")
+                        : t("editor.footer.exportModeVocal")
                   }
                   size="small"
                   color={
-                    exportMode === "master" && props.backgroundAudioWav
-                      ? "primary"
-                      : "default"
+                    exportMode === "movie"
+                      ? "secondary"
+                      : exportMode === "master" && props.backgroundAudioWav
+                        ? "primary"
+                        : "default"
                   }
-                  disabled={!props.backgroundAudioWav}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setExportMode(exportMode === "master" ? "vocal" : "master");
+                    if (exportMode === "vocal") {
+                      setExportMode("master");
+                    } else if (exportMode === "master") {
+                      setExportMode("movie");
+                    } else {
+                      setExportMode("vocal");
+                    }
                   }}
                   sx={{ height: 14, fontSize: "0.55rem", cursor: "pointer" }}
                 />

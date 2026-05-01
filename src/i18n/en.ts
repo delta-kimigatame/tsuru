@@ -371,6 +371,7 @@ export const translationEn = {
       playModeMaster: "Master",
       exportModeVocal: "Vocal",
       exportModeMaster: "w/BGM",
+      exportModeMovie: "Movie",
       wav: "Save WAV",
       ustLoadError: "Failed to load the UST file. Please check the file.",
       verticalZoomIn: "Zoom In (Vertical)",
@@ -392,6 +393,13 @@ export const translationEn = {
       backgroundAudioPlayFromNotesEnd: "Play After Notes",
       isMinor: "Minor",
       isShowPortrait: "Show character portrait",
+    },
+    videoExport: {
+      title: "Video Export Settings",
+      selectImage: "Select background image",
+      confirm: "Export",
+      cancel: "Cancel",
+      notSupported: "This browser does not support video export",
     },
     synthesisError: "Synthesis process failed.",
     workerError:
