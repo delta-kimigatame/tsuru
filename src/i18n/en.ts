@@ -400,6 +400,8 @@ export const translationEn = {
       confirm: "Export",
       cancel: "Cancel",
       notSupported: "This browser does not support video export",
+      orColor: "or specify background color",
+      bgSize: "Resolution",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

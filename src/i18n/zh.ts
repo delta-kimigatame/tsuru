@@ -390,6 +390,8 @@ export const translationZh = {
       confirm: "导出",
       cancel: "取消",
       notSupported: "此浏览器不支持视频导出",
+      orColor: "或指定背景颜色",
+      bgSize: "分辨率",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",

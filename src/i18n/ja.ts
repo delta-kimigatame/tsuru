@@ -402,6 +402,8 @@ export const translationJa = {
       confirm: "エクスポート",
       cancel: "キャンセル",
       notSupported: "このブラウザは動画出力に未対応です",
+      orColor: "または背景色を指定",
+      bgSize: "解像度",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:
