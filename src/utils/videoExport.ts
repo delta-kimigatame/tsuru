@@ -3,14 +3,38 @@ import {
   AudioBufferSource,
   BufferTarget,
   CanvasSource,
+  getFirstEncodableAudioCodec,
+  getFirstEncodableVideoCodec,
   Mp4OutputFormat,
   Output,
   QUALITY_HIGH,
+  type AudioCodec,
+  type VideoCodec,
 } from "mediabunny";
 
 /** FHD 縮小上限 */
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
+
+/**
+ * ブラウザがエンコード可能な映像コーデックの優先順位
+ *
+ * avc (H.264) … iOS Safari・多くの Android に対応。ハードウェア依存で一部端末は非対応
+ * vp9          … Android Chrome でハードウェアエンコーダーが利用可能な確実な選択肢
+ * av1          … 最新端末向け
+ * vp8          … 古い Chrome/Firefox の保険
+ *
+ * MP4コンテナは上記すべてに対応しているため、コンテナはMP4に固定する
+ */
+const VIDEO_CODEC_PRIORITY: VideoCodec[] = ["avc", "vp9", "av1", "vp8"];
+
+/**
+ * ブラウザがエンコード可能な音声コーデックの優先順位
+ *
+ * aac  … @mediabunny/aac-encoder polyfill で iOS を含む全環境に対応。再生互換性が最良
+ * opus … WebCodecs ネイティブ対応で確実だが iOS Safari での再生は非対応
+ */
+const AUDIO_CODEC_PRIORITY: AudioCodec[] = ["aac", "opus"];
 
 /**
  * WAV ArrayBuffer と背景画像ファイルから MP4 ArrayBuffer を生成する（B-1 方式）
@@ -37,7 +61,20 @@ export const generateMp4 = async (
   imageFile: File,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
+  // 登録後は canEncodeAudio('aac') が true を返すようになる
   registerAacEncoder();
+
+  // ブラウザが実際にエンコードできるコーデックを実行時に選択する
+  // これにより、avc のハードウェアエンコーダーがない Android 端末でも
+  // vp9 等へ自動フォールバックして生成が成功する
+  const videoCodec = await getFirstEncodableVideoCodec(VIDEO_CODEC_PRIORITY);
+  if (!videoCodec) {
+    throw new Error(
+      `動画エンコードに対応するコーデックが見つかりません。試行: ${VIDEO_CODEC_PRIORITY.join(", ")}`,
+    );
+  }
+  const audioCodec =
+    (await getFirstEncodableAudioCodec(AUDIO_CODEC_PRIORITY)) ?? "opus";
 
   // WAV ArrayBuffer → Web Audio API の AudioBuffer（duration 取得のため）
   const audioCtx = new AudioContext();
@@ -78,11 +115,11 @@ export const generateMp4 = async (
   });
 
   const videoSource = new CanvasSource(canvas, {
-    codec: "avc",
+    codec: videoCodec,
     bitrate: QUALITY_HIGH,
   });
   const audioSource = new AudioBufferSource({
-    codec: "aac",
+    codec: audioCodec,
     bitrate: 128e3,
   });
 
