@@ -10,7 +10,14 @@ import SelectAllIcon from "@mui/icons-material/SelectAll";
 import StopIcon from "@mui/icons-material/Stop";
 import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import { CircularProgress, Tab, Tabs, useTheme } from "@mui/material";
+import {
+  Box,
+  Chip,
+  CircularProgress,
+  Tab,
+  Tabs,
+  useTheme,
+} from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
@@ -21,6 +28,7 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { BaseBatchProcess } from "../../../lib/BaseBatchProcess";
 import { LOG } from "../../../lib/Logging";
 import { undoManager } from "../../../lib/UndoManager";
+import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { NoteSelectMode } from "../../../types/noteSelectMode";
@@ -40,6 +48,7 @@ import { FooterZoomMenu } from "./FooterZoomMenu";
 export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const { t } = useTranslation();
   const { setNotes, notes, vb } = useMusicProjectStore();
+  const { playMode, setPlayMode, exportMode, setExportMode } = useCookieStore();
   const snackBarStore = useSnackBarStore();
   const [ustLoadProgress, setUstLoadProgress] = React.useState<boolean>(false);
   const [batchProcesses, setBatchProcesses] = React.useState<
@@ -52,7 +61,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
   const [batchProcessProgress, setBatchProcessProgress] =
     React.useState<boolean>(false);
   const [zoomMenuAnchor, handleZoomMenuOpen, handleZoomMenuClose] = useMenu(
-    "FooterMenu.ZoomMenu"
+    "FooterMenu.ZoomMenu",
   );
   const [projectMenuAnchor, handleProjectMenuOpen, handleProjectMenuClose] =
     useMenu("FooterMenu.ProjectMenu");
@@ -92,7 +101,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         setNotes,
         vb,
         bp.process,
-        undefined
+        undefined,
       );
       setBatchProcessProgress(false);
     } else {
@@ -221,10 +230,10 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
             props.selectMode === "toggle"
               ? t("editor.footer.selectRange")
               : props.selectMode !== "range"
-              ? t("editor.footer.selectCancel")
-              : props.selectedNotesIndex.length !== 0
-              ? t("editor.footer.selectReset")
-              : t("editor.footer.selectCancel")
+                ? t("editor.footer.selectCancel")
+                : props.selectedNotesIndex.length !== 0
+                  ? t("editor.footer.selectReset")
+                  : t("editor.footer.selectCancel")
           }
           sx={{ flex: 1, p: 0 }}
           value={0}
@@ -278,25 +287,55 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
         <Tab
-          icon={
-            props.synthesisProgress ? (
-              <CircularProgress />
-            ) : props.playing ? (
-              <StopIcon />
-            ) : (
-              <PlayArrowIcon />
-            )
-          }
           label={
-            props.synthesisProgress
-              ? `${props.synthesisCount}/${
-                  props.selectedNotesIndex.length !== 0
-                    ? props.selectedNotesIndex.length
-                    : notes.length
-                }`
-              : props.playing
-              ? t("editor.footer.playStop")
-              : t("editor.footer.play")
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 0.25,
+              }}
+            >
+              {!props.playing && !props.synthesisProgress && (
+                <Chip
+                  label={
+                    playMode === "master" && props.backgroundAudioWav
+                      ? t("editor.footer.playModeMaster")
+                      : t("editor.footer.playModeSimple")
+                  }
+                  size="small"
+                  color={
+                    playMode === "master" && props.backgroundAudioWav
+                      ? "primary"
+                      : "default"
+                  }
+                  disabled={!props.backgroundAudioWav}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPlayMode(playMode === "master" ? "simple" : "master");
+                  }}
+                  sx={{ height: 14, fontSize: "0.55rem", cursor: "pointer" }}
+                />
+              )}
+              {props.synthesisProgress ? (
+                <CircularProgress />
+              ) : props.playing ? (
+                <StopIcon />
+              ) : (
+                <PlayArrowIcon />
+              )}
+              <span>
+                {props.synthesisProgress
+                  ? `${props.synthesisCount}/${
+                      props.selectedNotesIndex.length !== 0
+                        ? props.selectedNotesIndex.length
+                        : notes.length
+                    }`
+                  : props.playing
+                    ? t("editor.footer.playStop")
+                    : t("editor.footer.play")}
+              </span>
+            </Box>
           }
           onClick={() => {
             props.playing ? props.handlePlayStop() : props.handlePlay();
@@ -310,17 +349,51 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
           }
         />
         <Tab
-          icon={
-            props.synthesisProgress ? <CircularProgress /> : <DownloadIcon />
-          }
           label={
-            props.synthesisProgress
-              ? `${props.synthesisCount}/${
-                  props.selectedNotesIndex.length !== 0
-                    ? props.selectedNotesIndex.length
-                    : notes.length
-                }`
-              : t("editor.footer.wav")
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 0.25,
+              }}
+            >
+              {!props.synthesisProgress && (
+                <Chip
+                  label={
+                    exportMode === "master" && props.backgroundAudioWav
+                      ? t("editor.footer.exportModeMaster")
+                      : t("editor.footer.exportModeVocal")
+                  }
+                  size="small"
+                  color={
+                    exportMode === "master" && props.backgroundAudioWav
+                      ? "primary"
+                      : "default"
+                  }
+                  disabled={!props.backgroundAudioWav}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportMode(exportMode === "master" ? "vocal" : "master");
+                  }}
+                  sx={{ height: 14, fontSize: "0.55rem", cursor: "pointer" }}
+                />
+              )}
+              {props.synthesisProgress ? (
+                <CircularProgress />
+              ) : (
+                <DownloadIcon />
+              )}
+              <span>
+                {props.synthesisProgress
+                  ? `${props.synthesisCount}/${
+                      props.selectedNotesIndex.length !== 0
+                        ? props.selectedNotesIndex.length
+                        : notes.length
+                    }`
+                  : t("editor.footer.wav")}
+              </span>
+            </Box>
           }
           onClick={props.handleDownload}
           sx={{ flex: 1, p: 0 }}

@@ -21,13 +21,13 @@ export const EditorView: React.FC<{
 }) => {
   const { t } = useTranslation();
   const { vb, notes, ustFlags, phonemizer, setNote } = useMusicProjectStore();
-  const { defaultNote } = useCookieStore();
+  const { defaultNote, playMode, exportMode } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   /**
    * ノートのインデックス一覧
    */
   const [selectNotesIndex, setSelectNotesIndex] = React.useState<Array<number>>(
-    []
+    [],
   );
   /**
    * 生成したwavのデータurl
@@ -165,7 +165,7 @@ export const EditorView: React.FC<{
     if (checkWorkerReady(synthesisWorker)) {
       LOG.debug(
         `キャッシュ生成を試みましたが、workerが読み込まれていません。`,
-        "EditorView"
+        "EditorView",
       );
       return;
     }
@@ -178,19 +178,19 @@ export const EditorView: React.FC<{
         if (!resampCache.checkKey(n.index, key)) {
           LOG.debug(
             `キャッシュ生成のために、既存のタスクのキャンセル。index:${n.index}`,
-            "EditorView"
+            "EditorView",
           );
           synthesisWorker.clearTask(n.index);
           LOG.debug(
             `キャッシュ生成開始。index:${n.index}。i:${i}`,
-            "EditorView"
+            "EditorView",
           );
           synthesisWorker.resamp(request, vb, cacheIndex[i]).catch((error) => {
             LOG.error(
               `キャッシュ生成の失敗。input:${JSON.stringify(
-                request.resamp
+                request.resamp,
               )},error:${error.message}\n${error.stack}}`,
-              "EditorView"
+              "EditorView",
             );
           });
         }
@@ -238,7 +238,7 @@ export const EditorView: React.FC<{
       const wavBuf = await synthesisWorker.synthesis(
         selectNotesIndex,
         setSynthesisCount,
-        backgroundAudio
+        backgroundAudio,
       );
       LOG.gtag("synthesis", {
         synthesisName: vb.name,
@@ -247,7 +247,7 @@ export const EditorView: React.FC<{
         phonemizer: phonemizer.name,
       });
       const wavUrl_ = URL.createObjectURL(
-        new File([wavBuf], "temp.wav", { type: "audio/wav" })
+        new File([wavBuf], "temp.wav", { type: "audio/wav" }),
       );
       setWavUrl(wavUrl_);
       return wavUrl_;
@@ -267,20 +267,50 @@ export const EditorView: React.FC<{
     if (synthesisProgress) {
       LOG.warn(
         "handleDownload UI上クリックできないはず。何かがおかしい",
-        "EditorView"
+        "EditorView",
       );
       return;
     }
     setPlayReady(false);
-    /**
-     * wavUrlは伴奏入りオーディオだが、ダウンロードしたいのは伴奏無しのため、
-     * backgroundAudioWavが存在する場合は、必ず再合成を行う。
-     * backgroundAudioWavが存在しない場合は、キャッシュされたwavUrlを利用するが、wavUrlが未生成の場合は再合成を行う。
-     */
-    const dataUrl = !backgroundAudioWav
-      ? wavUrl ?? (await synthesis())
-      : await synthesis();
-    setSynthesisProgress(false);
+
+    let dataUrl: string | undefined;
+
+    if (exportMode === "master" && backgroundAudioWav) {
+      /**
+       * masterモード: synthesisAndMasterを使って伴奏とボーカルをミックスしてダウンロード
+       */
+      setSynthesisProgress(true);
+      setSynthesisCount(0);
+      const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+      const backgroundAudio = {
+        wav: backgroundAudioWav,
+        offsetMs: realOffsetMs,
+        volume: backgroundVolume,
+        mute: backgroundMuted,
+      };
+      const wavBuf = await synthesisWorker.synthesisAndMaster(
+        selectNotesIndex,
+        setSynthesisCount,
+        backgroundAudio,
+      );
+      setSynthesisProgress(false);
+      if (wavBuf !== undefined) {
+        dataUrl = URL.createObjectURL(
+          new File([wavBuf], "temp.wav", { type: "audio/wav" }),
+        );
+      }
+    } else {
+      /**
+       * vocalモード: backgroundAudioを無視した生成
+       * wavUrlは伴奏入りオーディオの場合があるため、backgroundAudioWavが存在する場合は再合成を行う。
+       * backgroundAudioWavが存在しない場合は、キャッシュされたwavUrlを利用するが、wavUrlが未生成の場合は再合成を行う。
+       */
+      dataUrl = !backgroundAudioWav
+        ? (wavUrl ?? (await synthesis()))
+        : await synthesis();
+      setSynthesisProgress(false);
+    }
+
     if (dataUrl !== undefined) {
       LOG.gtag("download", { downloadName: vb.name });
       // 合成処理に成功した場合のみ実行
@@ -298,7 +328,7 @@ export const EditorView: React.FC<{
     if (synthesisProgress) {
       LOG.warn(
         "handlePlay UI上クリックできないはず。何かがおかしい",
-        "EditorView"
+        "EditorView",
       );
       return;
     }
@@ -309,7 +339,28 @@ export const EditorView: React.FC<{
       audioRef.current.play();
     } else {
       setPlayReady(true);
-      if (backgroundAudioWav) {
+      if (playMode === "master" && backgroundAudioWav) {
+        const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+        const backgroundAudio = {
+          wav: backgroundAudioWav,
+          offsetMs: realOffsetMs,
+          volume: backgroundVolume,
+          mute: backgroundMuted,
+        };
+        // masterモード: mixAndMasterを使用して伴奏とボーカルをミックス
+        const wavBuf = await synthesisWorker.synthesisAndMaster(
+          selectNotesIndex,
+          setSynthesisCount,
+          backgroundAudio,
+        );
+        if (wavBuf !== undefined) {
+          const wavUrl_ = URL.createObjectURL(
+            new File([wavBuf], "temp.wav", { type: "audio/wav" }),
+          );
+          setWavUrl(wavUrl_);
+        }
+        setSynthesisProgress(false);
+      } else if (backgroundAudioWav) {
         const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
         await synthesis({
           wav: backgroundAudioWav,
@@ -317,10 +368,11 @@ export const EditorView: React.FC<{
           volume: backgroundVolume,
           mute: backgroundMuted,
         });
+        setSynthesisProgress(false);
       } else {
         await synthesis();
+        setSynthesisProgress(false);
       }
-      setSynthesisProgress(false);
     }
   };
 
@@ -370,6 +422,18 @@ export const EditorView: React.FC<{
     backgroundAudioWav,
   ]);
 
+  /** playModeが変更された際wavUrlを初期化する */
+  React.useEffect(() => {
+    LOG.debug("playModeの変更を検知。wavUrlをクリア", "EditorView");
+    setWavUrl(undefined);
+  }, [playMode]);
+
+  /** exportModeが変更された際wavUrlを初期化する */
+  React.useEffect(() => {
+    LOG.debug("exportModeの変更を検知。wavUrlをクリア", "EditorView");
+    setWavUrl(undefined);
+  }, [exportMode]);
+
   /** 現在選択中のノート部分に対して、伴奏のみを再生する処理 */
   const playBackgroundAudio = () => {
     LOG.info("伴奏のみ再生処理開始", "EditorView");
@@ -391,7 +455,7 @@ export const EditorView: React.FC<{
     /** 再生終了時間、オーディオ長でクランプ */
     const playEndMs = Math.min(
       noteEndMs - backgroundOffsetMs,
-      (backgroundAudioRef.current.duration ?? Infinity) * 1000
+      (backgroundAudioRef.current.duration ?? Infinity) * 1000,
     );
     LOG.debug(`再生範囲: ${playStartMs} ms から ${playEndMs} ms`, "EditorView");
     setBackgroundPlayEndMs(playEndMs);
@@ -423,7 +487,7 @@ export const EditorView: React.FC<{
     // 再生終了時間 playStartMs + backgroundPlayDurationMs、オーディオ長でクランプ
     const playEndMs = Math.min(
       playStartMs + backgroundPlayDurationMs,
-      (backgroundAudioRef.current.duration ?? Infinity) * 1000
+      (backgroundAudioRef.current.duration ?? Infinity) * 1000,
     );
     LOG.debug(`再生範囲: ${playStartMs} ms から ${playEndMs} ms`, "EditorView");
     setBackgroundPlayEndMs(playEndMs);
@@ -446,7 +510,7 @@ export const EditorView: React.FC<{
         `伴奏再生終了。終了時間: ${
           backgroundAudioRef.current.currentTime * 1000
         } ms`,
-        "EditorView"
+        "EditorView",
       );
       backgroundAudioRef.current.pause();
       setPlaying(false);
@@ -544,6 +608,6 @@ export const EditorView: React.FC<{
 
 export const CheckWorkerReady = (synthesisWorker: SynthesisWorker): boolean => {
   return synthesisWorker.workersPool.workers.every(
-    (w) => w.worker.isReady !== true
+    (w) => w.worker.isReady !== true,
   );
 };

@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/05/01\r\n【新增】添加了简易混音功能。虽然混音本来应在DAW等软件中进行，但现在可以将人声与伴奏合并输出。不支持和声等功能。",
       "2026/04/11\r\n【新增】添加了新参数标志\r\nO标志：默认0，范围-100～100，口的开合\r\nT标志：默认0，范围-100～100，张力\r\nS标志：默认0，范围-100～100，共振峰增强（清晰度/锐度）\r\nb标志：默认0，范围-100～100，亮度\r\nMo标志，与O标志相同（适用于为moresampler制作的UST）\r\nMt标志，与T标志相同（适用于为moresampler制作的UST）\r\nMG标志，与w标志相同（适用于为moresampler制作的UST）\r\nME标志，与S标志相同（适用于为moresampler制作的UST）\r\n【修复】重新调整了B标志的处理方式。",
       "2026/04/07\r\n【修复】当部分配置文件读取失败时，现已修改为仅跳过该文件并继续读取其余内容。\r\n【修复】修复了 prefix.map 中部分音阶缺失时，缺失音阶以上的音阶无法正常工作的问题。",
       "2026/04/06\r\n【修复】修复了 presamp.ini 中存在空行时无法读取的问题。",
@@ -356,6 +357,10 @@ export const translationZh = {
       addNote: "添加音符",
       play: "播放",
       playStop: "停止",
+      playModeSimple: "普通",
+      playModeMaster: "母带",
+      exportModeVocal: "人声",
+      exportModeMaster: "带伴奏",
       wav: "保存 wav",
       ustLoadError: "ust 文件加载失败，请检查文件。",
       verticalZoomIn: "纵向放大",

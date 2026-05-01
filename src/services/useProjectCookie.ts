@@ -1,9 +1,11 @@
 import { COOKIE_KEYS, cookieDefaults } from "../config/cookie";
 import { LOG } from "../lib/Logging";
 import { ColorTheme } from "../types/colorTheme";
+import { ExportMode } from "../types/exportMode";
 import { Language } from "../types/language";
 import { Mode } from "../types/mode";
 import { defaultParam } from "../types/note";
+import { PlayMode } from "../types/playMode";
 import { useCookie } from "./useCookie";
 
 /**
@@ -30,7 +32,7 @@ export const useProjectCookie = () => {
    */
   const language = getStringCookie(
     COOKIE_KEYS.language,
-    cookieDefaults.language
+    cookieDefaults.language,
   ) as Language;
   /**
    * カラーテーマを取得します。
@@ -38,7 +40,7 @@ export const useProjectCookie = () => {
    */
   const colorTheme = getStringCookie(
     COOKIE_KEYS.colorTheme,
-    cookieDefaults.colorTheme
+    cookieDefaults.colorTheme,
   ) as ColorTheme;
   /**
    * ノートのデフォルト設定をオブジェクトとして取得します。
@@ -46,7 +48,7 @@ export const useProjectCookie = () => {
    */
   const defaultNote = getObjectCookie(
     COOKIE_KEYS.defaultNote,
-    cookieDefaults.defaultNote
+    cookieDefaults.defaultNote,
   ) as defaultParam;
 
   /**
@@ -56,8 +58,8 @@ export const useProjectCookie = () => {
   const verticalZoom = parseFloat(
     getStringCookie(
       COOKIE_KEYS.verticalZoom,
-      cookieDefaults.verticalZoom.toString()
-    )
+      cookieDefaults.verticalZoom.toString(),
+    ),
   );
   /**
    * ピアノロールのwidth方向の拡大率を取得します。
@@ -66,8 +68,8 @@ export const useProjectCookie = () => {
   const horizontalZoom = parseFloat(
     getStringCookie(
       COOKIE_KEYS.horizontalZoom,
-      cookieDefaults.horizontalZoom.toString()
-    )
+      cookieDefaults.horizontalZoom.toString(),
+    ),
   );
   /**
    * 合成処理に使用するworkerの数。
@@ -76,8 +78,8 @@ export const useProjectCookie = () => {
   const workersCount = parseInt(
     getStringCookie(
       COOKIE_KEYS.workersCount,
-      cookieDefaults.workersCount.toString()
-    )
+      cookieDefaults.workersCount.toString(),
+    ),
   );
   /**
    * 非周期性指標を省略して合成を高速化するか
@@ -85,7 +87,7 @@ export const useProjectCookie = () => {
    */
   const fastResamp = getStringCookie(
     COOKIE_KEYS.fastResamp,
-    cookieDefaults.fastResamp.toString()
+    cookieDefaults.fastResamp.toString(),
   ) as unknown as boolean;
   /**
    * resampの結果をキャッシュするかを選択します。
@@ -94,7 +96,7 @@ export const useProjectCookie = () => {
    */
   const useCache = getStringCookie(
     COOKIE_KEYS.useCache,
-    cookieDefaults.useCache.toString()
+    cookieDefaults.useCache.toString(),
   ) as unknown as boolean;
   /**
    * バックグラウンドでresampのキャッシュを作成するか選択します。
@@ -103,8 +105,25 @@ export const useProjectCookie = () => {
    */
   const backgroundResamp = getStringCookie(
     COOKIE_KEYS.backgroundResamp,
-    cookieDefaults.backgroundResamp.toString()
+    cookieDefaults.backgroundResamp.toString(),
   ) as unknown as boolean;
+
+  /**
+   * 再生モードを取得します。
+   * クッキーが存在しない場合は、デフォルトで `cookieDefaults.playMode` を返します。
+   */
+  const playMode = getStringCookie(
+    COOKIE_KEYS.playMode,
+    cookieDefaults.playMode,
+  ) as PlayMode;
+  /**
+   * エクスポートモードを取得します。
+   * クッキーが存在しない場合は、デフォルトで `cookieDefaults.exportMode` を返します。
+   */
+  const exportMode = getStringCookie(
+    COOKIE_KEYS.exportMode,
+    cookieDefaults.exportMode,
+  ) as ExportMode;
 
   /**
    * モードをクッキーに保存します。
@@ -172,13 +191,25 @@ export const useProjectCookie = () => {
   const setBackgroundResamp = (newBackgroundResamp: boolean) => {
     setStringCookie(
       COOKIE_KEYS.backgroundResamp,
-      newBackgroundResamp.toString()
+      newBackgroundResamp.toString(),
     );
   };
+  /**
+   * 再生モードをクッキーに保存します。
+   * @param newPlayMode 更新する再生モード
+   */
+  const setPlayMode = (newPlayMode: PlayMode) =>
+    setStringCookie(COOKIE_KEYS.playMode, newPlayMode);
+  /**
+   * エクスポートモードをクッキーに保存します。
+   * @param newExportMode 更新するエクスポートモード
+   */
+  const setExportMode = (newExportMode: ExportMode) =>
+    setStringCookie(COOKIE_KEYS.exportMode, newExportMode);
 
   LOG.debug(
     `mode:${mode},language:${language},colorTheme:${colorTheme},${defaultNote},verticalZoom:${verticalZoom},horizontalZoom:${horizontalZoom}`,
-    "useProjectCookie"
+    "useProjectCookie",
   );
   return {
     mode,
@@ -191,6 +222,8 @@ export const useProjectCookie = () => {
     fastResamp,
     useCache,
     backgroundResamp,
+    playMode,
+    exportMode,
     setMode,
     setLanguage,
     setColorTheme,
@@ -201,5 +234,7 @@ export const useProjectCookie = () => {
     setFastResamp,
     setUseCache,
     setBackgroundResamp,
+    setPlayMode,
+    setExportMode,
   };
 };

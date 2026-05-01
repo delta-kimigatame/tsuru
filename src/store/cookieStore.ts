@@ -3,9 +3,11 @@ import { create } from "zustand";
 import { cookieDefaults } from "../config/cookie";
 import { useProjectCookie } from "../services/useProjectCookie";
 import { ColorTheme } from "../types/colorTheme";
+import { ExportMode } from "../types/exportMode";
 import { Language } from "../types/language";
 import { Mode } from "../types/mode";
 import { defaultParam } from "../types/note";
+import { PlayMode } from "../types/playMode";
 
 /**
  * CookieStore
@@ -60,6 +62,14 @@ interface CookieStore {
    * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
    */
   backgroundResamp: boolean;
+  /**
+   * 再生モード。`simple`（通常再生）または`master`（mixAndMaster適用）
+   */
+  playMode: PlayMode;
+  /**
+   * エクスポートモード。`vocal`（ボーカルのみ）または`master`（mixAndMaster適用）
+   */
+  exportMode: ExportMode;
 
   /**
    * 表示モードを更新する関数。モードを変更するために使用されます。
@@ -125,6 +135,18 @@ interface CookieStore {
    * @param backgroundResamp バックグラウンドでresampのキャッシュを作成するか
    */
   setBackgroundResamp: (backgroundResamp: boolean) => void;
+  /**
+   * 再生モードを更新する関数。
+   *
+   * @param playMode 新しい再生モード。
+   */
+  setPlayMode: (playMode: PlayMode) => void;
+  /**
+   * エクスポートモードを更新する関数。
+   *
+   * @param exportMode 新しいエクスポートモード。
+   */
+  setExportMode: (exportMode: ExportMode) => void;
 
   /**
    * cookieに表示モードを保存する関数。
@@ -184,11 +206,20 @@ interface CookieStore {
    */
   setUseCacheInCookie: (useCache: boolean) => void;
   /**
-   * バックグラウンドでresampのキャッシュを作成するか選択します。
-   * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
-   * @param backgroundResamp resampにおいて、非周期性指標の分析を省略して高速化するか
+   * cookieにバックグラウンドでresampのキャッシュを作成するかを保存する関数。
+   * @param backgroundResamp バックグラウンドでresampのキャッシュを作成するか
    */
   setBackgroundResampInCookie: (backgroundResamp: boolean) => void;
+  /**
+   * cookieに再生モードを保存する関数。
+   * @param playMode 新しい再生モード。
+   */
+  setPlayModeInCookie: (playMode: PlayMode) => void;
+  /**
+   * cookieにエクスポートモードを保存する関数。
+   * @param exportMode 新しいエクスポートモード。
+   */
+  setExportModeInCookie: (exportMode: ExportMode) => void;
 
   /**
    * 初期化フラグ。状態が初期化されているかどうかを示します。
@@ -215,6 +246,8 @@ export const useCookieStore = create<CookieStore>((set) => {
     fastResamp: cookieDefaults.fastResamp,
     useCache: cookieDefaults.useCache,
     backgroundResamp: cookieDefaults.backgroundResamp,
+    playMode: cookieDefaults.playMode,
+    exportMode: cookieDefaults.exportMode,
     // 状態更新関数
     setMode: (newMode) =>
       set((state) => {
@@ -280,6 +313,20 @@ export const useCookieStore = create<CookieStore>((set) => {
       });
     },
 
+    setPlayMode: (playMode) => {
+      set((state) => {
+        state.setPlayModeInCookie(playMode);
+        return { playMode: playMode };
+      });
+    },
+
+    setExportMode: (exportMode) => {
+      set((state) => {
+        state.setExportModeInCookie(exportMode);
+        return { exportMode: exportMode };
+      });
+    },
+
     // 初期状態ではダミー関数を設定
     setModeInCookie: () => {},
     setLanguageInCookie: () => {},
@@ -291,6 +338,8 @@ export const useCookieStore = create<CookieStore>((set) => {
     setFastResampInCookie: () => {},
     setUseCacheInCookie: () => {},
     setBackgroundResampInCookie: () => {},
+    setPlayModeInCookie: () => {},
+    setExportModeInCookie: () => {},
     isInitialized: false,
   };
 });
@@ -311,6 +360,8 @@ export const useInitializeCookieStore = () => {
       fastResamp: projectCookie.fastResamp,
       useCache: projectCookie.useCache,
       backgroundResamp: projectCookie.backgroundResamp,
+      playMode: projectCookie.playMode,
+      exportMode: projectCookie.exportMode,
       setModeInCookie: projectCookie.setMode,
       setLanguageInCookie: projectCookie.setLanguage,
       setColorThemeInCookie: projectCookie.setColorTheme,
@@ -321,6 +372,8 @@ export const useInitializeCookieStore = () => {
       setFastResampInCookie: projectCookie.setFastResamp,
       setUseCacheInCookie: projectCookie.setUseCache,
       setBackgroundResampInCookie: projectCookie.setBackgroundResamp,
+      setPlayModeInCookie: projectCookie.setPlayMode,
+      setExportModeInCookie: projectCookie.setExportMode,
       isInitialized: true,
     });
   }, [projectCookie]);

@@ -1,7 +1,9 @@
 import { ColorTheme } from "../types/colorTheme";
+import { ExportMode } from "../types/exportMode";
 import { Language, languages } from "../types/language";
 import { Mode } from "../types/mode";
 import { defaultParam } from "../types/note";
+import { PlayMode } from "../types/playMode";
 import { defaultNote } from "./note";
 import { resampWorkersCount } from "./workers";
 
@@ -16,6 +18,8 @@ export const COOKIE_KEYS = {
   fastResamp: "utaletFastResamp",
   useCache: "utaletUseCache",
   backgroundResamp: "utaletBackgroundResamp",
+  playMode: "utaletPlayMode",
+  exportMode: "utaletExportMode",
 } as const;
 
 const determineDefaultLocale = (): Language => {
@@ -86,6 +90,14 @@ export const cookieDefaults: {
    * trueの方が再生ボタンを押した際の応答はいいですが、falseにすれば意図しないタイミングでの負荷を防げます。
    */
   backgroundResamp: boolean;
+  /**
+   * 再生モード。`simple`（通常再生）または`master`（mixAndMaster適用）
+   */
+  playMode: PlayMode;
+  /**
+   * エクスポートモード。`vocal`（ボーカルのみ）または`master`（mixAndMaster適用）
+   */
+  exportMode: ExportMode;
 } = {
   mode: "system",
   language: determineDefaultLocale(),
@@ -97,4 +109,6 @@ export const cookieDefaults: {
   fastResamp: false,
   useCache: true,
   backgroundResamp: true,
+  playMode: "simple",
+  exportMode: "vocal",
 };
