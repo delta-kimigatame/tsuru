@@ -94,6 +94,8 @@ export const EditorView: React.FC<{
   /** 動画エクスポートダイアログの表示状態 */
   const [movieExportDialogOpen, setMovieExportDialogOpen] =
     React.useState<boolean>(false);
+  /** 動画エクスポート用に先行合成した WAV データを保持する ref */
+  const movieWavBufRef = React.useRef<ArrayBuffer | null>(null);
 
   const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -267,45 +269,20 @@ export const EditorView: React.FC<{
 
   /**
    * 動画エクスポートを実行する処理
+   * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
    */
   const handleVideoExportConfirm = async (imageFile: File) => {
     setMovieExportDialogOpen(false);
-    LOG.info("動画エクスポート開始", "EditorView");
-    if (!synthesisWorker.isReady) {
-      LOG.error("エンジンが起動していません", "EditorView");
-      synthesisWorker.reload();
-      snackBarStore.setSeverity("error");
-      snackBarStore.setValue(t("editor.workerError"));
-      snackBarStore.setOpen(true);
-      return;
-    }
+    const wavBuf = movieWavBufRef.current;
+    if (!wavBuf) return;
+    movieWavBufRef.current = null;
+    LOG.info("動画エクスポート開始 (MP4 生成)", "EditorView");
+    // React の再レンダリングを一度環成させてダイアログの閉じるアニメーションを開始させる
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
     setSynthesisProgress(true);
-    setSynthesisCount(0);
     try {
-      let wavBuf: ArrayBuffer | undefined;
-      if (backgroundAudioWav) {
-        const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
-        const backgroundAudio = {
-          wav: backgroundAudioWav,
-          offsetMs: realOffsetMs,
-          volume: backgroundVolume,
-          mute: backgroundMuted,
-        };
-        wavBuf = await synthesisWorker.synthesisAndMaster(
-          selectNotesIndex,
-          setSynthesisCount,
-          backgroundAudio,
-        );
-      } else {
-        wavBuf = await synthesisWorker.synthesis(
-          selectNotesIndex,
-          setSynthesisCount,
-        );
-      }
-      if (wavBuf === undefined) {
-        setSynthesisProgress(false);
-        return;
-      }
       const mp4Buf = await generateMp4(wavBuf, imageFile);
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });
@@ -341,9 +318,57 @@ export const EditorView: React.FC<{
     }
     setPlayReady(false);
 
-    // movieモードはダイアログを開いて処理を委譲
+    // movieモード: 先に音声合成してから画像選択ダイアログを開く
     if (exportMode === "movie") {
-      setMovieExportDialogOpen(true);
+      if (!synthesisWorker.isReady) {
+        LOG.error("エンジンが起動していません", "EditorView");
+        synthesisWorker.reload();
+        snackBarStore.setSeverity("error");
+        snackBarStore.setValue(t("editor.workerError"));
+        snackBarStore.setOpen(true);
+        return;
+      }
+      LOG.info("動画用音声合成開始", "EditorView");
+      setSynthesisProgress(true);
+      setSynthesisCount(0);
+      try {
+        let wavBuf: ArrayBuffer | undefined;
+        if (backgroundAudioWav) {
+          const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+          const backgroundAudio = {
+            wav: backgroundAudioWav,
+            offsetMs: realOffsetMs,
+            volume: backgroundVolume,
+            mute: backgroundMuted,
+          };
+          wavBuf = await synthesisWorker.synthesisAndMaster(
+            selectNotesIndex,
+            setSynthesisCount,
+            backgroundAudio,
+          );
+        } else {
+          wavBuf = await synthesisWorker.synthesis(
+            selectNotesIndex,
+            setSynthesisCount,
+          );
+        }
+        if (wavBuf === undefined) {
+          setSynthesisProgress(false);
+          return;
+        }
+        movieWavBufRef.current = wavBuf;
+        setSynthesisProgress(false);
+        setMovieExportDialogOpen(true);
+      } catch (e) {
+        setSynthesisProgress(false);
+        LOG.error(
+          `動画用音声合成の失敗。${e.message}\n${e.stack}`,
+          "EditorView",
+        );
+        snackBarStore.setSeverity("error");
+        snackBarStore.setValue(t("editor.synthesisError"));
+        snackBarStore.setOpen(true);
+      }
       return;
     }
 
