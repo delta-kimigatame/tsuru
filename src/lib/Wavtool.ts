@@ -234,8 +234,9 @@ export class Wavtool {
    * - 音声合成ソフトでありある程度音量が揃った出力が期待されることから、コンプレッサーは組み込まない。
    * - 空間系処理として適当なリバーブを設定する。初期バージョンでは仮の値を採用し、聴感上調整して正式な値を決定する。
    *
-   * ### マキシマイズ
-   * - ターゲット音量は-1dBとし、6dB分程度のゲインを稼ぐ
+   * ### マスタリング
+   * - 短時間RMSを基準にダイナミックゲイン処理を行い、自然なラウドネス整合を行う
+   * - ピーク正規化で音割れを補正し -1.0 dBFS に収める
    *
    * ### 引数関係
    * - 設定パラメータとしてのvolumeは無視し、offsetMsは伴奏の開始位置を調整するために使用する。
@@ -293,15 +294,15 @@ export class Wavtool {
         : bgLData.slice();
       // 伴奏をvolumeに応じたターゲットdBにノーマライズ（L/R合算ピークで統一ゲインを算出）
       // volume = 0     → 無音
-      // 0 < volume < 0.5 → 振幅で 0 〜 -8 dBへ線形補間
-      // volume >= 0.5  → -8 dB 〜 -2 dB へ線形補間 (targetDb = 12 * volume - 14)
-      const target8dBLinear = 10 ** (-8 / 20);
+      // 0 < volume < 0.5 → 振幅で 0 〜 -6 dBへ線形補間
+      // volume >= 0.5  → -6 dB 〜 -2 dB へ線形補間 (targetDb = 8 * volume - 10)
+      const target6dBLinear = 10 ** (-6 / 20);
       const targetLinear =
         volume <= 0
           ? 0
           : volume < 0.5
-            ? (volume / 0.5) * target8dBLinear
-            : 10 ** ((12 * volume - 14) / 20);
+            ? (volume / 0.5) * target6dBLinear
+            : 10 ** ((8 * volume - 10) / 20);
       const bgPeak = Math.max(
         bgLData.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
         bgRData.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
@@ -323,10 +324,10 @@ export class Wavtool {
       }
     }
 
-    // ---- LUFS正規化 + トゥルーピークリミット (ITU-R BS.1770-4 / EBU R128) ----
-    // ターゲット: -14 LUFS（YouTube 等 動画投稿サイト共通基準）
-    // トゥルーピーク上限: -1.0 dBTP
-    const [masteredL, masteredR] = this.applyLUFSNormalize(
+    // ---- ダイナミックゲイン処理 + ピーク正規化 ----
+    // 短時間RMSを基準にゲインを動的に制御し、自然なラウドネス整合を行う。
+    // 最後にピーク正規化で音割れを補正する。
+    const [masteredL, masteredR] = this.applyDynamicMastering(
       mixedL,
       mixedR,
       -14,
@@ -504,169 +505,115 @@ export class Wavtool {
   }
 
   /**
-   * LUFS正規化とトゥルーピークリミットを一括適用する（ITU-R BS.1770-4 / EBU R128）。
-   * 1. K-weightingフィルタ（2段バイクアッド）を適用して統合ラウドネスを計測
-   * 2. targetLUFSとの差分からゲインを算出して適用
-   * 3. トゥルーピーク（4点線形オーバーサンプリング推定）が truePeakCeilingDB を超える場合は
-   *    均一ゲイン削減でシーリングに収める
+   * 短時間RMSベースのダイナミックゲイン処理とピーク正規化を適用する。
+   * 1. 200ms分析窓・50msホップで各時間位置の短時間RMSを算出
+   * 2. RMSターゲットに対する差分ゲインを算出（無音区間はゲイン1.0にクランプ）
+   * 3. ゲインカーブを指数移動平均で平滑化（時定数500ms）
+   * 4. 平滑化済みゲインを各サンプルに適用（ホップ間で線形補間）
+   * 5. ピークが ceiling を超える場合は均一ゲイン削減で補正
    * @param dataL Lチャンネル（論理正規化済み）
    * @param dataR Rチャンネル（論理正規化済み）
-   * @param targetLUFS ターゲットラウドネス（例: -14）
-   * @param truePeakCeilingDB トゥルーピーク上限 dBTP（例: -1.0）
+   * @param targetRMSdB 目標RMSレベル（dBFS）
+   * @param ceilingDB ピーク上限 dBFS（例: -1.0）
    * @param fs サンプリングレート（Hz）
    */
-  private applyLUFSNormalize(
+  private applyDynamicMastering(
     dataL: number[],
     dataR: number[],
-    targetLUFS: number,
-    truePeakCeilingDB: number,
+    targetRMSdB: number,
+    ceilingDB: number,
     fs: number,
   ): [number[], number[]] {
-    // K-weighting（Stage1: 高域シェルビング → Stage2: RLB高域通過）を両チャンネルに適用
-    const preCoeffs = this.kPreFilterCoeffs(fs);
-    const rlbCoeffs = this.kRLBCoeffs(fs);
-    const kL = this.applyBiquad(
-      this.applyBiquad(dataL, ...preCoeffs),
-      ...rlbCoeffs,
-    );
-    const kR = this.applyBiquad(
-      this.applyBiquad(dataR, ...preCoeffs),
-      ...rlbCoeffs,
-    );
+    const length = dataL.length;
+    if (length === 0) return [[], []];
 
-    // 統合ラウドネス計測
-    const measuredLUFS = this.measureIntegratedLoudness(kL, kR, fs);
-    if (!isFinite(measuredLUFS)) {
-      // 無音など計測不能な場合はそのまま返す
-      return [dataL.slice(), dataR.slice()];
+    const rmsWindowFrames = Math.round(0.2 * fs); // 200ms 分析窓
+    const hopFrames = Math.round(0.05 * fs); // 50ms ホップ
+    const numHops = Math.ceil(length / hopFrames);
+    const targetRMSLinear = 10 ** (targetRMSdB / 20);
+    const maxGainLinear = 10 ** (20 / 20); // 最大ブースト +20 dB
+
+    // Step 1: プレフィックス二乗和で短時間RMSを効率的に算出
+    const prefixSq = new Array<number>(length + 1).fill(0);
+    for (let i = 0; i < length; i++) {
+      prefixSq[i + 1] = prefixSq[i] + dataL[i] * dataL[i] + dataR[i] * dataR[i];
+    }
+    const rmsAtHop = new Array<number>(numHops);
+    for (let f = 0; f < numHops; f++) {
+      const center = f * hopFrames;
+      const start = Math.max(0, center - Math.floor(rmsWindowFrames / 2));
+      const end = Math.min(length, center + Math.ceil(rmsWindowFrames / 2));
+      const sumSq = prefixSq[end] - prefixSq[start];
+      rmsAtHop[f] = Math.sqrt(sumSq / (2 * (end - start)));
     }
 
-    // ターゲットとの差分からゲインを算出して適用
-    const gainLinear = 10 ** ((targetLUFS - measuredLUFS) / 20);
-    const gainedL = dataL.map((v) => v * gainLinear);
-    const gainedR = dataR.map((v) => v * gainLinear);
+    // Step 2: 差分ゲインの算出（無音区間は仮に 1.0 を設定）
+    const rawGain = rmsAtHop.map((rms) =>
+      rms < 1e-10 ? 1.0 : Math.min(maxGainLinear, targetRMSLinear / rms),
+    );
 
-    // トゥルーピーク計測・リミット
-    const ceiling = 10 ** (truePeakCeilingDB / 20);
-    const truePeak = this.measureTruePeak(gainedL, gainedR);
-    if (truePeak > ceiling) {
-      const attenuation = ceiling / truePeak;
-      return [
-        gainedL.map((v) => v * attenuation),
-        gainedR.map((v) => v * attenuation),
-      ];
-    }
-    return [gainedL, gainedR];
-  }
-
-  /**
-   * K-weighting Stage1: 高域シェルビングフィルタ係数を返す（ITU-R BS.1770-4 附属書1）。
-   * 特性: f0=1681.974 Hz, gain=+4 dB, S=1（頭部伝達関数補正）
-   * Audio EQ Cookbook の High Shelf 式から fs に応じて動的に算出する。
-   */
-  private kPreFilterCoeffs(
-    fs: number,
-  ): [number, number, number, number, number] {
-    const A = 10 ** (4 / 40); // +4 dB
-    const ω0 = (2 * Math.PI * 1681.974) / fs;
-    const cosω0 = Math.cos(ω0);
-    const sqrtA = Math.sqrt(A);
-    const α = (Math.sin(ω0) / 2) * Math.sqrt(2); // S=1
-    const a0 = A + 1 - (A - 1) * cosω0 + 2 * sqrtA * α;
-    return [
-      (A * (A + 1 + (A - 1) * cosω0 + 2 * sqrtA * α)) / a0,
-      (-2 * A * (A - 1 + (A + 1) * cosω0)) / a0,
-      (A * (A + 1 + (A - 1) * cosω0 - 2 * sqrtA * α)) / a0,
-      (2 * (A - 1 - (A + 1) * cosω0)) / a0,
-      (A + 1 - (A - 1) * cosω0 - 2 * sqrtA * α) / a0,
-    ];
-  }
-
-  /**
-   * K-weighting Stage2: RLB高域通過フィルタ係数を返す（ITU-R BS.1770-4 附属書1）。
-   * 特性: f0=38.135 Hz, Q=0.5003270（超低域除去）
-   */
-  private kRLBCoeffs(fs: number): [number, number, number, number, number] {
-    const ω0 = (2 * Math.PI * 38.13547) / fs;
-    const cosω0 = Math.cos(ω0);
-    const α = Math.sin(ω0) / (2 * 0.500327);
-    const a0 = 1 + α;
-    return [
-      (1 + cosω0) / 2 / a0,
-      -(1 + cosω0) / a0,
-      (1 + cosω0) / 2 / a0,
-      (-2 * cosω0) / a0,
-      (1 - α) / a0,
-    ];
-  }
-
-  /**
-   * ITU-R BS.1770-4 ゲーティング付き統合ラウドネスを計測する。
-   * 400ms ブロック・75% オーバーラップ、絶対ゲート(-70 LUFS)と相対ゲート(-10 LU)を適用。
-   * @param kL K-weighting適用済みLチャンネル
-   * @param kR K-weighting適用済みRチャンネル
-   * @param fs サンプリングレート
-   * @returns 統合ラウドネス (LUFS)。計測不能（無音等）の場合は -Infinity
-   */
-  private measureIntegratedLoudness(
-    kL: number[],
-    kR: number[],
-    fs: number,
-  ): number {
-    const blockSize = Math.round(0.4 * fs); // 400 ms
-    const hopSize = Math.round(0.1 * fs); // 100 ms（75% overlap）
-    // 絶対ゲート閾値: -70 LUFS に対応する mean square
-    const absGateThreshold = 10 ** ((-70 + 0.691) / 10);
-
-    const zBlocks: number[] = [];
-    for (let start = 0; start + blockSize <= kL.length; start += hopSize) {
-      let sum = 0;
-      for (let i = start; i < start + blockSize; i++) {
-        sum += kL[i] * kL[i] + kR[i] * kR[i];
+    // Step 2b: 無音区間のゲインを後続の有音区間のゲインで上書き
+    // 冒頭に無音がある場合、無音→有音の境界ホップでRMSが過小評価されて
+    // 大きなゲインが算出されアタックが突出するのを防ぐ。
+    let nextValidGain = rawGain[numHops - 1];
+    for (let f = numHops - 1; f >= 0; f--) {
+      if (rmsAtHop[f] < 1e-10) {
+        rawGain[f] = nextValidGain;
+      } else {
+        nextValidGain = rawGain[f];
       }
-      zBlocks.push(sum / blockSize);
     }
-    if (zBlocks.length === 0) return -Infinity;
 
-    // Pass 1: 絶対ゲート（> -70 LUFS のブロックのみ残す）
-    const absPassed = zBlocks.filter((z) => z > absGateThreshold);
-    if (absPassed.length === 0) return -Infinity;
+    // Step 3: 指数移動平均によるゲインカーブの平滑化（時定数 500ms）
+    // 冒頭・末尾は状態0から開始し、相応の長さの0との移動平均として扱う。
+    // 前方パス（冒頭側）と後方パス（末尾側）をそれぞれ0から発散させ、
+    // 最小値を採ることで冒頭と末尾が自然にゲイン0へ収束する。
+    const smoothAlpha = 1 - Math.exp(-hopFrames / (0.5 * fs));
 
-    const meanAbs = absPassed.reduce((a, b) => a + b, 0) / absPassed.length;
-    // 相対ゲート閾値: Pass1 平均から -10 LU
-    const relGateThreshold = meanAbs * 10 ** (-10 / 10);
+    // 前方パス: 状態0から開始（冒頭を0との移動平均として扱う）
+    const forwardGain = new Array<number>(numHops);
+    let fState = 0;
+    for (let f = 0; f < numHops; f++) {
+      fState += smoothAlpha * (rawGain[f] - fState);
+      forwardGain[f] = fState;
+    }
 
-    // Pass 2: 相対ゲート
-    const relPassed = absPassed.filter((z) => z > relGateThreshold);
-    if (relPassed.length === 0) return -Infinity;
+    // 後方パス: 状態0から逆方向に開始（末尾を0との移動平均として扱う）
+    const backwardGain = new Array<number>(numHops);
+    let bState = 0;
+    for (let f = numHops - 1; f >= 0; f--) {
+      bState += smoothAlpha * (rawGain[f] - bState);
+      backwardGain[f] = bState;
+    }
 
-    const meanRel = relPassed.reduce((a, b) => a + b, 0) / relPassed.length;
-    return -0.691 + 10 * Math.log10(meanRel);
-  }
+    // 前方・後方の最小値を採用
+    const smoothedGain = forwardGain.map((v, i) =>
+      Math.min(v, backwardGain[i]),
+    );
 
-  /**
-   * トゥルーピーク値を推定する（4点線形オーバーサンプリング）。
-   * 隣接サンプル間の 0.25 / 0.5 / 0.75 の補間値をチェックすることで
-   * inter-sample peak を近似的に検出する。
-   * 厳密には ITU-R BS.1770-4 Annex 2 が求める sinc ベース 4× OS が必要だが、
-   * 本用途では線形補間による近似で十分な精度が得られる。
-   */
-  private measureTruePeak(dataL: number[], dataR: number[]): number {
+    // Step 4: 平滑化済みゲインを適用（ホップ間は線形補間）
+    const outL = new Array<number>(length);
+    const outR = new Array<number>(length);
+    for (let i = 0; i < length; i++) {
+      const frac = i / hopFrames;
+      const f0 = Math.floor(frac);
+      const f1 = Math.min(f0 + 1, numHops - 1);
+      const t = frac - f0;
+      const gain = smoothedGain[f0] * (1 - t) + smoothedGain[f1] * t;
+      outL[i] = dataL[i] * gain;
+      outR[i] = dataR[i] * gain;
+    }
+
+    // Step 5: ピーク正規化（ceiling に揃える）
+    // ピークが ceiling を超える場合は削減、下回る場合はブーストして常に -1.0 dBFS 付近に収める。
+    const ceiling = 10 ** (ceilingDB / 20);
     let peak = 0;
-    for (const ch of [dataL, dataR]) {
-      for (let i = 0; i < ch.length - 1; i++) {
-        const s0 = ch[i];
-        const s1 = ch[i + 1];
-        peak = Math.max(
-          peak,
-          Math.abs(s0),
-          Math.abs(0.75 * s0 + 0.25 * s1),
-          Math.abs(0.5 * s0 + 0.5 * s1),
-          Math.abs(0.25 * s0 + 0.75 * s1),
-        );
-      }
-      if (ch.length > 0) peak = Math.max(peak, Math.abs(ch[ch.length - 1]));
+    for (let i = 0; i < length; i++) {
+      if (Math.abs(outL[i]) > peak) peak = Math.abs(outL[i]);
+      if (Math.abs(outR[i]) > peak) peak = Math.abs(outR[i]);
     }
-    return peak;
+    if (peak < 1e-10) return [outL, outR];
+    const normGain = ceiling / peak;
+    return [outL.map((v) => v * normGain), outR.map((v) => v * normGain)];
   }
 }
