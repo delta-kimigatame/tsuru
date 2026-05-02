@@ -116,6 +116,25 @@ export const DEFAULT_LYRICS_MAX_WIDTH_PERCENT = 80;
 export const LYRICS_FONT_SIZE_MIN = 12;
 export const LYRICS_FONT_SIZE_MAX = 120;
 
+// Shadow
+export const DEFAULT_LYRICS_SHADOW_ENABLED = false;
+export const DEFAULT_LYRICS_SHADOW_COLOR = "#000000";
+export const DEFAULT_LYRICS_SHADOW_BLUR = 4;
+export const LYRICS_SHADOW_BLUR_MIN = 0;
+export const LYRICS_SHADOW_BLUR_MAX = 20;
+
+// Stroke
+export const DEFAULT_LYRICS_STROKE_ENABLED = false;
+export const DEFAULT_LYRICS_STROKE_COLOR = "#000000";
+export const DEFAULT_LYRICS_STROKE_WIDTH = 3;
+export const LYRICS_STROKE_WIDTH_MIN = 1;
+export const LYRICS_STROKE_WIDTH_MAX = 10;
+
+// BgBar
+export const DEFAULT_LYRICS_BG_BAR_ENABLED = false;
+export const DEFAULT_LYRICS_BG_BAR_COLOR = "#000000";
+export const DEFAULT_LYRICS_BG_BAR_OPACITY = 60;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

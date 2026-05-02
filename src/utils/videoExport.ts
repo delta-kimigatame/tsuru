@@ -128,6 +128,22 @@ export interface LyricsOptions {
   yPercent: number;
   /** テキスト最大幅（キャンバス幅基準 %）。超過時にフォントサイズを自動縮小 */
   maxWidthPercent: number;
+  // --- 文字装飾 ---
+  shadowEnabled: boolean;
+  /** シャドウ色 "#rrggbb" */
+  shadowColor: string;
+  /** シャドウぼかし半径 px（出力解像度基準）。offset = blur × 0.5 で固定 */
+  shadowBlur: number;
+  strokeEnabled: boolean;
+  /** 縁取り色 "#rrggbb" */
+  strokeColor: string;
+  /** 縁取り太さ px（出力解像度基準） */
+  strokeWidth: number;
+  bgBarEnabled: boolean;
+  /** 背景バー色 "#rrggbb" */
+  bgBarColor: string;
+  /** 背景バー不透明度 0–100 */
+  bgBarOpacity: number;
 }
 
 /**
@@ -258,16 +274,51 @@ const drawSubtitleOnCanvas = (
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = opts.color;
   ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
 
-  // フォントサイズを 2px ずつ縮小して最大幅に収める
+  // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める
   while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
     fontSize -= 2;
     ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
   }
 
-  ctx.fillText(lyric, (cW * opts.xPercent) / 100, (cH * opts.yPercent) / 100);
+  const cx = (cW * opts.xPercent) / 100;
+  const cy = (cH * opts.yPercent) / 100;
+  const textW = ctx.measureText(lyric).width;
+
+  // Step 2: 背景バー（shadow 適用前に描画）
+  if (opts.bgBarEnabled) {
+    const padX = fontSize * 0.5;
+    const padY = fontSize * 0.3;
+    const barW = textW + padX * 2;
+    const barH = fontSize + padY * 2;
+    ctx.save();
+    ctx.globalAlpha = opts.bgBarOpacity / 100;
+    ctx.fillStyle = opts.bgBarColor;
+    ctx.fillRect(cx - barW / 2, cy - barH / 2, barW, barH);
+    ctx.restore();
+  }
+
+  // Step 3: shadow 設定
+  if (opts.shadowEnabled) {
+    ctx.shadowColor = opts.shadowColor;
+    ctx.shadowBlur = opts.shadowBlur;
+    ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+    ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+  }
+
+  // Step 4: 縁取り
+  if (opts.strokeEnabled) {
+    ctx.lineJoin = "round";
+    ctx.lineWidth = opts.strokeWidth * 2; // 外側にはみ出した分を fillText で上書きするため 2倍
+    ctx.strokeStyle = opts.strokeColor;
+    ctx.strokeText(lyric, cx, cy);
+  }
+
+  // Step 5: メインテキスト
+  ctx.fillStyle = opts.color;
+  ctx.fillText(lyric, cx, cy);
+
   ctx.restore();
 };
 

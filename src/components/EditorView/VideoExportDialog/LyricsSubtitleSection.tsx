@@ -19,6 +19,10 @@ import { useTranslation } from "react-i18next";
 import {
   LYRICS_FONT_SIZE_MAX,
   LYRICS_FONT_SIZE_MIN,
+  LYRICS_SHADOW_BLUR_MAX,
+  LYRICS_SHADOW_BLUR_MIN,
+  LYRICS_STROKE_WIDTH_MAX,
+  LYRICS_STROKE_WIDTH_MIN,
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
@@ -40,6 +44,25 @@ type Props = {
   onUpdateLyric: (i: number, value: string) => void;
   onMerge: (i: number) => void;
   onSplit: (i: number, k: number) => void;
+  // 文字装飾
+  shadowEnabled: boolean;
+  shadowColor: string;
+  shadowBlur: number;
+  strokeEnabled: boolean;
+  strokeColor: string;
+  strokeWidth: number;
+  bgBarEnabled: boolean;
+  bgBarColor: string;
+  bgBarOpacity: number;
+  onShadowEnabledChange: (v: boolean) => void;
+  onShadowColorChange: (v: string) => void;
+  onShadowBlurChange: (v: number) => void;
+  onStrokeEnabledChange: (v: boolean) => void;
+  onStrokeColorChange: (v: string) => void;
+  onStrokeWidthChange: (v: number) => void;
+  onBgBarEnabledChange: (v: boolean) => void;
+  onBgBarColorChange: (v: string) => void;
+  onBgBarOpacityChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -65,6 +88,24 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onUpdateLyric,
   onMerge,
   onSplit,
+  shadowEnabled,
+  shadowColor,
+  shadowBlur,
+  strokeEnabled,
+  strokeColor,
+  strokeWidth,
+  bgBarEnabled,
+  bgBarColor,
+  bgBarOpacity,
+  onShadowEnabledChange,
+  onShadowColorChange,
+  onShadowBlurChange,
+  onStrokeEnabledChange,
+  onStrokeColorChange,
+  onStrokeWidthChange,
+  onBgBarEnabledChange,
+  onBgBarColorChange,
+  onBgBarOpacityChange,
 }) => {
   const { t } = useTranslation();
 
@@ -168,6 +209,167 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
             max={100}
             unit="%"
           />
+
+          {/* 文字装飾 */}
+          <Divider sx={{ fontSize: "0.7rem" }}>
+            {t("editor.videoExport.lyricsDecoration")}
+          </Divider>
+
+          {/* シャドウ */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={shadowEnabled}
+                onChange={(e) => onShadowEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsShadow")}
+              </Typography>
+            }
+          />
+          <Collapse in={shadowEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="caption" sx={{ flex: 1 }}>
+                  {t("editor.videoExport.lyricsShadowColor")}
+                </Typography>
+                <Box
+                  component="input"
+                  type="color"
+                  value={shadowColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onShadowColorChange(e.target.value)
+                  }
+                  sx={{
+                    width: 32,
+                    height: 28,
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    borderRadius: 0.5,
+                  }}
+                />
+              </Box>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsShadowBlur")}
+                value={shadowBlur}
+                onChange={onShadowBlurChange}
+                min={LYRICS_SHADOW_BLUR_MIN}
+                max={LYRICS_SHADOW_BLUR_MAX}
+                unit="px"
+                valueMinWidth={34}
+              />
+            </Box>
+          </Collapse>
+
+          {/* 縁取り */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={strokeEnabled}
+                onChange={(e) => onStrokeEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsStroke")}
+              </Typography>
+            }
+          />
+          <Collapse in={strokeEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="caption" sx={{ flex: 1 }}>
+                  {t("editor.videoExport.lyricsStrokeColor")}
+                </Typography>
+                <Box
+                  component="input"
+                  type="color"
+                  value={strokeColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onStrokeColorChange(e.target.value)
+                  }
+                  sx={{
+                    width: 32,
+                    height: 28,
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    borderRadius: 0.5,
+                  }}
+                />
+              </Box>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsStrokeWidth")}
+                value={strokeWidth}
+                onChange={onStrokeWidthChange}
+                min={LYRICS_STROKE_WIDTH_MIN}
+                max={LYRICS_STROKE_WIDTH_MAX}
+                unit="px"
+                valueMinWidth={34}
+              />
+            </Box>
+          </Collapse>
+
+          {/* 背景バー */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bgBarEnabled}
+                onChange={(e) => onBgBarEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsBgBar")}
+              </Typography>
+            }
+          />
+          <Collapse in={bgBarEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="caption" sx={{ flex: 1 }}>
+                  {t("editor.videoExport.lyricsBgBarColor")}
+                </Typography>
+                <Box
+                  component="input"
+                  type="color"
+                  value={bgBarColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onBgBarColorChange(e.target.value)
+                  }
+                  sx={{
+                    width: 32,
+                    height: 28,
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    borderRadius: 0.5,
+                  }}
+                />
+              </Box>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsBgBarOpacity")}
+                value={bgBarOpacity}
+                onChange={onBgBarOpacityChange}
+                min={0}
+                max={100}
+                unit="%"
+                valueMinWidth={34}
+              />
+            </Box>
+          </Collapse>
 
           {/* セグメントテーブル */}
           {segments.length > 0 && (

@@ -159,6 +159,24 @@ export const VideoExportDialog: React.FC<Props> = ({
             onUpdateLyric={form.updateSegmentLyric}
             onMerge={form.mergeSegments}
             onSplit={form.splitSegment}
+            shadowEnabled={form.lyricsShadowEnabled}
+            shadowColor={form.lyricsShadowColor}
+            shadowBlur={form.lyricsShadowBlur}
+            strokeEnabled={form.lyricsStrokeEnabled}
+            strokeColor={form.lyricsStrokeColor}
+            strokeWidth={form.lyricsStrokeWidth}
+            bgBarEnabled={form.lyricsBgBarEnabled}
+            bgBarColor={form.lyricsBgBarColor}
+            bgBarOpacity={form.lyricsBgBarOpacity}
+            onShadowEnabledChange={form.setLyricsShadowEnabled}
+            onShadowColorChange={form.setLyricsShadowColor}
+            onShadowBlurChange={form.setLyricsShadowBlur}
+            onStrokeEnabledChange={form.setLyricsStrokeEnabled}
+            onStrokeColorChange={form.setLyricsStrokeColor}
+            onStrokeWidthChange={form.setLyricsStrokeWidth}
+            onBgBarEnabledChange={form.setLyricsBgBarEnabled}
+            onBgBarColorChange={form.setLyricsBgBarColor}
+            onBgBarOpacityChange={form.setLyricsBgBarOpacity}
           />
 
           <ExportPreviewCanvas
