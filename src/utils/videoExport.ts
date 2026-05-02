@@ -11,6 +11,7 @@ import {
   type AudioCodec,
   type VideoCodec,
 } from "mediabunny";
+import type { Note } from "../lib/Note";
 
 /** 動画の解像度オプション。"image" は読み込んだ画像サイズに合わせる */
 export type VideoResolution = "1920x1080" | "1080x1920" | "image";
@@ -93,6 +94,104 @@ export interface TextOptions {
   textAlign: TextAlign;
 }
 
+/**
+ * 歌詞字幕の1フレーズ分のデータ
+ *
+ * startMs/endMs/noteBoundaries はすべて合成WAV内の時刻（ゼロ起点 ms）。
+ * noteBoundaries[0] = startMs、noteBoundaries[length-1] = endMs。
+ * 分割ポイント k（1 ≤ k ≤ length-2）で分割すると：
+ *   前半: startMs〜noteBoundaries[k]、lyric.slice(0, k)
+ *   後半: noteBoundaries[k]〜endMs、lyric.slice(k)
+ */
+export interface LyricsSegment {
+  startMs: number;
+  endMs: number;
+  /** 編集可能な歌詞テキスト */
+  lyric: string;
+  /**
+   * 元ノートの境界時刻（WAV相対ms）の配列。長さ = 元ノート数 + 1。
+   * 分割UIのポイント選択に使用する。
+   */
+  noteBoundaries: number[];
+}
+
+/** 字幕全体の設定 */
+export interface LyricsOptions {
+  segments: LyricsSegment[];
+  /** フォントサイズ（px、出力解像度基準）*/
+  fontSize: number;
+  /** テキストカラー "#rrggbb" */
+  color: string;
+  /** X 位置（キャンバス幅基準 %）。center 固定のため xPercent=50 */
+  xPercent: number;
+  /** Y 位置（キャンバス高さ基準 %） */
+  yPercent: number;
+  /** テキスト最大幅（キャンバス幅基準 %）。超過時にフォントサイズを自動縮小 */
+  maxWidthPercent: number;
+}
+
+/**
+ * notes[] と notesLeftMs[] から歌詞字幕セグメントを抽出する。
+ *
+ * @param notes 全ノートの配列
+ * @param notesLeftMs 全ノートの開始時刻（WAV先頭からの絶対ms累積）
+ * @param selectNotesIndex 合成対象ノートのインデックス列（空 = 全ノート）。
+ *        非連続指定はスコープ外（正しい字幕を生成できない場合がある）。
+ * @returns WAV相対ms（ゼロ起点）でタイミングを持つLyricsSegmentの配列
+ */
+export function extractLyricsSegments(
+  notes: Note[],
+  notesLeftMs: number[],
+  selectNotesIndex: number[],
+): LyricsSegment[] {
+  if (notes.length === 0 || notesLeftMs.length === 0) return [];
+
+  const minIndex =
+    selectNotesIndex.length > 0 ? Math.min(...selectNotesIndex) : 0;
+  const maxIndex =
+    selectNotesIndex.length > 0
+      ? Math.max(...selectNotesIndex)
+      : notes.length - 1;
+
+  // WAVのt=0に対応する絶対ms。合成対象ノート先頭の開始時刻。
+  const offsetMs = notesLeftMs[minIndex] ?? 0;
+
+  const targetNotes = notes.slice(minIndex, maxIndex + 1);
+  const targetLeftMs = notesLeftMs.slice(minIndex, maxIndex + 1);
+
+  const segments: LyricsSegment[] = [];
+  let runStart: number | null = null;
+
+  for (let i = 0; i <= targetNotes.length; i++) {
+    const isRest = i === targetNotes.length || targetNotes[i].lyric === "R";
+
+    if (!isRest && runStart === null) {
+      runStart = i;
+    } else if (isRest && runStart !== null) {
+      const runEnd = i - 1;
+      const startMs = targetLeftMs[runStart] - offsetMs;
+      const endMs =
+        targetLeftMs[runEnd] - offsetMs + targetNotes[runEnd].msLength;
+      const lyric = targetNotes
+        .slice(runStart, runEnd + 1)
+        .map((n) => n.lyric)
+        .join("");
+
+      // noteBoundaries: [startMs, leftMs[runStart+1]-offsetMs, ..., endMs]
+      const noteBoundaries: number[] = [];
+      for (let k = runStart; k <= runEnd; k++) {
+        noteBoundaries.push(targetLeftMs[k] - offsetMs);
+      }
+      noteBoundaries.push(endMs);
+
+      segments.push({ startMs, endMs, lyric, noteBoundaries });
+      runStart = null;
+    }
+  }
+
+  return segments;
+}
+
 /** "image" モード時のキャンバス最大サイズ（FHD 上限） */
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
@@ -140,6 +239,39 @@ const drawTextOnCanvas = (
 };
 
 /**
+ * Canvas に歌詞字幕を描画する内部ヘルパー。
+ * テキスト幅が maxWidthPercent を超える場合はフォントサイズを自動縮小する（最小 12px）。
+ * TODO: 将来拡張としてテキストシャドウ・背景色帯の追加を検討。
+ */
+const drawSubtitleOnCanvas = (
+  ctx: CanvasRenderingContext2D,
+  lyric: string,
+  opts: LyricsOptions,
+  cW: number,
+  cH: number,
+): void => {
+  if (!lyric.trim()) return;
+  const maxW = (cW * opts.maxWidthPercent) / 100;
+  const minFontSize = 12;
+  let fontSize = opts.fontSize;
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = opts.color;
+  ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+
+  // フォントサイズを 2px ずつ縮小して最大幅に収める
+  while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
+    fontSize -= 2;
+    ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+  }
+
+  ctx.fillText(lyric, (cW * opts.xPercent) / 100, (cH * opts.yPercent) / 100);
+  ctx.restore();
+};
+
+/**
  * WAV ArrayBuffer と背景画像ファイルから MP4 ArrayBuffer を生成する（B-1 方式）
  *
  * 背景画像を静止画とした動画を生成する。映像は 1fps の静止画、音声は提供された WAV データ。
@@ -169,6 +301,7 @@ export const generateMp4 = async (
   portraitOptions?: PortraitOptions | null,
   mainTextOptions?: TextOptions | null,
   subTextOptions?: TextOptions | null,
+  lyricsOptions?: LyricsOptions | null,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -209,89 +342,98 @@ export const generateMp4 = async (
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context is not available");
 
+  // キャンバスサイズを決定
+  let cW: number;
+  let cH: number;
   if (resolution === "image") {
-    // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
     const scale = Math.min(1, MAX_WIDTH / imgW, MAX_HEIGHT / imgH);
-    canvas.width = Math.round(imgW * scale);
-    canvas.height = Math.round(imgH * scale);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    cW = Math.round(imgW * scale);
+    cH = Math.round(imgH * scale);
   } else {
-    // 固定解像度モード: bgPaddingMode に従って余白を埋めてから前景を中央配置
-    const [W, H] = resolution.split("x").map(Number);
-    canvas.width = W;
-    canvas.height = H;
+    [cW, cH] = resolution.split("x").map(Number);
+  }
+  canvas.width = cW;
+  canvas.height = cH;
 
-    if (bgPaddingMode === "color") {
-      // 背景色で塗りつぶす
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, W, H);
+  // 立絵をすべての非同期処理の前にロードしておく（drawBase クロージャで再利用するため）
+  let portraitImg: HTMLImageElement | null = null;
+  if (portraitOptions) {
+    const pUrl = URL.createObjectURL(portraitOptions.blob);
+    portraitImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = pUrl;
+    });
+    URL.revokeObjectURL(pUrl);
+  }
+
+  /**
+   * 背景・立絵・タイトルテキストのベースレイヤーをキャンバスに描画する。
+   * 字幕フレームのたびに呼び出して canvas を上書きするため、副作用なしで完結させる。
+   */
+  const drawBase = () => {
+    ctx.clearRect(0, 0, cW, cH);
+
+    if (resolution === "image") {
+      // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
+      ctx.drawImage(img, 0, 0, cW, cH);
     } else {
-      // "image" or "blur": 最背面を背景色で塗り、その上に cover スケールで背景画像を重ねる
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, W, H);
-
-      const bgScale = Math.max(W / imgW, H / imgH);
-      const bgW = imgW * bgScale;
-      const bgH = imgH * bgScale;
-      if (bgPaddingMode === "blur") {
-        ctx.filter = "blur(20px)";
+      // 固定解像度モード: bgPaddingMode に従って余白を埋めてから前景を中央配置
+      if (bgPaddingMode === "color") {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, cW, cH);
+      } else {
+        // "image" or "blur": 最背面を背景色で塗り、その上に cover スケールで背景画像を重ねる
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, cW, cH);
+        const bgScale = Math.max(cW / imgW, cH / imgH);
+        const bgW = imgW * bgScale;
+        const bgH = imgH * bgScale;
+        if (bgPaddingMode === "blur") {
+          ctx.filter = "blur(20px)";
+        }
+        ctx.globalAlpha = bgImageOpacity / 100;
+        ctx.drawImage(img, (cW - bgW) / 2, (cH - bgH) / 2, bgW, bgH);
+        ctx.globalAlpha = 1;
+        ctx.filter = "none";
       }
-      ctx.globalAlpha = bgImageOpacity / 100;
-      ctx.drawImage(img, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH);
-      ctx.globalAlpha = 1;
-      ctx.filter = "none";
+      // 前景: 画像を contain・拡大なしで中央配置
+      const fgScale = Math.min(1, cW / imgW, cH / imgH);
+      const fgW = imgW * fgScale;
+      const fgH = imgH * fgScale;
+      ctx.drawImage(img, (cW - fgW) / 2, (cH - fgH) / 2, fgW, fgH);
     }
 
-    // 前景: 画像を contain・拡大なしで中央配置
-    // 例: 1000×1000 → 1920×1080 なら fgScale=1、左右460px/上下40px 余白
-    const fgScale = Math.min(1, W / imgW, H / imgH);
-    const fgW = imgW * fgScale;
-    const fgH = imgH * fgScale;
-    ctx.drawImage(img, (W - fgW) / 2, (H - fgH) / 2, fgW, fgH);
-  }
+    // 立絵の描画（設定有りの場合のみ）
+    if (portraitOptions && portraitImg) {
+      const { naturalHeight, opacity, scalePercent } = portraitOptions;
+      const pNatW = portraitImg.naturalWidth;
+      const pNatH = portraitImg.naturalHeight;
+      // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枠内に contain
+      const maxW = cW * 0.5;
+      const maxH = Math.min(cH * 0.5, naturalHeight);
+      const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+      // ユーザースケール適用。自然サイズ（scale=1）を上限とする
+      const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
+      const drawW = pNatW * drawScale;
+      const drawH = pNatH * drawScale;
+      // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
+      const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
+      const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
+      ctx.globalAlpha = opacity / 100;
+      ctx.drawImage(portraitImg, px, py, drawW, drawH);
+      ctx.globalAlpha = 1;
+    }
 
-  // 立絵の描画（設定有りの場合のみ）
-  if (portraitOptions) {
-    const { blob, naturalHeight, opacity, scalePercent } = portraitOptions;
-    const pUrl = URL.createObjectURL(blob);
-    const portraitImg = await new Promise<HTMLImageElement>(
-      (resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = reject;
-        el.src = pUrl;
-      },
-    );
-    URL.revokeObjectURL(pUrl);
-
-    const pNatW = portraitImg.naturalWidth;
-    const pNatH = portraitImg.naturalHeight;
-    const cW = canvas.width;
-    const cH = canvas.height;
-
-    // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枚内に contain
-    const maxW = cW * 0.5;
-    const maxH = Math.min(cH * 0.5, naturalHeight);
-    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
-    // ユーザースケール適用。自然サイズ（scale=1）を上限とする
-    const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
-    const drawW = pNatW * drawScale;
-    const drawH = pNatH * drawScale;
-    // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
-    const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
-    const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
-    ctx.globalAlpha = opacity / 100;
-    ctx.drawImage(portraitImg, px, py, drawW, drawH);
-    ctx.globalAlpha = 1;
-  }
-
-  // テキストオーバーレイの描画（立絵より上のレイヤー）
-  if (mainTextOptions) {
-    drawTextOnCanvas(ctx, mainTextOptions, canvas.width, canvas.height);
-  }
-  if (subTextOptions) {
-    drawTextOnCanvas(ctx, subTextOptions, canvas.width, canvas.height);
-  }
+    // テキストオーバーレイの描画（立絵より上のレイヤー）
+    if (mainTextOptions) {
+      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
+    }
+    if (subTextOptions) {
+      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+    }
+  };
 
   // mediabunny Output を構築してトラックを追加
   const output = new Output({
@@ -313,8 +455,42 @@ export const generateMp4 = async (
 
   await output.start();
 
-  // 静止画 1 フレーム（音声全長分のタイムスタンプ/デュレーションを設定）
-  await videoSource.add(0, durationSec);
+  // 映像フレームの生成
+  if (lyricsOptions && lyricsOptions.segments.length > 0) {
+    // 字幕あり: セグメントの切り替えタイミングで可変フレームを生成する。
+    // 総フレーム数 ≈ 2×セグメント数+1 のため、メモリへの影響は最小。
+    const segs = lyricsOptions.segments;
+    let prevEndSec = 0;
+
+    for (const seg of segs) {
+      const segStartSec = seg.startMs / 1000;
+      const segEndSec = seg.endMs / 1000;
+
+      // セグメント前の無字幕区間
+      if (segStartSec > prevEndSec + 0.001) {
+        drawBase();
+        await videoSource.add(prevEndSec, segStartSec - prevEndSec);
+      }
+
+      // 字幕表示区間
+      drawBase();
+      drawSubtitleOnCanvas(ctx, seg.lyric, lyricsOptions, cW, cH);
+      await videoSource.add(segStartSec, segEndSec - segStartSec);
+
+      prevEndSec = segEndSec;
+    }
+
+    // 最後のセグメント後の無字幕区間
+    if (prevEndSec < durationSec - 0.001) {
+      drawBase();
+      await videoSource.add(prevEndSec, durationSec - prevEndSec);
+    }
+  } else {
+    // 字幕なし（従来通り）: 静止画1フレームで音声全長をカバー
+    drawBase();
+    await videoSource.add(0, durationSec);
+  }
+
   videoSource.close();
 
   // デコード済み AudioBuffer をそのまま渡す

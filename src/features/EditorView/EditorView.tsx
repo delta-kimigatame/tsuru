@@ -12,6 +12,7 @@ import { NoteSelectMode } from "../../types/noteSelectMode";
 import {
   generateMp4,
   type BgPaddingMode,
+  type LyricsOptions,
   type PortraitOptions,
   type TextOptions,
   type VideoResolution,
@@ -286,6 +287,7 @@ export const EditorView: React.FC<{
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
+    lyricsOptions: LyricsOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -308,6 +310,7 @@ export const EditorView: React.FC<{
         portraitOptions,
         mainTextOptions,
         subTextOptions,
+        lyricsOptions,
       );
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });
@@ -735,6 +738,9 @@ export const EditorView: React.FC<{
           vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
         }
         portraitNaturalHeight={vb?.portraitHeight}
+        notes={notes}
+        notesLeftMs={notesLeftMs}
+        selectNotesIndex={selectNotesIndex}
       />
     </>
   );

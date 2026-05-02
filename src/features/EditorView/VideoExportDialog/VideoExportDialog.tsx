@@ -12,13 +12,16 @@ import { BackgroundSection } from "../../../components/EditorView/VideoExportDia
 import { ExportPreviewCanvas } from "../../../components/EditorView/VideoExportDialog/ExportPreviewCanvas";
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
+import { LyricsSubtitleSection } from "../../../components/EditorView/VideoExportDialog/LyricsSubtitleSection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type {
   BgPaddingMode,
+  LyricsOptions,
   PortraitOptions,
   TextOptions,
   VideoResolution,
 } from "../../../utils/videoExport";
+import type { Note } from "../../../lib/Note";
 
 type Props = {
   open: boolean;
@@ -32,12 +35,16 @@ type Props = {
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
+    lyricsOptions: LyricsOptions | null,
   ) => void;
   synthesisProgress: boolean;
   /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
   portraitBlob?: Blob | null;
   /** vb.portraitHeight */
   portraitNaturalHeight?: number;
+  notes?: Note[];
+  notesLeftMs?: number[];
+  selectNotesIndex?: number[];
 };
 
 export const VideoExportDialog: React.FC<Props> = ({
@@ -47,6 +54,9 @@ export const VideoExportDialog: React.FC<Props> = ({
   synthesisProgress,
   portraitBlob,
   portraitNaturalHeight,
+  notes,
+  notesLeftMs,
+  selectNotesIndex,
 }) => {
   const { t } = useTranslation();
   const form = useVideoExportForm(open, {
@@ -54,6 +64,9 @@ export const VideoExportDialog: React.FC<Props> = ({
     onConfirm,
     portraitBlob,
     portraitNaturalHeight,
+    notes,
+    notesLeftMs,
+    selectNotesIndex,
   });
 
   return (
@@ -129,6 +142,23 @@ export const VideoExportDialog: React.FC<Props> = ({
             onColorChange={form.setSubTextColor}
             onXPercentChange={form.setSubTextX}
             onYPercentChange={form.setSubTextY}
+          />
+
+          <LyricsSubtitleSection
+            lyricsEnabled={form.lyricsEnabled}
+            segments={form.lyricsSegments}
+            fontSize={form.lyricsFontSize}
+            color={form.lyricsColor}
+            yPercent={form.lyricsYPercent}
+            maxWidthPercent={form.lyricsMaxWidthPercent}
+            onEnabledChange={form.setLyricsEnabled}
+            onFontSizeChange={form.setLyricsFontSize}
+            onColorChange={form.setLyricsColor}
+            onYPercentChange={form.setLyricsYPercent}
+            onMaxWidthPercentChange={form.setLyricsMaxWidthPercent}
+            onUpdateLyric={form.updateSegmentLyric}
+            onMerge={form.mergeSegments}
+            onSplit={form.splitSegment}
           />
 
           <ExportPreviewCanvas

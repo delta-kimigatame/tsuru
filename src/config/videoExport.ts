@@ -106,6 +106,17 @@ export const TEXT_POSITION_MIN = 0;
 export const TEXT_POSITION_MAX = 100;
 
 // ---------------------------------------------------------------------------
+// 字幕設定デフォルト・定数
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_LYRICS_FONT_SIZE = 48;
+export const DEFAULT_LYRICS_COLOR = "#ffffff";
+export const DEFAULT_LYRICS_Y_PERCENT = 85;
+export const DEFAULT_LYRICS_MAX_WIDTH_PERCENT = 80;
+export const LYRICS_FONT_SIZE_MIN = 12;
+export const LYRICS_FONT_SIZE_MAX = 120;
+
+// ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------
 

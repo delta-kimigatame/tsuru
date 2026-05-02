@@ -6,6 +6,10 @@ import {
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
   DEFAULT_BG_SIZE,
+  DEFAULT_LYRICS_COLOR,
+  DEFAULT_LYRICS_FONT_SIZE,
+  DEFAULT_LYRICS_MAX_WIDTH_PERCENT,
+  DEFAULT_LYRICS_Y_PERCENT,
   DEFAULT_MAIN_TEXT_BOLD,
   DEFAULT_MAIN_TEXT_COLOR,
   DEFAULT_MAIN_TEXT_FONT_SIZE,
@@ -34,9 +38,13 @@ import {
   PREVIEW_MAX_H,
   PREVIEW_MAX_W,
 } from "../config/videoExport";
+import type { Note } from "../lib/Note";
 import {
   FONT_STACK,
+  extractLyricsSegments,
   type BgPaddingMode,
+  type LyricsOptions,
+  type LyricsSegment,
   type PortraitOptions,
   type TextOptions,
   type VideoResolution,
@@ -53,13 +61,25 @@ type Options = {
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
+    lyricsOptions: LyricsOptions | null,
   ) => void;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
+  notes?: Note[];
+  notesLeftMs?: number[];
+  selectNotesIndex?: number[];
 };
 
 export const useVideoExportForm = (open: boolean, options: Options) => {
-  const { onClose, onConfirm, portraitBlob, portraitNaturalHeight } = options;
+  const {
+    onClose,
+    onConfirm,
+    portraitBlob,
+    portraitNaturalHeight,
+    notes,
+    notesLeftMs,
+    selectNotesIndex,
+  } = options;
   const { t } = useTranslation();
 
   // 画像
@@ -148,6 +168,23 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     DEFAULT_SUB_TEXT_ITALIC,
   );
 
+  // 字幕設定
+  const [lyricsEnabled, setLyricsEnabled] = React.useState<boolean>(false);
+  const [lyricsSegments, setLyricsSegments] = React.useState<LyricsSegment[]>(
+    [],
+  );
+  const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
+    DEFAULT_LYRICS_FONT_SIZE,
+  );
+  const [lyricsColor, setLyricsColor] = React.useState<string>(
+    DEFAULT_LYRICS_COLOR,
+  );
+  const [lyricsYPercent, setLyricsYPercent] = React.useState<number>(
+    DEFAULT_LYRICS_Y_PERCENT,
+  );
+  const [lyricsMaxWidthPercent, setLyricsMaxWidthPercent] =
+    React.useState<number>(DEFAULT_LYRICS_MAX_WIDTH_PERCENT);
+
   // -----------------------------------------------------------------------
 
   const applyColor = (hex: string) => {
@@ -174,6 +211,55 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setImageFile(null);
     setImagePreviewUrl(null);
   };
+
+  /** セグメント i の歌詞テキストを更新する */
+  const updateSegmentLyric = React.useCallback(
+    (i: number, value: string) => {
+      setLyricsSegments((prev) =>
+        prev.map((s, idx) => (idx === i ? { ...s, lyric: value } : s)),
+      );
+    },
+    [],
+  );
+
+  /** セグメント i と i+1 を結合する */
+  const mergeSegments = React.useCallback((i: number) => {
+    setLyricsSegments((prev) => {
+      if (i >= prev.length - 1) return prev;
+      const a = prev[i];
+      const b = prev[i + 1];
+      const merged: LyricsSegment = {
+        startMs: a.startMs,
+        endMs: b.endMs,
+        lyric: a.lyric + b.lyric,
+        // a の最後の境界点と b の最初の境界点が同じ値なので重複を除去
+        noteBoundaries: [...a.noteBoundaries.slice(0, -1), ...b.noteBoundaries],
+      };
+      return [...prev.slice(0, i), merged, ...prev.slice(i + 2)];
+    });
+  }, []);
+
+  /** セグメント i を noteBoundaries[k] の位置で分割する */
+  const splitSegment = React.useCallback((i: number, k: number) => {
+    setLyricsSegments((prev) => {
+      const seg = prev[i];
+      if (!seg || k <= 0 || k >= seg.noteBoundaries.length - 1) return prev;
+      const splitMs = seg.noteBoundaries[k];
+      const a: LyricsSegment = {
+        startMs: seg.startMs,
+        endMs: splitMs,
+        lyric: seg.lyric.slice(0, k),
+        noteBoundaries: seg.noteBoundaries.slice(0, k + 1),
+      };
+      const b: LyricsSegment = {
+        startMs: splitMs,
+        endMs: seg.endMs,
+        lyric: seg.lyric.slice(k),
+        noteBoundaries: seg.noteBoundaries.slice(k),
+      };
+      return [...prev.slice(0, i), a, b, ...prev.slice(i + 1)];
+    });
+  }, []);
 
   const handleClose = () => {
     clearImage();
@@ -235,6 +321,18 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextY,
     );
 
+    const lyricsOptions: LyricsOptions | null =
+      lyricsEnabled && lyricsSegments.length > 0
+        ? {
+            segments: lyricsSegments,
+            fontSize: lyricsFontSize,
+            color: lyricsColor,
+            xPercent: 50,
+            yPercent: lyricsYPercent,
+            maxWidthPercent: lyricsMaxWidthPercent,
+          }
+        : null;
+
     if (imageFile) {
       onConfirm(
         imageFile,
@@ -245,6 +343,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         portraitOptions,
         mainTextOptions,
         subTextOptions,
+        lyricsOptions,
       );
       return;
     }
@@ -268,6 +367,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         portraitOptions,
         mainTextOptions,
         subTextOptions,
+        lyricsOptions,
       );
     }, "image/png");
   };
@@ -299,6 +399,19 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setSubTextColor(DEFAULT_SUB_TEXT_COLOR);
       setSubTextBold(DEFAULT_SUB_TEXT_BOLD);
       setSubTextItalic(DEFAULT_SUB_TEXT_ITALIC);
+      setLyricsEnabled(false);
+      setLyricsSegments([]);
+      setLyricsFontSize(DEFAULT_LYRICS_FONT_SIZE);
+      setLyricsColor(DEFAULT_LYRICS_COLOR);
+      setLyricsYPercent(DEFAULT_LYRICS_Y_PERCENT);
+      setLyricsMaxWidthPercent(DEFAULT_LYRICS_MAX_WIDTH_PERCENT);
+    } else {
+      // ダイアログが開いたときに字幕セグメントを初期化する
+      if (notes && notesLeftMs && notes.length > 0) {
+        setLyricsSegments(
+          extractLyricsSegments(notes, notesLeftMs, selectNotesIndex ?? []),
+        );
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -681,5 +794,20 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setSubTextX,
     setSubTextY,
     setSubTextColor,
+    // lyrics
+    lyricsEnabled,
+    lyricsSegments,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
+    setLyricsEnabled,
+    setLyricsFontSize,
+    setLyricsColor,
+    setLyricsYPercent,
+    setLyricsMaxWidthPercent,
+    updateSegmentLyric,
+    mergeSegments,
+    splitSegment,
   };
 };
