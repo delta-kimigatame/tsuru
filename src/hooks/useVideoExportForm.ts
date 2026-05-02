@@ -687,7 +687,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx.textBaseline = "middle";
           ctx.fillStyle = lyricsColor;
           ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
-          while (lFontSize > minFontSize && ctx.measureText(previewLyric).width > maxW) {
+          while (
+            lFontSize > minFontSize &&
+            ctx.measureText(previewLyric).width > maxW
+          ) {
             lFontSize -= 2;
             ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
           }
