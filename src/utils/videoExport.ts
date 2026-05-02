@@ -501,45 +501,33 @@ export const generateMp4 = async (
     bitrate: 128e3,
   });
 
-  output.addVideoTrack(videoSource, { frameRate: 1 });
+  output.addVideoTrack(videoSource, { frameRate: 30 });
   output.addAudioTrack(audioSource);
 
   await output.start();
 
-  // 映像フレームの生成
-  if (lyricsOptions && lyricsOptions.segments.length > 0) {
-    // 字幕あり: セグメントの切り替えタイミングで可変フレームを生成する。
-    // 総フレーム数 ≈ 2×セグメント数+1 のため、メモリへの影響は最小。
-    const segs = lyricsOptions.segments;
-    let prevEndSec = 0;
+  // 映像フレームの生成（30fps 固定）
+  const FRAME_RATE = 30;
+  const frameDuration = 1 / FRAME_RATE;
+  const totalFrames = Math.ceil(durationSec * FRAME_RATE);
 
-    for (const seg of segs) {
-      const segStartSec = seg.startMs / 1000;
-      const segEndSec = seg.endMs / 1000;
+  for (let f = 0; f < totalFrames; f++) {
+    const tSec = f * frameDuration;
+    const tMs = tSec * 1000;
+    const dur = Math.min(frameDuration, durationSec - tSec);
 
-      // セグメント前の無字幕区間
-      if (segStartSec > prevEndSec + 0.001) {
-        drawBase();
-        await videoSource.add(prevEndSec, segStartSec - prevEndSec);
-      }
-
-      // 字幕表示区間
-      drawBase();
-      drawSubtitleOnCanvas(ctx, seg.lyric, lyricsOptions, cW, cH);
-      await videoSource.add(segStartSec, segEndSec - segStartSec);
-
-      prevEndSec = segEndSec;
-    }
-
-    // 最後のセグメント後の無字幕区間
-    if (prevEndSec < durationSec - 0.001) {
-      drawBase();
-      await videoSource.add(prevEndSec, durationSec - prevEndSec);
-    }
-  } else {
-    // 字幕なし（従来通り）: 静止画1フレームで音声全長をカバー
     drawBase();
-    await videoSource.add(0, durationSec);
+
+    if (lyricsOptions && lyricsOptions.segments.length > 0) {
+      const activeSeg = lyricsOptions.segments.find(
+        (seg) => tMs >= seg.startMs && tMs < seg.endMs,
+      );
+      if (activeSeg) {
+        drawSubtitleOnCanvas(ctx, activeSeg.lyric, lyricsOptions, cW, cH);
+      }
+    }
+
+    await videoSource.add(tSec, dur);
   }
 
   videoSource.close();
