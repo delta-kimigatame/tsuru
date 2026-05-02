@@ -415,6 +415,7 @@ export const translationPt = {
       bgPadding_color: "Cor de fundo",
       bgPadding_image: "Imagem ampliada",
       bgPadding_blur: "Imagem ampliada (Desfoque)",
+      bgImageOpacity: "Opacidade da imagem de fundo",
       exportPreview: "Pré-visualização da exportação",
     },
     synthesisError: "Falha no processamento de síntese.",

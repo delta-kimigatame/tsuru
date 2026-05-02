@@ -80,6 +80,7 @@ export const generateMp4 = async (
   resolution: VideoResolution = "image",
   bgPaddingMode: BgPaddingMode = "image",
   bgColor: string = "#000000",
+  bgImageOpacity: number = 100,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -137,16 +138,19 @@ export const generateMp4 = async (
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, W, H);
     } else {
-      // "image" or "blur": 同一画像を cover スケールで背景に敷く
-      // cover スケールでは必ずキャンバス枠外に画像がはみ出るため
-      // blur 時の半透明エッジ問題は発生しない
+      // "image" or "blur": 最背面を背景色で塗り、その上に cover スケールで背景画像を重ねる
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, W, H);
+
       const bgScale = Math.max(W / imgW, H / imgH);
       const bgW = imgW * bgScale;
       const bgH = imgH * bgScale;
       if (bgPaddingMode === "blur") {
         ctx.filter = "blur(20px)";
       }
+      ctx.globalAlpha = bgImageOpacity / 100;
       ctx.drawImage(img, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH);
+      ctx.globalAlpha = 1;
       ctx.filter = "none";
     }
 

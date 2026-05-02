@@ -409,6 +409,7 @@ export const translationJa = {
       bgPadding_color: "背景色",
       bgPadding_image: "画像を拡大",
       bgPadding_blur: "画像を拡大（ぼかし）",
+      bgImageOpacity: "背景画像の不透明度",
       exportPreview: "エクスポートプレビュー",
     },
     synthesisError: "合成処理に失敗しました。",

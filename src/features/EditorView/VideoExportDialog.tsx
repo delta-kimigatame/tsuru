@@ -11,6 +11,7 @@ import {
   IconButton,
   MenuItem,
   Select,
+  Slider,
   TextField,
   Tooltip,
   Typography,
@@ -78,6 +79,7 @@ type Props = {
     resolution: VideoResolution,
     bgPaddingMode: BgPaddingMode,
     bgColor: string,
+    bgImageOpacity: number,
   ) => void;
   synthesisProgress: boolean;
 };
@@ -113,6 +115,9 @@ export const VideoExportDialog: React.FC<Props> = ({
   const [bgPaddingMode, setBgPaddingMode] =
     React.useState<BgPaddingMode>(DEFAULT_PADDING_MODE);
 
+  // 背景画像の不透明度 0–100（image/blur モード時のみ有効）
+  const [bgImageOpacity, setBgImageOpacity] = React.useState<number>(100);
+
   // -----------------------------------------------------------------------
 
   const applyColor = (hex: string) => {
@@ -142,7 +147,7 @@ export const VideoExportDialog: React.FC<Props> = ({
 
   const handleConfirm = () => {
     if (imageFile) {
-      onConfirm(imageFile, bgSize, bgPaddingMode, bgColor);
+      onConfirm(imageFile, bgSize, bgPaddingMode, bgColor, bgImageOpacity);
       return;
     }
     // 単色背景を Canvas で生成して File に変換。画像なしノードなので mode = "color" に固定
@@ -161,6 +166,7 @@ export const VideoExportDialog: React.FC<Props> = ({
         bgSize,
         "color",
         bgColor,
+        100,
       );
     }, "image/png");
   };
@@ -172,6 +178,7 @@ export const VideoExportDialog: React.FC<Props> = ({
       applyColor(DEFAULT_COLOR);
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
+      setBgImageOpacity(100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -225,18 +232,18 @@ export const VideoExportDialog: React.FC<Props> = ({
       const imgW = img?.naturalWidth ?? 0;
       const imgH = img?.naturalHeight ?? 0;
 
-      // ── 背景レイヤー ──
-      if (!img || bgPaddingMode === "color") {
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, pw, ph);
-      } else {
-        // cover スケールで背景画像を敷く
+      // ── 背景レイヤー: 常に bgColor を最背面に描画 ──
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, pw, ph);
+
+      if (img && bgPaddingMode !== "color") {
+        // cover スケールで背景画像を bgColor の上に重ねる
         const bgSc = Math.max(pw / imgW, ph / imgH);
         if (bgPaddingMode === "blur") {
-          // プレビューサイズに合わせてブラー量を縮小
-          const blurPx = Math.max(1, Math.round(4 * prevScale * 5));
+          const blurPx = Math.max(1, Math.round(20 * prevScale));
           ctx.filter = `blur(${blurPx}px)`;
         }
+        ctx.globalAlpha = bgImageOpacity / 100;
         ctx.drawImage(
           img,
           (pw - imgW * bgSc) / 2,
@@ -244,6 +251,7 @@ export const VideoExportDialog: React.FC<Props> = ({
           imgW * bgSc,
           imgH * bgSc,
         );
+        ctx.globalAlpha = 1;
         ctx.filter = "none";
       }
 
@@ -264,7 +272,7 @@ export const VideoExportDialog: React.FC<Props> = ({
     } else {
       draw(null);
     }
-  }, [imagePreviewUrl, bgSize, bgPaddingMode, bgColor]);
+  }, [imagePreviewUrl, bgSize, bgPaddingMode, bgColor, bgImageOpacity]);
 
   // -----------------------------------------------------------------------
 
@@ -421,6 +429,43 @@ export const VideoExportDialog: React.FC<Props> = ({
                   </MenuItem>
                 ))}
               </Select>
+            </Box>
+          )}
+
+          {/* ── 背景画像の不透明度（image/blur モード時のみ） ── */}
+          {imageFile && bgSize !== "image" && bgPaddingMode !== "color" && (
+            <Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 0.5,
+                }}
+              >
+                <Typography variant="caption">
+                  {t("editor.videoExport.bgImageOpacity")}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontFamily: "monospace",
+                    minWidth: 36,
+                    textAlign: "right",
+                  }}
+                >
+                  {bgImageOpacity}%
+                </Typography>
+              </Box>
+              <Slider
+                size="small"
+                value={bgImageOpacity}
+                onChange={(_e, v) => setBgImageOpacity(v as number)}
+                min={0}
+                max={100}
+                step={1}
+                sx={{ mx: 1, width: "calc(100% - 16px)" }}
+              />
             </Box>
           )}
 

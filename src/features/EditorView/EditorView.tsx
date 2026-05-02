@@ -280,6 +280,7 @@ export const EditorView: React.FC<{
     resolution: VideoResolution,
     bgPaddingMode: BgPaddingMode,
     bgColor: string,
+    bgImageOpacity: number,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -298,6 +299,7 @@ export const EditorView: React.FC<{
         resolution,
         bgPaddingMode,
         bgColor,
+        bgImageOpacity,
       );
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });
