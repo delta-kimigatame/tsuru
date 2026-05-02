@@ -103,6 +103,10 @@ export const EditorView: React.FC<{
     React.useState<boolean>(false);
   /** 動画エクスポート用に先行合成した WAV データを保持する ref */
   const movieWavBufRef = React.useRef<ArrayBuffer | null>(null);
+  /** 動画エクスポート中の総フレーム数（FooterMenu のプログレス表示用） */
+  const [videoExportTotal, setVideoExportTotal] = React.useState<
+    number | undefined
+  >(undefined);
 
   const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -311,8 +315,13 @@ export const EditorView: React.FC<{
         mainTextOptions,
         subTextOptions,
         lyricsOptions,
+        (current, total) => {
+          setSynthesisCount(current);
+          setVideoExportTotal(total);
+        },
       );
       setSynthesisProgress(false);
+      setVideoExportTotal(undefined);
       LOG.gtag("download", { downloadName: vb.name });
       const dataUrl = URL.createObjectURL(
         new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
@@ -323,6 +332,7 @@ export const EditorView: React.FC<{
       a.click();
     } catch (e) {
       setSynthesisProgress(false);
+      setVideoExportTotal(undefined);
       LOG.error(
         `動画エクスポートの失敗。${e.message}\n${e.stack}`,
         "EditorView",
@@ -674,6 +684,7 @@ export const EditorView: React.FC<{
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
         synthesisProgress={synthesisProgress}
+        videoExportTotal={videoExportTotal}
         playing={playing}
         handlePlayStop={handlePlayStop}
         selectMode={selectMode}

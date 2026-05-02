@@ -353,6 +353,7 @@ export const generateMp4 = async (
   mainTextOptions?: TextOptions | null,
   subTextOptions?: TextOptions | null,
   lyricsOptions?: LyricsOptions | null,
+  onProgress?: (current: number, total: number) => void,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -528,6 +529,13 @@ export const generateMp4 = async (
     }
 
     await videoSource.add(tSec, dur);
+
+    // 30フレームに1回プログレスを通知（毎フレーム呼ぶとオーバーヘッドになるため）
+    if (onProgress && (f + 1) % 30 === 0) {
+      onProgress(f + 1, totalFrames);
+      // UIスレッドに制御を返してレンダリングを反映させる
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    }
   }
 
   videoSource.close();
