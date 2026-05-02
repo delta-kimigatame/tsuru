@@ -191,13 +191,21 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                   alignItems: "center",
                 }}
               >
-                <Typography variant="caption" color="text.secondary" align="center">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  align="center"
+                >
                   {t("editor.videoExport.lyricsStart")}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   &nbsp;
                 </Typography>
-                <Typography variant="caption" color="text.secondary" align="center">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  align="center"
+                >
                   {t("editor.videoExport.lyricsEnd")}
                 </Typography>
                 <Box />

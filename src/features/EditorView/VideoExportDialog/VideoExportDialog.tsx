@@ -10,10 +10,11 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { BackgroundSection } from "../../../components/EditorView/VideoExportDialog/BackgroundSection";
 import { ExportPreviewCanvas } from "../../../components/EditorView/VideoExportDialog/ExportPreviewCanvas";
+import { LyricsSubtitleSection } from "../../../components/EditorView/VideoExportDialog/LyricsSubtitleSection";
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
-import { LyricsSubtitleSection } from "../../../components/EditorView/VideoExportDialog/LyricsSubtitleSection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
+import type { Note } from "../../../lib/Note";
 import type {
   BgPaddingMode,
   LyricsOptions,
@@ -21,7 +22,6 @@ import type {
   TextOptions,
   VideoResolution,
 } from "../../../utils/videoExport";
-import type { Note } from "../../../lib/Note";
 
 type Props = {
   open: boolean;

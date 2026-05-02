@@ -176,9 +176,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
     DEFAULT_LYRICS_FONT_SIZE,
   );
-  const [lyricsColor, setLyricsColor] = React.useState<string>(
-    DEFAULT_LYRICS_COLOR,
-  );
+  const [lyricsColor, setLyricsColor] =
+    React.useState<string>(DEFAULT_LYRICS_COLOR);
   const [lyricsYPercent, setLyricsYPercent] = React.useState<number>(
     DEFAULT_LYRICS_Y_PERCENT,
   );
@@ -213,14 +212,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   };
 
   /** セグメント i の歌詞テキストを更新する */
-  const updateSegmentLyric = React.useCallback(
-    (i: number, value: string) => {
-      setLyricsSegments((prev) =>
-        prev.map((s, idx) => (idx === i ? { ...s, lyric: value } : s)),
-      );
-    },
-    [],
-  );
+  const updateSegmentLyric = React.useCallback((i: number, value: string) => {
+    setLyricsSegments((prev) =>
+      prev.map((s, idx) => (idx === i ? { ...s, lyric: value } : s)),
+    );
+  }, []);
 
   /** セグメント i と i+1 を結合する */
   const mergeSegments = React.useCallback((i: number) => {
