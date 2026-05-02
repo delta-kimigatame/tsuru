@@ -1,0 +1,160 @@
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { BackgroundSection } from "../../../components/EditorView/VideoExportDialog/BackgroundSection";
+import { ExportPreviewCanvas } from "../../../components/EditorView/VideoExportDialog/ExportPreviewCanvas";
+import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
+import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
+import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
+import type {
+  BgPaddingMode,
+  PortraitOptions,
+  TextOptions,
+  VideoResolution,
+} from "../../../utils/videoExport";
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (
+    imageFile: File,
+    resolution: VideoResolution,
+    bgPaddingMode: BgPaddingMode,
+    bgColor: string,
+    bgImageOpacity: number,
+    portraitOptions: PortraitOptions | null,
+    mainTextOptions: TextOptions | null,
+    subTextOptions: TextOptions | null,
+  ) => void;
+  synthesisProgress: boolean;
+  /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
+  portraitBlob?: Blob | null;
+  /** vb.portraitHeight */
+  portraitNaturalHeight?: number;
+};
+
+export const VideoExportDialog: React.FC<Props> = ({
+  open,
+  onClose,
+  onConfirm,
+  synthesisProgress,
+  portraitBlob,
+  portraitNaturalHeight,
+}) => {
+  const { t } = useTranslation();
+  const form = useVideoExportForm(open, {
+    onClose,
+    onConfirm,
+    portraitBlob,
+    portraitNaturalHeight,
+  });
+
+  return (
+    <Dialog open={open} onClose={form.handleClose} fullWidth maxWidth="xs">
+      <DialogTitle>{t("editor.videoExport.title")}</DialogTitle>
+      <DialogContent>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <BackgroundSection
+            imageFile={form.imageFile}
+            imagePreviewUrl={form.imagePreviewUrl}
+            fileInputRef={form.fileInputRef}
+            onFileChange={form.handleFileChange}
+            onClearImage={form.clearImage}
+            bgColor={form.bgColor}
+            colorInput={form.colorInput}
+            onColorInputChange={form.handleColorInputChange}
+            onColorApply={form.applyColor}
+            bgSize={form.bgSize}
+            onBgSizeChange={form.setBgSize}
+            bgPaddingMode={form.bgPaddingMode}
+            onBgPaddingModeChange={form.setBgPaddingMode}
+            bgImageOpacity={form.bgImageOpacity}
+            onBgImageOpacityChange={form.setBgImageOpacity}
+          />
+
+          {portraitBlob && (
+            <PortraitSection
+              showPortrait={form.showPortrait}
+              portraitOpacity={form.portraitOpacity}
+              portraitScalePercent={form.portraitScalePercent}
+              portraitXOffset={form.portraitXOffset}
+              portraitYOffset={form.portraitYOffset}
+              portraitMaxScale={form.portraitMaxScale}
+              portraitXOffsetMin={form.portraitXOffsetMin}
+              portraitYOffsetMin={form.portraitYOffsetMin}
+              onShowPortraitChange={form.setShowPortrait}
+              onPortraitOpacityChange={form.setPortraitOpacity}
+              onPortraitScaleChange={form.setPortraitScalePercent}
+              onPortraitXOffsetChange={form.setPortraitXOffset}
+              onPortraitYOffsetChange={form.setPortraitYOffset}
+            />
+          )}
+
+          <TextOverlaySection
+            sectionTitleKey="editor.videoExport.mainTextSection"
+            text={form.mainText}
+            fontSize={form.mainTextFontSize}
+            bold={form.mainTextBold}
+            italic={form.mainTextItalic}
+            align={form.mainTextAlign}
+            color={form.mainTextColor}
+            xPercent={form.mainTextX}
+            yPercent={form.mainTextY}
+            onTextChange={form.setMainText}
+            onFontSizeChange={form.setMainTextFontSize}
+            onBoldItalicChange={form.handleMainBoldItalicChange}
+            onAlignChange={form.setMainTextAlign}
+            onColorChange={form.setMainTextColor}
+            onXPercentChange={form.setMainTextX}
+            onYPercentChange={form.setMainTextY}
+          />
+
+          <TextOverlaySection
+            sectionTitleKey="editor.videoExport.subTextSection"
+            text={form.subText}
+            fontSize={form.subTextFontSize}
+            bold={form.subTextBold}
+            italic={form.subTextItalic}
+            align={form.subTextAlign}
+            color={form.subTextColor}
+            xPercent={form.subTextX}
+            yPercent={form.subTextY}
+            onTextChange={form.setSubText}
+            onFontSizeChange={form.setSubTextFontSize}
+            onBoldItalicChange={form.handleSubBoldItalicChange}
+            onAlignChange={form.setSubTextAlign}
+            onColorChange={form.setSubTextColor}
+            onXPercentChange={form.setSubTextX}
+            onYPercentChange={form.setSubTextY}
+          />
+
+          <ExportPreviewCanvas
+            canvasRef={form.previewCanvasRef}
+            visible={form.imageFile !== null || form.bgSize !== "image"}
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={form.handleClose} disabled={synthesisProgress}>
+          {t("editor.videoExport.cancel")}
+        </Button>
+        <Button
+          onClick={form.handleConfirm}
+          variant="contained"
+          disabled={
+            synthesisProgress || (form.bgSize === "image" && !form.imageFile)
+          }
+        >
+          {t("editor.videoExport.confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};

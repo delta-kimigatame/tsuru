@@ -20,7 +20,7 @@ import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
 import { PitchPortal } from "./PitchPortal/PitchPortal";
-import { VideoExportDialog } from "./VideoExportDialog";
+import { VideoExportDialog } from "./VideoExportDialog/VideoExportDialog";
 
 export const EditorView: React.FC<{
   checkWorkerReady?: (synthesisWorker: SynthesisWorker) => boolean;
