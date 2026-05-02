@@ -7,7 +7,6 @@ import {
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
-import type { TextAlign } from "../../../utils/videoExport";
 import { LabeledSlider } from "./LabeledSlider";
 import { TextStyleToolbar } from "./TextStyleToolbar";
 
@@ -17,14 +16,12 @@ type Props = {
   fontSize: number;
   bold: boolean;
   italic: boolean;
-  align: TextAlign;
   color: string;
   xPercent: number;
   yPercent: number;
   onTextChange: (v: string) => void;
   onFontSizeChange: (v: number) => void;
   onBoldItalicChange: (bold: boolean, italic: boolean) => void;
-  onAlignChange: (align: TextAlign) => void;
   onColorChange: (v: string) => void;
   onXPercentChange: (v: number) => void;
   onYPercentChange: (v: number) => void;
@@ -36,14 +33,12 @@ export const TextOverlaySection: React.FC<Props> = ({
   fontSize,
   bold,
   italic,
-  align,
   color,
   xPercent,
   yPercent,
   onTextChange,
   onFontSizeChange,
   onBoldItalicChange,
-  onAlignChange,
   onColorChange,
   onXPercentChange,
   onYPercentChange,
@@ -67,10 +62,8 @@ export const TextOverlaySection: React.FC<Props> = ({
       <TextStyleToolbar
         bold={bold}
         italic={italic}
-        align={align}
         color={color}
         onBoldItalicChange={onBoldItalicChange}
-        onAlignChange={onAlignChange}
         onColorChange={onColorChange}
       />
       <LabeledSlider

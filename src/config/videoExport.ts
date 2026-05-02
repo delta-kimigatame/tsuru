@@ -1,8 +1,4 @@
-import type {
-  BgPaddingMode,
-  TextAlign,
-  VideoResolution,
-} from "../utils/videoExport";
+import type { BgPaddingMode, VideoResolution } from "../utils/videoExport";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -119,12 +115,9 @@ export const DEFAULT_MAIN_TEXT_Y = 85;
 export const DEFAULT_MAIN_TEXT_COLOR = "#ffffff";
 export const DEFAULT_MAIN_TEXT_BOLD = true;
 export const DEFAULT_MAIN_TEXT_ITALIC = false;
-export const DEFAULT_MAIN_TEXT_ALIGN: TextAlign = "left";
-
 export const DEFAULT_SUB_TEXT_FONT_SIZE = 36;
 export const DEFAULT_SUB_TEXT_X = 5;
 export const DEFAULT_SUB_TEXT_Y = 93;
 export const DEFAULT_SUB_TEXT_COLOR = "#ffffff";
 export const DEFAULT_SUB_TEXT_BOLD = false;
 export const DEFAULT_SUB_TEXT_ITALIC = false;
-export const DEFAULT_SUB_TEXT_ALIGN: TextAlign = "left";

@@ -1,28 +1,20 @@
-import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
-import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
-import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
 import { Box, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import type { TextAlign } from "../../../utils/videoExport";
 
 type Props = {
   bold: boolean;
   italic: boolean;
-  align: TextAlign;
   color: string;
   onBoldItalicChange: (bold: boolean, italic: boolean) => void;
-  onAlignChange: (align: TextAlign) => void;
   onColorChange: (color: string) => void;
 };
 
 export const TextStyleToolbar: React.FC<Props> = ({
   bold,
   italic,
-  align,
   color,
   onBoldItalicChange,
-  onAlignChange,
   onColorChange,
 }) => {
   const { t } = useTranslation();
@@ -55,24 +47,6 @@ export const TextStyleToolbar: React.FC<Props> = ({
           sx={{ fontStyle: "italic", px: 1.5, minWidth: 36 }}
         >
           I
-        </ToggleButton>
-      </ToggleButtonGroup>
-      <ToggleButtonGroup
-        size="small"
-        exclusive
-        value={align}
-        onChange={(_e, v) => {
-          if (v !== null) onAlignChange(v as TextAlign);
-        }}
-      >
-        <ToggleButton value="left">
-          <FormatAlignLeftIcon fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="center">
-          <FormatAlignCenterIcon fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="right">
-          <FormatAlignRightIcon fontSize="small" />
         </ToggleButton>
       </ToggleButtonGroup>
       <Box sx={{ flex: 1 }} />

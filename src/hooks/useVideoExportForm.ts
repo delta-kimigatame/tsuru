@@ -6,7 +6,6 @@ import {
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
   DEFAULT_BG_SIZE,
-  DEFAULT_MAIN_TEXT_ALIGN,
   DEFAULT_MAIN_TEXT_BOLD,
   DEFAULT_MAIN_TEXT_COLOR,
   DEFAULT_MAIN_TEXT_FONT_SIZE,
@@ -19,7 +18,6 @@ import {
   DEFAULT_PORTRAIT_SHOW,
   DEFAULT_PORTRAIT_X_OFFSET,
   DEFAULT_PORTRAIT_Y_OFFSET,
-  DEFAULT_SUB_TEXT_ALIGN,
   DEFAULT_SUB_TEXT_BOLD,
   DEFAULT_SUB_TEXT_COLOR,
   DEFAULT_SUB_TEXT_FONT_SIZE,
@@ -40,7 +38,6 @@ import {
   FONT_STACK,
   type BgPaddingMode,
   type PortraitOptions,
-  type TextAlign,
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
@@ -131,9 +128,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [mainTextItalic, setMainTextItalic] = React.useState<boolean>(
     DEFAULT_MAIN_TEXT_ITALIC,
   );
-  const [mainTextAlign, setMainTextAlign] = React.useState<TextAlign>(
-    DEFAULT_MAIN_TEXT_ALIGN,
-  );
 
   // サブテキスト設定
   const [subText, setSubText] = React.useState<string>(() =>
@@ -152,9 +146,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [subTextItalic, setSubTextItalic] = React.useState<boolean>(
     DEFAULT_SUB_TEXT_ITALIC,
-  );
-  const [subTextAlign, setSubTextAlign] = React.useState<TextAlign>(
-    DEFAULT_SUB_TEXT_ALIGN,
   );
 
   // -----------------------------------------------------------------------
@@ -197,7 +188,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     color: string,
     xPercent: number,
     yPercent: number,
-    align: TextAlign,
   ): TextOptions | null =>
     text.trim()
       ? {
@@ -208,7 +198,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           color,
           xPercent,
           yPercent,
-          textAlign: align,
+          textAlign: "left",
         }
       : null;
 
@@ -234,7 +224,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextColor,
       mainTextX,
       mainTextY,
-      mainTextAlign,
     );
     const subTextOptions = buildTextOptions(
       subText,
@@ -244,7 +233,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextColor,
       subTextX,
       subTextY,
-      subTextAlign,
     );
 
     if (imageFile) {
@@ -304,7 +292,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setMainTextColor(DEFAULT_MAIN_TEXT_COLOR);
       setMainTextBold(DEFAULT_MAIN_TEXT_BOLD);
       setMainTextItalic(DEFAULT_MAIN_TEXT_ITALIC);
-      setMainTextAlign(DEFAULT_MAIN_TEXT_ALIGN);
       setSubText(t("editor.videoExport.subTextDefault"));
       setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
       setSubTextX(DEFAULT_SUB_TEXT_X);
@@ -312,7 +299,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setSubTextColor(DEFAULT_SUB_TEXT_COLOR);
       setSubTextBold(DEFAULT_SUB_TEXT_BOLD);
       setSubTextItalic(DEFAULT_SUB_TEXT_ITALIC);
-      setSubTextAlign(DEFAULT_SUB_TEXT_ALIGN);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -546,14 +532,13 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         color: string,
         xPercent: number,
         yPercent: number,
-        align: TextAlign,
       ) => {
         if (!text.trim()) return;
         const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
         ctx.save();
         ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
         ctx.fillStyle = color;
-        ctx.textAlign = align;
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
         ctx.fillText(text, (pw * xPercent) / 100, (ph * yPercent) / 100);
@@ -567,7 +552,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         mainTextColor,
         mainTextX,
         mainTextY,
-        mainTextAlign,
       );
       drawTextLayer(
         subText,
@@ -577,7 +561,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextColor,
         subTextX,
         subTextY,
-        subTextAlign,
       );
     };
 
@@ -607,7 +590,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     mainTextColor,
     mainTextX,
     mainTextY,
-    mainTextAlign,
     subText,
     subTextFontSize,
     subTextBold,
@@ -615,7 +597,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     subTextColor,
     subTextX,
     subTextY,
-    subTextAlign,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -664,7 +645,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     mainTextColor,
     mainTextBold,
     mainTextItalic,
-    mainTextAlign,
     // subText
     subText,
     subTextFontSize,
@@ -673,7 +653,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     subTextColor,
     subTextBold,
     subTextItalic,
-    subTextAlign,
     // actions
     handleClose,
     handleConfirm,
@@ -697,12 +676,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setMainTextX,
     setMainTextY,
     setMainTextColor,
-    setMainTextAlign,
     setSubText,
     setSubTextFontSize,
     setSubTextX,
     setSubTextY,
     setSubTextColor,
-    setSubTextAlign,
   };
 };
