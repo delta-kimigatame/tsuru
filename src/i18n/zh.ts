@@ -390,7 +390,7 @@ export const translationZh = {
       confirm: "导出",
       cancel: "取消",
       notSupported: "此浏览器不支持视频导出",
-      orColor: "或指定背景颜色",
+      orColor: "指定背景颜色",
       bgSize: "分辨率",
       bgSizeImage: "图片大小",
       bgPadding: "边缘填充方式",

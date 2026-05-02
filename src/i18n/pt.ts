@@ -408,7 +408,7 @@ export const translationPt = {
       confirm: "Exportar",
       cancel: "Cancelar",
       notSupported: "Este navegador não suporta exportação de vídeo",
-      orColor: "ou especifique a cor de fundo",
+      orColor: "especifique a cor de fundo",
       bgSize: "Resolução",
       bgSizeImage: "Tamanho da imagem",
       bgPadding: "Preenchimento de fundo",

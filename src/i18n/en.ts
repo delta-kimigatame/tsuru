@@ -400,7 +400,7 @@ export const translationEn = {
       confirm: "Export",
       cancel: "Cancel",
       notSupported: "This browser does not support video export",
-      orColor: "or specify background color",
+      orColor: "specify background color",
       bgSize: "Resolution",
       bgSizeImage: "Image size",
       bgPadding: "Background fill",
