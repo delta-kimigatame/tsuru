@@ -13,6 +13,7 @@ import {
   generateMp4,
   type BgPaddingMode,
   type PortraitOptions,
+  type TextOptions,
   type VideoResolution,
 } from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
@@ -283,6 +284,8 @@ export const EditorView: React.FC<{
     bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
+    mainTextOptions: TextOptions | null,
+    subTextOptions: TextOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -303,6 +306,8 @@ export const EditorView: React.FC<{
         bgColor,
         bgImageOpacity,
         portraitOptions,
+        mainTextOptions,
+        subTextOptions,
       );
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });

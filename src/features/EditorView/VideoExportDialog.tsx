@@ -1,4 +1,7 @@
 import ClearIcon from "@mui/icons-material/Clear";
+import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
+import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
 import ImageIcon from "@mui/icons-material/Image";
 import {
   Box,
@@ -15,6 +18,8 @@ import {
   Select,
   Slider,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -22,9 +27,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   BG_PADDING_MODES,
+  FONT_STACK,
   VIDEO_RESOLUTIONS,
   type BgPaddingMode,
   type PortraitOptions,
+  type TextAlign,
+  type TextOptions,
   type VideoResolution,
 } from "../../utils/videoExport";
 
@@ -71,6 +79,25 @@ const PREVIEW_MAX_W = 320;
 const PREVIEW_MAX_H = 200;
 
 // ---------------------------------------------------------------------------
+// テキストオーバーレイのデフォルト値（調整しやすいよう定数に集約）
+// ---------------------------------------------------------------------------
+const DEFAULT_MAIN_TEXT_FONT_SIZE = 72;
+const DEFAULT_MAIN_TEXT_X = 5;
+const DEFAULT_MAIN_TEXT_Y = 85;
+const DEFAULT_MAIN_TEXT_COLOR = "#ffffff";
+const DEFAULT_MAIN_TEXT_BOLD = true;
+const DEFAULT_MAIN_TEXT_ITALIC = false;
+const DEFAULT_MAIN_TEXT_ALIGN: TextAlign = "left";
+
+const DEFAULT_SUB_TEXT_FONT_SIZE = 36;
+const DEFAULT_SUB_TEXT_X = 5;
+const DEFAULT_SUB_TEXT_Y = 93;
+const DEFAULT_SUB_TEXT_COLOR = "#ffffff";
+const DEFAULT_SUB_TEXT_BOLD = false;
+const DEFAULT_SUB_TEXT_ITALIC = false;
+const DEFAULT_SUB_TEXT_ALIGN: TextAlign = "left";
+
+// ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
@@ -84,6 +111,8 @@ type Props = {
     bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
+    mainTextOptions: TextOptions | null,
+    subTextOptions: TextOptions | null,
   ) => void;
   synthesisProgress: boolean;
   /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
@@ -144,6 +173,50 @@ export const VideoExportDialog: React.FC<Props> = ({
     h: number;
   } | null>(null);
 
+  // メインテキスト設定
+  const [mainText, setMainText] = React.useState<string>(() =>
+    t("editor.videoExport.mainTextDefault"),
+  );
+  const [mainTextFontSize, setMainTextFontSize] = React.useState<number>(
+    DEFAULT_MAIN_TEXT_FONT_SIZE,
+  );
+  const [mainTextX, setMainTextX] = React.useState<number>(DEFAULT_MAIN_TEXT_X);
+  const [mainTextY, setMainTextY] = React.useState<number>(DEFAULT_MAIN_TEXT_Y);
+  const [mainTextColor, setMainTextColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_COLOR,
+  );
+  const [mainTextBold, setMainTextBold] = React.useState<boolean>(
+    DEFAULT_MAIN_TEXT_BOLD,
+  );
+  const [mainTextItalic, setMainTextItalic] = React.useState<boolean>(
+    DEFAULT_MAIN_TEXT_ITALIC,
+  );
+  const [mainTextAlign, setMainTextAlign] = React.useState<TextAlign>(
+    DEFAULT_MAIN_TEXT_ALIGN,
+  );
+
+  // サブテキスト設定
+  const [subText, setSubText] = React.useState<string>(() =>
+    t("editor.videoExport.subTextDefault"),
+  );
+  const [subTextFontSize, setSubTextFontSize] = React.useState<number>(
+    DEFAULT_SUB_TEXT_FONT_SIZE,
+  );
+  const [subTextX, setSubTextX] = React.useState<number>(DEFAULT_SUB_TEXT_X);
+  const [subTextY, setSubTextY] = React.useState<number>(DEFAULT_SUB_TEXT_Y);
+  const [subTextColor, setSubTextColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_COLOR,
+  );
+  const [subTextBold, setSubTextBold] = React.useState<boolean>(
+    DEFAULT_SUB_TEXT_BOLD,
+  );
+  const [subTextItalic, setSubTextItalic] = React.useState<boolean>(
+    DEFAULT_SUB_TEXT_ITALIC,
+  );
+  const [subTextAlign, setSubTextAlign] = React.useState<TextAlign>(
+    DEFAULT_SUB_TEXT_ALIGN,
+  );
+
   // -----------------------------------------------------------------------
 
   const applyColor = (hex: string) => {
@@ -184,6 +257,50 @@ export const VideoExportDialog: React.FC<Props> = ({
           }
         : null;
 
+    const buildTextOptions = (
+      text: string,
+      fontSize: number,
+      bold: boolean,
+      italic: boolean,
+      color: string,
+      xPercent: number,
+      yPercent: number,
+      align: TextAlign,
+    ): TextOptions | null =>
+      text.trim()
+        ? {
+            text,
+            fontSize,
+            fontWeight: bold ? "bold" : "normal",
+            fontStyle: italic ? "italic" : "normal",
+            color,
+            xPercent,
+            yPercent,
+            textAlign: align,
+          }
+        : null;
+
+    const mainTextOptions = buildTextOptions(
+      mainText,
+      mainTextFontSize,
+      mainTextBold,
+      mainTextItalic,
+      mainTextColor,
+      mainTextX,
+      mainTextY,
+      mainTextAlign,
+    );
+    const subTextOptions = buildTextOptions(
+      subText,
+      subTextFontSize,
+      subTextBold,
+      subTextItalic,
+      subTextColor,
+      subTextX,
+      subTextY,
+      subTextAlign,
+    );
+
     if (imageFile) {
       onConfirm(
         imageFile,
@@ -192,6 +309,8 @@ export const VideoExportDialog: React.FC<Props> = ({
         bgColor,
         bgImageOpacity,
         portraitOptions,
+        mainTextOptions,
+        subTextOptions,
       );
       return;
     }
@@ -213,6 +332,8 @@ export const VideoExportDialog: React.FC<Props> = ({
         bgColor,
         100,
         portraitOptions,
+        mainTextOptions,
+        subTextOptions,
       );
     }, "image/png");
   };
@@ -230,6 +351,22 @@ export const VideoExportDialog: React.FC<Props> = ({
       setPortraitScalePercent(100);
       setPortraitXOffset(0);
       setPortraitYOffset(0);
+      setMainText(t("editor.videoExport.mainTextDefault"));
+      setMainTextFontSize(DEFAULT_MAIN_TEXT_FONT_SIZE);
+      setMainTextX(DEFAULT_MAIN_TEXT_X);
+      setMainTextY(DEFAULT_MAIN_TEXT_Y);
+      setMainTextColor(DEFAULT_MAIN_TEXT_COLOR);
+      setMainTextBold(DEFAULT_MAIN_TEXT_BOLD);
+      setMainTextItalic(DEFAULT_MAIN_TEXT_ITALIC);
+      setMainTextAlign(DEFAULT_MAIN_TEXT_ALIGN);
+      setSubText(t("editor.videoExport.subTextDefault"));
+      setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
+      setSubTextX(DEFAULT_SUB_TEXT_X);
+      setSubTextY(DEFAULT_SUB_TEXT_Y);
+      setSubTextColor(DEFAULT_SUB_TEXT_COLOR);
+      setSubTextBold(DEFAULT_SUB_TEXT_BOLD);
+      setSubTextItalic(DEFAULT_SUB_TEXT_ITALIC);
+      setSubTextAlign(DEFAULT_SUB_TEXT_ALIGN);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -479,6 +616,49 @@ export const VideoExportDialog: React.FC<Props> = ({
         ctx.drawImage(portraitImage, px, py, drawW, drawH);
         ctx.globalAlpha = 1;
       }
+
+      // ── テキストレイヤー ──
+      const drawTextLayer = (
+        text: string,
+        fontSize: number,
+        bold: boolean,
+        italic: boolean,
+        color: string,
+        xPercent: number,
+        yPercent: number,
+        align: TextAlign,
+      ) => {
+        if (!text.trim()) return;
+        const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
+        ctx.save();
+        ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.globalAlpha = 1;
+        ctx.fillText(text, (pw * xPercent) / 100, (ph * yPercent) / 100);
+        ctx.restore();
+      };
+      drawTextLayer(
+        mainText,
+        mainTextFontSize,
+        mainTextBold,
+        mainTextItalic,
+        mainTextColor,
+        mainTextX,
+        mainTextY,
+        mainTextAlign,
+      );
+      drawTextLayer(
+        subText,
+        subTextFontSize,
+        subTextBold,
+        subTextItalic,
+        subTextColor,
+        subTextX,
+        subTextY,
+        subTextAlign,
+      );
     };
 
     if (imagePreviewUrl) {
@@ -500,6 +680,22 @@ export const VideoExportDialog: React.FC<Props> = ({
     portraitScalePercent,
     portraitXOffset,
     portraitYOffset,
+    mainText,
+    mainTextFontSize,
+    mainTextBold,
+    mainTextItalic,
+    mainTextColor,
+    mainTextX,
+    mainTextY,
+    mainTextAlign,
+    subText,
+    subTextFontSize,
+    subTextBold,
+    subTextItalic,
+    subTextColor,
+    subTextX,
+    subTextY,
+    subTextAlign,
   ]);
 
   // -----------------------------------------------------------------------
@@ -860,6 +1056,378 @@ export const VideoExportDialog: React.FC<Props> = ({
               )}
             </>
           )}
+
+          {/* ── メインテキスト ── */}
+          <Divider sx={{ fontSize: "0.75rem" }}>
+            {t("editor.videoExport.mainTextSection")}
+          </Divider>
+          <TextField
+            size="small"
+            fullWidth
+            value={mainText}
+            onChange={(e) => setMainText(e.target.value)}
+            inputProps={{
+              onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === "Enter") e.preventDefault();
+              },
+            }}
+          />
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <ToggleButtonGroup
+              size="small"
+              value={[
+                ...(mainTextBold ? ["bold"] : []),
+                ...(mainTextItalic ? ["italic"] : []),
+              ]}
+              onChange={(_e, v) => {
+                const f = v as string[];
+                setMainTextBold(f.includes("bold"));
+                setMainTextItalic(f.includes("italic"));
+              }}
+            >
+              <ToggleButton
+                value="bold"
+                sx={{ fontWeight: "bold", px: 1.5, minWidth: 36 }}
+              >
+                B
+              </ToggleButton>
+              <ToggleButton
+                value="italic"
+                sx={{ fontStyle: "italic", px: 1.5, minWidth: 36 }}
+              >
+                I
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={mainTextAlign}
+              onChange={(_e, v) => {
+                if (v !== null) setMainTextAlign(v as TextAlign);
+              }}
+            >
+              <ToggleButton value="left">
+                <FormatAlignLeftIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="center">
+                <FormatAlignCenterIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="right">
+                <FormatAlignRightIcon fontSize="small" />
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Box sx={{ flex: 1 }} />
+            <Tooltip title={t("editor.videoExport.textColor")}>
+              <Box
+                component="input"
+                type="color"
+                value={mainTextColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setMainTextColor(e.target.value)
+                }
+                sx={{
+                  width: 32,
+                  height: 32,
+                  p: 0,
+                  border: "none",
+                  borderRadius: 1,
+                  cursor: "pointer",
+                }}
+              />
+            </Tooltip>
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textFontSize")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {mainTextFontSize}px
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={mainTextFontSize}
+              onChange={(_e, v) => setMainTextFontSize(v as number)}
+              min={8}
+              max={200}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textPositionX")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {mainTextX}%
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={mainTextX}
+              onChange={(_e, v) => setMainTextX(v as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textPositionY")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {mainTextY}%
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={mainTextY}
+              onChange={(_e, v) => setMainTextY(v as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
+
+          {/* ── サブテキスト ── */}
+          <Divider sx={{ fontSize: "0.75rem" }}>
+            {t("editor.videoExport.subTextSection")}
+          </Divider>
+          <TextField
+            size="small"
+            fullWidth
+            value={subText}
+            onChange={(e) => setSubText(e.target.value)}
+            inputProps={{
+              onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === "Enter") e.preventDefault();
+              },
+            }}
+          />
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <ToggleButtonGroup
+              size="small"
+              value={[
+                ...(subTextBold ? ["bold"] : []),
+                ...(subTextItalic ? ["italic"] : []),
+              ]}
+              onChange={(_e, v) => {
+                const f = v as string[];
+                setSubTextBold(f.includes("bold"));
+                setSubTextItalic(f.includes("italic"));
+              }}
+            >
+              <ToggleButton
+                value="bold"
+                sx={{ fontWeight: "bold", px: 1.5, minWidth: 36 }}
+              >
+                B
+              </ToggleButton>
+              <ToggleButton
+                value="italic"
+                sx={{ fontStyle: "italic", px: 1.5, minWidth: 36 }}
+              >
+                I
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={subTextAlign}
+              onChange={(_e, v) => {
+                if (v !== null) setSubTextAlign(v as TextAlign);
+              }}
+            >
+              <ToggleButton value="left">
+                <FormatAlignLeftIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="center">
+                <FormatAlignCenterIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="right">
+                <FormatAlignRightIcon fontSize="small" />
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Box sx={{ flex: 1 }} />
+            <Tooltip title={t("editor.videoExport.textColor")}>
+              <Box
+                component="input"
+                type="color"
+                value={subTextColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSubTextColor(e.target.value)
+                }
+                sx={{
+                  width: 32,
+                  height: 32,
+                  p: 0,
+                  border: "none",
+                  borderRadius: 1,
+                  cursor: "pointer",
+                }}
+              />
+            </Tooltip>
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textFontSize")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {subTextFontSize}px
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={subTextFontSize}
+              onChange={(_e, v) => setSubTextFontSize(v as number)}
+              min={8}
+              max={200}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textPositionX")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {subTextX}%
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={subTextX}
+              onChange={(_e, v) => setSubTextX(v as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="caption">
+                {t("editor.videoExport.textPositionY")}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: "monospace",
+                  minWidth: 44,
+                  textAlign: "right",
+                }}
+              >
+                {subTextY}%
+              </Typography>
+            </Box>
+            <Slider
+              size="small"
+              value={subTextY}
+              onChange={(_e, v) => setSubTextY(v as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ mx: 1, width: "calc(100% - 16px)" }}
+            />
+          </Box>
 
           {/* ── エクスポートプレビュー ── */}
           {(imageFile !== null || bgSize !== "image") && (

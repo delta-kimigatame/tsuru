@@ -62,6 +62,37 @@ export interface PortraitOptions {
   yOffset: number;
 }
 
+/**
+ * Canvas テキスト描画に使用するフォントファミリースタック。
+ * system-ui を先頭に Windows CJK フォールバックを明示する。
+ * - 'Yu Gothic UI'   … Windows 日本語
+ * - 'Microsoft YaHei' … Windows 中国語
+ * - macOS/iOS は system-ui が Hiragino Sans を選択する
+ * - Android は system-ui が Noto Sans を選択する
+ */
+export const FONT_STACK =
+  "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', 'Microsoft YaHei', sans-serif";
+
+export type FontWeight = "normal" | "bold";
+export type FontStyle = "normal" | "italic";
+export type TextAlign = "left" | "center" | "right";
+
+/** 動画キャンバスに重ねるテキストオーバーレイの設定 */
+export interface TextOptions {
+  text: string;
+  /** フォントサイズ（px、出力解像度基準） */
+  fontSize: number;
+  fontWeight: FontWeight;
+  fontStyle: FontStyle;
+  /** テキストカラー "#rrggbb" */
+  color: string;
+  /** X 位置（キャンバス幅基準 %）。textAlign に応じて基準点が変わる */
+  xPercent: number;
+  /** Y 位置（キャンバス高さ基準 %）。テキスト高さの中央が基準点 */
+  yPercent: number;
+  textAlign: TextAlign;
+}
+
 /** "image" モード時のキャンバス最大サイズ（FHD 上限） */
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
@@ -85,6 +116,28 @@ const VIDEO_CODEC_PRIORITY: VideoCodec[] = ["avc", "vp9", "av1", "vp8"];
  * opus … WebCodecs ネイティブ対応で確実だが iOS Safari での再生は非対応
  */
 const AUDIO_CODEC_PRIORITY: AudioCodec[] = ["aac", "opus"];
+
+/** Canvas にテキストオーバーレイを描画する内部ヘルパー */
+const drawTextOnCanvas = (
+  ctx: CanvasRenderingContext2D,
+  opts: TextOptions,
+  cW: number,
+  cH: number,
+): void => {
+  if (!opts.text.trim()) return;
+  ctx.save();
+  ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${FONT_STACK}`;
+  ctx.fillStyle = opts.color;
+  ctx.textAlign = opts.textAlign;
+  ctx.textBaseline = "middle";
+  ctx.globalAlpha = 1;
+  ctx.fillText(
+    opts.text,
+    (cW * opts.xPercent) / 100,
+    (cH * opts.yPercent) / 100,
+  );
+  ctx.restore();
+};
 
 /**
  * WAV ArrayBuffer と背景画像ファイルから MP4 ArrayBuffer を生成する（B-1 方式）
@@ -114,6 +167,8 @@ export const generateMp4 = async (
   bgColor: string = "#000000",
   bgImageOpacity: number = 100,
   portraitOptions?: PortraitOptions | null,
+  mainTextOptions?: TextOptions | null,
+  subTextOptions?: TextOptions | null,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -228,6 +283,14 @@ export const generateMp4 = async (
     ctx.globalAlpha = opacity / 100;
     ctx.drawImage(portraitImg, px, py, drawW, drawH);
     ctx.globalAlpha = 1;
+  }
+
+  // テキストオーバーレイの描画（立絵より上のレイヤー）
+  if (mainTextOptions) {
+    drawTextOnCanvas(ctx, mainTextOptions, canvas.width, canvas.height);
+  }
+  if (subTextOptions) {
+    drawTextOnCanvas(ctx, subTextOptions, canvas.width, canvas.height);
   }
 
   // mediabunny Output を構築してトラックを追加
