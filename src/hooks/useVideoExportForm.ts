@@ -671,6 +671,30 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextX,
         subTextY,
       );
+
+      // 歌詞字幕プレビューレイヤー
+      if (lyricsEnabled) {
+        const previewLyric =
+          lyricsSegments.length > 0
+            ? lyricsSegments[0].lyric || "aaaaaaa"
+            : "aaaaaaa";
+        if (previewLyric.trim()) {
+          const maxW = (pw * lyricsMaxWidthPercent) / 100;
+          const minFontSize = 12;
+          let lFontSize = Math.max(1, Math.round(lyricsFontSize * prevScale));
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = lyricsColor;
+          ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
+          while (lFontSize > minFontSize && ctx.measureText(previewLyric).width > maxW) {
+            lFontSize -= 2;
+            ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
+          }
+          ctx.fillText(previewLyric, pw / 2, (ph * lyricsYPercent) / 100);
+          ctx.restore();
+        }
+      }
     };
 
     if (imagePreviewUrl) {
@@ -706,6 +730,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     subTextColor,
     subTextX,
     subTextY,
+    lyricsEnabled,
+    lyricsSegments,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
