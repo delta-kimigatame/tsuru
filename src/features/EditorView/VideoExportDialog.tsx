@@ -133,6 +133,8 @@ export const VideoExportDialog: React.FC<Props> = ({
   const [portraitOpacity, setPortraitOpacity] = React.useState<number>(100);
   const [portraitScalePercent, setPortraitScalePercent] =
     React.useState<number>(100);
+  const [portraitXOffset, setPortraitXOffset] = React.useState<number>(0);
+  const [portraitYOffset, setPortraitYOffset] = React.useState<number>(0);
   // プレビュー用にロード済み HTMLImageElement
   const [portraitImage, setPortraitImage] =
     React.useState<HTMLImageElement | null>(null);
@@ -177,6 +179,8 @@ export const VideoExportDialog: React.FC<Props> = ({
             naturalHeight: portraitNaturalHeight ?? 800,
             opacity: portraitOpacity,
             scalePercent: portraitScalePercent,
+            xOffset: portraitXOffset,
+            yOffset: portraitYOffset,
           }
         : null;
 
@@ -224,6 +228,8 @@ export const VideoExportDialog: React.FC<Props> = ({
       setShowPortrait(true);
       setPortraitOpacity(100);
       setPortraitScalePercent(100);
+      setPortraitXOffset(0);
+      setPortraitYOffset(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -284,6 +290,92 @@ export const VideoExportDialog: React.FC<Props> = ({
   React.useEffect(() => {
     setPortraitScalePercent((prev) => Math.min(prev, portraitMaxScale));
   }, [portraitMaxScale]);
+
+  // 立絵 X オフセットの下限（立絵が完全にキャンバス左端より左に出られる最小値）
+  const portraitXOffsetMin = React.useMemo(() => {
+    if (!portraitImage) return -200;
+    let outW: number;
+    let outH: number;
+    if (bgSize === "image") {
+      if (!imageNaturalSize) return -200;
+      const s = Math.min(
+        1,
+        1920 / imageNaturalSize.w,
+        1080 / imageNaturalSize.h,
+      );
+      outW = Math.round(imageNaturalSize.w * s);
+      outH = Math.round(imageNaturalSize.h * s);
+    } else {
+      [outW, outH] = bgSize.split("x").map(Number) as [number, number];
+    }
+    const pNatW = portraitImage.naturalWidth;
+    const pNatH = portraitImage.naturalHeight;
+    const maxW = outW * 0.5;
+    const maxH = Math.min(outH * 0.5, portraitNaturalHeight ?? 800);
+    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+    const drawScale = Math.min(
+      defaultScale * (portraitScalePercent / 100),
+      1.0,
+    );
+    if (drawScale <= 0) return -200;
+    const drawW = pNatW * drawScale;
+    // px + drawW <= 0 となる最小 xOffset: xOffset <= -(outW / drawW) * 100
+    return -Math.ceil((outW / drawW) * 100);
+  }, [
+    portraitImage,
+    bgSize,
+    imageNaturalSize,
+    portraitNaturalHeight,
+    portraitScalePercent,
+  ]);
+
+  // portraitXOffsetMin が変化したとき現在値が下限を下回っていたらクランプ
+  React.useEffect(() => {
+    setPortraitXOffset((prev) => Math.max(prev, portraitXOffsetMin));
+  }, [portraitXOffsetMin]);
+
+  // 立絵 Y オフセットの下限（立絵が完全にキャンバス上端より上に出られる最小値）
+  const portraitYOffsetMin = React.useMemo(() => {
+    if (!portraitImage) return -200;
+    let outW: number;
+    let outH: number;
+    if (bgSize === "image") {
+      if (!imageNaturalSize) return -200;
+      const s = Math.min(
+        1,
+        1920 / imageNaturalSize.w,
+        1080 / imageNaturalSize.h,
+      );
+      outW = Math.round(imageNaturalSize.w * s);
+      outH = Math.round(imageNaturalSize.h * s);
+    } else {
+      [outW, outH] = bgSize.split("x").map(Number) as [number, number];
+    }
+    const pNatW = portraitImage.naturalWidth;
+    const pNatH = portraitImage.naturalHeight;
+    const maxW = outW * 0.5;
+    const maxH = Math.min(outH * 0.5, portraitNaturalHeight ?? 800);
+    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+    const drawScale = Math.min(
+      defaultScale * (portraitScalePercent / 100),
+      1.0,
+    );
+    if (drawScale <= 0) return -200;
+    const drawH = pNatH * drawScale;
+    // py + drawH <= 0 となる最小 yOffset: yOffset <= -(outH / drawH) * 100
+    return -Math.ceil((outH / drawH) * 100);
+  }, [
+    portraitImage,
+    bgSize,
+    imageNaturalSize,
+    portraitNaturalHeight,
+    portraitScalePercent,
+  ]);
+
+  // portraitYOffsetMin が変化したとき現在値が下限を下回っていたらクランプ
+  React.useEffect(() => {
+    setPortraitYOffset((prev) => Math.max(prev, portraitYOffsetMin));
+  }, [portraitYOffsetMin]);
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
@@ -380,8 +472,11 @@ export const VideoExportDialog: React.FC<Props> = ({
           prevScale;
         const drawW = pNatW * drawScale;
         const drawH = pNatH * drawScale;
+        // オフセット適用（描画サイズ基準の %、プレビューはすでに prevScale 込みの drawW/drawH）
+        const px = pw - drawW + drawW * (portraitXOffset / 100);
+        const py = ph - drawH + drawH * (portraitYOffset / 100);
         ctx.globalAlpha = portraitOpacity / 100;
-        ctx.drawImage(portraitImage, pw - drawW, ph - drawH, drawW, drawH);
+        ctx.drawImage(portraitImage, px, py, drawW, drawH);
         ctx.globalAlpha = 1;
       }
     };
@@ -403,6 +498,8 @@ export const VideoExportDialog: React.FC<Props> = ({
     portraitImage,
     portraitOpacity,
     portraitScalePercent,
+    portraitXOffset,
+    portraitYOffset,
   ]);
 
   // -----------------------------------------------------------------------
@@ -687,6 +784,74 @@ export const VideoExportDialog: React.FC<Props> = ({
                       onChange={(_e, v) => setPortraitScalePercent(v as number)}
                       min={0}
                       max={portraitMaxScale}
+                      step={1}
+                      sx={{ mx: 1, width: "calc(100% - 16px)" }}
+                    />
+                  </Box>
+                  {/* X オフセット */}
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="caption">
+                        {t("editor.videoExport.portraitOffsetX")}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: "monospace",
+                          minWidth: 44,
+                          textAlign: "right",
+                        }}
+                      >
+                        {portraitXOffset}%
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      value={portraitXOffset}
+                      onChange={(_e, v) => setPortraitXOffset(v as number)}
+                      min={portraitXOffsetMin}
+                      max={200}
+                      step={1}
+                      sx={{ mx: 1, width: "calc(100% - 16px)" }}
+                    />
+                  </Box>
+                  {/* Y オフセット */}
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="caption">
+                        {t("editor.videoExport.portraitOffsetY")}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: "monospace",
+                          minWidth: 44,
+                          textAlign: "right",
+                        }}
+                      >
+                        {portraitYOffset}%
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      value={portraitYOffset}
+                      onChange={(_e, v) => setPortraitYOffset(v as number)}
+                      min={portraitYOffsetMin}
+                      max={200}
                       step={1}
                       sx={{ mx: 1, width: "calc(100% - 16px)" }}
                     />

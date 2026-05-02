@@ -420,6 +420,8 @@ export const translationPt = {
       portraitShow: "Exibir retrato",
       portraitOpacity: "Opacidade",
       portraitScale: "Tamanho",
+      portraitOffsetX: "Posição X",
+      portraitOffsetY: "Posição Y",
       exportPreview: "Pré-visualização da exportação",
     },
     synthesisError: "Falha no processamento de síntese.",

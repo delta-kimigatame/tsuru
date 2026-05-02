@@ -46,6 +46,20 @@ export interface PortraitOptions {
   opacity: number;
   /** 100 = エディタ表示サイズ。自然サイズが上限 */
   scalePercent: number;
+  /**
+   * X オフセット（描画幅基準の %）
+   * 0  … デフォルト（画像右端をキャンバス右端に揃える）
+   * 100 … 画像左端がキャンバス右端に一致（画像が右外へ）
+   * 負値 … 画像をキャンバス内左方向へ移動
+   */
+  xOffset: number;
+  /**
+   * Y オフセット（描画高さ基準の %）
+   * 0   … デフォルト（画像下端をキャンバス下端に揃える）
+   * 100  … 画像が下方向に1枚分ずれる（下外へ）
+   * 負値 … 画像を上方向へ移動
+   */
+  yOffset: number;
 }
 
 /** "image" モード時のキャンバス最大サイズ（FHD 上限） */
@@ -208,9 +222,11 @@ export const generateMp4 = async (
     const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
     const drawW = pNatW * drawScale;
     const drawH = pNatH * drawScale;
-    // 右下に配置（Pianoroll と同じ位置）
+    // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
+    const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
+    const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
     ctx.globalAlpha = opacity / 100;
-    ctx.drawImage(portraitImg, cW - drawW, cH - drawH, drawW, drawH);
+    ctx.drawImage(portraitImg, px, py, drawW, drawH);
     ctx.globalAlpha = 1;
   }
 

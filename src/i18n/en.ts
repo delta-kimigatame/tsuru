@@ -412,6 +412,8 @@ export const translationEn = {
       portraitShow: "Show portrait",
       portraitOpacity: "Opacity",
       portraitScale: "Size",
+      portraitOffsetX: "X position",
+      portraitOffsetY: "Y position",
       exportPreview: "Export preview",
     },
     synthesisError: "Synthesis process failed.",

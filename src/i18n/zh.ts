@@ -402,6 +402,8 @@ export const translationZh = {
       portraitShow: "显示立绘",
       portraitOpacity: "不透明度",
       portraitScale: "大小",
+      portraitOffsetX: "X位置",
+      portraitOffsetY: "Y位置",
       exportPreview: "导出预览",
     },
     synthesisError: "合成处理失败。",

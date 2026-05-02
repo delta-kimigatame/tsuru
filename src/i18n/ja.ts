@@ -414,6 +414,8 @@ export const translationJa = {
       portraitShow: "立絵を表示",
       portraitOpacity: "不透明度",
       portraitScale: "サイズ",
+      portraitOffsetX: "X位置",
+      portraitOffsetY: "Y位置",
       exportPreview: "エクスポートプレビュー",
     },
     synthesisError: "合成処理に失敗しました。",
