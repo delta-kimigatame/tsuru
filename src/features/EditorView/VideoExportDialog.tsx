@@ -62,6 +62,10 @@ const DEFAULT_BG_SIZE: VideoResolution = "1920x1080";
 const DEFAULT_PADDING_MODE: BgPaddingMode = "color";
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
+/** エクスポートプレビュー Canvas の最大サイズ */
+const PREVIEW_MAX_W = 320;
+const PREVIEW_MAX_H = 200;
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -96,6 +100,7 @@ export const VideoExportDialog: React.FC<Props> = ({
     null,
   );
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const previewCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // 背景色
   const [bgColor, setBgColor] = React.useState<string>(DEFAULT_COLOR);
@@ -170,6 +175,96 @@ export const VideoExportDialog: React.FC<Props> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // エクスポートプレビューをキャンバスにレンダリング
+  React.useEffect(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // "image" モードで画像がない場合は空にして終了（JSX 側で非表示）
+    if (bgSize === "image" && !imagePreviewUrl) {
+      canvas.width = 1;
+      canvas.height = 1;
+      ctx.clearRect(0, 0, 1, 1);
+      return;
+    }
+
+    // 出力解像度を決定（"image" モードは画像ロード後に確定）
+    let outW = 0;
+    let outH = 0;
+    if (bgSize !== "image") {
+      [outW, outH] = bgSize.split("x").map(Number);
+    }
+
+    const draw = (img: HTMLImageElement | null) => {
+      if (bgSize === "image" && img) {
+        const s = Math.min(
+          1,
+          1920 / img.naturalWidth,
+          1080 / img.naturalHeight,
+        );
+        outW = Math.round(img.naturalWidth * s);
+        outH = Math.round(img.naturalHeight * s);
+      }
+
+      const prevScale = Math.min(PREVIEW_MAX_W / outW, PREVIEW_MAX_H / outH);
+      const pw = Math.round(outW * prevScale);
+      const ph = Math.round(outH * prevScale);
+      canvas.width = pw;
+      canvas.height = ph;
+      ctx.clearRect(0, 0, pw, ph);
+
+      if (bgSize === "image") {
+        // 「画像サイズ」モードはそのまま描画
+        ctx.drawImage(img!, 0, 0, pw, ph);
+        return;
+      }
+
+      const imgW = img?.naturalWidth ?? 0;
+      const imgH = img?.naturalHeight ?? 0;
+
+      // ── 背景レイヤー ──
+      if (!img || bgPaddingMode === "color") {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, pw, ph);
+      } else {
+        // cover スケールで背景画像を敷く
+        const bgSc = Math.max(pw / imgW, ph / imgH);
+        if (bgPaddingMode === "blur") {
+          // プレビューサイズに合わせてブラー量を縮小
+          const blurPx = Math.max(1, Math.round(4 * prevScale * 5));
+          ctx.filter = `blur(${blurPx}px)`;
+        }
+        ctx.drawImage(
+          img,
+          (pw - imgW * bgSc) / 2,
+          (ph - imgH * bgSc) / 2,
+          imgW * bgSc,
+          imgH * bgSc,
+        );
+        ctx.filter = "none";
+      }
+
+      // ── 前景レイヤー（contain・拡大なし）──
+      if (img) {
+        // 元の出力解像度基準で fgScale を計算し prevScale でプレビュースケールに変換
+        const fgSc = Math.min(1, outW / imgW, outH / imgH) * prevScale;
+        const fgW = imgW * fgSc;
+        const fgH = imgH * fgSc;
+        ctx.drawImage(img, (pw - fgW) / 2, (ph - fgH) / 2, fgW, fgH);
+      }
+    };
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => draw(el);
+      el.src = imagePreviewUrl;
+    } else {
+      draw(null);
+    }
+  }, [imagePreviewUrl, bgSize, bgPaddingMode, bgColor]);
 
   // -----------------------------------------------------------------------
 
@@ -326,6 +421,36 @@ export const VideoExportDialog: React.FC<Props> = ({
                   </MenuItem>
                 ))}
               </Select>
+            </Box>
+          )}
+
+          {/* ── エクスポートプレビュー ── */}
+          {(imageFile !== null || bgSize !== "image") && (
+            <Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+              >
+                {t("editor.videoExport.exportPreview")}
+              </Typography>
+              <Box
+                sx={{
+                  mt: 0.5,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  display: "flex",
+                  justifyContent: "center",
+                  bgcolor: "action.hover",
+                }}
+              >
+                <canvas
+                  ref={previewCanvasRef}
+                  style={{ display: "block", maxWidth: "100%", height: "auto" }}
+                />
+              </Box>
             </Box>
           )}
         </Box>

@@ -407,6 +407,7 @@ export const translationEn = {
       bgPadding_color: "Background color",
       bgPadding_image: "Enlarged image",
       bgPadding_blur: "Enlarged image (Blur)",
+      exportPreview: "Export preview",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

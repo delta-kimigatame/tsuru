@@ -397,6 +397,7 @@ export const translationZh = {
       bgPadding_color: "背景颜色",
       bgPadding_image: "图片放大",
       bgPadding_blur: "图片放大（模糊）",
+      exportPreview: "导出预览",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",
