@@ -9,7 +9,11 @@ import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { NoteSelectMode } from "../../types/noteSelectMode";
-import { generateMp4 } from "../../utils/videoExport";
+import {
+  generateMp4,
+  type BgPaddingMode,
+  type VideoResolution,
+} from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
@@ -271,7 +275,12 @@ export const EditorView: React.FC<{
    * 動画エクスポートを実行する処理
    * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
    */
-  const handleVideoExportConfirm = async (imageFile: File) => {
+  const handleVideoExportConfirm = async (
+    imageFile: File,
+    resolution: VideoResolution,
+    bgPaddingMode: BgPaddingMode,
+    bgColor: string,
+  ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
     if (!wavBuf) return;
@@ -283,7 +292,13 @@ export const EditorView: React.FC<{
     );
     setSynthesisProgress(true);
     try {
-      const mp4Buf = await generateMp4(wavBuf, imageFile);
+      const mp4Buf = await generateMp4(
+        wavBuf,
+        imageFile,
+        resolution,
+        bgPaddingMode,
+        bgColor,
+      );
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });
       const dataUrl = URL.createObjectURL(

@@ -17,6 +17,12 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import {
+  BG_PADDING_MODES,
+  VIDEO_RESOLUTIONS,
+  type BgPaddingMode,
+  type VideoResolution,
+} from "../../utils/videoExport";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -51,11 +57,9 @@ const PALETTE: string[][] = [
 // 解像度
 // ---------------------------------------------------------------------------
 
-const BG_SIZES = ["1920x1080", "1080x1920"] as const;
-type BgSize = (typeof BG_SIZES)[number];
-
 const DEFAULT_COLOR = "#ffffff";
-const DEFAULT_BG_SIZE: BgSize = "1920x1080";
+const DEFAULT_BG_SIZE: VideoResolution = "1920x1080";
+const DEFAULT_PADDING_MODE: BgPaddingMode = "color";
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 // ---------------------------------------------------------------------------
@@ -65,7 +69,12 @@ const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 type Props = {
   open: boolean;
   onClose: () => void;
-  onConfirm: (imageFile: File) => void;
+  onConfirm: (
+    imageFile: File,
+    resolution: VideoResolution,
+    bgPaddingMode: BgPaddingMode,
+    bgColor: string,
+  ) => void;
   synthesisProgress: boolean;
 };
 
@@ -92,8 +101,12 @@ export const VideoExportDialog: React.FC<Props> = ({
   const [bgColor, setBgColor] = React.useState<string>(DEFAULT_COLOR);
   const [colorInput, setColorInput] = React.useState<string>(DEFAULT_COLOR);
 
-  // 解像度（画像未選択時のみ使用）
-  const [bgSize, setBgSize] = React.useState<BgSize>(DEFAULT_BG_SIZE);
+  // 解像度（常に使用）
+  const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
+
+  // パディングモード（画像あり・固定解像度時のみ有効）
+  const [bgPaddingMode, setBgPaddingMode] =
+    React.useState<BgPaddingMode>(DEFAULT_PADDING_MODE);
 
   // -----------------------------------------------------------------------
 
@@ -124,10 +137,10 @@ export const VideoExportDialog: React.FC<Props> = ({
 
   const handleConfirm = () => {
     if (imageFile) {
-      onConfirm(imageFile);
+      onConfirm(imageFile, bgSize, bgPaddingMode, bgColor);
       return;
     }
-    // 単色背景を Canvas で生成して File に変換
+    // 単色背景を Canvas で生成して File に変換。画像なしノードなので mode = "color" に固定
     const [w, h] = bgSize.split("x").map(Number);
     const canvas = document.createElement("canvas");
     canvas.width = w;
@@ -138,7 +151,12 @@ export const VideoExportDialog: React.FC<Props> = ({
     ctx.fillRect(0, 0, w, h);
     canvas.toBlob((blob) => {
       if (!blob) return;
-      onConfirm(new File([blob], "background.png", { type: "image/png" }));
+      onConfirm(
+        new File([blob], "background.png", { type: "image/png" }),
+        bgSize,
+        "color",
+        bgColor,
+      );
     }, "image/png");
   };
 
@@ -148,6 +166,7 @@ export const VideoExportDialog: React.FC<Props> = ({
       clearImage();
       applyColor(DEFAULT_COLOR);
       setBgSize(DEFAULT_BG_SIZE);
+      setBgPaddingMode(DEFAULT_PADDING_MODE);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -264,21 +283,46 @@ export const VideoExportDialog: React.FC<Props> = ({
             />
           </Box>
 
-          {/* ── 解像度選択（画像未選択時のみ） ── */}
-          {!imageFile && (
+          {/* ── 解像度選択（常時表示） ── */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="caption">
+              {t("editor.videoExport.bgSize")}
+            </Typography>
+            <Select
+              size="small"
+              value={bgSize}
+              onChange={(e) => setBgSize(e.target.value as VideoResolution)}
+              sx={{ fontSize: "0.8rem" }}
+            >
+              {VIDEO_RESOLUTIONS.map((s) => (
+                <MenuItem
+                  key={s}
+                  value={s}
+                  disabled={s === "image" && !imageFile}
+                >
+                  {s === "image" ? t("editor.videoExport.bgSizeImage") : s}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          {/* ── パディングモード（画像あり かつ 固定解像度時のみ） ── */}
+          {imageFile && bgSize !== "image" && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography variant="caption">
-                {t("editor.videoExport.bgSize")}
+                {t("editor.videoExport.bgPadding")}
               </Typography>
               <Select
                 size="small"
-                value={bgSize}
-                onChange={(e) => setBgSize(e.target.value as BgSize)}
+                value={bgPaddingMode}
+                onChange={(e) =>
+                  setBgPaddingMode(e.target.value as BgPaddingMode)
+                }
                 sx={{ fontSize: "0.8rem" }}
               >
-                {BG_SIZES.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
+                {BG_PADDING_MODES.map((m) => (
+                  <MenuItem key={m} value={m}>
+                    {t(`editor.videoExport.bgPadding_${m}`)}
                   </MenuItem>
                 ))}
               </Select>
@@ -293,7 +337,7 @@ export const VideoExportDialog: React.FC<Props> = ({
         <Button
           onClick={handleConfirm}
           variant="contained"
-          disabled={synthesisProgress}
+          disabled={synthesisProgress || (bgSize === "image" && !imageFile)}
         >
           {t("editor.videoExport.confirm")}
         </Button>

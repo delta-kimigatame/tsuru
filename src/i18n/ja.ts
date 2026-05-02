@@ -404,6 +404,11 @@ export const translationJa = {
       notSupported: "このブラウザは動画出力に未対応です",
       orColor: "または背景色を指定",
       bgSize: "解像度",
+      bgSizeImage: "画像サイズ",
+      bgPadding: "余白の埋め方",
+      bgPadding_color: "背景色",
+      bgPadding_image: "画像を拡大",
+      bgPadding_blur: "画像を拡大（ぼかし）",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

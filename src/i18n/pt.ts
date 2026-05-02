@@ -410,6 +410,11 @@ export const translationPt = {
       notSupported: "Este navegador não suporta exportação de vídeo",
       orColor: "ou especifique a cor de fundo",
       bgSize: "Resolução",
+      bgSizeImage: "Tamanho da imagem",
+      bgPadding: "Preenchimento de fundo",
+      bgPadding_color: "Cor de fundo",
+      bgPadding_image: "Imagem ampliada",
+      bgPadding_blur: "Imagem ampliada (Desfoque)",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

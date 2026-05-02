@@ -12,7 +12,25 @@ import {
   type VideoCodec,
 } from "mediabunny";
 
-/** FHD 縮小上限 */
+/** 動画の解像度オプション。"image" は読み込んだ画像サイズに合わせる */
+export type VideoResolution = "1920x1080" | "1080x1920" | "image";
+export const VIDEO_RESOLUTIONS: VideoResolution[] = [
+  "1920x1080",
+  "1080x1920",
+  "image",
+];
+
+/**
+ * 固定解像度モード時の余白（パディング）の埋め方
+ *
+ * color … ダイアログで選択した背景色で塗りつぶす
+ * image … 同一画像を cover スケールで拡大して背景に敷く（現在のデフォルト動作）
+ * blur  … image と同様だが背景にぼかしフィルターを適用する
+ */
+export type BgPaddingMode = "color" | "image" | "blur";
+export const BG_PADDING_MODES: BgPaddingMode[] = ["color", "image", "blur"];
+
+/** "image" モード時のキャンバス最大サイズ（FHD 上限） */
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
 
@@ -59,6 +77,9 @@ const AUDIO_CODEC_PRIORITY: AudioCodec[] = ["aac", "opus"];
 export const generateMp4 = async (
   audioBuffer: ArrayBuffer,
   imageFile: File,
+  resolution: VideoResolution = "image",
+  bgPaddingMode: BgPaddingMode = "image",
+  bgColor: string = "#000000",
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -92,21 +113,50 @@ export const generateMp4 = async (
   });
   URL.revokeObjectURL(imageUrl);
 
-  // FHD 超過の場合はアスペクト比を維持して縮小（contain フィット）
-  const scale = Math.min(
-    1,
-    MAX_WIDTH / img.naturalWidth,
-    MAX_HEIGHT / img.naturalHeight,
-  );
-  const canvasWidth = Math.round(img.naturalWidth * scale);
-  const canvasHeight = Math.round(img.naturalHeight * scale);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
 
   const canvas = document.createElement("canvas");
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context is not available");
-  ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+
+  if (resolution === "image") {
+    // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
+    const scale = Math.min(1, MAX_WIDTH / imgW, MAX_HEIGHT / imgH);
+    canvas.width = Math.round(imgW * scale);
+    canvas.height = Math.round(imgH * scale);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  } else {
+    // 固定解像度モード: bgPaddingMode に従って余白を埋めてから前景を中央配置
+    const [W, H] = resolution.split("x").map(Number);
+    canvas.width = W;
+    canvas.height = H;
+
+    if (bgPaddingMode === "color") {
+      // 背景色で塗りつぶす
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, W, H);
+    } else {
+      // "image" or "blur": 同一画像を cover スケールで背景に敷く
+      // cover スケールでは必ずキャンバス枠外に画像がはみ出るため
+      // blur 時の半透明エッジ問題は発生しない
+      const bgScale = Math.max(W / imgW, H / imgH);
+      const bgW = imgW * bgScale;
+      const bgH = imgH * bgScale;
+      if (bgPaddingMode === "blur") {
+        ctx.filter = "blur(20px)";
+      }
+      ctx.drawImage(img, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH);
+      ctx.filter = "none";
+    }
+
+    // 前景: 画像を contain・拡大なしで中央配置
+    // 例: 1000×1000 → 1920×1080 なら fgScale=1、左右460px/上下40px 余白
+    const fgScale = Math.min(1, W / imgW, H / imgH);
+    const fgW = imgW * fgScale;
+    const fgH = imgH * fgScale;
+    ctx.drawImage(img, (W - fgW) / 2, (H - fgH) / 2, fgW, fgH);
+  }
 
   // mediabunny Output を構築してトラックを追加
   const output = new Output({

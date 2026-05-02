@@ -402,6 +402,11 @@ export const translationEn = {
       notSupported: "This browser does not support video export",
       orColor: "or specify background color",
       bgSize: "Resolution",
+      bgSizeImage: "Image size",
+      bgPadding: "Background fill",
+      bgPadding_color: "Background color",
+      bgPadding_image: "Enlarged image",
+      bgPadding_blur: "Enlarged image (Blur)",
     },
     synthesisError: "Synthesis process failed.",
     workerError:
