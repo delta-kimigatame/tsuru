@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/05/02\r\n[Add] Added a simple video creation feature. Only thumbnail settings are supported, but the output can be exported in video format.",
       "2026/05/01\r\n[Add] Added a simple mix feature. While mixing should ideally be done in a DAW, you can now output vocals combined with a backing track. Harmonies and similar features are not supported.",
       "2026/04/11\r\n[Add] Added new flags\r\nO flag: default 0, range -100 to 100, mouth opening/closing\r\nT flag: default 0, range -100 to 100, tension\r\nS flag: default 0, range -100 to 100, formant emphasis (clearness/sharpness)\r\nb flag: default 0, range -100 to 100, brightness\r\nMo flag, same as O flag (for UST files created for moresampler)\r\nMt flag, same as T flag (for UST files created for moresampler)\r\nMG flag, same as w flag (for UST files created for moresampler)\r\nME flag, same as S flag (for UST files created for moresampler)\r\n[Fix] Revised the processing of the B flag.",
       "2026/04/07\r\n[Fix] When loading some configuration files fails, only that file is ignored and loading continues.\r\n[Fix] Fixed an issue where, if some pitches are missing in prefix.map, pitches above the missing ones now work correctly.",
