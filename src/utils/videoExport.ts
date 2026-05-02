@@ -30,6 +30,24 @@ export const VIDEO_RESOLUTIONS: VideoResolution[] = [
 export type BgPaddingMode = "color" | "image" | "blur";
 export const BG_PADDING_MODES: BgPaddingMode[] = ["color", "image", "blur"];
 
+/**
+ * 動画キャンバスに重ねる立絵の設定
+ *
+ * サイズ基準はエディタと同じアルゴリズム:
+ *   横幅 50%・縦幅 min(キャンバス縦幔50%, naturalHeight) の枚内に contain 配置
+ * scalePercent == 100 … 上記アルゴリズムが決定するデフォルトサイズ
+ * scalePercent > 100 … 拡大（自然サイズ = scalePercent上限）
+ */
+export interface PortraitOptions {
+  blob: Blob;
+  /** vb.portraitHeight 。縦幔50%と一緒に contain 素材が大きすぎるときに䰊渟する */
+  naturalHeight: number;
+  /** 0–100 */
+  opacity: number;
+  /** 100 = エディタ表示サイズ。自然サイズが上限 */
+  scalePercent: number;
+}
+
 /** "image" モード時のキャンバス最大サイズ（FHD 上限） */
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
@@ -81,6 +99,7 @@ export const generateMp4 = async (
   bgPaddingMode: BgPaddingMode = "image",
   bgColor: string = "#000000",
   bgImageOpacity: number = 100,
+  portraitOptions?: PortraitOptions | null,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -160,6 +179,39 @@ export const generateMp4 = async (
     const fgW = imgW * fgScale;
     const fgH = imgH * fgScale;
     ctx.drawImage(img, (W - fgW) / 2, (H - fgH) / 2, fgW, fgH);
+  }
+
+  // 立絵の描画（設定有りの場合のみ）
+  if (portraitOptions) {
+    const { blob, naturalHeight, opacity, scalePercent } = portraitOptions;
+    const pUrl = URL.createObjectURL(blob);
+    const portraitImg = await new Promise<HTMLImageElement>(
+      (resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = pUrl;
+      },
+    );
+    URL.revokeObjectURL(pUrl);
+
+    const pNatW = portraitImg.naturalWidth;
+    const pNatH = portraitImg.naturalHeight;
+    const cW = canvas.width;
+    const cH = canvas.height;
+
+    // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枚内に contain
+    const maxW = cW * 0.5;
+    const maxH = Math.min(cH * 0.5, naturalHeight);
+    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+    // ユーザースケール適用。自然サイズ（scale=1）を上限とする
+    const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
+    const drawW = pNatW * drawScale;
+    const drawH = pNatH * drawScale;
+    // 右下に配置（Pianoroll と同じ位置）
+    ctx.globalAlpha = opacity / 100;
+    ctx.drawImage(portraitImg, cW - drawW, cH - drawH, drawW, drawH);
+    ctx.globalAlpha = 1;
   }
 
   // mediabunny Output を構築してトラックを追加

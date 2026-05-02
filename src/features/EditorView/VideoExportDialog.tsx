@@ -3,11 +3,13 @@ import ImageIcon from "@mui/icons-material/Image";
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
   MenuItem,
   Select,
@@ -22,6 +24,7 @@ import {
   BG_PADDING_MODES,
   VIDEO_RESOLUTIONS,
   type BgPaddingMode,
+  type PortraitOptions,
   type VideoResolution,
 } from "../../utils/videoExport";
 
@@ -80,8 +83,13 @@ type Props = {
     bgPaddingMode: BgPaddingMode,
     bgColor: string,
     bgImageOpacity: number,
+    portraitOptions: PortraitOptions | null,
   ) => void;
   synthesisProgress: boolean;
+  /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
+  portraitBlob?: Blob | null;
+  /** vb.portraitHeight */
+  portraitNaturalHeight?: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -93,6 +101,8 @@ export const VideoExportDialog: React.FC<Props> = ({
   onClose,
   onConfirm,
   synthesisProgress,
+  portraitBlob,
+  portraitNaturalHeight,
 }) => {
   const { t } = useTranslation();
 
@@ -117,6 +127,20 @@ export const VideoExportDialog: React.FC<Props> = ({
 
   // 背景画像の不透明度 0–100（image/blur モード時のみ有効）
   const [bgImageOpacity, setBgImageOpacity] = React.useState<number>(100);
+
+  // 立絵設定
+  const [showPortrait, setShowPortrait] = React.useState<boolean>(true);
+  const [portraitOpacity, setPortraitOpacity] = React.useState<number>(100);
+  const [portraitScalePercent, setPortraitScalePercent] =
+    React.useState<number>(100);
+  // プレビュー用にロード済み HTMLImageElement
+  const [portraitImage, setPortraitImage] =
+    React.useState<HTMLImageElement | null>(null);
+  // 背景画像の自然サイズ（立絵最大スケール計算用）
+  const [imageNaturalSize, setImageNaturalSize] = React.useState<{
+    w: number;
+    h: number;
+  } | null>(null);
 
   // -----------------------------------------------------------------------
 
@@ -146,8 +170,25 @@ export const VideoExportDialog: React.FC<Props> = ({
   };
 
   const handleConfirm = () => {
+    const portraitOptions: PortraitOptions | null =
+      portraitBlob && showPortrait
+        ? {
+            blob: portraitBlob,
+            naturalHeight: portraitNaturalHeight ?? 800,
+            opacity: portraitOpacity,
+            scalePercent: portraitScalePercent,
+          }
+        : null;
+
     if (imageFile) {
-      onConfirm(imageFile, bgSize, bgPaddingMode, bgColor, bgImageOpacity);
+      onConfirm(
+        imageFile,
+        bgSize,
+        bgPaddingMode,
+        bgColor,
+        bgImageOpacity,
+        portraitOptions,
+      );
       return;
     }
     // 単色背景を Canvas で生成して File に変換。画像なしノードなので mode = "color" に固定
@@ -167,6 +208,7 @@ export const VideoExportDialog: React.FC<Props> = ({
         "color",
         bgColor,
         100,
+        portraitOptions,
       );
     }, "image/png");
   };
@@ -179,9 +221,69 @@ export const VideoExportDialog: React.FC<Props> = ({
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
       setBgImageOpacity(100);
+      setShowPortrait(true);
+      setPortraitOpacity(100);
+      setPortraitScalePercent(100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // 背景画像の自然サイズを取得（立絵スライダー上限計算用）
+  React.useEffect(() => {
+    if (!imagePreviewUrl) {
+      setImageNaturalSize(null);
+      return;
+    }
+    const el = new Image();
+    el.onload = () =>
+      setImageNaturalSize({ w: el.naturalWidth, h: el.naturalHeight });
+    el.onerror = () => setImageNaturalSize(null);
+    el.src = imagePreviewUrl;
+  }, [imagePreviewUrl]);
+
+  // portraitBlob から HTMLImageElement をロード（プレビュー用）
+  React.useEffect(() => {
+    if (!portraitBlob) {
+      setPortraitImage(null);
+      return;
+    }
+    const url = URL.createObjectURL(portraitBlob);
+    const el = new Image();
+    el.onload = () => setPortraitImage(el);
+    el.onerror = () => setPortraitImage(null);
+    el.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [portraitBlob]);
+
+  // 立絵サイズスライダーの最大値（自然サイズ = drawScale 1.0 となる scalePercent）
+  const portraitMaxScale = React.useMemo(() => {
+    if (!portraitImage) return 200;
+    let outW: number;
+    let outH: number;
+    if (bgSize === "image") {
+      if (!imageNaturalSize) return 200;
+      const s = Math.min(
+        1,
+        1920 / imageNaturalSize.w,
+        1080 / imageNaturalSize.h,
+      );
+      outW = Math.round(imageNaturalSize.w * s);
+      outH = Math.round(imageNaturalSize.h * s);
+    } else {
+      [outW, outH] = bgSize.split("x").map(Number) as [number, number];
+    }
+    const pNatW = portraitImage.naturalWidth;
+    const pNatH = portraitImage.naturalHeight;
+    const maxW = outW * 0.5;
+    const maxH = Math.min(outH * 0.5, portraitNaturalHeight ?? 800);
+    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+    return Math.max(1, Math.round(100 / defaultScale));
+  }, [portraitImage, bgSize, imageNaturalSize, portraitNaturalHeight]);
+
+  // portraitMaxScale が変化したとき現在値が上限を超えていたらクランプ
+  React.useEffect(() => {
+    setPortraitScalePercent((prev) => Math.min(prev, portraitMaxScale));
+  }, [portraitMaxScale]);
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
@@ -263,6 +365,25 @@ export const VideoExportDialog: React.FC<Props> = ({
         const fgH = imgH * fgSc;
         ctx.drawImage(img, (pw - fgW) / 2, (ph - fgH) / 2, fgW, fgH);
       }
+
+      // ── 立絵レイヤー ──
+      if (showPortrait && portraitImage) {
+        const pNatW = portraitImage.naturalWidth;
+        const pNatH = portraitImage.naturalHeight;
+        // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枚内に contain
+        const maxW = outW * 0.5;
+        const maxH = Math.min(outH * 0.5, portraitNaturalHeight ?? 800);
+        const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+        // ユーザースケール適用（自然サイズ上限）、プレビュースケールに変換
+        const drawScale =
+          Math.min(defaultScale * (portraitScalePercent / 100), 1.0) *
+          prevScale;
+        const drawW = pNatW * drawScale;
+        const drawH = pNatH * drawScale;
+        ctx.globalAlpha = portraitOpacity / 100;
+        ctx.drawImage(portraitImage, pw - drawW, ph - drawH, drawW, drawH);
+        ctx.globalAlpha = 1;
+      }
     };
 
     if (imagePreviewUrl) {
@@ -272,7 +393,17 @@ export const VideoExportDialog: React.FC<Props> = ({
     } else {
       draw(null);
     }
-  }, [imagePreviewUrl, bgSize, bgPaddingMode, bgColor, bgImageOpacity]);
+  }, [
+    imagePreviewUrl,
+    bgSize,
+    bgPaddingMode,
+    bgColor,
+    bgImageOpacity,
+    showPortrait,
+    portraitImage,
+    portraitOpacity,
+    portraitScalePercent,
+  ]);
 
   // -----------------------------------------------------------------------
 
@@ -467,6 +598,102 @@ export const VideoExportDialog: React.FC<Props> = ({
                 sx={{ mx: 1, width: "calc(100% - 16px)" }}
               />
             </Box>
+          )}
+
+          {/* ── 立絵設定（vbが立絵ありの場合のみ） ── */}
+          {portraitBlob && (
+            <>
+              <Divider sx={{ fontSize: "0.75rem" }}>
+                {t("editor.videoExport.portraitSection")}
+              </Divider>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={showPortrait}
+                    onChange={(e) => setShowPortrait(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="caption">
+                    {t("editor.videoExport.portraitShow")}
+                  </Typography>
+                }
+                sx={{ ml: 0 }}
+              />
+              {showPortrait && (
+                <>
+                  {/* 不透明度 */}
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="caption">
+                        {t("editor.videoExport.portraitOpacity")}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: "monospace",
+                          minWidth: 36,
+                          textAlign: "right",
+                        }}
+                      >
+                        {portraitOpacity}%
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      value={portraitOpacity}
+                      onChange={(_e, v) => setPortraitOpacity(v as number)}
+                      min={0}
+                      max={100}
+                      step={1}
+                      sx={{ mx: 1, width: "calc(100% - 16px)" }}
+                    />
+                  </Box>
+                  {/* サイズ */}
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="caption">
+                        {t("editor.videoExport.portraitScale")}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: "monospace",
+                          minWidth: 44,
+                          textAlign: "right",
+                        }}
+                      >
+                        {portraitScalePercent}%
+                      </Typography>
+                    </Box>
+                    <Slider
+                      size="small"
+                      value={portraitScalePercent}
+                      onChange={(_e, v) => setPortraitScalePercent(v as number)}
+                      min={0}
+                      max={portraitMaxScale}
+                      step={1}
+                      sx={{ mx: 1, width: "calc(100% - 16px)" }}
+                    />
+                  </Box>
+                </>
+              )}
+            </>
           )}
 
           {/* ── エクスポートプレビュー ── */}

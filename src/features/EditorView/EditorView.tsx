@@ -12,6 +12,7 @@ import { NoteSelectMode } from "../../types/noteSelectMode";
 import {
   generateMp4,
   type BgPaddingMode,
+  type PortraitOptions,
   type VideoResolution,
 } from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
@@ -281,6 +282,7 @@ export const EditorView: React.FC<{
     bgPaddingMode: BgPaddingMode,
     bgColor: string,
     bgImageOpacity: number,
+    portraitOptions: PortraitOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -300,6 +302,7 @@ export const EditorView: React.FC<{
         bgPaddingMode,
         bgColor,
         bgImageOpacity,
+        portraitOptions,
       );
       setSynthesisProgress(false);
       LOG.gtag("download", { downloadName: vb.name });
@@ -723,6 +726,10 @@ export const EditorView: React.FC<{
         onClose={() => setMovieExportDialogOpen(false)}
         onConfirm={handleVideoExportConfirm}
         synthesisProgress={synthesisProgress}
+        portraitBlob={
+          vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
+        }
+        portraitNaturalHeight={vb?.portraitHeight}
       />
     </>
   );
