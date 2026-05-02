@@ -436,7 +436,7 @@ export const EditorView: React.FC<{
     }
 
     if (dataUrl !== undefined) {
-      LOG.gtag("download", { downloadName: vb.name });
+      LOG.gtag("movieDownload", { downloadName: vb.name });
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
