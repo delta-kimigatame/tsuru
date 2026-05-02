@@ -9,10 +9,18 @@ import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { NoteSelectMode } from "../../types/noteSelectMode";
+import {
+  generateMp4,
+  type BgPaddingMode,
+  type PortraitOptions,
+  type TextOptions,
+  type VideoResolution,
+} from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
 import { PitchPortal } from "./PitchPortal/PitchPortal";
+import { VideoExportDialog } from "./VideoExportDialog/VideoExportDialog";
 
 export const EditorView: React.FC<{
   checkWorkerReady?: (synthesisWorker: SynthesisWorker) => boolean;
@@ -89,6 +97,11 @@ export const EditorView: React.FC<{
     React.useState<number>(4);
   const [backgroundPlayEndMs, setBackgroundPlayEndMs] =
     React.useState<number>(0);
+  /** 動画エクスポートダイアログの表示状態 */
+  const [movieExportDialogOpen, setMovieExportDialogOpen] =
+    React.useState<boolean>(false);
+  /** 動画エクスポート用に先行合成した WAV データを保持する ref */
+  const movieWavBufRef = React.useRef<ArrayBuffer | null>(null);
 
   const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -261,6 +274,63 @@ export const EditorView: React.FC<{
   };
 
   /**
+   * 動画エクスポートを実行する処理
+   * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
+   */
+  const handleVideoExportConfirm = async (
+    imageFile: File,
+    resolution: VideoResolution,
+    bgPaddingMode: BgPaddingMode,
+    bgColor: string,
+    bgImageOpacity: number,
+    portraitOptions: PortraitOptions | null,
+    mainTextOptions: TextOptions | null,
+    subTextOptions: TextOptions | null,
+  ) => {
+    setMovieExportDialogOpen(false);
+    const wavBuf = movieWavBufRef.current;
+    if (!wavBuf) return;
+    movieWavBufRef.current = null;
+    LOG.info("動画エクスポート開始 (MP4 生成)", "EditorView");
+    // React の再レンダリングを一度環成させてダイアログの閉じるアニメーションを開始させる
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+    setSynthesisProgress(true);
+    try {
+      const mp4Buf = await generateMp4(
+        wavBuf,
+        imageFile,
+        resolution,
+        bgPaddingMode,
+        bgColor,
+        bgImageOpacity,
+        portraitOptions,
+        mainTextOptions,
+        subTextOptions,
+      );
+      setSynthesisProgress(false);
+      LOG.gtag("download", { downloadName: vb.name });
+      const dataUrl = URL.createObjectURL(
+        new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
+      );
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "output.mp4";
+      a.click();
+    } catch (e) {
+      setSynthesisProgress(false);
+      LOG.error(
+        `動画エクスポートの失敗。${e.message}\n${e.stack}`,
+        "EditorView",
+      );
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.videoExport.notSupported"));
+      snackBarStore.setOpen(true);
+    }
+  };
+
+  /**
    * wavをダウンロードする際の動作
    */
   const handleDownload = async () => {
@@ -272,6 +342,60 @@ export const EditorView: React.FC<{
       return;
     }
     setPlayReady(false);
+
+    // movieモード: 先に音声合成してから画像選択ダイアログを開く
+    if (exportMode === "movie") {
+      if (!synthesisWorker.isReady) {
+        LOG.error("エンジンが起動していません", "EditorView");
+        synthesisWorker.reload();
+        snackBarStore.setSeverity("error");
+        snackBarStore.setValue(t("editor.workerError"));
+        snackBarStore.setOpen(true);
+        return;
+      }
+      LOG.info("動画用音声合成開始", "EditorView");
+      setSynthesisProgress(true);
+      setSynthesisCount(0);
+      try {
+        let wavBuf: ArrayBuffer | undefined;
+        if (backgroundAudioWav) {
+          const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+          const backgroundAudio = {
+            wav: backgroundAudioWav,
+            offsetMs: realOffsetMs,
+            volume: backgroundVolume,
+            mute: backgroundMuted,
+          };
+          wavBuf = await synthesisWorker.synthesisAndMaster(
+            selectNotesIndex,
+            setSynthesisCount,
+            backgroundAudio,
+          );
+        } else {
+          wavBuf = await synthesisWorker.synthesis(
+            selectNotesIndex,
+            setSynthesisCount,
+          );
+        }
+        if (wavBuf === undefined) {
+          setSynthesisProgress(false);
+          return;
+        }
+        movieWavBufRef.current = wavBuf;
+        setSynthesisProgress(false);
+        setMovieExportDialogOpen(true);
+      } catch (e) {
+        setSynthesisProgress(false);
+        LOG.error(
+          `動画用音声合成の失敗。${e.message}\n${e.stack}`,
+          "EditorView",
+        );
+        snackBarStore.setSeverity("error");
+        snackBarStore.setValue(t("editor.synthesisError"));
+        snackBarStore.setOpen(true);
+      }
+      return;
+    }
 
     let dataUrl: string | undefined;
 
@@ -312,7 +436,7 @@ export const EditorView: React.FC<{
     }
 
     if (dataUrl !== undefined) {
-      LOG.gtag("download", { downloadName: vb.name });
+      LOG.gtag("movieDownload", { downloadName: vb.name });
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -602,6 +726,16 @@ export const EditorView: React.FC<{
           ></audio>
         </>
       )}
+      <VideoExportDialog
+        open={movieExportDialogOpen}
+        onClose={() => setMovieExportDialogOpen(false)}
+        onConfirm={handleVideoExportConfirm}
+        synthesisProgress={synthesisProgress}
+        portraitBlob={
+          vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
+        }
+        portraitNaturalHeight={vb?.portraitHeight}
+      />
     </>
   );
 };

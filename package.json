@@ -26,6 +26,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.1",
+    "@mediabunny/aac-encoder": "^1.43.0",
     "@mui/icons-material": "^6.4.2",
     "@mui/lab": "^6.0.0-beta.25",
     "@mui/material": "^6.4.2",
@@ -38,6 +39,7 @@
     "js-yaml": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
+    "mediabunny": "^1.43.0",
     "react": "^19.0.0",
     "react-cookie": "^7.2.2",
     "react-dom": "^19.0.0",
@@ -80,7 +82,7 @@
     "typedoc": "^0.25.13",
     "typescript": "^5.4.5",
     "vite": "^6.0.11",
-    "vite-plugin-pwa": "^0.21.1",
+    "vite-plugin-pwa": "^0.19.8",
     "vite-plugin-wasm": "^3.4.1",
     "vitest": "^3.0.5"
   }
