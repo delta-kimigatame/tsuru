@@ -446,6 +446,8 @@ export const translationEn = {
       lyricsBgBar: "Background bar",
       lyricsBgBarColor: "Bar color",
       lyricsBgBarOpacity: "Bar opacity",
+      lyricsFade: "Fade in/out",
+      lyricsFadeDuration: "Fade duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

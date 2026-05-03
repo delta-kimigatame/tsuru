@@ -5,6 +5,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -59,6 +61,8 @@ export const VideoExportDialog: React.FC<Props> = ({
   selectNotesIndex,
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const form = useVideoExportForm(open, {
     onClose,
     onConfirm,
@@ -70,7 +74,13 @@ export const VideoExportDialog: React.FC<Props> = ({
   });
 
   return (
-    <Dialog open={open} onClose={form.handleClose} fullWidth maxWidth="xs">
+    <Dialog
+      open={open}
+      onClose={form.handleClose}
+      fullWidth
+      maxWidth="sm"
+      fullScreen={fullScreen}
+    >
       <DialogTitle>{t("editor.videoExport.title")}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
@@ -177,6 +187,10 @@ export const VideoExportDialog: React.FC<Props> = ({
             onBgBarEnabledChange={form.setLyricsBgBarEnabled}
             onBgBarColorChange={form.setLyricsBgBarColor}
             onBgBarOpacityChange={form.setLyricsBgBarOpacity}
+            fadeEnabled={form.lyricsFadeEnabled}
+            fadeDurationMs={form.lyricsFadeDurationMs}
+            onFadeEnabledChange={form.setLyricsFadeEnabled}
+            onFadeDurationMsChange={form.setLyricsFadeDurationMs}
           />
 
           <ExportPreviewCanvas

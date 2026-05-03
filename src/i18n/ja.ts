@@ -448,6 +448,8 @@ export const translationJa = {
       lyricsBgBar: "背景バー",
       lyricsBgBarColor: "バーの色",
       lyricsBgBarOpacity: "バーの不透明度",
+      lyricsFade: "フェードイン/アウト",
+      lyricsFadeDuration: "フェード時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

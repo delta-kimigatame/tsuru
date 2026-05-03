@@ -144,6 +144,10 @@ export interface LyricsOptions {
   bgBarColor: string;
   /** 背景バー不透明度 0–100 */
   bgBarOpacity: number;
+  // --- フェード ---
+  fadeEnabled: boolean;
+  /** フェードイン/アウトの時間 ms */
+  fadeDurationMs: number;
 }
 
 /**
@@ -265,6 +269,7 @@ const drawSubtitleOnCanvas = (
   opts: LyricsOptions,
   cW: number,
   cH: number,
+  alpha = 1,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -272,6 +277,7 @@ const drawSubtitleOnCanvas = (
   let fontSize = opts.fontSize;
 
   ctx.save();
+  ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
@@ -293,7 +299,7 @@ const drawSubtitleOnCanvas = (
     const barW = textW + padX * 2;
     const barH = fontSize + padY * 2;
     ctx.save();
-    ctx.globalAlpha = opts.bgBarOpacity / 100;
+    ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
     ctx.fillStyle = opts.bgBarColor;
     ctx.fillRect(cx - barW / 2, cy - barH / 2, barW, barH);
     ctx.restore();
@@ -524,7 +530,24 @@ export const generateMp4 = async (
         (seg) => tMs >= seg.startMs && tMs < seg.endMs,
       );
       if (activeSeg) {
-        drawSubtitleOnCanvas(ctx, activeSeg.lyric, lyricsOptions, cW, cH);
+        let alpha = 1;
+        if (lyricsOptions.fadeEnabled) {
+          const fadeMs = lyricsOptions.fadeDurationMs;
+          const elapsed = tMs - activeSeg.startMs;
+          const remaining = activeSeg.endMs - tMs;
+          alpha = Math.min(
+            Math.min(1, elapsed / fadeMs),
+            Math.min(1, remaining / fadeMs),
+          );
+        }
+        drawSubtitleOnCanvas(
+          ctx,
+          activeSeg.lyric,
+          lyricsOptions,
+          cW,
+          cH,
+          alpha,
+        );
       }
     }
 

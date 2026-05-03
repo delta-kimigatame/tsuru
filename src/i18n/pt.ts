@@ -454,6 +454,8 @@ export const translationPt = {
       lyricsBgBar: "Barra de fundo",
       lyricsBgBarColor: "Cor da barra",
       lyricsBgBarOpacity: "Opacidade da barra",
+      lyricsFade: "Fade in/out",
+      lyricsFadeDuration: "Duração do fade",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

@@ -135,6 +135,12 @@ export const DEFAULT_LYRICS_BG_BAR_ENABLED = false;
 export const DEFAULT_LYRICS_BG_BAR_COLOR = "#000000";
 export const DEFAULT_LYRICS_BG_BAR_OPACITY = 60;
 
+// Fade
+export const DEFAULT_LYRICS_FADE_ENABLED = false;
+export const DEFAULT_LYRICS_FADE_DURATION_MS = 300;
+export const LYRICS_FADE_DURATION_MS_MIN = 50;
+export const LYRICS_FADE_DURATION_MS_MAX = 1000;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

@@ -17,6 +17,8 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  LYRICS_FADE_DURATION_MS_MAX,
+  LYRICS_FADE_DURATION_MS_MIN,
   LYRICS_FONT_SIZE_MAX,
   LYRICS_FONT_SIZE_MIN,
   LYRICS_SHADOW_BLUR_MAX,
@@ -63,6 +65,11 @@ type Props = {
   onBgBarEnabledChange: (v: boolean) => void;
   onBgBarColorChange: (v: string) => void;
   onBgBarOpacityChange: (v: number) => void;
+  // フェード
+  fadeEnabled: boolean;
+  fadeDurationMs: number;
+  onFadeEnabledChange: (v: boolean) => void;
+  onFadeDurationMsChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -106,6 +113,10 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onBgBarEnabledChange,
   onBgBarColorChange,
   onBgBarOpacityChange,
+  fadeEnabled,
+  fadeDurationMs,
+  onFadeEnabledChange,
+  onFadeDurationMsChange,
 }) => {
   const { t } = useTranslation();
 
@@ -367,6 +378,37 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 max={100}
                 unit="%"
                 valueMinWidth={34}
+              />
+            </Box>
+          </Collapse>
+
+          {/* フェードイン/アウト */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={fadeEnabled}
+                onChange={(e) => onFadeEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsFade")}
+              </Typography>
+            }
+          />
+          <Collapse in={fadeEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsFadeDuration")}
+                value={fadeDurationMs}
+                onChange={onFadeDurationMsChange}
+                min={LYRICS_FADE_DURATION_MS_MIN}
+                max={LYRICS_FADE_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
               />
             </Box>
           </Collapse>

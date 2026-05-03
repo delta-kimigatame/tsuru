@@ -436,6 +436,8 @@ export const translationZh = {
       lyricsBgBar: "背景条",
       lyricsBgBarColor: "条形颜色",
       lyricsBgBarOpacity: "条形不透明度",
+      lyricsFade: "淡入/淡出",
+      lyricsFadeDuration: "淡变时间",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",

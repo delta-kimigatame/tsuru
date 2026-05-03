@@ -10,6 +10,8 @@ import {
   DEFAULT_LYRICS_BG_BAR_ENABLED,
   DEFAULT_LYRICS_BG_BAR_OPACITY,
   DEFAULT_LYRICS_COLOR,
+  DEFAULT_LYRICS_FADE_DURATION_MS,
+  DEFAULT_LYRICS_FADE_ENABLED,
   DEFAULT_LYRICS_FONT_SIZE,
   DEFAULT_LYRICS_MAX_WIDTH_PERCENT,
   DEFAULT_LYRICS_SHADOW_BLUR,
@@ -220,6 +222,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [lyricsBgBarOpacity, setLyricsBgBarOpacity] = React.useState<number>(
     DEFAULT_LYRICS_BG_BAR_OPACITY,
   );
+  // 字幕フェード
+  const [lyricsFadeEnabled, setLyricsFadeEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_FADE_ENABLED,
+  );
+  const [lyricsFadeDurationMs, setLyricsFadeDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_FADE_DURATION_MS);
 
   // -----------------------------------------------------------------------
 
@@ -372,6 +380,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             bgBarEnabled: lyricsBgBarEnabled,
             bgBarColor: lyricsBgBarColor,
             bgBarOpacity: lyricsBgBarOpacity,
+            fadeEnabled: lyricsFadeEnabled,
+            fadeDurationMs: lyricsFadeDurationMs,
           }
         : null;
 
@@ -456,6 +466,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsBgBarEnabled(DEFAULT_LYRICS_BG_BAR_ENABLED);
       setLyricsBgBarColor(DEFAULT_LYRICS_BG_BAR_COLOR);
       setLyricsBgBarOpacity(DEFAULT_LYRICS_BG_BAR_OPACITY);
+      setLyricsFadeEnabled(DEFAULT_LYRICS_FADE_ENABLED);
+      setLyricsFadeDurationMs(DEFAULT_LYRICS_FADE_DURATION_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -834,6 +846,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsBgBarEnabled,
     lyricsBgBarColor,
     lyricsBgBarOpacity,
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -952,5 +966,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsBgBarEnabled,
     setLyricsBgBarColor,
     setLyricsBgBarOpacity,
+    // 歌詞フェード
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
+    setLyricsFadeEnabled,
+    setLyricsFadeDurationMs,
   };
 };
