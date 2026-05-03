@@ -1,7 +1,3 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CallSplitIcon from "@mui/icons-material/CallSplit";
 import MergeIcon from "@mui/icons-material/MergeType";
 import {
@@ -587,16 +583,24 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 }}
               >
                 <ToggleButton value="up">
-                  <ArrowUpwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="down">
-                  <ArrowDownwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="left">
-                  <ArrowBackIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="right">
-                  <ArrowForwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -633,16 +637,24 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 }}
               >
                 <ToggleButton value="up">
-                  <ArrowUpwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="down">
-                  <ArrowDownwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="left">
-                  <ArrowBackIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
                 </ToggleButton>
                 <ToggleButton value="right">
-                  <ArrowForwardIcon fontSize="small" />
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
