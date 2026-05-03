@@ -154,6 +154,12 @@ export interface LyricsOptions {
   scaleFrom: number;
   /** スケールアニメーションの時間 ms */
   scaleDurationMs: number;
+  // --- スライド ---
+  slideEnabled: boolean;
+  /** 強調移動量 px（出力解像度基準）。正値 = 下から上へスライド */
+  slideAmount: number;
+  /** スライドアニメーションの時間 ms */
+  slideDurationMs: number;
 }
 
 /**
@@ -277,6 +283,7 @@ const drawSubtitleOnCanvas = (
   cH: number,
   alpha = 1,
   scale = 1,
+  slideY = 0,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -299,8 +306,8 @@ const drawSubtitleOnCanvas = (
   const cy = (cH * opts.yPercent) / 100;
   const textW = ctx.measureText(lyric).width;
 
-  // スケールアニメーション: テキスト中央を軸に変倍
-  ctx.translate(cx, cy);
+  // スケールアニメーション: テキスト中央を軸に変倍。slideY は translate の Y 座標へ先に加算
+  ctx.translate(cx, cy + slideY);
   ctx.scale(scale, scale);
 
   // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
@@ -563,6 +570,20 @@ export const generateMp4 = async (
           const s0 = lyricsOptions.scaleFrom / 100;
           scale = s0 + (1 - s0) * t;
         }
+        let slideY = 0;
+        if (lyricsOptions.slideEnabled) {
+          const slideMs = lyricsOptions.slideDurationMs;
+          const elapsedS = tMs - activeSeg.startMs;
+          const remainingS = activeSeg.endMs - tMs;
+          // ease-out 二乗: 始点付近で変化量大、正規位置近いと緩やか
+          const ce = Math.min(1, elapsedS / slideMs);
+          const cr = Math.min(1, remainingS / slideMs);
+          const progress = Math.min(
+            1 - (1 - ce) * (1 - ce),
+            1 - (1 - cr) * (1 - cr),
+          );
+          slideY = lyricsOptions.slideAmount * (1 - progress);
+        }
         drawSubtitleOnCanvas(
           ctx,
           activeSeg.lyric,
@@ -571,6 +592,7 @@ export const generateMp4 = async (
           cH,
           alpha,
           scale,
+          slideY,
         );
       }
     }

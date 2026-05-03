@@ -150,6 +150,15 @@ export const LYRICS_SCALE_FROM_MAX = 500;
 export const LYRICS_SCALE_DURATION_MS_MIN = 50;
 export const LYRICS_SCALE_DURATION_MS_MAX = 1000;
 
+// Slide
+export const DEFAULT_LYRICS_SLIDE_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_AMOUNT = 100;
+export const DEFAULT_LYRICS_SLIDE_DURATION_MS = 300;
+export const LYRICS_SLIDE_AMOUNT_MIN = 0;
+export const LYRICS_SLIDE_AMOUNT_MAX = 500;
+export const LYRICS_SLIDE_DURATION_MS_MIN = 50;
+export const LYRICS_SLIDE_DURATION_MS_MAX = 1000;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

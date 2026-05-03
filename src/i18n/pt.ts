@@ -459,6 +459,9 @@ export const translationPt = {
       lyricsScale: "Escala in/out",
       lyricsScaleFrom: "Escala inicial",
       lyricsScaleDuration: "Duração da escala",
+      lyricsSlide: "Deslizar para cima",
+      lyricsSlideAmount: "Quantidade",
+      lyricsSlideDuration: "Duração do deslize",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

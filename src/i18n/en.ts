@@ -451,6 +451,9 @@ export const translationEn = {
       lyricsScale: "Scale in/out",
       lyricsScaleFrom: "Initial scale",
       lyricsScaleDuration: "Scale duration",
+      lyricsSlide: "Slide up",
+      lyricsSlideAmount: "Slide amount",
+      lyricsSlideDuration: "Slide duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

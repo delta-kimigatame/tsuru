@@ -453,6 +453,9 @@ export const translationJa = {
       lyricsScale: "スケール登場/退場",
       lyricsScaleFrom: "初期スケール",
       lyricsScaleDuration: "スケール時間",
+      lyricsSlide: "スライドアップ",
+      lyricsSlideAmount: "スライド量",
+      lyricsSlideDuration: "スライド時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

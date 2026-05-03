@@ -27,6 +27,10 @@ import {
   LYRICS_SCALE_FROM_MIN,
   LYRICS_SHADOW_BLUR_MAX,
   LYRICS_SHADOW_BLUR_MIN,
+  LYRICS_SLIDE_AMOUNT_MAX,
+  LYRICS_SLIDE_AMOUNT_MIN,
+  LYRICS_SLIDE_DURATION_MS_MAX,
+  LYRICS_SLIDE_DURATION_MS_MIN,
   LYRICS_STROKE_WIDTH_MAX,
   LYRICS_STROKE_WIDTH_MIN,
   TEXT_POSITION_MAX,
@@ -81,6 +85,13 @@ type Props = {
   onScaleEnabledChange: (v: boolean) => void;
   onScaleFromChange: (v: number) => void;
   onScaleDurationMsChange: (v: number) => void;
+  // スライド登場/退場
+  slideEnabled: boolean;
+  slideAmount: number;
+  slideDurationMs: number;
+  onSlideEnabledChange: (v: boolean) => void;
+  onSlideAmountChange: (v: number) => void;
+  onSlideDurationMsChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -134,6 +145,12 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onScaleEnabledChange,
   onScaleFromChange,
   onScaleDurationMsChange,
+  slideEnabled,
+  slideAmount,
+  slideDurationMs,
+  onSlideEnabledChange,
+  onSlideAmountChange,
+  onSlideDurationMsChange,
 }) => {
   const { t } = useTranslation();
 
@@ -464,6 +481,46 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 onChange={onScaleDurationMsChange}
                 min={LYRICS_SCALE_DURATION_MS_MIN}
                 max={LYRICS_SCALE_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
+              />
+            </Box>
+          </Collapse>
+
+          {/* スライド登場/退場 */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={slideEnabled}
+                onChange={(e) => onSlideEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsSlide")}
+              </Typography>
+            }
+          />
+          <Collapse in={slideEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsSlideAmount")}
+                value={slideAmount}
+                onChange={onSlideAmountChange}
+                min={LYRICS_SLIDE_AMOUNT_MIN}
+                max={LYRICS_SLIDE_AMOUNT_MAX}
+                unit="px"
+                valueMinWidth={44}
+              />
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsSlideDuration")}
+                value={slideDurationMs}
+                onChange={onSlideDurationMsChange}
+                min={LYRICS_SLIDE_DURATION_MS_MIN}
+                max={LYRICS_SLIDE_DURATION_MS_MAX}
                 unit="ms"
                 valueMinWidth={44}
               />

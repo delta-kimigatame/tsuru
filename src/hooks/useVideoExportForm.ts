@@ -20,6 +20,9 @@ import {
   DEFAULT_LYRICS_SHADOW_BLUR,
   DEFAULT_LYRICS_SHADOW_COLOR,
   DEFAULT_LYRICS_SHADOW_ENABLED,
+  DEFAULT_LYRICS_SLIDE_AMOUNT,
+  DEFAULT_LYRICS_SLIDE_DURATION_MS,
+  DEFAULT_LYRICS_SLIDE_ENABLED,
   DEFAULT_LYRICS_STROKE_COLOR,
   DEFAULT_LYRICS_STROKE_ENABLED,
   DEFAULT_LYRICS_STROKE_WIDTH,
@@ -240,6 +243,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [lyricsScaleDurationMs, setLyricsScaleDurationMs] =
     React.useState<number>(DEFAULT_LYRICS_SCALE_DURATION_MS);
+  // 字幕スライド
+  const [lyricsSlideEnabled, setLyricsSlideEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_SLIDE_ENABLED,
+  );
+  const [lyricsSlideAmount, setLyricsSlideAmount] = React.useState<number>(
+    DEFAULT_LYRICS_SLIDE_AMOUNT,
+  );
+  const [lyricsSlideDurationMs, setLyricsSlideDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_SLIDE_DURATION_MS);
 
   // -----------------------------------------------------------------------
 
@@ -397,6 +409,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             scaleEnabled: lyricsScaleEnabled,
             scaleFrom: lyricsScaleFrom,
             scaleDurationMs: lyricsScaleDurationMs,
+            slideEnabled: lyricsSlideEnabled,
+            slideAmount: lyricsSlideAmount,
+            slideDurationMs: lyricsSlideDurationMs,
           }
         : null;
 
@@ -486,6 +501,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsScaleEnabled(DEFAULT_LYRICS_SCALE_ENABLED);
       setLyricsScaleFrom(DEFAULT_LYRICS_SCALE_FROM);
       setLyricsScaleDurationMs(DEFAULT_LYRICS_SCALE_DURATION_MS);
+      setLyricsSlideEnabled(DEFAULT_LYRICS_SLIDE_ENABLED);
+      setLyricsSlideAmount(DEFAULT_LYRICS_SLIDE_AMOUNT);
+      setLyricsSlideDurationMs(DEFAULT_LYRICS_SLIDE_DURATION_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -869,6 +887,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsScaleEnabled,
     lyricsScaleFrom,
     lyricsScaleDurationMs,
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -999,5 +1020,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsScaleEnabled,
     setLyricsScaleFrom,
     setLyricsScaleDurationMs,
+    // 歌詞スライド
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
+    setLyricsSlideEnabled,
+    setLyricsSlideAmount,
+    setLyricsSlideDurationMs,
   };
 };
