@@ -462,7 +462,7 @@ export const drawSubtitleOnCanvas = (
   // ease-in 二乗: 目標居に正規位置付近でンマーい、遠いほど高速
   let dynX = 0;
   let dynY = 0;
-  if (opts.slideInEnabled) {
+  if (opts.slideInEnabled && !opts.staggerEnabled) {
     const [dvx, dvy] = slideExitVector(
       opts.slideInDirection,
       cx,
@@ -476,7 +476,7 @@ export const drawSubtitleOnCanvas = (
     dynX += dvx * p * p;
     dynY += dvy * p * p;
   }
-  if (opts.slideOutEnabled) {
+  if (opts.slideOutEnabled && !opts.staggerEnabled) {
     const [dvx, dvy] = slideExitVector(
       opts.slideOutDirection,
       cx,
@@ -664,11 +664,50 @@ export const drawSubtitleOnCanvas = (
           opts.blurAmount * Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
       }
 
+      // 文字ごとのスライドイン/スライドアウト
+      let charDynX = 0;
+      let charDynY = 0;
+      if (opts.slideInEnabled) {
+        const charSlideInProgress = Math.min(
+          1,
+          charElapsed / opts.slideInOutDurationMs,
+        );
+        const p = 1 - charSlideInProgress;
+        const [dvx, dvy] = slideExitVector(
+          opts.slideInDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        charDynX += dvx * p * p;
+        charDynY += dvy * p * p;
+      }
+      if (opts.slideOutEnabled) {
+        const charSlideOutProgress = Math.max(
+          0,
+          1 - charRemaining / opts.slideInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.slideOutDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        charDynX += dvx * charSlideOutProgress * charSlideOutProgress;
+        charDynY += dvy * charSlideOutProgress * charSlideOutProgress;
+      }
+
       ctx.save();
       ctx.filter = charBlurRadius > 0 ? `blur(${charBlurRadius}px)` : "none";
       ctx.globalAlpha = charAlpha;
       // 文字の中央を原点に translate、その後スケール
-      ctx.translate(x + charWidths[i] / 2, charSlideY);
+      ctx.translate(x + charWidths[i] / 2 + charDynX, charSlideY + charDynY);
       ctx.scale(charScale, charScale);
 
       if (opts.shadowEnabled) {
