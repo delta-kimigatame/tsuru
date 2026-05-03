@@ -412,6 +412,7 @@ export const translationPt = {
       orColor: "especifique a cor de fundo",
       bgSize: "Resolução",
       bgSizeImage: "Tamanho da imagem",
+      outputResolutionSection: "Resolução de Saída",
       bgPadding: "Preenchimento de fundo",
       bgPadding_color: "Cor de fundo",
       bgPadding_image: "Imagem ampliada",

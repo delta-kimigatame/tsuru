@@ -394,6 +394,7 @@ export const translationZh = {
       orColor: "指定背景颜色",
       bgSize: "分辨率",
       bgSizeImage: "图片大小",
+      outputResolutionSection: "输出分辨率",
       bgPadding: "边缘填充方式",
       bgPadding_color: "背景颜色",
       bgPadding_image: "图片放大",

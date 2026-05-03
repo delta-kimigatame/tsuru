@@ -406,6 +406,7 @@ export const translationJa = {
       orColor: "背景色",
       bgSize: "解像度",
       bgSizeImage: "画像サイズ",
+      outputResolutionSection: "出力解像度",
       bgPadding: "余白の埋め方",
       bgPadding_color: "背景色",
       bgPadding_image: "画像を拡大",

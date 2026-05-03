@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next";
 import { PALETTE } from "../../../config/videoExport";
 import {
   BG_PADDING_MODES,
-  VIDEO_RESOLUTIONS,
   type BgPaddingMode,
   type VideoResolution,
 } from "../../../utils/videoExport";
@@ -33,7 +32,6 @@ type Props = {
   onColorInputChange: (v: string) => void;
   onColorApply: (hex: string) => void;
   bgSize: VideoResolution;
-  onBgSizeChange: (s: VideoResolution) => void;
   bgPaddingMode: BgPaddingMode;
   onBgPaddingModeChange: (m: BgPaddingMode) => void;
   bgImageOpacity: number;
@@ -51,7 +49,6 @@ export const BackgroundSection: React.FC<Props> = ({
   onColorInputChange,
   onColorApply,
   bgSize,
-  onBgSizeChange,
   bgPaddingMode,
   onBgPaddingModeChange,
   bgImageOpacity,
@@ -118,25 +115,6 @@ export const BackgroundSection: React.FC<Props> = ({
         bgColor={bgColor}
         onChange={onColorInputChange}
       />
-
-      {/* 解像度選択 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Typography variant="caption">
-          {t("editor.videoExport.bgSize")}
-        </Typography>
-        <Select
-          size="small"
-          value={bgSize}
-          onChange={(e) => onBgSizeChange(e.target.value as VideoResolution)}
-          sx={{ fontSize: "0.8rem" }}
-        >
-          {VIDEO_RESOLUTIONS.map((s) => (
-            <MenuItem key={s} value={s} disabled={s === "image" && !imageFile}>
-              {s === "image" ? t("editor.videoExport.bgSizeImage") : s}
-            </MenuItem>
-          ))}
-        </Select>
-      </Box>
 
       {/* パディングモード（画像あり かつ 固定解像度時のみ） */}
       {imageFile && bgSize !== "image" && (

@@ -404,6 +404,7 @@ export const translationEn = {
       orColor: "specify background color",
       bgSize: "Resolution",
       bgSizeImage: "Image size",
+      outputResolutionSection: "Output Resolution",
       bgPadding: "Background fill",
       bgPadding_color: "Background color",
       bgPadding_image: "Enlarged image",

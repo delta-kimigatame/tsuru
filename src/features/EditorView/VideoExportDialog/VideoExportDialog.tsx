@@ -14,6 +14,7 @@ import { BackgroundSection } from "../../../components/EditorView/VideoExportDia
 import { ExportPreviewCanvas } from "../../../components/EditorView/VideoExportDialog/ExportPreviewCanvas";
 import { LyricsSubtitleSection } from "../../../components/EditorView/VideoExportDialog/LyricsSubtitleSection";
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
+import { ResolutionSection } from "../../../components/EditorView/VideoExportDialog/ResolutionSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
@@ -123,11 +124,16 @@ export const VideoExportDialog: React.FC<Props> = ({
               onColorInputChange={form.handleColorInputChange}
               onColorApply={form.applyColor}
               bgSize={form.bgSize}
-              onBgSizeChange={form.setBgSize}
               bgPaddingMode={form.bgPaddingMode}
               onBgPaddingModeChange={form.setBgPaddingMode}
               bgImageOpacity={form.bgImageOpacity}
               onBgImageOpacityChange={form.setBgImageOpacity}
+            />
+
+            <ResolutionSection
+              bgSize={form.bgSize}
+              onBgSizeChange={form.setBgSize}
+              imageFile={form.imageFile}
             />
 
             {portraitBlob && (
