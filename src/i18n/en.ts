@@ -454,6 +454,10 @@ export const translationEn = {
       lyricsSlide: "Slide up",
       lyricsSlideAmount: "Slide amount",
       lyricsSlideDuration: "Slide duration",
+      lyricsSlideIn: "Slide in (entry direction)",
+      lyricsSlideOut: "Slide out (exit direction)",
+      lyricsSlideDirection: "Direction",
+      lyricsSlideInOutDuration: "Slide in/out duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

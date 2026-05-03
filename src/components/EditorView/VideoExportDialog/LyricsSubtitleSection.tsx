@@ -1,3 +1,7 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CallSplitIcon from "@mui/icons-material/CallSplit";
 import MergeIcon from "@mui/icons-material/MergeType";
 import {
@@ -11,6 +15,8 @@ import {
   Popover,
   Switch,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -31,12 +37,14 @@ import {
   LYRICS_SLIDE_AMOUNT_MIN,
   LYRICS_SLIDE_DURATION_MS_MAX,
   LYRICS_SLIDE_DURATION_MS_MIN,
+  LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX,
+  LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN,
   LYRICS_STROKE_WIDTH_MAX,
   LYRICS_STROKE_WIDTH_MIN,
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
-import type { LyricsSegment } from "../../../utils/videoExport";
+import type { LyricsSegment, SlideDirection } from "../../../utils/videoExport";
 import { LabeledSlider } from "./LabeledSlider";
 
 type Props = {
@@ -92,6 +100,17 @@ type Props = {
   onSlideEnabledChange: (v: boolean) => void;
   onSlideAmountChange: (v: number) => void;
   onSlideDurationMsChange: (v: number) => void;
+  // スライドイン/アウト (方向指定)
+  slideInEnabled: boolean;
+  slideInDirection: SlideDirection;
+  slideOutEnabled: boolean;
+  slideOutDirection: SlideDirection;
+  slideInOutDurationMs: number;
+  onSlideInEnabledChange: (v: boolean) => void;
+  onSlideInDirectionChange: (v: SlideDirection) => void;
+  onSlideOutEnabledChange: (v: boolean) => void;
+  onSlideOutDirectionChange: (v: SlideDirection) => void;
+  onSlideInOutDurationMsChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -151,6 +170,16 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onSlideEnabledChange,
   onSlideAmountChange,
   onSlideDurationMsChange,
+  slideInEnabled,
+  slideInDirection,
+  slideOutEnabled,
+  slideOutDirection,
+  slideInOutDurationMs,
+  onSlideInEnabledChange,
+  onSlideInDirectionChange,
+  onSlideOutEnabledChange,
+  onSlideOutDirectionChange,
+  onSlideInOutDurationMsChange,
 }) => {
   const { t } = useTranslation();
 
@@ -521,6 +550,113 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 onChange={onSlideDurationMsChange}
                 min={LYRICS_SLIDE_DURATION_MS_MIN}
                 max={LYRICS_SLIDE_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
+              />
+            </Box>
+          </Collapse>
+
+          {/* スライドイン (入場方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={slideInEnabled}
+                onChange={(e) => onSlideInEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsSlideIn")}
+              </Typography>
+            }
+          />
+          <Collapse in={slideInEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={slideInDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onSlideInDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <ArrowUpwardIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <ArrowDownwardIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <ArrowBackIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <ArrowForwardIcon fontSize="small" />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* スライドアウト (退場方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={slideOutEnabled}
+                onChange={(e) => onSlideOutEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsSlideOut")}
+              </Typography>
+            }
+          />
+          <Collapse in={slideOutEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={slideOutDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onSlideOutDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <ArrowUpwardIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <ArrowDownwardIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <ArrowBackIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <ArrowForwardIcon fontSize="small" />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* スライドイン/アウト共通時間 */}
+          <Collapse in={slideInEnabled || slideOutEnabled} unmountOnExit>
+            <Box sx={{ pl: 1 }}>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsSlideInOutDuration")}
+                value={slideInOutDurationMs}
+                onChange={onSlideInOutDurationMsChange}
+                min={LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN}
+                max={LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX}
                 unit="ms"
                 valueMinWidth={44}
               />

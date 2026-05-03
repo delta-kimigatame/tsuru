@@ -456,6 +456,10 @@ export const translationJa = {
       lyricsSlide: "スライドアップ",
       lyricsSlideAmount: "スライド量",
       lyricsSlideDuration: "スライド時間",
+      lyricsSlideIn: "スライドイン (入場方向)",
+      lyricsSlideOut: "スライドアウト (退場方向)",
+      lyricsSlideDirection: "方向",
+      lyricsSlideInOutDuration: "入場/退場時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

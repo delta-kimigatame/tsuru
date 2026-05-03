@@ -462,6 +462,10 @@ export const translationPt = {
       lyricsSlide: "Deslizar para cima",
       lyricsSlideAmount: "Quantidade",
       lyricsSlideDuration: "Duração do deslize",
+      lyricsSlideIn: "Deslizar entrada (direção)",
+      lyricsSlideOut: "Deslizar saída (direção)",
+      lyricsSlideDirection: "Direção",
+      lyricsSlideInOutDuration: "Duração de entrada/saída",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

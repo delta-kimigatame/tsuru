@@ -1,4 +1,8 @@
-import type { BgPaddingMode, VideoResolution } from "../utils/videoExport";
+import type {
+  BgPaddingMode,
+  SlideDirection,
+  VideoResolution,
+} from "../utils/videoExport";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -158,6 +162,15 @@ export const LYRICS_SLIDE_AMOUNT_MIN = 0;
 export const LYRICS_SLIDE_AMOUNT_MAX = 500;
 export const LYRICS_SLIDE_DURATION_MS_MIN = 50;
 export const LYRICS_SLIDE_DURATION_MS_MAX = 1000;
+
+// SlideInOut
+export const DEFAULT_LYRICS_SLIDE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_IN_DIRECTION: SlideDirection = "up";
+export const DEFAULT_LYRICS_SLIDE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_OUT_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS = 300;
+export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN = 50;
+export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX = 1000;
 
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値

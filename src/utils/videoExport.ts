@@ -31,6 +31,9 @@ export const VIDEO_RESOLUTIONS: VideoResolution[] = [
 export type BgPaddingMode = "color" | "image" | "blur";
 export const BG_PADDING_MODES: BgPaddingMode[] = ["color", "image", "blur"];
 
+/** スライドイン/アウトの移動方向 */
+export type SlideDirection = "up" | "down" | "left" | "right";
+
 /**
  * 動画キャンバスに重ねる立絵の設定
  *
@@ -160,6 +163,15 @@ export interface LyricsOptions {
   slideAmount: number;
   /** スライドアニメーションの時間 ms */
   slideDurationMs: number;
+  // --- スライドイン/スライドアウト ---
+  slideInEnabled: boolean;
+  /** 入場方向（指定方向から画面内へ流入） */
+  slideInDirection: SlideDirection;
+  slideOutEnabled: boolean;
+  /** 退場方向（画面外へ向かって流出） */
+  slideOutDirection: SlideDirection;
+  /** 入場・退場共通のアニメーション時間 ms */
+  slideInOutDurationMs: number;
 }
 
 /**
@@ -271,6 +283,31 @@ const drawTextOnCanvas = (
 };
 
 /**
+ * スライド方向に対応する「画面内正規位置 → 画面外 」のベクトル（最大値就ればテキストが完全に画面外に出る距離）
+ * halfW: テキスト幅の半分, halfH: テキスト高さの半分
+ */
+const slideExitVector = (
+  dir: SlideDirection,
+  cx: number,
+  cy: number,
+  cW: number,
+  cH: number,
+  halfW: number,
+  halfH: number,
+): [number, number] => {
+  switch (dir) {
+    case "up":
+      return [0, -(cy + halfH)];
+    case "down":
+      return [0, cH - cy + halfH];
+    case "left":
+      return [-(cx + halfW), 0];
+    case "right":
+      return [cW - cx + halfW, 0];
+  }
+};
+
+/**
  * Canvas に歌詞字幕を描画する内部ヘルパー。
  * テキスト幅が maxWidthPercent を超える場合はフォントサイズを自動縮小する（最小 12px）。
  * TODO: 将来拡張としてテキストシャドウ・背景色帯の追加を検討。
@@ -284,6 +321,8 @@ const drawSubtitleOnCanvas = (
   alpha = 1,
   scale = 1,
   slideY = 0,
+  slideInProgress = 1,
+  slideOutProgress = 0,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -305,9 +344,43 @@ const drawSubtitleOnCanvas = (
   const cx = (cW * opts.xPercent) / 100;
   const cy = (cH * opts.yPercent) / 100;
   const textW = ctx.measureText(lyric).width;
+  const halfW = textW / 2;
+  const halfH = fontSize * 0.6;
 
-  // スケールアニメーション: テキスト中央を軸に変倍。slideY は translate の Y 座標へ先に加算
-  ctx.translate(cx, cy + slideY);
+  // スライドイン/アウトのオフセット計算
+  // ease-in 二乗: 目標居に正規位置付近でンマーい、遠いほど高速
+  let dynX = 0;
+  let dynY = 0;
+  if (opts.slideInEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.slideInDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    const p = 1 - slideInProgress;
+    dynX += dvx * p * p;
+    dynY += dvy * p * p;
+  }
+  if (opts.slideOutEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.slideOutDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    dynX += dvx * slideOutProgress * slideOutProgress;
+    dynY += dvy * slideOutProgress * slideOutProgress;
+  }
+
+  // スケールアニメーション: テキスト中央を軸に変倍。slideY/dynX/dynY を translate に廞算
+  ctx.translate(cx + dynX, cy + slideY + dynY);
   ctx.scale(scale, scale);
 
   // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
@@ -548,11 +621,12 @@ export const generateMp4 = async (
         (seg) => tMs >= seg.startMs && tMs < seg.endMs,
       );
       if (activeSeg) {
+        const elapsed = tMs - activeSeg.startMs;
+        const remaining = activeSeg.endMs - tMs;
+
         let alpha = 1;
         if (lyricsOptions.fadeEnabled) {
           const fadeMs = lyricsOptions.fadeDurationMs;
-          const elapsed = tMs - activeSeg.startMs;
-          const remaining = activeSeg.endMs - tMs;
           alpha = Math.min(
             Math.min(1, elapsed / fadeMs),
             Math.min(1, remaining / fadeMs),
@@ -561,8 +635,6 @@ export const generateMp4 = async (
         let scale = 1;
         if (lyricsOptions.scaleEnabled) {
           const scaleMs = lyricsOptions.scaleDurationMs;
-          const elapsed = tMs - activeSeg.startMs;
-          const remaining = activeSeg.endMs - tMs;
           // ease-out 二乗: SCALE_FROM付近で変化量大、100%付近で変化量小
           const ce = Math.min(1, elapsed / scaleMs);
           const cr = Math.min(1, remaining / scaleMs);
@@ -573,16 +645,28 @@ export const generateMp4 = async (
         let slideY = 0;
         if (lyricsOptions.slideEnabled) {
           const slideMs = lyricsOptions.slideDurationMs;
-          const elapsedS = tMs - activeSeg.startMs;
-          const remainingS = activeSeg.endMs - tMs;
           // ease-out 二乗: 始点付近で変化量大、正規位置近いと緩やか
-          const ce = Math.min(1, elapsedS / slideMs);
-          const cr = Math.min(1, remainingS / slideMs);
+          const ce = Math.min(1, elapsed / slideMs);
+          const cr = Math.min(1, remaining / slideMs);
           const progress = Math.min(
             1 - (1 - ce) * (1 - ce),
             1 - (1 - cr) * (1 - cr),
           );
           slideY = lyricsOptions.slideAmount * (1 - progress);
+        }
+        let slideInProgress = 1;
+        let slideOutProgress = 0;
+        if (lyricsOptions.slideInEnabled) {
+          slideInProgress = Math.min(
+            1,
+            elapsed / lyricsOptions.slideInOutDurationMs,
+          );
+        }
+        if (lyricsOptions.slideOutEnabled) {
+          slideOutProgress = Math.max(
+            0,
+            1 - remaining / lyricsOptions.slideInOutDurationMs,
+          );
         }
         drawSubtitleOnCanvas(
           ctx,
@@ -593,6 +677,8 @@ export const generateMp4 = async (
           alpha,
           scale,
           slideY,
+          slideInProgress,
+          slideOutProgress,
         );
       }
     }

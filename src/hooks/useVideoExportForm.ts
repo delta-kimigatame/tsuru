@@ -23,6 +23,11 @@ import {
   DEFAULT_LYRICS_SLIDE_AMOUNT,
   DEFAULT_LYRICS_SLIDE_DURATION_MS,
   DEFAULT_LYRICS_SLIDE_ENABLED,
+  DEFAULT_LYRICS_SLIDE_IN_DIRECTION,
+  DEFAULT_LYRICS_SLIDE_IN_ENABLED,
+  DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS,
+  DEFAULT_LYRICS_SLIDE_OUT_DIRECTION,
+  DEFAULT_LYRICS_SLIDE_OUT_ENABLED,
   DEFAULT_LYRICS_STROKE_COLOR,
   DEFAULT_LYRICS_STROKE_ENABLED,
   DEFAULT_LYRICS_STROKE_WIDTH,
@@ -63,6 +68,7 @@ import {
   type LyricsOptions,
   type LyricsSegment,
   type PortraitOptions,
+  type SlideDirection,
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
@@ -252,6 +258,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [lyricsSlideDurationMs, setLyricsSlideDurationMs] =
     React.useState<number>(DEFAULT_LYRICS_SLIDE_DURATION_MS);
+  const [lyricsSlideInEnabled, setLyricsSlideInEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_SLIDE_IN_ENABLED);
+  const [lyricsSlideInDirection, setLyricsSlideInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_SLIDE_IN_DIRECTION);
+  const [lyricsSlideOutEnabled, setLyricsSlideOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_SLIDE_OUT_ENABLED);
+  const [lyricsSlideOutDirection, setLyricsSlideOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
+  const [lyricsSlideInOutDurationMs, setLyricsSlideInOutDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
 
   // -----------------------------------------------------------------------
 
@@ -412,6 +428,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             slideEnabled: lyricsSlideEnabled,
             slideAmount: lyricsSlideAmount,
             slideDurationMs: lyricsSlideDurationMs,
+            slideInEnabled: lyricsSlideInEnabled,
+            slideInDirection: lyricsSlideInDirection,
+            slideOutEnabled: lyricsSlideOutEnabled,
+            slideOutDirection: lyricsSlideOutDirection,
+            slideInOutDurationMs: lyricsSlideInOutDurationMs,
           }
         : null;
 
@@ -504,6 +525,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsSlideEnabled(DEFAULT_LYRICS_SLIDE_ENABLED);
       setLyricsSlideAmount(DEFAULT_LYRICS_SLIDE_AMOUNT);
       setLyricsSlideDurationMs(DEFAULT_LYRICS_SLIDE_DURATION_MS);
+      setLyricsSlideInEnabled(DEFAULT_LYRICS_SLIDE_IN_ENABLED);
+      setLyricsSlideInDirection(DEFAULT_LYRICS_SLIDE_IN_DIRECTION);
+      setLyricsSlideOutEnabled(DEFAULT_LYRICS_SLIDE_OUT_ENABLED);
+      setLyricsSlideOutDirection(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
+      setLyricsSlideInOutDurationMs(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -890,6 +916,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsSlideEnabled,
     lyricsSlideAmount,
     lyricsSlideDurationMs,
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1027,5 +1058,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsSlideEnabled,
     setLyricsSlideAmount,
     setLyricsSlideDurationMs,
+    // 歌詞スライドイン/アウト
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
+    setLyricsSlideInEnabled,
+    setLyricsSlideInDirection,
+    setLyricsSlideOutEnabled,
+    setLyricsSlideOutDirection,
+    setLyricsSlideInOutDurationMs,
   };
 };
