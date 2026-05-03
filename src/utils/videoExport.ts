@@ -490,7 +490,7 @@ export const drawSubtitleOnCanvas = (
     dynY += dvy * slideOutProgress * slideOutProgress;
   }
   // バウンスイン/アウトのオフセット計算（slideExitVector 再利用、イージングは easeOutBounce）
-  if (opts.bounceInEnabled) {
+  if (opts.bounceInEnabled && !opts.staggerEnabled) {
     const [dvx, dvy] = slideExitVector(
       opts.bounceInDirection,
       cx,
@@ -504,7 +504,7 @@ export const drawSubtitleOnCanvas = (
     dynX += dvx * factor;
     dynY += dvy * factor;
   }
-  if (opts.bounceOutEnabled) {
+  if (opts.bounceOutEnabled && !opts.staggerEnabled) {
     const [dvx, dvy] = slideExitVector(
       opts.bounceOutDirection,
       cx,
@@ -701,6 +701,45 @@ export const drawSubtitleOnCanvas = (
         );
         charDynX += dvx * charSlideOutProgress * charSlideOutProgress;
         charDynY += dvy * charSlideOutProgress * charSlideOutProgress;
+      }
+
+      // 文字ごとのバウンスイン/バウンスアウト
+      if (opts.bounceInEnabled) {
+        const charBounceInProgress = Math.min(
+          1,
+          charElapsed / opts.bounceInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.bounceInDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        const factor = 1 - easeOutBounce(charBounceInProgress);
+        charDynX += dvx * factor;
+        charDynY += dvy * factor;
+      }
+      if (opts.bounceOutEnabled) {
+        const charBounceOutProgress = Math.max(
+          0,
+          1 - charRemaining / opts.bounceInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.bounceOutDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        // easeInBounce = 1 - easeOutBounce(1 - t)
+        const factor = 1 - easeOutBounce(1 - charBounceOutProgress);
+        charDynX += dvx * factor;
+        charDynY += dvy * factor;
       }
 
       ctx.save();
