@@ -183,9 +183,9 @@ export const LYRICS_BLUR_DURATION_MS_MAX = 1000;
 
 // Wipe
 export const DEFAULT_LYRICS_WIPE_IN_ENABLED = false;
-export const DEFAULT_LYRICS_WIPE_IN_DIRECTION: SlideDirection = "right";
+export const DEFAULT_LYRICS_WIPE_IN_DIRECTION: SlideDirection = "left";
 export const DEFAULT_LYRICS_WIPE_OUT_ENABLED = false;
-export const DEFAULT_LYRICS_WIPE_OUT_DIRECTION: SlideDirection = "left";
+export const DEFAULT_LYRICS_WIPE_OUT_DIRECTION: SlideDirection = "right";
 export const DEFAULT_LYRICS_WIPE_DURATION_MS = 300;
 export const LYRICS_WIPE_DURATION_MS_MIN = 50;
 export const LYRICS_WIPE_DURATION_MS_MAX = 1000;
