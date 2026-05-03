@@ -448,6 +448,9 @@ export const translationEn = {
       lyricsBgBarOpacity: "Bar opacity",
       lyricsFade: "Fade in/out",
       lyricsFadeDuration: "Fade duration",
+      lyricsScale: "Scale in/out",
+      lyricsScaleFrom: "Initial scale",
+      lyricsScaleDuration: "Scale duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

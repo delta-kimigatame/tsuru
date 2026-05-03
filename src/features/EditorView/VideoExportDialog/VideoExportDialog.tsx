@@ -191,6 +191,12 @@ export const VideoExportDialog: React.FC<Props> = ({
             fadeDurationMs={form.lyricsFadeDurationMs}
             onFadeEnabledChange={form.setLyricsFadeEnabled}
             onFadeDurationMsChange={form.setLyricsFadeDurationMs}
+            scaleEnabled={form.lyricsScaleEnabled}
+            scaleFrom={form.lyricsScaleFrom}
+            scaleDurationMs={form.lyricsScaleDurationMs}
+            onScaleEnabledChange={form.setLyricsScaleEnabled}
+            onScaleFromChange={form.setLyricsScaleFrom}
+            onScaleDurationMsChange={form.setLyricsScaleDurationMs}
           />
 
           <ExportPreviewCanvas

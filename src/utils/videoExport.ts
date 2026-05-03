@@ -148,6 +148,12 @@ export interface LyricsOptions {
   fadeEnabled: boolean;
   /** フェードイン/アウトの時間 ms */
   fadeDurationMs: number;
+  // --- スケール ---
+  scaleEnabled: boolean;
+  /** 登場・退場時の初期スケール（%）。100 = 等倍 */
+  scaleFrom: number;
+  /** スケールアニメーションの時間 ms */
+  scaleDurationMs: number;
 }
 
 /**
@@ -270,6 +276,7 @@ const drawSubtitleOnCanvas = (
   cW: number,
   cH: number,
   alpha = 1,
+  scale = 1,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -282,7 +289,7 @@ const drawSubtitleOnCanvas = (
   ctx.textBaseline = "middle";
   ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
 
-  // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める
+  // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める（scale=1 基準）
   while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
     fontSize -= 2;
     ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
@@ -292,7 +299,11 @@ const drawSubtitleOnCanvas = (
   const cy = (cH * opts.yPercent) / 100;
   const textW = ctx.measureText(lyric).width;
 
-  // Step 2: 背景バー（shadow 適用前に描画）
+  // スケールアニメーション: テキスト中央を軸に変倍
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
   if (opts.bgBarEnabled) {
     const padX = fontSize * 0.5;
     const padY = fontSize * 0.3;
@@ -301,7 +312,7 @@ const drawSubtitleOnCanvas = (
     ctx.save();
     ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
     ctx.fillStyle = opts.bgBarColor;
-    ctx.fillRect(cx - barW / 2, cy - barH / 2, barW, barH);
+    ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
     ctx.restore();
   }
 
@@ -316,14 +327,14 @@ const drawSubtitleOnCanvas = (
   // Step 4: 縁取り
   if (opts.strokeEnabled) {
     ctx.lineJoin = "round";
-    ctx.lineWidth = opts.strokeWidth * 2; // 外側にはみ出した分を fillText で上書きするため 2倍
+    ctx.lineWidth = opts.strokeWidth * 2;
     ctx.strokeStyle = opts.strokeColor;
-    ctx.strokeText(lyric, cx, cy);
+    ctx.strokeText(lyric, 0, 0);
   }
 
   // Step 5: メインテキスト
   ctx.fillStyle = opts.color;
-  ctx.fillText(lyric, cx, cy);
+  ctx.fillText(lyric, 0, 0);
 
   ctx.restore();
 };
@@ -540,6 +551,18 @@ export const generateMp4 = async (
             Math.min(1, remaining / fadeMs),
           );
         }
+        let scale = 1;
+        if (lyricsOptions.scaleEnabled) {
+          const scaleMs = lyricsOptions.scaleDurationMs;
+          const elapsed = tMs - activeSeg.startMs;
+          const remaining = activeSeg.endMs - tMs;
+          // ease-out 二乗: SCALE_FROM付近で変化量大、100%付近で変化量小
+          const ce = Math.min(1, elapsed / scaleMs);
+          const cr = Math.min(1, remaining / scaleMs);
+          const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+          const s0 = lyricsOptions.scaleFrom / 100;
+          scale = s0 + (1 - s0) * t;
+        }
         drawSubtitleOnCanvas(
           ctx,
           activeSeg.lyric,
@@ -547,6 +570,7 @@ export const generateMp4 = async (
           cW,
           cH,
           alpha,
+          scale,
         );
       }
     }

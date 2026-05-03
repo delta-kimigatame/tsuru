@@ -141,6 +141,15 @@ export const DEFAULT_LYRICS_FADE_DURATION_MS = 300;
 export const LYRICS_FADE_DURATION_MS_MIN = 50;
 export const LYRICS_FADE_DURATION_MS_MAX = 1000;
 
+// Scale
+export const DEFAULT_LYRICS_SCALE_ENABLED = false;
+export const DEFAULT_LYRICS_SCALE_FROM = 300;
+export const DEFAULT_LYRICS_SCALE_DURATION_MS = 300;
+export const LYRICS_SCALE_FROM_MIN = 0;
+export const LYRICS_SCALE_FROM_MAX = 500;
+export const LYRICS_SCALE_DURATION_MS_MIN = 50;
+export const LYRICS_SCALE_DURATION_MS_MAX = 1000;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

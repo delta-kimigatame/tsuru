@@ -450,6 +450,9 @@ export const translationJa = {
       lyricsBgBarOpacity: "バーの不透明度",
       lyricsFade: "フェードイン/アウト",
       lyricsFadeDuration: "フェード時間",
+      lyricsScale: "スケール登場/退場",
+      lyricsScaleFrom: "初期スケール",
+      lyricsScaleDuration: "スケール時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:
