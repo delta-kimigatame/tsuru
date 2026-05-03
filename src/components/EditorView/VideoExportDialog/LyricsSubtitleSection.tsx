@@ -1,6 +1,12 @@
 import CallSplitIcon from "@mui/icons-material/CallSplit";
 import MergeIcon from "@mui/icons-material/MergeType";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Collapse,
   Divider,
@@ -151,6 +157,10 @@ type Props = {
   staggerIntervalMs: number;
   onStaggerEnabledChange: (v: boolean) => void;
   onStaggerIntervalMsChange: (v: number) => void;
+  // アニメーションプレビュー
+  isAnimPreviewPlaying: boolean;
+  onStartAnimPreview: () => void;
+  onStopAnimPreview: () => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -250,6 +260,9 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   staggerIntervalMs,
   onStaggerEnabledChange,
   onStaggerIntervalMsChange,
+  isAnimPreviewPlaying,
+  onStartAnimPreview,
+  onStopAnimPreview,
 }) => {
   const { t } = useTranslation();
 
@@ -354,10 +367,13 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
             unit="%"
           />
 
-          {/* 文字装飾 */}
-          <Divider sx={{ fontSize: "0.7rem" }}>
-            {t("editor.videoExport.lyricsDecoration")}
-          </Divider>
+          {/* 文字装飾 Accordion */}
+          <Accordion disableGutters defaultExpanded={false}
+            sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider", borderRadius: 1, "&:before": { display: "none" } }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="body2">{t("editor.videoExport.lyricsDecoration")}</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}>
 
           {/* シャドウ */}
           <FormControlLabel
@@ -514,6 +530,33 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
               />
             </Box>
           </Collapse>
+
+            </AccordionDetails>
+          </Accordion>
+
+          {/* アニメーション Accordion */}
+          <Accordion disableGutters defaultExpanded={false}
+            sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider", borderRadius: 1, "&:before": { display: "none" } }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ pr: 1 }}>
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {t("editor.videoExport.lyricsAnimations")}
+              </Typography>
+              <Tooltip title={isAnimPreviewPlaying
+                ? t("editor.videoExport.lyricsAnimPreviewStop")
+                : t("editor.videoExport.lyricsAnimPreviewPlay")}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    isAnimPreviewPlaying ? onStopAnimPreview() : onStartAnimPreview();
+                  }}
+                  sx={{ mr: 0.5 }}
+                >
+                  {isAnimPreviewPlaying ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            </AccordionSummary>
+            <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}>
 
           {/* フェードイン/アウト */}
           <FormControlLabel
@@ -1059,6 +1102,9 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
               />
             </Box>
           </Collapse>
+
+            </AccordionDetails>
+          </Accordion>
 
           {/* セグメントテーブル */}
           {segments.length > 0 && (

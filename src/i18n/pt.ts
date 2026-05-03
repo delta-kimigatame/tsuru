@@ -481,6 +481,9 @@ export const translationPt = {
       lyricsBounceDuration: "Duração do salto",
       lyricsStagger: "Temporização por caractere",
       lyricsStaggerInterval: "Atraso por caractere",
+      lyricsAnimations: "Animações",
+      lyricsAnimPreviewPlay: "Reproduzir prévia",
+      lyricsAnimPreviewStop: "Parar prévia",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

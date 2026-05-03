@@ -79,6 +79,7 @@ import type { Note } from "../lib/Note";
 import {
   FONT_STACK,
   extractLyricsSegments,
+  drawSubtitleOnCanvas,
   type BgPaddingMode,
   type LyricsOptions,
   type LyricsSegment,
@@ -119,6 +120,13 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     selectNotesIndex,
   } = options;
   const { t } = useTranslation();
+
+  // アニメーションプレビュー用 refs / state
+  const animPreviewRafRef = React.useRef<number | null>(null);
+  const animPreviewStartRef = React.useRef<number | null>(null);
+  const animPreviewActiveRef = React.useRef(false);
+  const [isAnimPreviewPlaying, setIsAnimPreviewPlaying] =
+    React.useState(false);
 
   // 画像
   const [imageFile, setImageFile] = React.useState<File | null>(null);
@@ -740,6 +748,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
+    // アニメーションプレビュー中は静止画描画をスキップ
+    if (animPreviewActiveRef.current) return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1014,6 +1024,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsBounceInOutDurationMs,
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
+    isAnimPreviewPlaying,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1032,6 +1043,149 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     },
     [],
   );
+
+  /** アニメーションプレビュー開始 — rAF ループで最初のセグメントを繰り返し描画する */
+  const startAnimPreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const seg: LyricsSegment = lyricsSegments[0] ?? {
+      lyric: "サンプル歌詞",
+      startMs: 0,
+      endMs: 3000,
+      noteBoundaries: [0, 3000],
+    };
+    const segDuration = Math.max(1000, seg.endMs - seg.startMs);
+
+    const lyricsOpts: LyricsOptions = {
+      segments: lyricsSegments.length > 0 ? lyricsSegments : [seg],
+      fontSize: lyricsFontSize,
+      color: lyricsColor,
+      xPercent: 50,
+      yPercent: lyricsYPercent,
+      maxWidthPercent: lyricsMaxWidthPercent,
+      shadowEnabled: lyricsShadowEnabled,
+      shadowColor: lyricsShadowColor,
+      shadowBlur: lyricsShadowBlur,
+      strokeEnabled: lyricsStrokeEnabled,
+      strokeColor: lyricsStrokeColor,
+      strokeWidth: lyricsStrokeWidth,
+      bgBarEnabled: lyricsBgBarEnabled,
+      bgBarColor: lyricsBgBarColor,
+      bgBarOpacity: lyricsBgBarOpacity,
+      fadeEnabled: lyricsFadeEnabled,
+      fadeDurationMs: lyricsFadeDurationMs,
+      scaleEnabled: lyricsScaleEnabled,
+      scaleFrom: lyricsScaleFrom,
+      scaleDurationMs: lyricsScaleDurationMs,
+      slideEnabled: lyricsSlideEnabled,
+      slideAmount: lyricsSlideAmount,
+      slideDurationMs: lyricsSlideDurationMs,
+      slideInEnabled: lyricsSlideInEnabled,
+      slideInDirection: lyricsSlideInDirection,
+      slideOutEnabled: lyricsSlideOutEnabled,
+      slideOutDirection: lyricsSlideOutDirection,
+      slideInOutDurationMs: lyricsSlideInOutDurationMs,
+      blurEnabled: lyricsBlurEnabled,
+      blurAmount: lyricsBlurAmount,
+      blurDurationMs: lyricsBlurDurationMs,
+      wipeInEnabled: lyricsWipeInEnabled,
+      wipeInDirection: lyricsWipeInDirection,
+      wipeOutEnabled: lyricsWipeOutEnabled,
+      wipeOutDirection: lyricsWipeOutDirection,
+      wipeDurationMs: lyricsWipeDurationMs,
+      bounceInEnabled: lyricsBounceInEnabled,
+      bounceInDirection: lyricsBounceInDirection,
+      bounceOutEnabled: lyricsBounceOutEnabled,
+      bounceOutDirection: lyricsBounceOutDirection,
+      bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+      staggerEnabled: lyricsStaggerEnabled,
+      staggerIntervalMs: lyricsStaggerIntervalMs,
+    };
+
+    animPreviewActiveRef.current = true;
+    animPreviewStartRef.current = performance.now();
+    setIsAnimPreviewPlaying(true);
+
+    const loop = () => {
+      if (!animPreviewActiveRef.current) return;
+      const now = performance.now();
+      const elapsed =
+        (now - (animPreviewStartRef.current ?? now)) % segDuration;
+      const remaining = segDuration - elapsed;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawSubtitleOnCanvas(
+        ctx,
+        seg.lyric,
+        lyricsOpts,
+        canvas.width,
+        canvas.height,
+        elapsed,
+        remaining,
+      );
+      animPreviewRafRef.current = requestAnimationFrame(loop);
+    };
+    animPreviewRafRef.current = requestAnimationFrame(loop);
+  }, [
+    previewCanvasRef,
+    lyricsSegments,
+    bgColor,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
+    lyricsShadowEnabled,
+    lyricsShadowColor,
+    lyricsShadowBlur,
+    lyricsStrokeEnabled,
+    lyricsStrokeColor,
+    lyricsStrokeWidth,
+    lyricsBgBarEnabled,
+    lyricsBgBarColor,
+    lyricsBgBarOpacity,
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
+    lyricsScaleEnabled,
+    lyricsScaleFrom,
+    lyricsScaleDurationMs,
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
+  ]);
+
+  /** アニメーションプレビュー停止 */
+  const stopAnimPreview = React.useCallback(() => {
+    if (animPreviewRafRef.current !== null) {
+      cancelAnimationFrame(animPreviewRafRef.current);
+      animPreviewRafRef.current = null;
+    }
+    animPreviewActiveRef.current = false;
+    setIsAnimPreviewPlaying(false);
+  }, []);
 
   return {
     // refs
@@ -1196,5 +1350,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsStaggerIntervalMs,
     setLyricsStaggerEnabled,
     setLyricsStaggerIntervalMs,
+    // アニメーションプレビュー
+    isAnimPreviewPlaying,
+    startAnimPreview,
+    stopAnimPreview,
   };
 };

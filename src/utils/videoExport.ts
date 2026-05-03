@@ -357,11 +357,11 @@ const slideExitVector = (
 };
 
 /**
- * Canvas に歌詞字幕を描画する内部ヘルパー。
+ * Canvas に歌詞字幕を描画するヘルパー。
  * テキスト幅が maxWidthPercent を超える場合はフォントサイズを自動縮小する（最小 12px）。
- * TODO: 将来拡張としてテキストシャドウ・背景色帯の追加を検討。
+ * elapsed / remaining によるアニメーション効果をすべて適用する。
  */
-const drawSubtitleOnCanvas = (
+export const drawSubtitleOnCanvas = (
   ctx: CanvasRenderingContext2D,
   lyric: string,
   opts: LyricsOptions,

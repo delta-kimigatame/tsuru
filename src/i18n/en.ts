@@ -473,6 +473,9 @@ export const translationEn = {
       lyricsBounceDuration: "Bounce duration",
       lyricsStagger: "Per-character timing",
       lyricsStaggerInterval: "Character delay",
+      lyricsAnimations: "Animations",
+      lyricsAnimPreviewPlay: "Preview Play",
+      lyricsAnimPreviewStop: "Preview Stop",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

@@ -475,6 +475,9 @@ export const translationJa = {
       lyricsBounceDuration: "バウンス時間",
       lyricsStagger: "入退場を文字ごとに",
       lyricsStaggerInterval: "文字ずらし間隔",
+      lyricsAnimations: "アニメーション",
+      lyricsAnimPreviewPlay: "プレビュー再生",
+      lyricsAnimPreviewStop: "プレビュー停止",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

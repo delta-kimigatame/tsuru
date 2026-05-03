@@ -5,9 +5,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  useMediaQuery,
-  useTheme,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { BackgroundSection } from "../../../components/EditorView/VideoExportDialog/BackgroundSection";
@@ -61,8 +61,6 @@ export const VideoExportDialog: React.FC<Props> = ({
   selectNotesIndex,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const form = useVideoExportForm(open, {
     onClose,
     onConfirm,
@@ -77,13 +75,47 @@ export const VideoExportDialog: React.FC<Props> = ({
     <Dialog
       open={open}
       onClose={form.handleClose}
-      fullWidth
-      maxWidth="sm"
-      fullScreen={fullScreen}
+      fullScreen
     >
-      <DialogTitle>{t("editor.videoExport.title")}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", py: 1.5 }}>
+        <Box sx={{ flex: 1 }}>{t("editor.videoExport.title")}</Box>
+        <IconButton
+          size="small"
+          onClick={form.handleClose}
+          disabled={synthesisProgress}
+          aria-label="close"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          p: 0,
+          overflow: "hidden",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            flex: 1,
+            overflow: "hidden",
+          }}
+        >
+          {/* 設定ペイン */}
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: "auto",
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
           <BackgroundSection
             imageFile={form.imageFile}
             imagePreviewUrl={form.imagePreviewUrl}
@@ -243,12 +275,33 @@ export const VideoExportDialog: React.FC<Props> = ({
             staggerIntervalMs={form.lyricsStaggerIntervalMs}
             onStaggerEnabledChange={form.setLyricsStaggerEnabled}
             onStaggerIntervalMsChange={form.setLyricsStaggerIntervalMs}
+            isAnimPreviewPlaying={form.isAnimPreviewPlaying}
+            onStartAnimPreview={form.startAnimPreview}
+            onStopAnimPreview={form.stopAnimPreview}
           />
+          </Box>
 
-          <ExportPreviewCanvas
-            canvasRef={form.previewCanvasRef}
-            visible={form.imageFile !== null || form.bgSize !== "image"}
-          />
+          {/* プレビューペイン */}
+          <Box
+            sx={{
+              width: { xs: "100%", sm: "40%" },
+              flexShrink: 0,
+              maxHeight: { xs: "35%", sm: "none" },
+              overflowY: { xs: "hidden", sm: "auto" },
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              borderTop: { xs: "1px solid", sm: "none" },
+              borderLeft: { xs: "none", sm: "1px solid" },
+              borderColor: "divider",
+            }}
+          >
+            <ExportPreviewCanvas
+              canvasRef={form.previewCanvasRef}
+              visible={form.imageFile !== null || form.bgSize !== "image"}
+            />
+          </Box>
         </Box>
       </DialogContent>
       <DialogActions>
