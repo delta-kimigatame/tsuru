@@ -473,6 +473,8 @@ export const translationJa = {
       lyricsBounceIn: "バウンスイン (入場方向)",
       lyricsBounceOut: "バウンスアウト (退場方向)",
       lyricsBounceDuration: "バウンス時間",
+      lyricsStagger: "入退場を文字ごとに",
+      lyricsStaggerInterval: "文字ずらし間隔",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

@@ -36,6 +36,8 @@ import {
   DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS,
   DEFAULT_LYRICS_SLIDE_OUT_DIRECTION,
   DEFAULT_LYRICS_SLIDE_OUT_ENABLED,
+  DEFAULT_LYRICS_STAGGER_ENABLED,
+  DEFAULT_LYRICS_STAGGER_INTERVAL_MS,
   DEFAULT_LYRICS_STROKE_COLOR,
   DEFAULT_LYRICS_STROKE_ENABLED,
   DEFAULT_LYRICS_STROKE_WIDTH,
@@ -310,6 +312,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     React.useState<SlideDirection>(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
   const [lyricsBounceInOutDurationMs, setLyricsBounceInOutDurationMs] =
     React.useState<number>(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
+  const [lyricsStaggerEnabled, setLyricsStaggerEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_STAGGER_ENABLED);
+  const [lyricsStaggerIntervalMs, setLyricsStaggerIntervalMs] =
+    React.useState<number>(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
 
   // -----------------------------------------------------------------------
 
@@ -488,6 +494,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             bounceOutEnabled: lyricsBounceOutEnabled,
             bounceOutDirection: lyricsBounceOutDirection,
             bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+            staggerEnabled: lyricsStaggerEnabled,
+            staggerIntervalMs: lyricsStaggerIntervalMs,
           }
         : null;
 
@@ -598,6 +606,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsBounceOutEnabled(DEFAULT_LYRICS_BOUNCE_OUT_ENABLED);
       setLyricsBounceOutDirection(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
       setLyricsBounceInOutDurationMs(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
+      setLyricsStaggerEnabled(DEFAULT_LYRICS_STAGGER_ENABLED);
+      setLyricsStaggerIntervalMs(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -1002,6 +1012,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsBounceOutEnabled,
     lyricsBounceOutDirection,
     lyricsBounceInOutDurationMs,
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1179,5 +1191,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsBounceOutEnabled,
     setLyricsBounceOutDirection,
     setLyricsBounceInOutDurationMs,
+    // 歌詞スタガー
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
+    setLyricsStaggerEnabled,
+    setLyricsStaggerIntervalMs,
   };
 };

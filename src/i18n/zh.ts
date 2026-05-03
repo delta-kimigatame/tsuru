@@ -461,6 +461,8 @@ export const translationZh = {
       lyricsBounceIn: "弹入 (入场方向)",
       lyricsBounceOut: "弹出 (退场方向)",
       lyricsBounceDuration: "弹跳时间",
+      lyricsStagger: "逐字入场/退场",
+      lyricsStaggerInterval: "字符延迟",
     },
     synthesisError: "合成处理失败。",
     workerError: "引擎启动失败。正在重启，请稍候几秒。",

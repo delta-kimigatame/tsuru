@@ -199,6 +199,12 @@ export const DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS = 500;
 export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN = 100;
 export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX = 1500;
 
+// Stagger
+export const DEFAULT_LYRICS_STAGGER_ENABLED = false;
+export const DEFAULT_LYRICS_STAGGER_INTERVAL_MS = 50;
+export const LYRICS_STAGGER_INTERVAL_MS_MIN = 10;
+export const LYRICS_STAGGER_INTERVAL_MS_MAX = 300;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

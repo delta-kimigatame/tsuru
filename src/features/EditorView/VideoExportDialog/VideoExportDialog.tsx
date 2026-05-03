@@ -239,6 +239,10 @@ export const VideoExportDialog: React.FC<Props> = ({
             onBounceOutEnabledChange={form.setLyricsBounceOutEnabled}
             onBounceOutDirectionChange={form.setLyricsBounceOutDirection}
             onBounceInOutDurationMsChange={form.setLyricsBounceInOutDurationMs}
+            staggerEnabled={form.lyricsStaggerEnabled}
+            staggerIntervalMs={form.lyricsStaggerIntervalMs}
+            onStaggerEnabledChange={form.setLyricsStaggerEnabled}
+            onStaggerIntervalMsChange={form.setLyricsStaggerIntervalMs}
           />
 
           <ExportPreviewCanvas

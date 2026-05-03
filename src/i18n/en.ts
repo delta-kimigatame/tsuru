@@ -471,6 +471,8 @@ export const translationEn = {
       lyricsBounceIn: "Bounce in (entry direction)",
       lyricsBounceOut: "Bounce out (exit direction)",
       lyricsBounceDuration: "Bounce duration",
+      lyricsStagger: "Per-character timing",
+      lyricsStaggerInterval: "Character delay",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

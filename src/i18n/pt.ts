@@ -479,6 +479,8 @@ export const translationPt = {
       lyricsBounceIn: "Salto entrada (direção)",
       lyricsBounceOut: "Salto saída (direção)",
       lyricsBounceDuration: "Duração do salto",
+      lyricsStagger: "Temporização por caractere",
+      lyricsStaggerInterval: "Atraso por caractere",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

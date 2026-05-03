@@ -196,6 +196,10 @@ export interface LyricsOptions {
   bounceOutDirection: SlideDirection;
   /** バウンスアニメーションの時間 ms */
   bounceInOutDurationMs: number;
+  // --- スタガー ---
+  staggerEnabled: boolean;
+  /** 文字間スタガー間隔 ms。先頭文字はフレーズ開始と同時、末尾文字はフレーズ終了と同時に合わせる */
+  staggerIntervalMs: number;
 }
 
 /**
@@ -363,24 +367,80 @@ const drawSubtitleOnCanvas = (
   opts: LyricsOptions,
   cW: number,
   cH: number,
-  alpha = 1,
-  scale = 1,
-  slideY = 0,
-  slideInProgress = 1,
-  slideOutProgress = 0,
-  blurRadius = 0,
-  wipeInProgress = 1,
-  wipeOutProgress = 0,
-  bounceInProgress = 1,
-  bounceOutProgress = 0,
+  elapsed: number,
+  remaining: number,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
   const minFontSize = 12;
   let fontSize = opts.fontSize;
 
+  // --- フレーズ全体のエフェクト値を計算 ---
+  let alpha = 1;
+  if (opts.fadeEnabled) {
+    const fadeMs = opts.fadeDurationMs;
+    alpha = Math.min(
+      Math.min(1, elapsed / fadeMs),
+      Math.min(1, remaining / fadeMs),
+    );
+  }
+  let scale = 1;
+  if (opts.scaleEnabled) {
+    const scaleMs = opts.scaleDurationMs;
+    // ease-out 二乗: SCALE_FROM付近で変化量大、100%付近で変化量小
+    const ce = Math.min(1, elapsed / scaleMs);
+    const cr = Math.min(1, remaining / scaleMs);
+    const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+    const s0 = opts.scaleFrom / 100;
+    scale = s0 + (1 - s0) * t;
+  }
+  let slideY = 0;
+  if (opts.slideEnabled) {
+    const slideMs = opts.slideDurationMs;
+    // ease-out 二乗: 始点付近で変化量大、正規位置近いと緩やか
+    const ce = Math.min(1, elapsed / slideMs);
+    const cr = Math.min(1, remaining / slideMs);
+    const progress = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+    slideY = opts.slideAmount * (1 - progress);
+  }
+  let slideInProgress = 1;
+  let slideOutProgress = 0;
+  if (opts.slideInEnabled) {
+    slideInProgress = Math.min(1, elapsed / opts.slideInOutDurationMs);
+  }
+  if (opts.slideOutEnabled) {
+    slideOutProgress = Math.max(0, 1 - remaining / opts.slideInOutDurationMs);
+  }
+  let blurRadius = 0;
+  if (opts.blurEnabled) {
+    const blurMs = opts.blurDurationMs;
+    const ce = Math.min(1, elapsed / blurMs);
+    const cr = Math.min(1, remaining / blurMs);
+    // ease-out二乗: 入場ほど強く、表示中は0、退場ほど強く
+    blurRadius =
+      opts.blurAmount * Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
+  }
+  let wipeInProgress = 1;
+  let wipeOutProgress = 0;
+  if (opts.wipeInEnabled) {
+    wipeInProgress = Math.min(1, elapsed / opts.wipeDurationMs);
+  }
+  if (opts.wipeOutEnabled) {
+    wipeOutProgress = Math.max(0, 1 - remaining / opts.wipeDurationMs);
+  }
+  let bounceInProgress = 1;
+  let bounceOutProgress = 0;
+  if (opts.bounceInEnabled) {
+    bounceInProgress = Math.min(1, elapsed / opts.bounceInOutDurationMs);
+  }
+  if (opts.bounceOutEnabled) {
+    bounceOutProgress = Math.max(0, 1 - remaining / opts.bounceInOutDurationMs);
+  }
+
   ctx.save();
-  ctx.filter = blurRadius > 0 ? `blur(${blurRadius}px)` : "none";
+  // スタガーモードではブラーは文字ごとに適用するため外側では設定しない
+  ctx.filter =
+    !opts.staggerEnabled && blurRadius > 0 ? `blur(${blurRadius}px)` : "none";
   ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -460,13 +520,14 @@ const drawSubtitleOnCanvas = (
     dynY += dvy * factor;
   }
 
-  // スケールアニメーション: テキスト中央を軸に変倍。slideY/dynX/dynY を translate に廞算
-  ctx.translate(cx + dynX, cy + slideY + dynY);
-  ctx.scale(scale, scale);
+  // スタガーモードでは slideY は各文字のアニメーションに委ね、外側 translate に含めない
+  ctx.translate(cx + dynX, cy + (opts.staggerEnabled ? 0 : slideY) + dynY);
+  if (!opts.staggerEnabled) {
+    ctx.scale(scale, scale);
+  }
 
-  // ワイプ: translate/scale 後の座標系（中央 = (0,0)）でクリップ矩形を計算。
+  // ワイプ: translate 後の座標系（中央 = (0,0)）でクリップ矩形を計算。
   // bgBar ・ shadow ・ テキスト をまとめてクリッピングする。
-  // barW/barH に余裕を持たせることで scale による拡大時も考慮。
   const wipeBarW = textW + fontSize;
   const wipeBarH = fontSize * 2;
   if (opts.wipeInEnabled && wipeInProgress < 1) {
@@ -531,38 +592,138 @@ const drawSubtitleOnCanvas = (
     ctx.clip();
   }
 
-  // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
-  if (opts.bgBarEnabled) {
-    const padX = fontSize * 0.5;
-    const padY = fontSize * 0.3;
-    const barW = textW + padX * 2;
-    const barH = fontSize + padY * 2;
-    ctx.save();
-    ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
-    ctx.fillStyle = opts.bgBarColor;
-    ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
-    ctx.restore();
-  }
+  if (opts.staggerEnabled) {
+    // ---- スタガー描画: 文字ごとに異なるタイミングで個別にアニメーション ----
+    const chars = [...lyric];
+    const N = chars.length;
+    const S = opts.staggerIntervalMs;
+    const charWidths = chars.map((c) => {
+      ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+      return ctx.measureText(c).width;
+    });
 
-  // Step 3: shadow 設定
-  if (opts.shadowEnabled) {
-    ctx.shadowColor = opts.shadowColor;
-    ctx.shadowBlur = opts.shadowBlur;
-    ctx.shadowOffsetX = opts.shadowBlur * 0.5;
-    ctx.shadowOffsetY = opts.shadowBlur * 0.5;
-  }
+    // 背景バーはフレーズ全体のアルファで一括描画（文字毎に描くと重なりが出るため）
+    if (opts.bgBarEnabled) {
+      const padX = fontSize * 0.5;
+      const padY = fontSize * 0.3;
+      const barW = textW + padX * 2;
+      const barH = fontSize + padY * 2;
+      ctx.save();
+      ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
+      ctx.fillStyle = opts.bgBarColor;
+      ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
+      ctx.restore();
+    }
 
-  // Step 4: 縁取り
-  if (opts.strokeEnabled) {
-    ctx.lineJoin = "round";
-    ctx.lineWidth = opts.strokeWidth * 2;
-    ctx.strokeStyle = opts.strokeColor;
-    ctx.strokeText(lyric, 0, 0);
-  }
+    let x = -charWidths.reduce((a, b) => a + b, 0) / 2;
+    for (let i = 0; i < N; i++) {
+      const charElapsed = Math.max(0, elapsed - i * S);
+      const charRemaining = Math.max(0, remaining - (N - 1 - i) * S);
 
-  // Step 5: メインテキスト
-  ctx.fillStyle = opts.color;
-  ctx.fillText(lyric, 0, 0);
+      // 文字ごとのフェード
+      let charAlpha = 1;
+      if (opts.fadeEnabled) {
+        const fadeMs = opts.fadeDurationMs;
+        charAlpha = Math.min(
+          Math.min(1, charElapsed / fadeMs),
+          Math.min(1, charRemaining / fadeMs),
+        );
+      }
+
+      // 文字ごとのスケール
+      let charScale = 1;
+      if (opts.scaleEnabled) {
+        const scaleMs = opts.scaleDurationMs;
+        const ce = Math.min(1, charElapsed / scaleMs);
+        const cr = Math.min(1, charRemaining / scaleMs);
+        const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+        const s0 = opts.scaleFrom / 100;
+        charScale = s0 + (1 - s0) * t;
+      }
+
+      // 文字ごとのスライドアップ
+      let charSlideY = 0;
+      if (opts.slideEnabled) {
+        const slideMs = opts.slideDurationMs;
+        const ce = Math.min(1, charElapsed / slideMs);
+        const cr = Math.min(1, charRemaining / slideMs);
+        const progress = Math.min(
+          1 - (1 - ce) * (1 - ce),
+          1 - (1 - cr) * (1 - cr),
+        );
+        charSlideY = opts.slideAmount * (1 - progress);
+      }
+
+      // 文字ごとのブラー
+      let charBlurRadius = 0;
+      if (opts.blurEnabled) {
+        const blurMs = opts.blurDurationMs;
+        const ce = Math.min(1, charElapsed / blurMs);
+        const cr = Math.min(1, charRemaining / blurMs);
+        charBlurRadius =
+          opts.blurAmount * Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
+      }
+
+      ctx.save();
+      ctx.filter = charBlurRadius > 0 ? `blur(${charBlurRadius}px)` : "none";
+      ctx.globalAlpha = charAlpha;
+      // 文字の中央を原点に translate、その後スケール
+      ctx.translate(x + charWidths[i] / 2, charSlideY);
+      ctx.scale(charScale, charScale);
+
+      if (opts.shadowEnabled) {
+        ctx.shadowColor = opts.shadowColor;
+        ctx.shadowBlur = opts.shadowBlur;
+        ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+        ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+      }
+      if (opts.strokeEnabled) {
+        ctx.lineJoin = "round";
+        ctx.lineWidth = opts.strokeWidth * 2;
+        ctx.strokeStyle = opts.strokeColor;
+        ctx.strokeText(chars[i], 0, 0);
+      }
+      ctx.fillStyle = opts.color;
+      ctx.fillText(chars[i], 0, 0);
+
+      ctx.restore();
+      x += charWidths[i];
+    }
+  } else {
+    // ---- 通常描画（スタガーなし）----
+    // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
+    if (opts.bgBarEnabled) {
+      const padX = fontSize * 0.5;
+      const padY = fontSize * 0.3;
+      const barW = textW + padX * 2;
+      const barH = fontSize + padY * 2;
+      ctx.save();
+      ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
+      ctx.fillStyle = opts.bgBarColor;
+      ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
+      ctx.restore();
+    }
+
+    // Step 3: shadow 設定
+    if (opts.shadowEnabled) {
+      ctx.shadowColor = opts.shadowColor;
+      ctx.shadowBlur = opts.shadowBlur;
+      ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+      ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+    }
+
+    // Step 4: 縁取り
+    if (opts.strokeEnabled) {
+      ctx.lineJoin = "round";
+      ctx.lineWidth = opts.strokeWidth * 2;
+      ctx.strokeStyle = opts.strokeColor;
+      ctx.strokeText(lyric, 0, 0);
+    }
+
+    // Step 5: メインテキスト
+    ctx.fillStyle = opts.color;
+    ctx.fillText(lyric, 0, 0);
+  }
 
   // ワイプの clip 状態を解除（wipe 適用時は余分に ctx.save() してある）
   if (
@@ -779,102 +940,14 @@ export const generateMp4 = async (
       if (activeSeg) {
         const elapsed = tMs - activeSeg.startMs;
         const remaining = activeSeg.endMs - tMs;
-
-        let alpha = 1;
-        if (lyricsOptions.fadeEnabled) {
-          const fadeMs = lyricsOptions.fadeDurationMs;
-          alpha = Math.min(
-            Math.min(1, elapsed / fadeMs),
-            Math.min(1, remaining / fadeMs),
-          );
-        }
-        let scale = 1;
-        if (lyricsOptions.scaleEnabled) {
-          const scaleMs = lyricsOptions.scaleDurationMs;
-          // ease-out 二乗: SCALE_FROM付近で変化量大、100%付近で変化量小
-          const ce = Math.min(1, elapsed / scaleMs);
-          const cr = Math.min(1, remaining / scaleMs);
-          const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
-          const s0 = lyricsOptions.scaleFrom / 100;
-          scale = s0 + (1 - s0) * t;
-        }
-        let slideY = 0;
-        if (lyricsOptions.slideEnabled) {
-          const slideMs = lyricsOptions.slideDurationMs;
-          // ease-out 二乗: 始点付近で変化量大、正規位置近いと緩やか
-          const ce = Math.min(1, elapsed / slideMs);
-          const cr = Math.min(1, remaining / slideMs);
-          const progress = Math.min(
-            1 - (1 - ce) * (1 - ce),
-            1 - (1 - cr) * (1 - cr),
-          );
-          slideY = lyricsOptions.slideAmount * (1 - progress);
-        }
-        let slideInProgress = 1;
-        let slideOutProgress = 0;
-        if (lyricsOptions.slideInEnabled) {
-          slideInProgress = Math.min(
-            1,
-            elapsed / lyricsOptions.slideInOutDurationMs,
-          );
-        }
-        if (lyricsOptions.slideOutEnabled) {
-          slideOutProgress = Math.max(
-            0,
-            1 - remaining / lyricsOptions.slideInOutDurationMs,
-          );
-        }
-        let blurRadius = 0;
-        if (lyricsOptions.blurEnabled) {
-          const blurMs = lyricsOptions.blurDurationMs;
-          const ce = Math.min(1, elapsed / blurMs);
-          const cr = Math.min(1, remaining / blurMs);
-          // ease-out二乗: 入場ほど強く、表示中は0、退場ほど強く
-          blurRadius =
-            lyricsOptions.blurAmount *
-            Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
-        }
-        let wipeInProgress = 1;
-        let wipeOutProgress = 0;
-        if (lyricsOptions.wipeInEnabled) {
-          wipeInProgress = Math.min(1, elapsed / lyricsOptions.wipeDurationMs);
-        }
-        if (lyricsOptions.wipeOutEnabled) {
-          wipeOutProgress = Math.max(
-            0,
-            1 - remaining / lyricsOptions.wipeDurationMs,
-          );
-        }
-        let bounceInProgress = 1;
-        let bounceOutProgress = 0;
-        if (lyricsOptions.bounceInEnabled) {
-          bounceInProgress = Math.min(
-            1,
-            elapsed / lyricsOptions.bounceInOutDurationMs,
-          );
-        }
-        if (lyricsOptions.bounceOutEnabled) {
-          bounceOutProgress = Math.max(
-            0,
-            1 - remaining / lyricsOptions.bounceInOutDurationMs,
-          );
-        }
         drawSubtitleOnCanvas(
           ctx,
           activeSeg.lyric,
           lyricsOptions,
           cW,
           cH,
-          alpha,
-          scale,
-          slideY,
-          slideInProgress,
-          slideOutProgress,
-          blurRadius,
-          wipeInProgress,
-          wipeOutProgress,
-          bounceInProgress,
-          bounceOutProgress,
+          elapsed,
+          remaining,
         );
       }
     }
