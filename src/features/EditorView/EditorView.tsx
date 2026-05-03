@@ -4,10 +4,12 @@ import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../config/editor";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
+import { SimpleMixMasterService } from "../../services/simpleMixMaster";
 import { SynthesisWorker } from "../../services/synthesis";
 import { useCookieStore } from "../../store/cookieStore";
 import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
+import { cloneMixMasterSettings } from "../../types/mixMaster";
 import { NoteSelectMode } from "../../types/noteSelectMode";
 import {
   generateMp4,
@@ -20,6 +22,7 @@ import {
 } from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
+import { MixMasterDialog } from "./MixMasterDialog/MixMasterDialog";
 import { Pianoroll } from "./Pianoroll/Pianoroll";
 import { PitchPortal } from "./PitchPortal/PitchPortal";
 import { VideoExportDialog } from "./VideoExportDialog/VideoExportDialog";
@@ -30,9 +33,21 @@ export const EditorView: React.FC<{
   checkWorkerReady = CheckWorkerReady, // デフォルト値として元の関数を使用
 }) => {
   const { t } = useTranslation();
-  const { vb, notes, ustFlags, phonemizer, setNote } = useMusicProjectStore();
+  const {
+    vb,
+    notes,
+    ustFlags,
+    phonemizer,
+    setNote,
+    mixMasterSettings,
+    setMixMasterSettings,
+  } = useMusicProjectStore();
   const { defaultNote, playMode, exportMode } = useCookieStore();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
+  const mixMasterService = React.useMemo(
+    () => new SimpleMixMasterService(),
+    [],
+  );
   /**
    * ノートのインデックス一覧
    */
@@ -108,6 +123,16 @@ export const EditorView: React.FC<{
   const [videoExportTotal, setVideoExportTotal] = React.useState<
     number | undefined
   >(undefined);
+  const [mixMasterDialogOpen, setMixMasterDialogOpen] =
+    React.useState<boolean>(false);
+  const [mixMasterTarget, setMixMasterTarget] = React.useState<
+    "play" | "download" | "movie"
+  >("play");
+  const [mixMasterVocalBuf, setMixMasterVocalBuf] =
+    React.useState<ArrayBuffer | null>(null);
+  const [mixPreviewUrl, setMixPreviewUrl] = React.useState<string>();
+  const [mixDialogBusy, setMixDialogBusy] = React.useState<boolean>(false);
+  const mixPreviewUrlRef = React.useRef<string | undefined>(undefined);
 
   const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -279,6 +304,178 @@ export const EditorView: React.FC<{
     }
   };
 
+  const synthesisVocalBuffer = async (): Promise<ArrayBuffer | undefined> => {
+    if (!synthesisWorker.isReady) {
+      LOG.error("エンジンが起動していません", "EditorView");
+      synthesisWorker.reload();
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.workerError"));
+      snackBarStore.setOpen(true);
+      return undefined;
+    }
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    setSynthesisProgress(true);
+    setSynthesisCount(0);
+    try {
+      const wavBuf = await synthesisWorker.synthesis(
+        selectNotesIndex,
+        setSynthesisCount,
+      );
+      return wavBuf;
+    } catch (e) {
+      LOG.error(`合成処理の失敗。${e.message}\n${e.stack}`, "EditorView");
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.synthesisError"));
+      snackBarStore.setOpen(true);
+      return undefined;
+    } finally {
+      setSynthesisProgress(false);
+    }
+  };
+
+  const getMasterBackground = React.useCallback(() => {
+    if (!backgroundAudioWav || backgroundMuted) {
+      return undefined;
+    }
+    const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
+    return {
+      wav: backgroundAudioWav,
+      offsetMs: realOffsetMs,
+    };
+  }, [
+    backgroundAudioWav,
+    backgroundMuted,
+    getAudioTimeOffset,
+    backgroundOffsetMs,
+  ]);
+
+  const buildMixMasterBuffer = React.useCallback(
+    (vocalBuf: ArrayBuffer) => {
+      const vocalWav = new Wave(vocalBuf);
+      const background = getMasterBackground();
+      return mixMasterService.process({
+        vocalWav,
+        backgroundWav: background?.wav,
+        offsetMs: background?.offsetMs ?? 0,
+        extendToBackground: selectNotesIndex.length === 0,
+        settings: mixMasterSettings,
+      });
+    },
+    [
+      mixMasterService,
+      getMasterBackground,
+      selectNotesIndex,
+      mixMasterSettings,
+    ],
+  );
+
+  const replaceMixPreviewUrl = React.useCallback((nextUrl?: string) => {
+    if (mixPreviewUrlRef.current) {
+      URL.revokeObjectURL(mixPreviewUrlRef.current);
+    }
+    mixPreviewUrlRef.current = nextUrl;
+    setMixPreviewUrl(nextUrl);
+  }, []);
+
+  const generateMixPreview = React.useCallback(
+    (vocalBuf: ArrayBuffer): string => {
+      const mixedBuf = buildMixMasterBuffer(vocalBuf);
+      return URL.createObjectURL(
+        new File([mixedBuf], "preview.wav", { type: "audio/wav" }),
+      );
+    },
+    [buildMixMasterBuffer],
+  );
+
+  const generateRawVocalPreview = React.useCallback((vocalBuf: ArrayBuffer) => {
+    return URL.createObjectURL(
+      new File([vocalBuf], "preview-vocal.wav", { type: "audio/wav" }),
+    );
+  }, []);
+
+  const openMixMasterFlow = async (target: "play" | "download" | "movie") => {
+    const vocalBuf = await synthesisVocalBuffer();
+    if (!vocalBuf) {
+      return;
+    }
+    setMixDialogBusy(true);
+    setMixMasterTarget(target);
+    setMixMasterVocalBuf(vocalBuf);
+    replaceMixPreviewUrl(undefined);
+    setMixMasterDialogOpen(true);
+    try {
+      const previewUrl = generateMixPreview(vocalBuf);
+      replaceMixPreviewUrl(previewUrl);
+    } catch (e) {
+      LOG.error(`プレビュー生成失敗。${e.message}\n${e.stack}`, "EditorView");
+      const fallbackUrl = generateRawVocalPreview(vocalBuf);
+      replaceMixPreviewUrl(fallbackUrl);
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.synthesisError"));
+      snackBarStore.setOpen(true);
+    } finally {
+      setMixDialogBusy(false);
+    }
+  };
+
+  const handleMixPreview = async () => {
+    if (!mixMasterVocalBuf) return;
+    setMixDialogBusy(true);
+    try {
+      const previewUrl = generateMixPreview(mixMasterVocalBuf);
+      replaceMixPreviewUrl(previewUrl);
+    } catch (e) {
+      LOG.error(`プレビュー生成失敗。${e.message}\n${e.stack}`, "EditorView");
+      const fallbackUrl = generateRawVocalPreview(mixMasterVocalBuf);
+      replaceMixPreviewUrl(fallbackUrl);
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.synthesisError"));
+      snackBarStore.setOpen(true);
+    } finally {
+      setMixDialogBusy(false);
+    }
+  };
+
+  const handleMixConfirm = async () => {
+    if (!mixMasterVocalBuf) return;
+    setMixDialogBusy(true);
+    try {
+      const mixedBuf = buildMixMasterBuffer(mixMasterVocalBuf);
+      if (mixMasterTarget === "play") {
+        const url = URL.createObjectURL(
+          new File([mixedBuf], "temp.wav", { type: "audio/wav" }),
+        );
+        setWavUrl(url);
+        setPlayReady(true);
+      } else if (mixMasterTarget === "download") {
+        const dataUrl = URL.createObjectURL(
+          new File([mixedBuf], "output.wav", { type: "audio/wav" }),
+        );
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "output.wav";
+        a.click();
+      } else {
+        movieWavBufRef.current = mixedBuf;
+        setMovieExportDialogOpen(true);
+      }
+      setMixMasterDialogOpen(false);
+      setMixMasterVocalBuf(null);
+      replaceMixPreviewUrl(undefined);
+    } catch (e) {
+      LOG.error(`マスタリング確定失敗。${e.message}\n${e.stack}`, "EditorView");
+      snackBarStore.setSeverity("error");
+      snackBarStore.setValue(t("editor.synthesisError"));
+      snackBarStore.setOpen(true);
+    } finally {
+      setMixDialogBusy(false);
+    }
+  };
+
   /**
    * 動画エクスポートを実行する処理
    * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
@@ -357,95 +554,22 @@ export const EditorView: React.FC<{
     }
     setPlayReady(false);
 
-    // movieモード: 先に音声合成してから画像選択ダイアログを開く
     if (exportMode === "movie") {
-      if (!synthesisWorker.isReady) {
-        LOG.error("エンジンが起動していません", "EditorView");
-        synthesisWorker.reload();
-        snackBarStore.setSeverity("error");
-        snackBarStore.setValue(t("editor.workerError"));
-        snackBarStore.setOpen(true);
-        return;
-      }
-      LOG.info("動画用音声合成開始", "EditorView");
-      setSynthesisProgress(true);
-      setSynthesisCount(0);
-      try {
-        let wavBuf: ArrayBuffer | undefined;
-        if (backgroundAudioWav) {
-          const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
-          const backgroundAudio = {
-            wav: backgroundAudioWav,
-            offsetMs: realOffsetMs,
-            volume: backgroundVolume,
-            mute: backgroundMuted,
-          };
-          wavBuf = await synthesisWorker.synthesisAndMaster(
-            selectNotesIndex,
-            setSynthesisCount,
-            backgroundAudio,
-          );
-        } else {
-          wavBuf = await synthesisWorker.synthesis(
-            selectNotesIndex,
-            setSynthesisCount,
-          );
-        }
-        if (wavBuf === undefined) {
-          setSynthesisProgress(false);
-          return;
-        }
-        movieWavBufRef.current = wavBuf;
-        setSynthesisProgress(false);
-        setMovieExportDialogOpen(true);
-      } catch (e) {
-        setSynthesisProgress(false);
-        LOG.error(
-          `動画用音声合成の失敗。${e.message}\n${e.stack}`,
-          "EditorView",
-        );
-        snackBarStore.setSeverity("error");
-        snackBarStore.setValue(t("editor.synthesisError"));
-        snackBarStore.setOpen(true);
-      }
+      await openMixMasterFlow("movie");
       return;
     }
 
     let dataUrl: string | undefined;
 
-    if (exportMode === "master" && backgroundAudioWav) {
-      /**
-       * masterモード: synthesisAndMasterを使って伴奏とボーカルをミックスしてダウンロード
-       */
-      setSynthesisProgress(true);
-      setSynthesisCount(0);
-      const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
-      const backgroundAudio = {
-        wav: backgroundAudioWav,
-        offsetMs: realOffsetMs,
-        volume: backgroundVolume,
-        mute: backgroundMuted,
-      };
-      const wavBuf = await synthesisWorker.synthesisAndMaster(
-        selectNotesIndex,
-        setSynthesisCount,
-        backgroundAudio,
-      );
-      setSynthesisProgress(false);
-      if (wavBuf !== undefined) {
-        dataUrl = URL.createObjectURL(
-          new File([wavBuf], "temp.wav", { type: "audio/wav" }),
-        );
-      }
+    if (exportMode === "master") {
+      await openMixMasterFlow("download");
+      return;
     } else {
       /**
-       * vocalモード: backgroundAudioを無視した生成
-       * wavUrlは伴奏入りオーディオの場合があるため、backgroundAudioWavが存在する場合は再合成を行う。
-       * backgroundAudioWavが存在しない場合は、キャッシュされたwavUrlを利用するが、wavUrlが未生成の場合は再合成を行う。
+       * vocalモードは常に無加工vocalを再合成して出力する。
+       * 既存wavUrlはmaster処理結果が含まれる可能性があるため使わない。
        */
-      dataUrl = !backgroundAudioWav
-        ? (wavUrl ?? (await synthesis()))
-        : await synthesis();
+      dataUrl = await synthesis();
       setSynthesisProgress(false);
     }
 
@@ -471,34 +595,17 @@ export const EditorView: React.FC<{
       return;
     }
     LOG.gtag("play", { playName: vb.name });
+    if (playMode === "master") {
+      await openMixMasterFlow("play");
+      return;
+    }
     if (wavUrl !== undefined) {
       LOG.info("再生開始", "EditorView");
       setPlaying(true);
       audioRef.current.play();
     } else {
       setPlayReady(true);
-      if (playMode === "master" && backgroundAudioWav) {
-        const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
-        const backgroundAudio = {
-          wav: backgroundAudioWav,
-          offsetMs: realOffsetMs,
-          volume: backgroundVolume,
-          mute: backgroundMuted,
-        };
-        // masterモード: mixAndMasterを使用して伴奏とボーカルをミックス
-        const wavBuf = await synthesisWorker.synthesisAndMaster(
-          selectNotesIndex,
-          setSynthesisCount,
-          backgroundAudio,
-        );
-        if (wavBuf !== undefined) {
-          const wavUrl_ = URL.createObjectURL(
-            new File([wavBuf], "temp.wav", { type: "audio/wav" }),
-          );
-          setWavUrl(wavUrl_);
-        }
-        setSynthesisProgress(false);
-      } else if (backgroundAudioWav) {
+      if (backgroundAudioWav) {
         const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
         await synthesis({
           wav: backgroundAudioWav,
@@ -506,11 +613,10 @@ export const EditorView: React.FC<{
           volume: backgroundVolume,
           mute: backgroundMuted,
         });
-        setSynthesisProgress(false);
       } else {
         await synthesis();
-        setSynthesisProgress(false);
       }
+      setSynthesisProgress(false);
     }
   };
 
@@ -571,6 +677,19 @@ export const EditorView: React.FC<{
     LOG.debug("exportModeの変更を検知。wavUrlをクリア", "EditorView");
     setWavUrl(undefined);
   }, [exportMode]);
+
+  React.useEffect(() => {
+    LOG.debug("mixMasterSettingsの変更を検知。wavUrlをクリア", "EditorView");
+    setWavUrl(undefined);
+  }, [mixMasterSettings]);
+
+  React.useEffect(() => {
+    return () => {
+      if (mixPreviewUrlRef.current) {
+        URL.revokeObjectURL(mixPreviewUrlRef.current);
+      }
+    };
+  }, []);
 
   /** 現在選択中のノート部分に対して、伴奏のみを再生する処理 */
   const playBackgroundAudio = () => {
@@ -741,6 +860,22 @@ export const EditorView: React.FC<{
           ></audio>
         </>
       )}
+      <MixMasterDialog
+        open={mixMasterDialogOpen}
+        settings={mixMasterSettings}
+        previewUrl={mixPreviewUrl}
+        loading={mixDialogBusy}
+        onClose={() => {
+          setMixMasterDialogOpen(false);
+          setMixMasterVocalBuf(null);
+          replaceMixPreviewUrl(undefined);
+        }}
+        onChange={(settings) =>
+          setMixMasterSettings(cloneMixMasterSettings(settings))
+        }
+        onPreview={handleMixPreview}
+        onConfirm={handleMixConfirm}
+      />
       <VideoExportDialog
         open={movieExportDialogOpen}
         onClose={() => setMovieExportDialogOpen(false)}

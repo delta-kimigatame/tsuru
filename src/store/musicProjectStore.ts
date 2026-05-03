@@ -1,10 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { defaultMixMasterSettings } from "../config/mixMaster";
 import { BasePhonemizer } from "../lib/BasePhonemizer";
 import { dumpNotes, Note } from "../lib/Note";
 import { JPCVorVCVPhonemizer } from "../lib/Phonemizer/JPCVorVCVPhonemizer";
 import { Ust } from "../lib/Ust";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
+import {
+  cloneMixMasterSettings,
+  SimpleMixMasterSettings,
+} from "../types/mixMaster";
 
 /**
  * MusicProjectStore
@@ -52,6 +57,9 @@ interface MusicProjectStore {
 
   /** 立ち絵表示有無 */
   isShowPortrait: boolean;
+
+  /** 簡易mix/マスタリング設定 */
+  mixMasterSettings: SimpleMixMasterSettings;
 
   /**
    * 楽譜を設定する
@@ -112,6 +120,8 @@ interface MusicProjectStore {
 
   setIsShowPortrait: (isShow: boolean) => void;
 
+  setMixMasterSettings: (settings: SimpleMixMasterSettings) => void;
+
   clearUst: () => void;
 }
 
@@ -131,6 +141,7 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       tone: 0,
       isMinor: false,
       isShowPortrait: true,
+      mixMasterSettings: cloneMixMasterSettings(defaultMixMasterSettings),
       setUst: (ust) => set({ ust }),
       setVb: (vb) => set({ vb }),
 
@@ -250,6 +261,8 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
       setTone: (tone) => set({ tone }),
       setIsMinor: (isMinor) => set({ isMinor }),
       setIsShowPortrait: (isShow) => set({ isShowPortrait: isShow }),
+      setMixMasterSettings: (settings) =>
+        set({ mixMasterSettings: cloneMixMasterSettings(settings) }),
       clearUst: () =>
         set((state) => {
           return { notes: [], ustTempo: 120, ustFlags: "", ust: null };
