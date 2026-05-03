@@ -8,6 +8,7 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { useCookieStore } from "../../../store/cookieStore";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { NoteSelectMode } from "../../../types/noteSelectMode";
 import { LyricTextBox } from "../LyricTextBox";
 import { NoteMenu } from "../NoteMenu/NoteMenu";
 import { PianorollBackground } from "./PianorollBackground";
@@ -152,7 +153,7 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         props.playingMs -
           (notesLeftMs[targetNotesIndex] - notesLeftMs[targetNotesIndexOffset]),
         notes[targetNotesIndex].tempo,
-        horizontalZoom
+        horizontalZoom,
       );
 
     /** 自動スクロール */
@@ -165,9 +166,9 @@ export const Pianoroll: React.FC<PianorollProps> = (props) => {
         Math.min(
           x - containerRef.current.clientWidth / 2,
           containerRef.current.scrollWidth -
-            containerRef.current.clientWidth / 2
+            containerRef.current.clientWidth / 2,
         ),
-        containerRef.current.scrollTop
+        containerRef.current.scrollTop,
       );
     }
     setSeekBarX(x);

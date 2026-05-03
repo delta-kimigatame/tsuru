@@ -17,6 +17,13 @@ export interface UsePianorollTouchReturn {
   setStartIndex: (index: number | undefined) => void;
 }
 
+export interface UsePianorollTouchOptions {
+  selectMode: NoteSelectMode;
+  holdThreshold?: number;
+  onTap?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
+  onHold?: (coords: { x: number; y: number }, svgPoint: DOMPoint) => void;
+}
+
 export const usePianorollTouch = (
   options: UsePianorollTouchOptions,
 ): UsePianorollTouchReturn => {

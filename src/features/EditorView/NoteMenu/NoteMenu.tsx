@@ -6,6 +6,7 @@ import { useWindowSize } from "../../../hooks/useWindowSize";
 import { LOG } from "../../../lib/Logging";
 import { Note } from "../../../lib/Note";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
+import { NoteSelectMode } from "../../../types/noteSelectMode";
 import { EnvelopeDialog } from "../EnvelopeDialog/EnvelopeDialog";
 import { NoteDividerDialog } from "../NoteDividerDialog";
 import { NotePasteDialog } from "../NotePasteDialog";
@@ -51,7 +52,7 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
 
   const [aliasValue, setAliasValue] = React.useState<string>("");
   const [lengthValue, setLengthValue] = React.useState<number>(
-    notes[props.selectedNotesIndex[0]]?.length ?? 480
+    notes[props.selectedNotesIndex[0]]?.length ?? 480,
   );
   /**
    * メニューを閉じる動作
@@ -247,7 +248,7 @@ export const NoteMenu: React.FC<NoteMenuProps> = (props) => {
  */
 export const getTargetNotes = (
   notes: Note[],
-  selectedNotesIndex?: number[]
+  selectedNotesIndex?: number[],
 ): Note[] => {
   const targetNotes =
     selectedNotesIndex.length > 0
