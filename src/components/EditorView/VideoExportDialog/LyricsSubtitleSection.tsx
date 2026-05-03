@@ -1,8 +1,8 @@
 import CallSplitIcon from "@mui/icons-material/CallSplit";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MergeIcon from "@mui/icons-material/MergeType";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
   AccordionDetails,
@@ -368,741 +368,836 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
           />
 
           {/* 文字装飾 Accordion */}
-          <Accordion disableGutters defaultExpanded={false}
-            sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider", borderRadius: 1, "&:before": { display: "none" } }}>
+          <Accordion
+            disableGutters
+            defaultExpanded={false}
+            sx={{
+              boxShadow: "none",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              "&:before": { display: "none" },
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="body2">{t("editor.videoExport.lyricsDecoration")}</Typography>
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsDecoration")}
+              </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}>
-
-          {/* シャドウ */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={shadowEnabled}
-                onChange={(e) => onShadowEnabledChange(e.target.checked)}
-              />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsShadow")}
-              </Typography>
-            }
-          />
-          <Collapse in={shadowEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            <AccordionDetails
+              sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="caption" sx={{ flex: 1 }}>
-                  {t("editor.videoExport.lyricsShadowColor")}
-                </Typography>
+              {/* シャドウ */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={shadowEnabled}
+                    onChange={(e) => onShadowEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsShadow")}
+                  </Typography>
+                }
+              />
+              <Collapse in={shadowEnabled} unmountOnExit>
                 <Box
-                  component="input"
-                  type="color"
-                  value={shadowColor}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    onShadowColorChange(e.target.value)
-                  }
                   sx={{
-                    width: 32,
-                    height: 28,
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    borderRadius: 0.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
                   }}
-                />
-              </Box>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsShadowBlur")}
-                value={shadowBlur}
-                onChange={onShadowBlurChange}
-                min={LYRICS_SHADOW_BLUR_MIN}
-                max={LYRICS_SHADOW_BLUR_MAX}
-                unit="px"
-                valueMinWidth={34}
-              />
-            </Box>
-          </Collapse>
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="caption" sx={{ flex: 1 }}>
+                      {t("editor.videoExport.lyricsShadowColor")}
+                    </Typography>
+                    <Box
+                      component="input"
+                      type="color"
+                      value={shadowColor}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onShadowColorChange(e.target.value)
+                      }
+                      sx={{
+                        width: 32,
+                        height: 28,
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        borderRadius: 0.5,
+                      }}
+                    />
+                  </Box>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsShadowBlur")}
+                    value={shadowBlur}
+                    onChange={onShadowBlurChange}
+                    min={LYRICS_SHADOW_BLUR_MIN}
+                    max={LYRICS_SHADOW_BLUR_MAX}
+                    unit="px"
+                    valueMinWidth={34}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* 縁取り */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={strokeEnabled}
-                onChange={(e) => onStrokeEnabledChange(e.target.checked)}
+              {/* 縁取り */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={strokeEnabled}
+                    onChange={(e) => onStrokeEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsStroke")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsStroke")}
-              </Typography>
-            }
-          />
-          <Collapse in={strokeEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="caption" sx={{ flex: 1 }}>
-                  {t("editor.videoExport.lyricsStrokeColor")}
-                </Typography>
+              <Collapse in={strokeEnabled} unmountOnExit>
                 <Box
-                  component="input"
-                  type="color"
-                  value={strokeColor}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    onStrokeColorChange(e.target.value)
-                  }
                   sx={{
-                    width: 32,
-                    height: 28,
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    borderRadius: 0.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
                   }}
-                />
-              </Box>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsStrokeWidth")}
-                value={strokeWidth}
-                onChange={onStrokeWidthChange}
-                min={LYRICS_STROKE_WIDTH_MIN}
-                max={LYRICS_STROKE_WIDTH_MAX}
-                unit="px"
-                valueMinWidth={34}
-              />
-            </Box>
-          </Collapse>
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="caption" sx={{ flex: 1 }}>
+                      {t("editor.videoExport.lyricsStrokeColor")}
+                    </Typography>
+                    <Box
+                      component="input"
+                      type="color"
+                      value={strokeColor}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onStrokeColorChange(e.target.value)
+                      }
+                      sx={{
+                        width: 32,
+                        height: 28,
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        borderRadius: 0.5,
+                      }}
+                    />
+                  </Box>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsStrokeWidth")}
+                    value={strokeWidth}
+                    onChange={onStrokeWidthChange}
+                    min={LYRICS_STROKE_WIDTH_MIN}
+                    max={LYRICS_STROKE_WIDTH_MAX}
+                    unit="px"
+                    valueMinWidth={34}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* 背景バー */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bgBarEnabled}
-                onChange={(e) => onBgBarEnabledChange(e.target.checked)}
+              {/* 背景バー */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={bgBarEnabled}
+                    onChange={(e) => onBgBarEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsBgBar")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsBgBar")}
-              </Typography>
-            }
-          />
-          <Collapse in={bgBarEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="caption" sx={{ flex: 1 }}>
-                  {t("editor.videoExport.lyricsBgBarColor")}
-                </Typography>
+              <Collapse in={bgBarEnabled} unmountOnExit>
                 <Box
-                  component="input"
-                  type="color"
-                  value={bgBarColor}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    onBgBarColorChange(e.target.value)
-                  }
                   sx={{
-                    width: 32,
-                    height: 28,
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    borderRadius: 0.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
                   }}
-                />
-              </Box>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsBgBarOpacity")}
-                value={bgBarOpacity}
-                onChange={onBgBarOpacityChange}
-                min={0}
-                max={100}
-                unit="%"
-                valueMinWidth={34}
-              />
-            </Box>
-          </Collapse>
-
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="caption" sx={{ flex: 1 }}>
+                      {t("editor.videoExport.lyricsBgBarColor")}
+                    </Typography>
+                    <Box
+                      component="input"
+                      type="color"
+                      value={bgBarColor}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onBgBarColorChange(e.target.value)
+                      }
+                      sx={{
+                        width: 32,
+                        height: 28,
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        borderRadius: 0.5,
+                      }}
+                    />
+                  </Box>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsBgBarOpacity")}
+                    value={bgBarOpacity}
+                    onChange={onBgBarOpacityChange}
+                    min={0}
+                    max={100}
+                    unit="%"
+                    valueMinWidth={34}
+                  />
+                </Box>
+              </Collapse>
             </AccordionDetails>
           </Accordion>
 
           {/* アニメーション Accordion */}
-          <Accordion disableGutters defaultExpanded={false}
-            sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider", borderRadius: 1, "&:before": { display: "none" } }}>
+          <Accordion
+            disableGutters
+            defaultExpanded={false}
+            sx={{
+              boxShadow: "none",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              "&:before": { display: "none" },
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ pr: 1 }}>
               <Typography variant="body2" sx={{ flex: 1 }}>
                 {t("editor.videoExport.lyricsAnimations")}
               </Typography>
-              <Tooltip title={isAnimPreviewPlaying
-                ? t("editor.videoExport.lyricsAnimPreviewStop")
-                : t("editor.videoExport.lyricsAnimPreviewPlay")}>
+              <Tooltip
+                title={
+                  isAnimPreviewPlaying
+                    ? t("editor.videoExport.lyricsAnimPreviewStop")
+                    : t("editor.videoExport.lyricsAnimPreviewPlay")
+                }
+              >
                 <IconButton
                   size="small"
                   onClick={(e) => {
                     e.stopPropagation();
-                    isAnimPreviewPlaying ? onStopAnimPreview() : onStartAnimPreview();
+                    isAnimPreviewPlaying
+                      ? onStopAnimPreview()
+                      : onStartAnimPreview();
                   }}
                   sx={{ mr: 0.5 }}
                 >
-                  {isAnimPreviewPlaying ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                  {isAnimPreviewPlaying ? (
+                    <StopIcon fontSize="small" />
+                  ) : (
+                    <PlayArrowIcon fontSize="small" />
+                  )}
                 </IconButton>
               </Tooltip>
             </AccordionSummary>
-            <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}>
-
-          {/* フェードイン/アウト */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={fadeEnabled}
-                onChange={(e) => onFadeEnabledChange(e.target.checked)}
-              />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsFade")}
-              </Typography>
-            }
-          />
-          <Collapse in={fadeEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            <AccordionDetails
+              sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
             >
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsFadeDuration")}
-                value={fadeDurationMs}
-                onChange={onFadeDurationMsChange}
-                min={LYRICS_FADE_DURATION_MS_MIN}
-                max={LYRICS_FADE_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
+              {/* フェードイン/アウト */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={fadeEnabled}
+                    onChange={(e) => onFadeEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsFade")}
+                  </Typography>
+                }
               />
-            </Box>
-          </Collapse>
+              <Collapse in={fadeEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsFadeDuration")}
+                    value={fadeDurationMs}
+                    onChange={onFadeDurationMsChange}
+                    min={LYRICS_FADE_DURATION_MS_MIN}
+                    max={LYRICS_FADE_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* スケール登場/退場 */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={scaleEnabled}
-                onChange={(e) => onScaleEnabledChange(e.target.checked)}
+              {/* スケール登場/退場 */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={scaleEnabled}
+                    onChange={(e) => onScaleEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsScale")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsScale")}
-              </Typography>
-            }
-          />
-          <Collapse in={scaleEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsScaleFrom")}
-                value={scaleFrom}
-                onChange={onScaleFromChange}
-                min={LYRICS_SCALE_FROM_MIN}
-                max={LYRICS_SCALE_FROM_MAX}
-                unit="%"
-                valueMinWidth={44}
-              />
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsScaleDuration")}
-                value={scaleDurationMs}
-                onChange={onScaleDurationMsChange}
-                min={LYRICS_SCALE_DURATION_MS_MIN}
-                max={LYRICS_SCALE_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              <Collapse in={scaleEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsScaleFrom")}
+                    value={scaleFrom}
+                    onChange={onScaleFromChange}
+                    min={LYRICS_SCALE_FROM_MIN}
+                    max={LYRICS_SCALE_FROM_MAX}
+                    unit="%"
+                    valueMinWidth={44}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsScaleDuration")}
+                    value={scaleDurationMs}
+                    onChange={onScaleDurationMsChange}
+                    min={LYRICS_SCALE_DURATION_MS_MIN}
+                    max={LYRICS_SCALE_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* スライド登場/退場 */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={slideEnabled}
-                onChange={(e) => onSlideEnabledChange(e.target.checked)}
+              {/* スライド登場/退場 */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={slideEnabled}
+                    onChange={(e) => onSlideEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsSlide")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsSlide")}
-              </Typography>
-            }
-          />
-          <Collapse in={slideEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsSlideAmount")}
-                value={slideAmount}
-                onChange={onSlideAmountChange}
-                min={LYRICS_SLIDE_AMOUNT_MIN}
-                max={LYRICS_SLIDE_AMOUNT_MAX}
-                unit="px"
-                valueMinWidth={44}
-              />
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsSlideDuration")}
-                value={slideDurationMs}
-                onChange={onSlideDurationMsChange}
-                min={LYRICS_SLIDE_DURATION_MS_MIN}
-                max={LYRICS_SLIDE_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              <Collapse in={slideEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsSlideAmount")}
+                    value={slideAmount}
+                    onChange={onSlideAmountChange}
+                    min={LYRICS_SLIDE_AMOUNT_MIN}
+                    max={LYRICS_SLIDE_AMOUNT_MAX}
+                    unit="px"
+                    valueMinWidth={44}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsSlideDuration")}
+                    value={slideDurationMs}
+                    onChange={onSlideDurationMsChange}
+                    min={LYRICS_SLIDE_DURATION_MS_MIN}
+                    max={LYRICS_SLIDE_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* スライドイン (入場方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={slideInEnabled}
-                onChange={(e) => onSlideInEnabledChange(e.target.checked)}
+              {/* スライドイン (入場方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={slideInEnabled}
+                    onChange={(e) => onSlideInEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsSlideIn")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsSlideIn")}
-              </Typography>
-            }
-          />
-          <Collapse in={slideInEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={slideInDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onSlideInDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={slideInEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={slideInDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onSlideInDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* スライドアウト (退場方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={slideOutEnabled}
-                onChange={(e) => onSlideOutEnabledChange(e.target.checked)}
+              {/* スライドアウト (退場方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={slideOutEnabled}
+                    onChange={(e) => onSlideOutEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsSlideOut")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsSlideOut")}
-              </Typography>
-            }
-          />
-          <Collapse in={slideOutEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={slideOutDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onSlideOutDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={slideOutEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={slideOutDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onSlideOutDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* スライドイン/アウト共通時間 */}
-          <Collapse in={slideInEnabled || slideOutEnabled} unmountOnExit>
-            <Box sx={{ pl: 1 }}>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsSlideInOutDuration")}
-                value={slideInOutDurationMs}
-                onChange={onSlideInOutDurationMsChange}
-                min={LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN}
-                max={LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              {/* スライドイン/アウト共通時間 */}
+              <Collapse in={slideInEnabled || slideOutEnabled} unmountOnExit>
+                <Box sx={{ pl: 1 }}>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsSlideInOutDuration")}
+                    value={slideInOutDurationMs}
+                    onChange={onSlideInOutDurationMsChange}
+                    min={LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN}
+                    max={LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* ブラーイン/ブラーアウト */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={blurEnabled}
-                onChange={(e) => onBlurEnabledChange(e.target.checked)}
+              {/* ブラーイン/ブラーアウト */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={blurEnabled}
+                    onChange={(e) => onBlurEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsBlur")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsBlur")}
-              </Typography>
-            }
-          />
-          <Collapse in={blurEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsBlurAmount")}
-                value={blurAmount}
-                onChange={onBlurAmountChange}
-                min={LYRICS_BLUR_AMOUNT_MIN}
-                max={LYRICS_BLUR_AMOUNT_MAX}
-                unit="px"
-                valueMinWidth={44}
-              />
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsBlurDuration")}
-                value={blurDurationMs}
-                onChange={onBlurDurationMsChange}
-                min={LYRICS_BLUR_DURATION_MS_MIN}
-                max={LYRICS_BLUR_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              <Collapse in={blurEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsBlurAmount")}
+                    value={blurAmount}
+                    onChange={onBlurAmountChange}
+                    min={LYRICS_BLUR_AMOUNT_MIN}
+                    max={LYRICS_BLUR_AMOUNT_MAX}
+                    unit="px"
+                    valueMinWidth={44}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsBlurDuration")}
+                    value={blurDurationMs}
+                    onChange={onBlurDurationMsChange}
+                    min={LYRICS_BLUR_DURATION_MS_MIN}
+                    max={LYRICS_BLUR_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* ワイプイン (出現方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={wipeInEnabled}
-                onChange={(e) => onWipeInEnabledChange(e.target.checked)}
+              {/* ワイプイン (出現方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={wipeInEnabled}
+                    onChange={(e) => onWipeInEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsWipeIn")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsWipeIn")}
-              </Typography>
-            }
-          />
-          <Collapse in={wipeInEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={wipeInDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onWipeInDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={wipeInEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={wipeInDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onWipeInDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* ワイプアウト (退場方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={wipeOutEnabled}
-                onChange={(e) => onWipeOutEnabledChange(e.target.checked)}
+              {/* ワイプアウト (退場方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={wipeOutEnabled}
+                    onChange={(e) => onWipeOutEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsWipeOut")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsWipeOut")}
-              </Typography>
-            }
-          />
-          <Collapse in={wipeOutEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={wipeOutDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onWipeOutDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={wipeOutEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={wipeOutDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onWipeOutDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* ワイプ共通時間 */}
-          <Collapse in={wipeInEnabled || wipeOutEnabled} unmountOnExit>
-            <Box sx={{ pl: 1 }}>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsWipeDuration")}
-                value={wipeDurationMs}
-                onChange={onWipeDurationMsChange}
-                min={LYRICS_WIPE_DURATION_MS_MIN}
-                max={LYRICS_WIPE_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              {/* ワイプ共通時間 */}
+              <Collapse in={wipeInEnabled || wipeOutEnabled} unmountOnExit>
+                <Box sx={{ pl: 1 }}>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsWipeDuration")}
+                    value={wipeDurationMs}
+                    onChange={onWipeDurationMsChange}
+                    min={LYRICS_WIPE_DURATION_MS_MIN}
+                    max={LYRICS_WIPE_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* バウンスイン (入場方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bounceInEnabled}
-                onChange={(e) => onBounceInEnabledChange(e.target.checked)}
+              {/* バウンスイン (入場方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={bounceInEnabled}
+                    onChange={(e) => onBounceInEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsBounceIn")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsBounceIn")}
-              </Typography>
-            }
-          />
-          <Collapse in={bounceInEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={bounceInDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onBounceInDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={bounceInEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={bounceInDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onBounceInDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* バウンスアウト (退場方向) */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bounceOutEnabled}
-                onChange={(e) => onBounceOutEnabledChange(e.target.checked)}
+              {/* バウンスアウト (退場方向) */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={bounceOutEnabled}
+                    onChange={(e) => onBounceOutEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.lyricsBounceOut")}
+                  </Typography>
+                }
               />
-            }
-            label={
-              <Typography variant="body2">
-                {t("editor.videoExport.lyricsBounceOut")}
-              </Typography>
-            }
-          />
-          <Collapse in={bounceOutEnabled} unmountOnExit>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
-            >
-              <Typography variant="caption" color="text.secondary">
-                {t("editor.videoExport.lyricsSlideDirection")}
-              </Typography>
-              <ToggleButtonGroup
-                value={bounceOutDirection}
-                exclusive
-                size="small"
-                onChange={(_e, v: SlideDirection | null) => {
-                  if (v !== null) onBounceOutDirectionChange(v);
-                }}
-              >
-                <ToggleButton value="up">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideUp")}
+              <Collapse in={bounceOutEnabled} unmountOnExit>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    pl: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {t("editor.videoExport.lyricsSlideDirection")}
                   </Typography>
-                </ToggleButton>
-                <ToggleButton value="down">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideDown")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="left">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideLeft")}
-                  </Typography>
-                </ToggleButton>
-                <ToggleButton value="right">
-                  <Typography variant="caption">
-                    {t("editor.videoExport.lyricsSlideRight")}
-                  </Typography>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Collapse>
+                  <ToggleButtonGroup
+                    value={bounceOutDirection}
+                    exclusive
+                    size="small"
+                    onChange={(_e, v: SlideDirection | null) => {
+                      if (v !== null) onBounceOutDirectionChange(v);
+                    }}
+                  >
+                    <ToggleButton value="up">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideUp")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="down">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideDown")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="left">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideLeft")}
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton value="right">
+                      <Typography variant="caption">
+                        {t("editor.videoExport.lyricsSlideRight")}
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Collapse>
 
-          {/* バウンス共通時間 */}
-          <Collapse in={bounceInEnabled || bounceOutEnabled} unmountOnExit>
-            <Box sx={{ pl: 1 }}>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsBounceDuration")}
-                value={bounceInOutDurationMs}
-                onChange={onBounceInOutDurationMsChange}
-                min={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN}
-                max={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX}
-                unit="ms"
-                valueMinWidth={44}
-              />
-            </Box>
-          </Collapse>
+              {/* バウンス共通時間 */}
+              <Collapse in={bounceInEnabled || bounceOutEnabled} unmountOnExit>
+                <Box sx={{ pl: 1 }}>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsBounceDuration")}
+                    value={bounceInOutDurationMs}
+                    onChange={onBounceInOutDurationMsChange}
+                    min={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN}
+                    max={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={44}
+                  />
+                </Box>
+              </Collapse>
 
-          {/* スタガー */}
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={staggerEnabled}
-                onChange={(e) => onStaggerEnabledChange(e.target.checked)}
+              {/* スタガー */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={staggerEnabled}
+                    onChange={(e) => onStaggerEnabledChange(e.target.checked)}
+                  />
+                }
+                label={t("editor.videoExport.lyricsStagger")}
               />
-            }
-            label={t("editor.videoExport.lyricsStagger")}
-          />
-          <Collapse in={staggerEnabled} unmountOnExit>
-            <Box sx={{ pl: 1 }}>
-              <LabeledSlider
-                label={t("editor.videoExport.lyricsStaggerInterval")}
-                value={staggerIntervalMs}
-                onChange={onStaggerIntervalMsChange}
-                min={LYRICS_STAGGER_INTERVAL_MS_MIN}
-                max={LYRICS_STAGGER_INTERVAL_MS_MAX}
-                unit="ms"
-                valueMinWidth={36}
-              />
-            </Box>
-          </Collapse>
-
+              <Collapse in={staggerEnabled} unmountOnExit>
+                <Box sx={{ pl: 1 }}>
+                  <LabeledSlider
+                    label={t("editor.videoExport.lyricsStaggerInterval")}
+                    value={staggerIntervalMs}
+                    onChange={onStaggerIntervalMsChange}
+                    min={LYRICS_STAGGER_INTERVAL_MS_MIN}
+                    max={LYRICS_STAGGER_INTERVAL_MS_MAX}
+                    unit="ms"
+                    valueMinWidth={36}
+                  />
+                </Box>
+              </Collapse>
             </AccordionDetails>
           </Accordion>
 

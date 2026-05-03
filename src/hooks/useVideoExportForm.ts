@@ -78,8 +78,8 @@ import {
 import type { Note } from "../lib/Note";
 import {
   FONT_STACK,
-  extractLyricsSegments,
   drawSubtitleOnCanvas,
+  extractLyricsSegments,
   type BgPaddingMode,
   type LyricsOptions,
   type LyricsSegment,
@@ -125,8 +125,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const animPreviewRafRef = React.useRef<number | null>(null);
   const animPreviewStartRef = React.useRef<number | null>(null);
   const animPreviewActiveRef = React.useRef(false);
-  const [isAnimPreviewPlaying, setIsAnimPreviewPlaying] =
-    React.useState(false);
+  const [isAnimPreviewPlaying, setIsAnimPreviewPlaying] = React.useState(false);
 
   // 画像
   const [imageFile, setImageFile] = React.useState<File | null>(null);
