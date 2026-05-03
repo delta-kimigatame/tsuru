@@ -11,6 +11,7 @@ import { useSnackBarStore } from "../../store/snackBarStore";
 import { NoteSelectMode } from "../../types/noteSelectMode";
 import {
   generateMp4,
+  type BackgroundOptions,
   type BgPaddingMode,
   type LyricsOptions,
   type PortraitOptions,
@@ -283,10 +284,10 @@ export const EditorView: React.FC<{
    * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
    */
   const handleVideoExportConfirm = async (
-    imageFile: File,
+    imageFile: File | null,
     resolution: VideoResolution,
+    background: BackgroundOptions,
     bgPaddingMode: BgPaddingMode,
-    bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
@@ -308,8 +309,8 @@ export const EditorView: React.FC<{
         wavBuf,
         imageFile,
         resolution,
+        background,
         bgPaddingMode,
-        bgColor,
         bgImageOpacity,
         portraitOptions,
         mainTextOptions,

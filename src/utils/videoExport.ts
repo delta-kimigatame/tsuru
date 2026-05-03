@@ -31,6 +31,39 @@ export const VIDEO_RESOLUTIONS: VideoResolution[] = [
 export type BgPaddingMode = "color" | "image" | "blur";
 export const BG_PADDING_MODES: BgPaddingMode[] = ["color", "image", "blur"];
 
+export type BackgroundStyle =
+  | "solid"
+  | "dots"
+  | "stars"
+  | "gingham"
+  | "grid"
+  | "stripes"
+  | "diagonalStripes"
+  | "checkerboard"
+  | "diamonds";
+
+export const BACKGROUND_STYLES: BackgroundStyle[] = [
+  "solid",
+  "dots",
+  "stars",
+  "gingham",
+  "grid",
+  "stripes",
+  "diagonalStripes",
+  "checkerboard",
+  "diamonds",
+];
+
+export interface BackgroundOptions {
+  style: BackgroundStyle;
+  primaryColor: string;
+  secondaryColor: string;
+  secondaryOpacity: number;
+  size: number;
+  gap: number;
+  rotation: number;
+}
+
 /** スライドイン/アウトの移動方向 */
 export type SlideDirection = "up" | "down" | "left" | "right";
 
@@ -296,6 +329,274 @@ const VIDEO_CODEC_PRIORITY: VideoCodec[] = ["avc", "vp9", "av1", "vp8"];
  * opus … WebCodecs ネイティブ対応で確実だが iOS Safari での再生は非対応
  */
 const AUDIO_CODEC_PRIORITY: AudioCodec[] = ["aac", "opus"];
+
+const drawStarPath = (
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outerRadius: number,
+  innerRadius: number,
+) => {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const angle = -Math.PI / 2 + (Math.PI / 5) * i;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = cx + Math.cos(angle) * radius;
+    const y = cy + Math.sin(angle) * radius;
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.closePath();
+};
+
+const drawDiamondPath = (
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+) => {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - radius);
+  ctx.lineTo(cx + radius, cy);
+  ctx.lineTo(cx, cy + radius);
+  ctx.lineTo(cx - radius, cy);
+  ctx.closePath();
+};
+
+const fillRectTiled = (
+  ctx: CanvasRenderingContext2D,
+  originX: number,
+  originY: number,
+  width: number,
+  height: number,
+  stepX: number,
+  stepY: number,
+  drawTile: (x: number, y: number, row: number, col: number) => void,
+) => {
+  let row = 0;
+  for (let y = originY; y <= originY + height + stepY; y += stepY) {
+    let col = 0;
+    for (let x = originX; x <= originX + width + stepX; x += stepX) {
+      drawTile(x, y, row, col);
+      col += 1;
+    }
+    row += 1;
+  }
+};
+
+export const drawGeneratedBackground = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  options: BackgroundOptions,
+  scale = 1,
+): void => {
+  const motifSize = Math.max(2, options.size * scale);
+  const gap = Math.max(0, options.gap * scale);
+  const cycle = Math.max(2, motifSize + gap);
+  const secondaryAlpha = Math.min(
+    1,
+    Math.max(0, options.secondaryOpacity / 100),
+  );
+  const rotationRad = (options.rotation * Math.PI) / 180;
+  const rotatedBounds = Math.sqrt(width * width + height * height);
+  const patternWidth = rotationRad === 0 ? width : rotatedBounds;
+  const patternHeight = rotationRad === 0 ? height : rotatedBounds;
+  const originX = rotationRad === 0 ? 0 : -patternWidth / 2;
+  const originY = rotationRad === 0 ? 0 : -patternHeight / 2;
+
+  ctx.save();
+  ctx.fillStyle = options.primaryColor;
+  ctx.fillRect(0, 0, width, height);
+
+  if (options.style === "solid") {
+    ctx.restore();
+    return;
+  }
+
+  ctx.fillStyle = options.secondaryColor;
+  ctx.strokeStyle = options.secondaryColor;
+  ctx.globalAlpha = secondaryAlpha;
+
+  if (rotationRad !== 0) {
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(rotationRad);
+  }
+
+  switch (options.style) {
+    case "dots": {
+      const radius = motifSize / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          ctx.beginPath();
+          ctx.arc(x + offsetX + radius, y + radius, radius, 0, Math.PI * 2);
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "stars": {
+      const outerRadius = motifSize / 2;
+      const innerRadius = outerRadius * 0.45;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          drawStarPath(
+            ctx,
+            x + offsetX + outerRadius,
+            y + outerRadius,
+            outerRadius,
+            innerRadius,
+          );
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "gingham": {
+      const stripe = motifSize;
+      ctx.save();
+      ctx.globalAlpha = secondaryAlpha * 0.6;
+      for (let x = originX; x < originX + patternWidth + stripe; x += cycle) {
+        ctx.fillRect(x, originY, stripe, patternHeight);
+      }
+      for (let y = originY; y < originY + patternHeight + stripe; y += cycle) {
+        ctx.fillRect(originX, y, patternWidth, stripe);
+      }
+      ctx.restore();
+      break;
+    }
+    case "grid": {
+      const lineWidth = Math.max(1, motifSize * 0.14);
+      ctx.lineWidth = lineWidth;
+      for (let x = originX; x <= originX + patternWidth; x += cycle) {
+        ctx.beginPath();
+        ctx.moveTo(x, originY);
+        ctx.lineTo(x, originY + patternHeight);
+        ctx.stroke();
+      }
+      for (let y = originY; y <= originY + patternHeight; y += cycle) {
+        ctx.beginPath();
+        ctx.moveTo(originX, y);
+        ctx.lineTo(originX + patternWidth, y);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "stripes": {
+      for (
+        let y = originY;
+        y < originY + patternHeight + motifSize;
+        y += cycle
+      ) {
+        ctx.fillRect(originX, y, patternWidth, motifSize);
+      }
+      break;
+    }
+    case "diagonalStripes": {
+      ctx.save();
+      ctx.rotate(-Math.PI / 4);
+      for (let y = -patternHeight; y < patternHeight; y += cycle) {
+        ctx.fillRect(-patternWidth, y, patternWidth * 2, motifSize);
+      }
+      ctx.restore();
+      break;
+    }
+    case "checkerboard": {
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row, col) => {
+          if ((row + col) % 2 === 0) {
+            ctx.fillRect(x, y, motifSize, motifSize);
+          }
+        },
+      );
+      break;
+    }
+    case "diamonds": {
+      const radius = motifSize / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          drawDiamondPath(ctx, x + offsetX + radius, y + radius, radius);
+          ctx.fill();
+        },
+      );
+      break;
+    }
+  }
+
+  ctx.restore();
+};
+
+export const drawVideoBackground = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  background: BackgroundOptions,
+  image: HTMLImageElement | null,
+  bgPaddingMode: BgPaddingMode,
+  bgImageOpacity: number,
+  blurPx = 20,
+): void => {
+  drawGeneratedBackground(ctx, width, height, background);
+
+  if (!image) {
+    return;
+  }
+
+  const imgW = image.naturalWidth;
+  const imgH = image.naturalHeight;
+
+  if (bgPaddingMode !== "color") {
+    const bgScale = Math.max(width / imgW, height / imgH);
+    const bgW = imgW * bgScale;
+    const bgH = imgH * bgScale;
+    if (bgPaddingMode === "blur") {
+      ctx.filter = `blur(${blurPx}px)`;
+    }
+    ctx.globalAlpha = bgImageOpacity / 100;
+    ctx.drawImage(image, (width - bgW) / 2, (height - bgH) / 2, bgW, bgH);
+    ctx.globalAlpha = 1;
+    ctx.filter = "none";
+  }
+
+  const fgScale = Math.min(1, width / imgW, height / imgH);
+  const fgW = imgW * fgScale;
+  const fgH = imgH * fgScale;
+  ctx.drawImage(image, (width - fgW) / 2, (height - fgH) / 2, fgW, fgH);
+};
 
 /** Canvas にテキストオーバーレイを描画する内部ヘルパー */
 const drawTextOnCanvas = (
@@ -880,10 +1181,10 @@ export const drawSubtitleOnCanvas = (
  */
 export const generateMp4 = async (
   audioBuffer: ArrayBuffer,
-  imageFile: File,
+  imageFile: File | null,
   resolution: VideoResolution = "image",
+  background: BackgroundOptions,
   bgPaddingMode: BgPaddingMode = "image",
-  bgColor: string = "#000000",
   bgImageOpacity: number = 100,
   portraitOptions?: PortraitOptions | null,
   mainTextOptions?: TextOptions | null,
@@ -914,17 +1215,21 @@ export const generateMp4 = async (
   await audioCtx.close();
 
   // 画像をロードしてキャンバスサイズを決定
-  const imageUrl = URL.createObjectURL(imageFile);
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const el = new Image();
-    el.onload = () => resolve(el);
-    el.onerror = reject;
-    el.src = imageUrl;
-  });
-  URL.revokeObjectURL(imageUrl);
-
-  const imgW = img.naturalWidth;
-  const imgH = img.naturalHeight;
+  let img: HTMLImageElement | null = null;
+  let imgW = 0;
+  let imgH = 0;
+  if (imageFile) {
+    const imageUrl = URL.createObjectURL(imageFile);
+    img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = imageUrl;
+    });
+    URL.revokeObjectURL(imageUrl);
+    imgW = img.naturalWidth;
+    imgH = img.naturalHeight;
+  }
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -934,6 +1239,9 @@ export const generateMp4 = async (
   let cW: number;
   let cH: number;
   if (resolution === "image") {
+    if (!img) {
+      throw new Error("画像サイズモードでは背景画像が必要です。");
+    }
     const scale = Math.min(1, MAX_WIDTH / imgW, MAX_HEIGHT / imgH);
     cW = Math.round(imgW * scale);
     cH = Math.round(imgH * scale);
@@ -963,34 +1271,19 @@ export const generateMp4 = async (
   const drawBase = () => {
     ctx.clearRect(0, 0, cW, cH);
 
-    if (resolution === "image") {
+    if (resolution === "image" && img) {
       // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
       ctx.drawImage(img, 0, 0, cW, cH);
     } else {
-      // 固定解像度モード: bgPaddingMode に従って余白を埋めてから前景を中央配置
-      if (bgPaddingMode === "color") {
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, cW, cH);
-      } else {
-        // "image" or "blur": 最背面を背景色で塗り、その上に cover スケールで背景画像を重ねる
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, cW, cH);
-        const bgScale = Math.max(cW / imgW, cH / imgH);
-        const bgW = imgW * bgScale;
-        const bgH = imgH * bgScale;
-        if (bgPaddingMode === "blur") {
-          ctx.filter = "blur(20px)";
-        }
-        ctx.globalAlpha = bgImageOpacity / 100;
-        ctx.drawImage(img, (cW - bgW) / 2, (cH - bgH) / 2, bgW, bgH);
-        ctx.globalAlpha = 1;
-        ctx.filter = "none";
-      }
-      // 前景: 画像を contain・拡大なしで中央配置
-      const fgScale = Math.min(1, cW / imgW, cH / imgH);
-      const fgW = imgW * fgScale;
-      const fgH = imgH * fgScale;
-      ctx.drawImage(img, (cW - fgW) / 2, (cH - fgH) / 2, fgW, fgH);
+      drawVideoBackground(
+        ctx,
+        cW,
+        cH,
+        background,
+        img,
+        bgPaddingMode,
+        bgImageOpacity,
+      );
     }
 
     // 立絵の描画（設定有りの場合のみ）

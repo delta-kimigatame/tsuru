@@ -1,4 +1,5 @@
 import type {
+  BackgroundStyle,
   BgPaddingMode,
   SlideDirection,
   VideoResolution,
@@ -48,6 +49,18 @@ export const PALETTE: string[][] = [
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_BG_COLOR = "#ffffff";
+export const DEFAULT_BG_SECONDARY_COLOR = "#ffd54f";
+export const DEFAULT_BG_SECONDARY_OPACITY = 100;
+export const DEFAULT_BACKGROUND_STYLE: BackgroundStyle = "solid";
+export const DEFAULT_BACKGROUND_PATTERN_SIZE = 48;
+export const DEFAULT_BACKGROUND_PATTERN_GAP = 24;
+export const DEFAULT_BACKGROUND_PATTERN_ROTATION = 0;
+export const BACKGROUND_PATTERN_SIZE_MIN = 2;
+export const BACKGROUND_PATTERN_SIZE_MAX = 200;
+export const BACKGROUND_PATTERN_GAP_MIN = 0;
+export const BACKGROUND_PATTERN_GAP_MAX = 200;
+export const BACKGROUND_PATTERN_ROTATION_MIN = 0;
+export const BACKGROUND_PATTERN_ROTATION_MAX = 360;
 export const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 // ---------------------------------------------------------------------------

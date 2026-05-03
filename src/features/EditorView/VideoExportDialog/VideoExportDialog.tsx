@@ -19,6 +19,7 @@ import { TextOverlaySection } from "../../../components/EditorView/VideoExportDi
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
 import type {
+  BackgroundOptions,
   BgPaddingMode,
   LyricsOptions,
   PortraitOptions,
@@ -30,10 +31,10 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onConfirm: (
-    imageFile: File,
+    imageFile: File | null,
     resolution: VideoResolution,
+    background: BackgroundOptions,
     bgPaddingMode: BgPaddingMode,
-    bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
@@ -119,10 +120,24 @@ export const VideoExportDialog: React.FC<Props> = ({
               fileInputRef={form.fileInputRef}
               onFileChange={form.handleFileChange}
               onClearImage={form.clearImage}
+              backgroundStyle={form.backgroundStyle}
+              onBackgroundStyleChange={form.setBackgroundStyle}
               bgColor={form.bgColor}
+              secondaryColor={form.bgSecondaryColor}
+              secondaryOpacity={form.bgSecondaryOpacity}
               colorInput={form.colorInput}
+              secondaryColorInput={form.secondaryColorInput}
               onColorInputChange={form.handleColorInputChange}
+              onSecondaryColorInputChange={form.handleSecondaryColorInputChange}
               onColorApply={form.applyColor}
+              onSecondaryColorApply={form.applySecondaryColor}
+              onSecondaryOpacityChange={form.setBgSecondaryOpacity}
+              patternSize={form.backgroundPatternSize}
+              onPatternSizeChange={form.setBackgroundPatternSize}
+              patternGap={form.backgroundPatternGap}
+              onPatternGapChange={form.setBackgroundPatternGap}
+              patternRotation={form.backgroundPatternRotation}
+              onPatternRotationChange={form.setBackgroundPatternRotation}
               bgSize={form.bgSize}
               bgPaddingMode={form.bgPaddingMode}
               onBgPaddingModeChange={form.setBgPaddingMode}

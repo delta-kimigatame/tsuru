@@ -1,10 +1,22 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  BACKGROUND_PATTERN_GAP_MAX,
+  BACKGROUND_PATTERN_GAP_MIN,
+  BACKGROUND_PATTERN_ROTATION_MAX,
+  BACKGROUND_PATTERN_ROTATION_MIN,
+  BACKGROUND_PATTERN_SIZE_MAX,
+  BACKGROUND_PATTERN_SIZE_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
+  DEFAULT_BACKGROUND_PATTERN_GAP,
+  DEFAULT_BACKGROUND_PATTERN_ROTATION,
+  DEFAULT_BACKGROUND_PATTERN_SIZE,
+  DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
+  DEFAULT_BG_SECONDARY_COLOR,
+  DEFAULT_BG_SECONDARY_OPACITY,
   DEFAULT_BG_SIZE,
   DEFAULT_LYRICS_BG_BAR_COLOR,
   DEFAULT_LYRICS_BG_BAR_ENABLED,
@@ -96,8 +108,12 @@ import {
 import type { Note } from "../lib/Note";
 import {
   FONT_STACK,
+  drawGeneratedBackground,
   drawSubtitleOnCanvas,
+  drawVideoBackground,
   extractLyricsSegments,
+  type BackgroundOptions,
+  type BackgroundStyle,
   type BgPaddingMode,
   type LyricsOptions,
   type LyricsSegment,
@@ -110,10 +126,10 @@ import {
 type Options = {
   onClose: () => void;
   onConfirm: (
-    imageFile: File,
+    imageFile: File | null,
     resolution: VideoResolution,
+    background: BackgroundOptions,
     bgPaddingMode: BgPaddingMode,
-    bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
@@ -156,6 +172,24 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   // 背景色
   const [bgColor, setBgColor] = React.useState<string>(DEFAULT_BG_COLOR);
   const [colorInput, setColorInput] = React.useState<string>(DEFAULT_BG_COLOR);
+  const [bgSecondaryColor, setBgSecondaryColor] = React.useState<string>(
+    DEFAULT_BG_SECONDARY_COLOR,
+  );
+  const [bgSecondaryOpacity, setBgSecondaryOpacity] = React.useState<number>(
+    DEFAULT_BG_SECONDARY_OPACITY,
+  );
+  const [secondaryColorInput, setSecondaryColorInput] = React.useState<string>(
+    DEFAULT_BG_SECONDARY_COLOR,
+  );
+  const [backgroundStyle, setBackgroundStyle] = React.useState<BackgroundStyle>(
+    DEFAULT_BACKGROUND_STYLE,
+  );
+  const [backgroundPatternSize, setBackgroundPatternSize] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_SIZE);
+  const [backgroundPatternGap, setBackgroundPatternGap] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_GAP);
+  const [backgroundPatternRotation, setBackgroundPatternRotation] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_ROTATION);
 
   // 解像度
   const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
@@ -397,9 +431,19 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setColorInput(hex);
   };
 
+  const applySecondaryColor = (hex: string) => {
+    setBgSecondaryColor(hex);
+    setSecondaryColorInput(hex);
+  };
+
   const handleColorInputChange = React.useCallback((v: string) => {
     setColorInput(v);
     if (HEX_RE.test(v)) setBgColor(v);
+  }, []);
+
+  const handleSecondaryColorInputChange = React.useCallback((v: string) => {
+    setSecondaryColorInput(v);
+    if (HEX_RE.test(v)) setBgSecondaryColor(v);
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -416,6 +460,36 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setImageFile(null);
     setImagePreviewUrl(null);
   };
+
+  const backgroundOptions = React.useMemo<BackgroundOptions>(
+    () => ({
+      style: backgroundStyle,
+      primaryColor: bgColor,
+      secondaryColor: bgSecondaryColor,
+      secondaryOpacity: Math.min(100, Math.max(0, bgSecondaryOpacity)),
+      size: Math.min(
+        BACKGROUND_PATTERN_SIZE_MAX,
+        Math.max(BACKGROUND_PATTERN_SIZE_MIN, backgroundPatternSize),
+      ),
+      gap: Math.min(
+        BACKGROUND_PATTERN_GAP_MAX,
+        Math.max(BACKGROUND_PATTERN_GAP_MIN, backgroundPatternGap),
+      ),
+      rotation: Math.min(
+        BACKGROUND_PATTERN_ROTATION_MAX,
+        Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
+      ),
+    }),
+    [
+      backgroundStyle,
+      bgColor,
+      bgSecondaryColor,
+      bgSecondaryOpacity,
+      backgroundPatternSize,
+      backgroundPatternGap,
+      backgroundPatternRotation,
+    ],
+  );
 
   /** セグメント i の歌詞テキストを更新する */
   const updateSegmentLyric = React.useCallback((i: number, value: string) => {
@@ -612,8 +686,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       onConfirm(
         imageFile,
         bgSize,
+        backgroundOptions,
         bgPaddingMode,
-        bgColor,
         bgImageOpacity,
         portraitOptions,
         mainTextOptions,
@@ -622,29 +696,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       );
       return;
     }
-    // 単色背景を Canvas で生成して File に変換。画像なしなので mode = "color" に固定
-    const [w, h] = bgSize.split("x").map(Number);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, w, h);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      onConfirm(
-        new File([blob], "background.png", { type: "image/png" }),
-        bgSize,
-        "color",
-        bgColor,
-        100,
-        portraitOptions,
-        mainTextOptions,
-        subTextOptions,
-        lyricsOptions,
-      );
-    }, "image/png");
+    onConfirm(
+      null,
+      bgSize,
+      backgroundOptions,
+      "color",
+      100,
+      portraitOptions,
+      mainTextOptions,
+      subTextOptions,
+      lyricsOptions,
+    );
   };
 
   // ダイアログが閉じられたら状態をリセット
@@ -652,6 +714,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     if (!open) {
       clearImage();
       applyColor(DEFAULT_BG_COLOR);
+      applySecondaryColor(DEFAULT_BG_SECONDARY_COLOR);
+      setBgSecondaryOpacity(DEFAULT_BG_SECONDARY_OPACITY);
+      setBackgroundStyle(DEFAULT_BACKGROUND_STYLE);
+      setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
+      setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
+      setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
       setBgImageOpacity(DEFAULT_BG_IMAGE_OPACITY);
@@ -914,35 +982,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       const imgW = img?.naturalWidth ?? 0;
       const imgH = img?.naturalHeight ?? 0;
 
-      // 背景レイヤー: 常に bgColor を最背面に描画
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, pw, ph);
-
-      if (img && bgPaddingMode !== "color") {
-        const bgSc = Math.max(pw / imgW, ph / imgH);
-        if (bgPaddingMode === "blur") {
-          const blurPx = Math.max(1, Math.round(20 * prevScale));
-          ctx.filter = `blur(${blurPx}px)`;
-        }
-        ctx.globalAlpha = bgImageOpacity / 100;
-        ctx.drawImage(
-          img,
-          (pw - imgW * bgSc) / 2,
-          (ph - imgH * bgSc) / 2,
-          imgW * bgSc,
-          imgH * bgSc,
-        );
-        ctx.globalAlpha = 1;
-        ctx.filter = "none";
-      }
-
-      // 前景レイヤー（contain・拡大なし）
-      if (img) {
-        const fgSc = Math.min(1, outW / imgW, outH / imgH) * prevScale;
-        const fgW = imgW * fgSc;
-        const fgH = imgH * fgSc;
-        ctx.drawImage(img, (pw - fgW) / 2, (ph - fgH) / 2, fgW, fgH);
-      }
+      drawVideoBackground(
+        ctx,
+        pw,
+        ph,
+        backgroundOptions,
+        img,
+        bgPaddingMode,
+        bgImageOpacity,
+        Math.max(1, Math.round(20 * prevScale)),
+      );
 
       // 立絵レイヤー
       if (showPortrait && portraitImage) {
@@ -1139,8 +1188,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     imagePreviewUrl,
     bgSize,
     bgPaddingMode,
-    bgColor,
     bgImageOpacity,
+    backgroundOptions,
     showPortrait,
     portraitImage,
     portraitOpacity,
@@ -1314,8 +1363,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         (now - (animPreviewStartRef.current ?? now)) % segDuration;
       const remaining = segDuration - elapsed;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawGeneratedBackground(
+        ctx,
+        canvas.width,
+        canvas.height,
+        backgroundOptions,
+      );
       drawSubtitleOnCanvas(
         ctx,
         seg.lyric,
@@ -1331,7 +1384,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   }, [
     previewCanvasRef,
     lyricsSegments,
-    bgColor,
+    backgroundOptions,
     lyricsFontSize,
     lyricsColor,
     lyricsYPercent,
@@ -1392,8 +1445,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     // background
     imageFile,
     imagePreviewUrl,
+    backgroundStyle,
     bgColor,
+    bgSecondaryColor,
+    bgSecondaryOpacity,
     colorInput,
+    secondaryColorInput,
+    backgroundPatternSize,
+    backgroundPatternGap,
+    backgroundPatternRotation,
     bgSize,
     bgPaddingMode,
     bgImageOpacity,
@@ -1428,10 +1488,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     handleFileChange,
     clearImage,
     applyColor,
+    applySecondaryColor,
     handleColorInputChange,
+    handleSecondaryColorInputChange,
     handleMainBoldItalicChange,
     handleSubBoldItalicChange,
     // setters
+    setBackgroundStyle,
+    setBackgroundPatternSize,
+    setBackgroundPatternGap,
+    setBackgroundPatternRotation,
+    setBgSecondaryOpacity,
     setBgSize,
     setBgPaddingMode,
     setBgImageOpacity,
