@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/05/03\r\n[Adição] Agora é possível usar outros estilos além da cor sólida como fundo na função de criação de vídeo.\r\n[Adição] Adicionadas decorações aplicáveis ao texto de título/crédito na função de criação de vídeo.\r\n[Adição] Adicionada função de exibição de letras baseada nos dados UST na função de geração de vídeo.",
       "2026/05/02\r\n[Adição] Adicionada uma função simples de criação de vídeo. Apenas as configurações de miniatura são suportadas, mas a saída pode ser exportada no formato de vídeo.",
       "2026/05/01\r\n[Adição] Adicionada uma função simples de mix. Embora o mix deva ser feito em um DAW, agora é possível exportar vocais combinados com uma faixa de acompanhamento. Recursos como harmonias não são suportados.",
       "2026/04/11\r\n[Adição] Foram adicionadas novas flags\r\nFlag O: padrão 0, intervalo -100 a 100, abertura/fechamento da boca\r\nFlag T: padrão 0, intervalo -100 a 100, tensão\r\nFlag S: padrão 0, intervalo -100 a 100, ênfase de formante (clareza/nitidez)\r\nFlag b: padrão 0, intervalo -100 a 100, brilho\r\nFlag Mo, igual à flag O (assumindo UST criado para moresampler)\r\nFlag Mt, igual à flag T (assumindo UST criado para moresampler)\r\nFlag MG, igual à flag w (assumindo UST criado para moresampler)\r\nFlag ME, igual à flag S (assumindo UST criado para moresampler)\r\n[Correção] Revisado o processamento da flag B.",
