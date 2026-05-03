@@ -163,12 +163,30 @@ export const VideoExportDialog: React.FC<Props> = ({
               color={form.mainTextColor}
               xPercent={form.mainTextX}
               yPercent={form.mainTextY}
+              shadowEnabled={form.mainTextShadowEnabled}
+              shadowColor={form.mainTextShadowColor}
+              shadowBlur={form.mainTextShadowBlur}
+              strokeEnabled={form.mainTextStrokeEnabled}
+              strokeColor={form.mainTextStrokeColor}
+              strokeWidth={form.mainTextStrokeWidth}
+              bgBarEnabled={form.mainTextBgBarEnabled}
+              bgBarColor={form.mainTextBgBarColor}
+              bgBarOpacity={form.mainTextBgBarOpacity}
               onTextChange={form.setMainText}
               onFontSizeChange={form.setMainTextFontSize}
               onBoldItalicChange={form.handleMainBoldItalicChange}
               onColorChange={form.setMainTextColor}
               onXPercentChange={form.setMainTextX}
               onYPercentChange={form.setMainTextY}
+              onShadowEnabledChange={form.setMainTextShadowEnabled}
+              onShadowColorChange={form.setMainTextShadowColor}
+              onShadowBlurChange={form.setMainTextShadowBlur}
+              onStrokeEnabledChange={form.setMainTextStrokeEnabled}
+              onStrokeColorChange={form.setMainTextStrokeColor}
+              onStrokeWidthChange={form.setMainTextStrokeWidth}
+              onBgBarEnabledChange={form.setMainTextBgBarEnabled}
+              onBgBarColorChange={form.setMainTextBgBarColor}
+              onBgBarOpacityChange={form.setMainTextBgBarOpacity}
             />
 
             <TextOverlaySection
@@ -180,12 +198,30 @@ export const VideoExportDialog: React.FC<Props> = ({
               color={form.subTextColor}
               xPercent={form.subTextX}
               yPercent={form.subTextY}
+              shadowEnabled={form.subTextShadowEnabled}
+              shadowColor={form.subTextShadowColor}
+              shadowBlur={form.subTextShadowBlur}
+              strokeEnabled={form.subTextStrokeEnabled}
+              strokeColor={form.subTextStrokeColor}
+              strokeWidth={form.subTextStrokeWidth}
+              bgBarEnabled={form.subTextBgBarEnabled}
+              bgBarColor={form.subTextBgBarColor}
+              bgBarOpacity={form.subTextBgBarOpacity}
               onTextChange={form.setSubText}
               onFontSizeChange={form.setSubTextFontSize}
               onBoldItalicChange={form.handleSubBoldItalicChange}
               onColorChange={form.setSubTextColor}
               onXPercentChange={form.setSubTextX}
               onYPercentChange={form.setSubTextY}
+              onShadowEnabledChange={form.setSubTextShadowEnabled}
+              onShadowColorChange={form.setSubTextShadowColor}
+              onShadowBlurChange={form.setSubTextShadowBlur}
+              onStrokeEnabledChange={form.setSubTextStrokeEnabled}
+              onStrokeColorChange={form.setSubTextStrokeColor}
+              onStrokeWidthChange={form.setSubTextStrokeWidth}
+              onBgBarEnabledChange={form.setSubTextBgBarEnabled}
+              onBgBarColorChange={form.setSubTextBgBarColor}
+              onBgBarOpacityChange={form.setSubTextBgBarOpacity}
             />
 
             <LyricsSubtitleSection

@@ -47,10 +47,19 @@ import {
   DEFAULT_LYRICS_WIPE_OUT_DIRECTION,
   DEFAULT_LYRICS_WIPE_OUT_ENABLED,
   DEFAULT_LYRICS_Y_PERCENT,
+  DEFAULT_MAIN_TEXT_BG_BAR_COLOR,
+  DEFAULT_MAIN_TEXT_BG_BAR_ENABLED,
+  DEFAULT_MAIN_TEXT_BG_BAR_OPACITY,
   DEFAULT_MAIN_TEXT_BOLD,
   DEFAULT_MAIN_TEXT_COLOR,
   DEFAULT_MAIN_TEXT_FONT_SIZE,
   DEFAULT_MAIN_TEXT_ITALIC,
+  DEFAULT_MAIN_TEXT_SHADOW_BLUR,
+  DEFAULT_MAIN_TEXT_SHADOW_COLOR,
+  DEFAULT_MAIN_TEXT_SHADOW_ENABLED,
+  DEFAULT_MAIN_TEXT_STROKE_COLOR,
+  DEFAULT_MAIN_TEXT_STROKE_ENABLED,
+  DEFAULT_MAIN_TEXT_STROKE_WIDTH,
   DEFAULT_MAIN_TEXT_X,
   DEFAULT_MAIN_TEXT_Y,
   DEFAULT_PADDING_MODE,
@@ -59,10 +68,19 @@ import {
   DEFAULT_PORTRAIT_SHOW,
   DEFAULT_PORTRAIT_X_OFFSET,
   DEFAULT_PORTRAIT_Y_OFFSET,
+  DEFAULT_SUB_TEXT_BG_BAR_COLOR,
+  DEFAULT_SUB_TEXT_BG_BAR_ENABLED,
+  DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
   DEFAULT_SUB_TEXT_BOLD,
   DEFAULT_SUB_TEXT_COLOR,
   DEFAULT_SUB_TEXT_FONT_SIZE,
   DEFAULT_SUB_TEXT_ITALIC,
+  DEFAULT_SUB_TEXT_SHADOW_BLUR,
+  DEFAULT_SUB_TEXT_SHADOW_COLOR,
+  DEFAULT_SUB_TEXT_SHADOW_ENABLED,
+  DEFAULT_SUB_TEXT_STROKE_COLOR,
+  DEFAULT_SUB_TEXT_STROKE_ENABLED,
+  DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
   HEX_RE,
@@ -193,6 +211,29 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [mainTextItalic, setMainTextItalic] = React.useState<boolean>(
     DEFAULT_MAIN_TEXT_ITALIC,
   );
+  const [mainTextShadowEnabled, setMainTextShadowEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_SHADOW_ENABLED);
+  const [mainTextShadowColor, setMainTextShadowColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_SHADOW_COLOR,
+  );
+  const [mainTextShadowBlur, setMainTextShadowBlur] = React.useState<number>(
+    DEFAULT_MAIN_TEXT_SHADOW_BLUR,
+  );
+  const [mainTextStrokeEnabled, setMainTextStrokeEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_STROKE_ENABLED);
+  const [mainTextStrokeColor, setMainTextStrokeColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_STROKE_COLOR,
+  );
+  const [mainTextStrokeWidth, setMainTextStrokeWidth] = React.useState<number>(
+    DEFAULT_MAIN_TEXT_STROKE_WIDTH,
+  );
+  const [mainTextBgBarEnabled, setMainTextBgBarEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
+  const [mainTextBgBarColor, setMainTextBgBarColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_BG_BAR_COLOR,
+  );
+  const [mainTextBgBarOpacity, setMainTextBgBarOpacity] =
+    React.useState<number>(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
 
   // サブテキスト設定
   const [subText, setSubText] = React.useState<string>(() =>
@@ -211,6 +252,31 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [subTextItalic, setSubTextItalic] = React.useState<boolean>(
     DEFAULT_SUB_TEXT_ITALIC,
+  );
+  const [subTextShadowEnabled, setSubTextShadowEnabled] =
+    React.useState<boolean>(DEFAULT_SUB_TEXT_SHADOW_ENABLED);
+  const [subTextShadowColor, setSubTextShadowColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_SHADOW_COLOR,
+  );
+  const [subTextShadowBlur, setSubTextShadowBlur] = React.useState<number>(
+    DEFAULT_SUB_TEXT_SHADOW_BLUR,
+  );
+  const [subTextStrokeEnabled, setSubTextStrokeEnabled] =
+    React.useState<boolean>(DEFAULT_SUB_TEXT_STROKE_ENABLED);
+  const [subTextStrokeColor, setSubTextStrokeColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_STROKE_COLOR,
+  );
+  const [subTextStrokeWidth, setSubTextStrokeWidth] = React.useState<number>(
+    DEFAULT_SUB_TEXT_STROKE_WIDTH,
+  );
+  const [subTextBgBarEnabled, setSubTextBgBarEnabled] = React.useState<boolean>(
+    DEFAULT_SUB_TEXT_BG_BAR_ENABLED,
+  );
+  const [subTextBgBarColor, setSubTextBgBarColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_BG_BAR_COLOR,
+  );
+  const [subTextBgBarOpacity, setSubTextBgBarOpacity] = React.useState<number>(
+    DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
   );
 
   // 字幕設定
@@ -410,6 +476,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     color: string,
     xPercent: number,
     yPercent: number,
+    shadowEnabled: boolean,
+    shadowColor: string,
+    shadowBlur: number,
+    strokeEnabled: boolean,
+    strokeColor: string,
+    strokeWidth: number,
+    bgBarEnabled: boolean,
+    bgBarColor: string,
+    bgBarOpacity: number,
   ): TextOptions | null =>
     text.trim()
       ? {
@@ -421,6 +496,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           xPercent,
           yPercent,
           textAlign: "left",
+          shadowEnabled,
+          shadowColor,
+          shadowBlur,
+          strokeEnabled,
+          strokeColor,
+          strokeWidth,
+          bgBarEnabled,
+          bgBarColor,
+          bgBarOpacity,
         }
       : null;
 
@@ -446,6 +530,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextColor,
       mainTextX,
       mainTextY,
+      mainTextShadowEnabled,
+      mainTextShadowColor,
+      mainTextShadowBlur,
+      mainTextStrokeEnabled,
+      mainTextStrokeColor,
+      mainTextStrokeWidth,
+      mainTextBgBarEnabled,
+      mainTextBgBarColor,
+      mainTextBgBarOpacity,
     );
     const subTextOptions = buildTextOptions(
       subText,
@@ -455,6 +548,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextColor,
       subTextX,
       subTextY,
+      subTextShadowEnabled,
+      subTextShadowColor,
+      subTextShadowBlur,
+      subTextStrokeEnabled,
+      subTextStrokeColor,
+      subTextStrokeWidth,
+      subTextBgBarEnabled,
+      subTextBgBarColor,
+      subTextBgBarOpacity,
     );
 
     const lyricsOptions: LyricsOptions | null =
@@ -565,6 +667,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setMainTextColor(DEFAULT_MAIN_TEXT_COLOR);
       setMainTextBold(DEFAULT_MAIN_TEXT_BOLD);
       setMainTextItalic(DEFAULT_MAIN_TEXT_ITALIC);
+      setMainTextShadowEnabled(DEFAULT_MAIN_TEXT_SHADOW_ENABLED);
+      setMainTextShadowColor(DEFAULT_MAIN_TEXT_SHADOW_COLOR);
+      setMainTextShadowBlur(DEFAULT_MAIN_TEXT_SHADOW_BLUR);
+      setMainTextStrokeEnabled(DEFAULT_MAIN_TEXT_STROKE_ENABLED);
+      setMainTextStrokeColor(DEFAULT_MAIN_TEXT_STROKE_COLOR);
+      setMainTextStrokeWidth(DEFAULT_MAIN_TEXT_STROKE_WIDTH);
+      setMainTextBgBarEnabled(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
+      setMainTextBgBarColor(DEFAULT_MAIN_TEXT_BG_BAR_COLOR);
+      setMainTextBgBarOpacity(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
       setSubText(t("editor.videoExport.subTextDefault"));
       setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
       setSubTextX(DEFAULT_SUB_TEXT_X);
@@ -572,6 +683,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setSubTextColor(DEFAULT_SUB_TEXT_COLOR);
       setSubTextBold(DEFAULT_SUB_TEXT_BOLD);
       setSubTextItalic(DEFAULT_SUB_TEXT_ITALIC);
+      setSubTextShadowEnabled(DEFAULT_SUB_TEXT_SHADOW_ENABLED);
+      setSubTextShadowColor(DEFAULT_SUB_TEXT_SHADOW_COLOR);
+      setSubTextShadowBlur(DEFAULT_SUB_TEXT_SHADOW_BLUR);
+      setSubTextStrokeEnabled(DEFAULT_SUB_TEXT_STROKE_ENABLED);
+      setSubTextStrokeColor(DEFAULT_SUB_TEXT_STROKE_COLOR);
+      setSubTextStrokeWidth(DEFAULT_SUB_TEXT_STROKE_WIDTH);
+      setSubTextBgBarEnabled(DEFAULT_SUB_TEXT_BG_BAR_ENABLED);
+      setSubTextBgBarColor(DEFAULT_SUB_TEXT_BG_BAR_COLOR);
+      setSubTextBgBarOpacity(DEFAULT_SUB_TEXT_BG_BAR_OPACITY);
       setLyricsEnabled(false);
       setLyricsSegments([]);
       setLyricsFontSize(DEFAULT_LYRICS_FONT_SIZE);
@@ -857,16 +977,59 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         color: string,
         xPercent: number,
         yPercent: number,
+        shadowEnabled: boolean,
+        shadowColor: string,
+        shadowBlur: number,
+        strokeEnabled: boolean,
+        strokeColor: string,
+        strokeWidth: number,
+        bgBarEnabled: boolean,
+        bgBarColor: string,
+        bgBarOpacity: number,
       ) => {
         if (!text.trim()) return;
         const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
+        const tx = (pw * xPercent) / 100;
+        const ty = (ph * yPercent) / 100;
         ctx.save();
         ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
-        ctx.fillStyle = color;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
-        ctx.fillText(text, (pw * xPercent) / 100, (ph * yPercent) / 100);
+
+        // 背景バー
+        if (bgBarEnabled) {
+          const textW = ctx.measureText(text).width;
+          const padX = scaledSize * 0.5;
+          const padY = scaledSize * 0.3;
+          const barW = textW + padX * 2;
+          const barH = scaledSize + padY * 2;
+          ctx.save();
+          ctx.globalAlpha = bgBarOpacity / 100;
+          ctx.fillStyle = bgBarColor;
+          ctx.fillRect(tx - padX, ty - barH / 2, barW, barH);
+          ctx.restore();
+        }
+
+        // シャドウ
+        if (shadowEnabled) {
+          const scaledBlur = shadowBlur * prevScale;
+          ctx.shadowColor = shadowColor;
+          ctx.shadowBlur = scaledBlur;
+          ctx.shadowOffsetX = scaledBlur * 0.5;
+          ctx.shadowOffsetY = scaledBlur * 0.5;
+        }
+
+        // 縁取り
+        if (strokeEnabled) {
+          ctx.lineJoin = "round";
+          ctx.lineWidth = strokeWidth * prevScale * 2;
+          ctx.strokeStyle = strokeColor;
+          ctx.strokeText(text, tx, ty);
+        }
+
+        ctx.fillStyle = color;
+        ctx.fillText(text, tx, ty);
         ctx.restore();
       };
       drawTextLayer(
@@ -877,6 +1040,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         mainTextColor,
         mainTextX,
         mainTextY,
+        mainTextShadowEnabled,
+        mainTextShadowColor,
+        mainTextShadowBlur,
+        mainTextStrokeEnabled,
+        mainTextStrokeColor,
+        mainTextStrokeWidth,
+        mainTextBgBarEnabled,
+        mainTextBgBarColor,
+        mainTextBgBarOpacity,
       );
       drawTextLayer(
         subText,
@@ -886,6 +1058,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextColor,
         subTextX,
         subTextY,
+        subTextShadowEnabled,
+        subTextShadowColor,
+        subTextShadowBlur,
+        subTextStrokeEnabled,
+        subTextStrokeColor,
+        subTextStrokeWidth,
+        subTextBgBarEnabled,
+        subTextBgBarColor,
+        subTextBgBarOpacity,
       );
 
       // 歌詞字幕プレビューレイヤー
@@ -973,6 +1154,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     mainTextColor,
     mainTextX,
     mainTextY,
+    mainTextShadowEnabled,
+    mainTextShadowColor,
+    mainTextShadowBlur,
+    mainTextStrokeEnabled,
+    mainTextStrokeColor,
+    mainTextStrokeWidth,
+    mainTextBgBarEnabled,
+    mainTextBgBarColor,
+    mainTextBgBarOpacity,
     subText,
     subTextFontSize,
     subTextBold,
@@ -980,6 +1170,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     subTextColor,
     subTextX,
     subTextY,
+    subTextShadowEnabled,
+    subTextShadowColor,
+    subTextShadowBlur,
+    subTextStrokeEnabled,
+    subTextStrokeColor,
+    subTextStrokeWidth,
+    subTextBgBarEnabled,
+    subTextBgBarColor,
+    subTextBgBarOpacity,
     lyricsEnabled,
     lyricsSegments,
     lyricsFontSize,
@@ -1246,11 +1445,49 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setMainTextX,
     setMainTextY,
     setMainTextColor,
+    mainTextShadowEnabled,
+    mainTextShadowColor,
+    mainTextShadowBlur,
+    mainTextStrokeEnabled,
+    mainTextStrokeColor,
+    mainTextStrokeWidth,
+    mainTextBgBarEnabled,
+    mainTextBgBarColor,
+    mainTextBgBarOpacity,
+    setMainTextShadowEnabled,
+    setMainTextShadowColor,
+    setMainTextShadowBlur,
+    setMainTextStrokeEnabled,
+    setMainTextStrokeColor,
+    setMainTextStrokeWidth,
+    setMainTextBgBarEnabled,
+    setMainTextBgBarColor,
+    setMainTextBgBarOpacity,
     setSubText,
     setSubTextFontSize,
     setSubTextX,
     setSubTextY,
     setSubTextColor,
+    setSubTextBold,
+    setSubTextItalic,
+    subTextShadowEnabled,
+    subTextShadowColor,
+    subTextShadowBlur,
+    subTextStrokeEnabled,
+    subTextStrokeColor,
+    subTextStrokeWidth,
+    subTextBgBarEnabled,
+    subTextBgBarColor,
+    subTextBgBarOpacity,
+    setSubTextShadowEnabled,
+    setSubTextShadowColor,
+    setSubTextShadowBlur,
+    setSubTextStrokeEnabled,
+    setSubTextStrokeColor,
+    setSubTextStrokeWidth,
+    setSubTextBgBarEnabled,
+    setSubTextBgBarColor,
+    setSubTextBgBarOpacity,
     // lyrics
     lyricsEnabled,
     lyricsSegments,

@@ -95,6 +95,15 @@ export interface TextOptions {
   /** Y 位置（キャンバス高さ基準 %）。テキスト高さの中央が基準点 */
   yPercent: number;
   textAlign: TextAlign;
+  shadowEnabled: boolean;
+  shadowColor: string;
+  shadowBlur: number;
+  strokeEnabled: boolean;
+  strokeColor: string;
+  strokeWidth: number;
+  bgBarEnabled: boolean;
+  bgBarColor: string;
+  bgBarOpacity: number;
 }
 
 /**
@@ -296,17 +305,52 @@ const drawTextOnCanvas = (
   cH: number,
 ): void => {
   if (!opts.text.trim()) return;
+  const x = (cW * opts.xPercent) / 100;
+  const y = (cH * opts.yPercent) / 100;
   ctx.save();
   ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${FONT_STACK}`;
-  ctx.fillStyle = opts.color;
   ctx.textAlign = opts.textAlign;
   ctx.textBaseline = "middle";
   ctx.globalAlpha = 1;
-  ctx.fillText(
-    opts.text,
-    (cW * opts.xPercent) / 100,
-    (cH * opts.yPercent) / 100,
-  );
+
+  // 背景バー
+  if (opts.bgBarEnabled) {
+    const textW = ctx.measureText(opts.text).width;
+    const padX = opts.fontSize * 0.5;
+    const padY = opts.fontSize * 0.3;
+    const barW = textW + padX * 2;
+    const barH = opts.fontSize + padY * 2;
+    const barX =
+      opts.textAlign === "center"
+        ? x - barW / 2
+        : opts.textAlign === "right"
+          ? x - barW
+          : x - padX;
+    ctx.save();
+    ctx.globalAlpha = opts.bgBarOpacity / 100;
+    ctx.fillStyle = opts.bgBarColor;
+    ctx.fillRect(barX, y - barH / 2, barW, barH);
+    ctx.restore();
+  }
+
+  // シャドウ
+  if (opts.shadowEnabled) {
+    ctx.shadowColor = opts.shadowColor;
+    ctx.shadowBlur = opts.shadowBlur;
+    ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+    ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+  }
+
+  // 縁取り
+  if (opts.strokeEnabled) {
+    ctx.lineJoin = "round";
+    ctx.lineWidth = opts.strokeWidth * 2;
+    ctx.strokeStyle = opts.strokeColor;
+    ctx.strokeText(opts.text, x, y);
+  }
+
+  ctx.fillStyle = opts.color;
+  ctx.fillText(opts.text, x, y);
   ctx.restore();
 };
 
