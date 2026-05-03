@@ -1,15 +1,77 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  BACKGROUND_PATTERN_GAP_MAX,
+  BACKGROUND_PATTERN_GAP_MIN,
+  BACKGROUND_PATTERN_ROTATION_MAX,
+  BACKGROUND_PATTERN_ROTATION_MIN,
+  BACKGROUND_PATTERN_SIZE_MAX,
+  BACKGROUND_PATTERN_SIZE_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
+  DEFAULT_BACKGROUND_PATTERN_GAP,
+  DEFAULT_BACKGROUND_PATTERN_ROTATION,
+  DEFAULT_BACKGROUND_PATTERN_SIZE,
+  DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
+  DEFAULT_BG_SECONDARY_COLOR,
+  DEFAULT_BG_SECONDARY_OPACITY,
   DEFAULT_BG_SIZE,
+  DEFAULT_LYRICS_BG_BAR_COLOR,
+  DEFAULT_LYRICS_BG_BAR_ENABLED,
+  DEFAULT_LYRICS_BG_BAR_OPACITY,
+  DEFAULT_LYRICS_BLUR_AMOUNT,
+  DEFAULT_LYRICS_BLUR_DURATION_MS,
+  DEFAULT_LYRICS_BLUR_ENABLED,
+  DEFAULT_LYRICS_BOUNCE_IN_DIRECTION,
+  DEFAULT_LYRICS_BOUNCE_IN_ENABLED,
+  DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS,
+  DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION,
+  DEFAULT_LYRICS_BOUNCE_OUT_ENABLED,
+  DEFAULT_LYRICS_COLOR,
+  DEFAULT_LYRICS_FADE_DURATION_MS,
+  DEFAULT_LYRICS_FADE_ENABLED,
+  DEFAULT_LYRICS_FONT_SIZE,
+  DEFAULT_LYRICS_MAX_WIDTH_PERCENT,
+  DEFAULT_LYRICS_SCALE_DURATION_MS,
+  DEFAULT_LYRICS_SCALE_ENABLED,
+  DEFAULT_LYRICS_SCALE_FROM,
+  DEFAULT_LYRICS_SHADOW_BLUR,
+  DEFAULT_LYRICS_SHADOW_COLOR,
+  DEFAULT_LYRICS_SHADOW_ENABLED,
+  DEFAULT_LYRICS_SLIDE_AMOUNT,
+  DEFAULT_LYRICS_SLIDE_DURATION_MS,
+  DEFAULT_LYRICS_SLIDE_ENABLED,
+  DEFAULT_LYRICS_SLIDE_IN_DIRECTION,
+  DEFAULT_LYRICS_SLIDE_IN_ENABLED,
+  DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS,
+  DEFAULT_LYRICS_SLIDE_OUT_DIRECTION,
+  DEFAULT_LYRICS_SLIDE_OUT_ENABLED,
+  DEFAULT_LYRICS_STAGGER_ENABLED,
+  DEFAULT_LYRICS_STAGGER_INTERVAL_MS,
+  DEFAULT_LYRICS_STROKE_COLOR,
+  DEFAULT_LYRICS_STROKE_ENABLED,
+  DEFAULT_LYRICS_STROKE_WIDTH,
+  DEFAULT_LYRICS_WIPE_DURATION_MS,
+  DEFAULT_LYRICS_WIPE_IN_DIRECTION,
+  DEFAULT_LYRICS_WIPE_IN_ENABLED,
+  DEFAULT_LYRICS_WIPE_OUT_DIRECTION,
+  DEFAULT_LYRICS_WIPE_OUT_ENABLED,
+  DEFAULT_LYRICS_Y_PERCENT,
+  DEFAULT_MAIN_TEXT_BG_BAR_COLOR,
+  DEFAULT_MAIN_TEXT_BG_BAR_ENABLED,
+  DEFAULT_MAIN_TEXT_BG_BAR_OPACITY,
   DEFAULT_MAIN_TEXT_BOLD,
   DEFAULT_MAIN_TEXT_COLOR,
   DEFAULT_MAIN_TEXT_FONT_SIZE,
   DEFAULT_MAIN_TEXT_ITALIC,
+  DEFAULT_MAIN_TEXT_SHADOW_BLUR,
+  DEFAULT_MAIN_TEXT_SHADOW_COLOR,
+  DEFAULT_MAIN_TEXT_SHADOW_ENABLED,
+  DEFAULT_MAIN_TEXT_STROKE_COLOR,
+  DEFAULT_MAIN_TEXT_STROKE_ENABLED,
+  DEFAULT_MAIN_TEXT_STROKE_WIDTH,
   DEFAULT_MAIN_TEXT_X,
   DEFAULT_MAIN_TEXT_Y,
   DEFAULT_PADDING_MODE,
@@ -18,10 +80,19 @@ import {
   DEFAULT_PORTRAIT_SHOW,
   DEFAULT_PORTRAIT_X_OFFSET,
   DEFAULT_PORTRAIT_Y_OFFSET,
+  DEFAULT_SUB_TEXT_BG_BAR_COLOR,
+  DEFAULT_SUB_TEXT_BG_BAR_ENABLED,
+  DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
   DEFAULT_SUB_TEXT_BOLD,
   DEFAULT_SUB_TEXT_COLOR,
   DEFAULT_SUB_TEXT_FONT_SIZE,
   DEFAULT_SUB_TEXT_ITALIC,
+  DEFAULT_SUB_TEXT_SHADOW_BLUR,
+  DEFAULT_SUB_TEXT_SHADOW_COLOR,
+  DEFAULT_SUB_TEXT_SHADOW_ENABLED,
+  DEFAULT_SUB_TEXT_STROKE_COLOR,
+  DEFAULT_SUB_TEXT_STROKE_ENABLED,
+  DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
   HEX_RE,
@@ -34,10 +105,20 @@ import {
   PREVIEW_MAX_H,
   PREVIEW_MAX_W,
 } from "../config/videoExport";
+import type { Note } from "../lib/Note";
 import {
   FONT_STACK,
+  drawGeneratedBackground,
+  drawSubtitleOnCanvas,
+  drawVideoBackground,
+  extractLyricsSegments,
+  type BackgroundOptions,
+  type BackgroundStyle,
   type BgPaddingMode,
+  type LyricsOptions,
+  type LyricsSegment,
   type PortraitOptions,
+  type SlideDirection,
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
@@ -45,22 +126,40 @@ import {
 type Options = {
   onClose: () => void;
   onConfirm: (
-    imageFile: File,
+    imageFile: File | null,
     resolution: VideoResolution,
+    background: BackgroundOptions,
     bgPaddingMode: BgPaddingMode,
-    bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
+    lyricsOptions: LyricsOptions | null,
   ) => void;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
+  notes?: Note[];
+  notesLeftMs?: number[];
+  selectNotesIndex?: number[];
 };
 
 export const useVideoExportForm = (open: boolean, options: Options) => {
-  const { onClose, onConfirm, portraitBlob, portraitNaturalHeight } = options;
+  const {
+    onClose,
+    onConfirm,
+    portraitBlob,
+    portraitNaturalHeight,
+    notes,
+    notesLeftMs,
+    selectNotesIndex,
+  } = options;
   const { t } = useTranslation();
+
+  // アニメーションプレビュー用 refs / state
+  const animPreviewRafRef = React.useRef<number | null>(null);
+  const animPreviewStartRef = React.useRef<number | null>(null);
+  const animPreviewActiveRef = React.useRef(false);
+  const [isAnimPreviewPlaying, setIsAnimPreviewPlaying] = React.useState(false);
 
   // 画像
   const [imageFile, setImageFile] = React.useState<File | null>(null);
@@ -73,6 +172,24 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   // 背景色
   const [bgColor, setBgColor] = React.useState<string>(DEFAULT_BG_COLOR);
   const [colorInput, setColorInput] = React.useState<string>(DEFAULT_BG_COLOR);
+  const [bgSecondaryColor, setBgSecondaryColor] = React.useState<string>(
+    DEFAULT_BG_SECONDARY_COLOR,
+  );
+  const [bgSecondaryOpacity, setBgSecondaryOpacity] = React.useState<number>(
+    DEFAULT_BG_SECONDARY_OPACITY,
+  );
+  const [secondaryColorInput, setSecondaryColorInput] = React.useState<string>(
+    DEFAULT_BG_SECONDARY_COLOR,
+  );
+  const [backgroundStyle, setBackgroundStyle] = React.useState<BackgroundStyle>(
+    DEFAULT_BACKGROUND_STYLE,
+  );
+  const [backgroundPatternSize, setBackgroundPatternSize] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_SIZE);
+  const [backgroundPatternGap, setBackgroundPatternGap] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_GAP);
+  const [backgroundPatternRotation, setBackgroundPatternRotation] =
+    React.useState<number>(DEFAULT_BACKGROUND_PATTERN_ROTATION);
 
   // 解像度
   const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
@@ -128,6 +245,29 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [mainTextItalic, setMainTextItalic] = React.useState<boolean>(
     DEFAULT_MAIN_TEXT_ITALIC,
   );
+  const [mainTextShadowEnabled, setMainTextShadowEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_SHADOW_ENABLED);
+  const [mainTextShadowColor, setMainTextShadowColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_SHADOW_COLOR,
+  );
+  const [mainTextShadowBlur, setMainTextShadowBlur] = React.useState<number>(
+    DEFAULT_MAIN_TEXT_SHADOW_BLUR,
+  );
+  const [mainTextStrokeEnabled, setMainTextStrokeEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_STROKE_ENABLED);
+  const [mainTextStrokeColor, setMainTextStrokeColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_STROKE_COLOR,
+  );
+  const [mainTextStrokeWidth, setMainTextStrokeWidth] = React.useState<number>(
+    DEFAULT_MAIN_TEXT_STROKE_WIDTH,
+  );
+  const [mainTextBgBarEnabled, setMainTextBgBarEnabled] =
+    React.useState<boolean>(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
+  const [mainTextBgBarColor, setMainTextBgBarColor] = React.useState<string>(
+    DEFAULT_MAIN_TEXT_BG_BAR_COLOR,
+  );
+  const [mainTextBgBarOpacity, setMainTextBgBarOpacity] =
+    React.useState<number>(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
 
   // サブテキスト設定
   const [subText, setSubText] = React.useState<string>(() =>
@@ -147,6 +287,142 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [subTextItalic, setSubTextItalic] = React.useState<boolean>(
     DEFAULT_SUB_TEXT_ITALIC,
   );
+  const [subTextShadowEnabled, setSubTextShadowEnabled] =
+    React.useState<boolean>(DEFAULT_SUB_TEXT_SHADOW_ENABLED);
+  const [subTextShadowColor, setSubTextShadowColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_SHADOW_COLOR,
+  );
+  const [subTextShadowBlur, setSubTextShadowBlur] = React.useState<number>(
+    DEFAULT_SUB_TEXT_SHADOW_BLUR,
+  );
+  const [subTextStrokeEnabled, setSubTextStrokeEnabled] =
+    React.useState<boolean>(DEFAULT_SUB_TEXT_STROKE_ENABLED);
+  const [subTextStrokeColor, setSubTextStrokeColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_STROKE_COLOR,
+  );
+  const [subTextStrokeWidth, setSubTextStrokeWidth] = React.useState<number>(
+    DEFAULT_SUB_TEXT_STROKE_WIDTH,
+  );
+  const [subTextBgBarEnabled, setSubTextBgBarEnabled] = React.useState<boolean>(
+    DEFAULT_SUB_TEXT_BG_BAR_ENABLED,
+  );
+  const [subTextBgBarColor, setSubTextBgBarColor] = React.useState<string>(
+    DEFAULT_SUB_TEXT_BG_BAR_COLOR,
+  );
+  const [subTextBgBarOpacity, setSubTextBgBarOpacity] = React.useState<number>(
+    DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
+  );
+
+  // 字幕設定
+  const [lyricsEnabled, setLyricsEnabled] = React.useState<boolean>(false);
+  const [lyricsSegments, setLyricsSegments] = React.useState<LyricsSegment[]>(
+    [],
+  );
+  const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
+    DEFAULT_LYRICS_FONT_SIZE,
+  );
+  const [lyricsColor, setLyricsColor] =
+    React.useState<string>(DEFAULT_LYRICS_COLOR);
+  const [lyricsYPercent, setLyricsYPercent] = React.useState<number>(
+    DEFAULT_LYRICS_Y_PERCENT,
+  );
+  const [lyricsMaxWidthPercent, setLyricsMaxWidthPercent] =
+    React.useState<number>(DEFAULT_LYRICS_MAX_WIDTH_PERCENT);
+  // 字幕文字装飾
+  const [lyricsShadowEnabled, setLyricsShadowEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_SHADOW_ENABLED,
+  );
+  const [lyricsShadowColor, setLyricsShadowColor] = React.useState<string>(
+    DEFAULT_LYRICS_SHADOW_COLOR,
+  );
+  const [lyricsShadowBlur, setLyricsShadowBlur] = React.useState<number>(
+    DEFAULT_LYRICS_SHADOW_BLUR,
+  );
+  const [lyricsStrokeEnabled, setLyricsStrokeEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_STROKE_ENABLED,
+  );
+  const [lyricsStrokeColor, setLyricsStrokeColor] = React.useState<string>(
+    DEFAULT_LYRICS_STROKE_COLOR,
+  );
+  const [lyricsStrokeWidth, setLyricsStrokeWidth] = React.useState<number>(
+    DEFAULT_LYRICS_STROKE_WIDTH,
+  );
+  const [lyricsBgBarEnabled, setLyricsBgBarEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_BG_BAR_ENABLED,
+  );
+  const [lyricsBgBarColor, setLyricsBgBarColor] = React.useState<string>(
+    DEFAULT_LYRICS_BG_BAR_COLOR,
+  );
+  const [lyricsBgBarOpacity, setLyricsBgBarOpacity] = React.useState<number>(
+    DEFAULT_LYRICS_BG_BAR_OPACITY,
+  );
+  // 字幕フェード
+  const [lyricsFadeEnabled, setLyricsFadeEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_FADE_ENABLED,
+  );
+  const [lyricsFadeDurationMs, setLyricsFadeDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_FADE_DURATION_MS);
+  // 字幕スケール
+  const [lyricsScaleEnabled, setLyricsScaleEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_SCALE_ENABLED,
+  );
+  const [lyricsScaleFrom, setLyricsScaleFrom] = React.useState<number>(
+    DEFAULT_LYRICS_SCALE_FROM,
+  );
+  const [lyricsScaleDurationMs, setLyricsScaleDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_SCALE_DURATION_MS);
+  // 字幕スライド
+  const [lyricsSlideEnabled, setLyricsSlideEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_SLIDE_ENABLED,
+  );
+  const [lyricsSlideAmount, setLyricsSlideAmount] = React.useState<number>(
+    DEFAULT_LYRICS_SLIDE_AMOUNT,
+  );
+  const [lyricsSlideDurationMs, setLyricsSlideDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_SLIDE_DURATION_MS);
+  const [lyricsSlideInEnabled, setLyricsSlideInEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_SLIDE_IN_ENABLED);
+  const [lyricsSlideInDirection, setLyricsSlideInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_SLIDE_IN_DIRECTION);
+  const [lyricsSlideOutEnabled, setLyricsSlideOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_SLIDE_OUT_ENABLED);
+  const [lyricsSlideOutDirection, setLyricsSlideOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
+  const [lyricsSlideInOutDurationMs, setLyricsSlideInOutDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
+  const [lyricsBlurEnabled, setLyricsBlurEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_BLUR_ENABLED,
+  );
+  const [lyricsBlurAmount, setLyricsBlurAmount] = React.useState<number>(
+    DEFAULT_LYRICS_BLUR_AMOUNT,
+  );
+  const [lyricsBlurDurationMs, setLyricsBlurDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_BLUR_DURATION_MS);
+  const [lyricsWipeInEnabled, setLyricsWipeInEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_WIPE_IN_ENABLED,
+  );
+  const [lyricsWipeInDirection, setLyricsWipeInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_WIPE_IN_DIRECTION);
+  const [lyricsWipeOutEnabled, setLyricsWipeOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_WIPE_OUT_ENABLED);
+  const [lyricsWipeOutDirection, setLyricsWipeOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_WIPE_OUT_DIRECTION);
+  const [lyricsWipeDurationMs, setLyricsWipeDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_WIPE_DURATION_MS);
+  const [lyricsBounceInEnabled, setLyricsBounceInEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_BOUNCE_IN_ENABLED);
+  const [lyricsBounceInDirection, setLyricsBounceInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_BOUNCE_IN_DIRECTION);
+  const [lyricsBounceOutEnabled, setLyricsBounceOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_BOUNCE_OUT_ENABLED);
+  const [lyricsBounceOutDirection, setLyricsBounceOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
+  const [lyricsBounceInOutDurationMs, setLyricsBounceInOutDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
+  const [lyricsStaggerEnabled, setLyricsStaggerEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_STAGGER_ENABLED);
+  const [lyricsStaggerIntervalMs, setLyricsStaggerIntervalMs] =
+    React.useState<number>(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
 
   // -----------------------------------------------------------------------
 
@@ -155,9 +431,19 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setColorInput(hex);
   };
 
+  const applySecondaryColor = (hex: string) => {
+    setBgSecondaryColor(hex);
+    setSecondaryColorInput(hex);
+  };
+
   const handleColorInputChange = React.useCallback((v: string) => {
     setColorInput(v);
     if (HEX_RE.test(v)) setBgColor(v);
+  }, []);
+
+  const handleSecondaryColorInputChange = React.useCallback((v: string) => {
+    setSecondaryColorInput(v);
+    if (HEX_RE.test(v)) setBgSecondaryColor(v);
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,6 +461,82 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setImagePreviewUrl(null);
   };
 
+  const backgroundOptions = React.useMemo<BackgroundOptions>(
+    () => ({
+      style: backgroundStyle,
+      primaryColor: bgColor,
+      secondaryColor: bgSecondaryColor,
+      secondaryOpacity: Math.min(100, Math.max(0, bgSecondaryOpacity)),
+      size: Math.min(
+        BACKGROUND_PATTERN_SIZE_MAX,
+        Math.max(BACKGROUND_PATTERN_SIZE_MIN, backgroundPatternSize),
+      ),
+      gap: Math.min(
+        BACKGROUND_PATTERN_GAP_MAX,
+        Math.max(BACKGROUND_PATTERN_GAP_MIN, backgroundPatternGap),
+      ),
+      rotation: Math.min(
+        BACKGROUND_PATTERN_ROTATION_MAX,
+        Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
+      ),
+    }),
+    [
+      backgroundStyle,
+      bgColor,
+      bgSecondaryColor,
+      bgSecondaryOpacity,
+      backgroundPatternSize,
+      backgroundPatternGap,
+      backgroundPatternRotation,
+    ],
+  );
+
+  /** セグメント i の歌詞テキストを更新する */
+  const updateSegmentLyric = React.useCallback((i: number, value: string) => {
+    setLyricsSegments((prev) =>
+      prev.map((s, idx) => (idx === i ? { ...s, lyric: value } : s)),
+    );
+  }, []);
+
+  /** セグメント i と i+1 を結合する */
+  const mergeSegments = React.useCallback((i: number) => {
+    setLyricsSegments((prev) => {
+      if (i >= prev.length - 1) return prev;
+      const a = prev[i];
+      const b = prev[i + 1];
+      const merged: LyricsSegment = {
+        startMs: a.startMs,
+        endMs: b.endMs,
+        lyric: a.lyric + b.lyric,
+        // a の最後の境界点と b の最初の境界点が同じ値なので重複を除去
+        noteBoundaries: [...a.noteBoundaries.slice(0, -1), ...b.noteBoundaries],
+      };
+      return [...prev.slice(0, i), merged, ...prev.slice(i + 2)];
+    });
+  }, []);
+
+  /** セグメント i を noteBoundaries[k] の位置で分割する */
+  const splitSegment = React.useCallback((i: number, k: number) => {
+    setLyricsSegments((prev) => {
+      const seg = prev[i];
+      if (!seg || k <= 0 || k >= seg.noteBoundaries.length - 1) return prev;
+      const splitMs = seg.noteBoundaries[k];
+      const a: LyricsSegment = {
+        startMs: seg.startMs,
+        endMs: splitMs,
+        lyric: seg.lyric.slice(0, k),
+        noteBoundaries: seg.noteBoundaries.slice(0, k + 1),
+      };
+      const b: LyricsSegment = {
+        startMs: splitMs,
+        endMs: seg.endMs,
+        lyric: seg.lyric.slice(k),
+        noteBoundaries: seg.noteBoundaries.slice(k),
+      };
+      return [...prev.slice(0, i), a, b, ...prev.slice(i + 1)];
+    });
+  }, []);
+
   const handleClose = () => {
     clearImage();
     onClose();
@@ -188,6 +550,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     color: string,
     xPercent: number,
     yPercent: number,
+    shadowEnabled: boolean,
+    shadowColor: string,
+    shadowBlur: number,
+    strokeEnabled: boolean,
+    strokeColor: string,
+    strokeWidth: number,
+    bgBarEnabled: boolean,
+    bgBarColor: string,
+    bgBarOpacity: number,
   ): TextOptions | null =>
     text.trim()
       ? {
@@ -199,6 +570,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           xPercent,
           yPercent,
           textAlign: "left",
+          shadowEnabled,
+          shadowColor,
+          shadowBlur,
+          strokeEnabled,
+          strokeColor,
+          strokeWidth,
+          bgBarEnabled,
+          bgBarColor,
+          bgBarOpacity,
         }
       : null;
 
@@ -224,6 +604,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextColor,
       mainTextX,
       mainTextY,
+      mainTextShadowEnabled,
+      mainTextShadowColor,
+      mainTextShadowBlur,
+      mainTextStrokeEnabled,
+      mainTextStrokeColor,
+      mainTextStrokeWidth,
+      mainTextBgBarEnabled,
+      mainTextBgBarColor,
+      mainTextBgBarOpacity,
     );
     const subTextOptions = buildTextOptions(
       subText,
@@ -233,43 +622,91 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextColor,
       subTextX,
       subTextY,
+      subTextShadowEnabled,
+      subTextShadowColor,
+      subTextShadowBlur,
+      subTextStrokeEnabled,
+      subTextStrokeColor,
+      subTextStrokeWidth,
+      subTextBgBarEnabled,
+      subTextBgBarColor,
+      subTextBgBarOpacity,
     );
+
+    const lyricsOptions: LyricsOptions | null =
+      lyricsEnabled && lyricsSegments.length > 0
+        ? {
+            segments: lyricsSegments,
+            fontSize: lyricsFontSize,
+            color: lyricsColor,
+            xPercent: 50,
+            yPercent: lyricsYPercent,
+            maxWidthPercent: lyricsMaxWidthPercent,
+            shadowEnabled: lyricsShadowEnabled,
+            shadowColor: lyricsShadowColor,
+            shadowBlur: lyricsShadowBlur,
+            strokeEnabled: lyricsStrokeEnabled,
+            strokeColor: lyricsStrokeColor,
+            strokeWidth: lyricsStrokeWidth,
+            bgBarEnabled: lyricsBgBarEnabled,
+            bgBarColor: lyricsBgBarColor,
+            bgBarOpacity: lyricsBgBarOpacity,
+            fadeEnabled: lyricsFadeEnabled,
+            fadeDurationMs: lyricsFadeDurationMs,
+            scaleEnabled: lyricsScaleEnabled,
+            scaleFrom: lyricsScaleFrom,
+            scaleDurationMs: lyricsScaleDurationMs,
+            slideEnabled: lyricsSlideEnabled,
+            slideAmount: lyricsSlideAmount,
+            slideDurationMs: lyricsSlideDurationMs,
+            slideInEnabled: lyricsSlideInEnabled,
+            slideInDirection: lyricsSlideInDirection,
+            slideOutEnabled: lyricsSlideOutEnabled,
+            slideOutDirection: lyricsSlideOutDirection,
+            slideInOutDurationMs: lyricsSlideInOutDurationMs,
+            blurEnabled: lyricsBlurEnabled,
+            blurAmount: lyricsBlurAmount,
+            blurDurationMs: lyricsBlurDurationMs,
+            wipeInEnabled: lyricsWipeInEnabled,
+            wipeInDirection: lyricsWipeInDirection,
+            wipeOutEnabled: lyricsWipeOutEnabled,
+            wipeOutDirection: lyricsWipeOutDirection,
+            wipeDurationMs: lyricsWipeDurationMs,
+            bounceInEnabled: lyricsBounceInEnabled,
+            bounceInDirection: lyricsBounceInDirection,
+            bounceOutEnabled: lyricsBounceOutEnabled,
+            bounceOutDirection: lyricsBounceOutDirection,
+            bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+            staggerEnabled: lyricsStaggerEnabled,
+            staggerIntervalMs: lyricsStaggerIntervalMs,
+          }
+        : null;
 
     if (imageFile) {
       onConfirm(
         imageFile,
         bgSize,
+        backgroundOptions,
         bgPaddingMode,
-        bgColor,
         bgImageOpacity,
         portraitOptions,
         mainTextOptions,
         subTextOptions,
+        lyricsOptions,
       );
       return;
     }
-    // 単色背景を Canvas で生成して File に変換。画像なしなので mode = "color" に固定
-    const [w, h] = bgSize.split("x").map(Number);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, w, h);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      onConfirm(
-        new File([blob], "background.png", { type: "image/png" }),
-        bgSize,
-        "color",
-        bgColor,
-        100,
-        portraitOptions,
-        mainTextOptions,
-        subTextOptions,
-      );
-    }, "image/png");
+    onConfirm(
+      null,
+      bgSize,
+      backgroundOptions,
+      "color",
+      100,
+      portraitOptions,
+      mainTextOptions,
+      subTextOptions,
+      lyricsOptions,
+    );
   };
 
   // ダイアログが閉じられたら状態をリセット
@@ -277,6 +714,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     if (!open) {
       clearImage();
       applyColor(DEFAULT_BG_COLOR);
+      applySecondaryColor(DEFAULT_BG_SECONDARY_COLOR);
+      setBgSecondaryOpacity(DEFAULT_BG_SECONDARY_OPACITY);
+      setBackgroundStyle(DEFAULT_BACKGROUND_STYLE);
+      setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
+      setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
+      setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
       setBgImageOpacity(DEFAULT_BG_IMAGE_OPACITY);
@@ -292,6 +735,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setMainTextColor(DEFAULT_MAIN_TEXT_COLOR);
       setMainTextBold(DEFAULT_MAIN_TEXT_BOLD);
       setMainTextItalic(DEFAULT_MAIN_TEXT_ITALIC);
+      setMainTextShadowEnabled(DEFAULT_MAIN_TEXT_SHADOW_ENABLED);
+      setMainTextShadowColor(DEFAULT_MAIN_TEXT_SHADOW_COLOR);
+      setMainTextShadowBlur(DEFAULT_MAIN_TEXT_SHADOW_BLUR);
+      setMainTextStrokeEnabled(DEFAULT_MAIN_TEXT_STROKE_ENABLED);
+      setMainTextStrokeColor(DEFAULT_MAIN_TEXT_STROKE_COLOR);
+      setMainTextStrokeWidth(DEFAULT_MAIN_TEXT_STROKE_WIDTH);
+      setMainTextBgBarEnabled(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
+      setMainTextBgBarColor(DEFAULT_MAIN_TEXT_BG_BAR_COLOR);
+      setMainTextBgBarOpacity(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
       setSubText(t("editor.videoExport.subTextDefault"));
       setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
       setSubTextX(DEFAULT_SUB_TEXT_X);
@@ -299,6 +751,65 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setSubTextColor(DEFAULT_SUB_TEXT_COLOR);
       setSubTextBold(DEFAULT_SUB_TEXT_BOLD);
       setSubTextItalic(DEFAULT_SUB_TEXT_ITALIC);
+      setSubTextShadowEnabled(DEFAULT_SUB_TEXT_SHADOW_ENABLED);
+      setSubTextShadowColor(DEFAULT_SUB_TEXT_SHADOW_COLOR);
+      setSubTextShadowBlur(DEFAULT_SUB_TEXT_SHADOW_BLUR);
+      setSubTextStrokeEnabled(DEFAULT_SUB_TEXT_STROKE_ENABLED);
+      setSubTextStrokeColor(DEFAULT_SUB_TEXT_STROKE_COLOR);
+      setSubTextStrokeWidth(DEFAULT_SUB_TEXT_STROKE_WIDTH);
+      setSubTextBgBarEnabled(DEFAULT_SUB_TEXT_BG_BAR_ENABLED);
+      setSubTextBgBarColor(DEFAULT_SUB_TEXT_BG_BAR_COLOR);
+      setSubTextBgBarOpacity(DEFAULT_SUB_TEXT_BG_BAR_OPACITY);
+      setLyricsEnabled(false);
+      setLyricsSegments([]);
+      setLyricsFontSize(DEFAULT_LYRICS_FONT_SIZE);
+      setLyricsColor(DEFAULT_LYRICS_COLOR);
+      setLyricsYPercent(DEFAULT_LYRICS_Y_PERCENT);
+      setLyricsMaxWidthPercent(DEFAULT_LYRICS_MAX_WIDTH_PERCENT);
+      setLyricsShadowEnabled(DEFAULT_LYRICS_SHADOW_ENABLED);
+      setLyricsShadowColor(DEFAULT_LYRICS_SHADOW_COLOR);
+      setLyricsShadowBlur(DEFAULT_LYRICS_SHADOW_BLUR);
+      setLyricsStrokeEnabled(DEFAULT_LYRICS_STROKE_ENABLED);
+      setLyricsStrokeColor(DEFAULT_LYRICS_STROKE_COLOR);
+      setLyricsStrokeWidth(DEFAULT_LYRICS_STROKE_WIDTH);
+      setLyricsBgBarEnabled(DEFAULT_LYRICS_BG_BAR_ENABLED);
+      setLyricsBgBarColor(DEFAULT_LYRICS_BG_BAR_COLOR);
+      setLyricsBgBarOpacity(DEFAULT_LYRICS_BG_BAR_OPACITY);
+      setLyricsFadeEnabled(DEFAULT_LYRICS_FADE_ENABLED);
+      setLyricsFadeDurationMs(DEFAULT_LYRICS_FADE_DURATION_MS);
+      setLyricsScaleEnabled(DEFAULT_LYRICS_SCALE_ENABLED);
+      setLyricsScaleFrom(DEFAULT_LYRICS_SCALE_FROM);
+      setLyricsScaleDurationMs(DEFAULT_LYRICS_SCALE_DURATION_MS);
+      setLyricsSlideEnabled(DEFAULT_LYRICS_SLIDE_ENABLED);
+      setLyricsSlideAmount(DEFAULT_LYRICS_SLIDE_AMOUNT);
+      setLyricsSlideDurationMs(DEFAULT_LYRICS_SLIDE_DURATION_MS);
+      setLyricsSlideInEnabled(DEFAULT_LYRICS_SLIDE_IN_ENABLED);
+      setLyricsSlideInDirection(DEFAULT_LYRICS_SLIDE_IN_DIRECTION);
+      setLyricsSlideOutEnabled(DEFAULT_LYRICS_SLIDE_OUT_ENABLED);
+      setLyricsSlideOutDirection(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
+      setLyricsSlideInOutDurationMs(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
+      setLyricsBlurEnabled(DEFAULT_LYRICS_BLUR_ENABLED);
+      setLyricsBlurAmount(DEFAULT_LYRICS_BLUR_AMOUNT);
+      setLyricsBlurDurationMs(DEFAULT_LYRICS_BLUR_DURATION_MS);
+      setLyricsWipeInEnabled(DEFAULT_LYRICS_WIPE_IN_ENABLED);
+      setLyricsWipeInDirection(DEFAULT_LYRICS_WIPE_IN_DIRECTION);
+      setLyricsWipeOutEnabled(DEFAULT_LYRICS_WIPE_OUT_ENABLED);
+      setLyricsWipeOutDirection(DEFAULT_LYRICS_WIPE_OUT_DIRECTION);
+      setLyricsWipeDurationMs(DEFAULT_LYRICS_WIPE_DURATION_MS);
+      setLyricsBounceInEnabled(DEFAULT_LYRICS_BOUNCE_IN_ENABLED);
+      setLyricsBounceInDirection(DEFAULT_LYRICS_BOUNCE_IN_DIRECTION);
+      setLyricsBounceOutEnabled(DEFAULT_LYRICS_BOUNCE_OUT_ENABLED);
+      setLyricsBounceOutDirection(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
+      setLyricsBounceInOutDurationMs(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
+      setLyricsStaggerEnabled(DEFAULT_LYRICS_STAGGER_ENABLED);
+      setLyricsStaggerIntervalMs(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
+    } else {
+      // ダイアログが開いたときに字幕セグメントを初期化する
+      if (notes && notesLeftMs && notes.length > 0) {
+        setLyricsSegments(
+          extractLyricsSegments(notes, notesLeftMs, selectNotesIndex ?? []),
+        );
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -424,6 +935,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
+    // アニメーションプレビュー中は静止画描画をスキップ
+    if (animPreviewActiveRef.current) return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -469,35 +982,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       const imgW = img?.naturalWidth ?? 0;
       const imgH = img?.naturalHeight ?? 0;
 
-      // 背景レイヤー: 常に bgColor を最背面に描画
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, pw, ph);
-
-      if (img && bgPaddingMode !== "color") {
-        const bgSc = Math.max(pw / imgW, ph / imgH);
-        if (bgPaddingMode === "blur") {
-          const blurPx = Math.max(1, Math.round(20 * prevScale));
-          ctx.filter = `blur(${blurPx}px)`;
-        }
-        ctx.globalAlpha = bgImageOpacity / 100;
-        ctx.drawImage(
-          img,
-          (pw - imgW * bgSc) / 2,
-          (ph - imgH * bgSc) / 2,
-          imgW * bgSc,
-          imgH * bgSc,
-        );
-        ctx.globalAlpha = 1;
-        ctx.filter = "none";
-      }
-
-      // 前景レイヤー（contain・拡大なし）
-      if (img) {
-        const fgSc = Math.min(1, outW / imgW, outH / imgH) * prevScale;
-        const fgW = imgW * fgSc;
-        const fgH = imgH * fgSc;
-        ctx.drawImage(img, (pw - fgW) / 2, (ph - fgH) / 2, fgW, fgH);
-      }
+      drawVideoBackground(
+        ctx,
+        pw,
+        ph,
+        backgroundOptions,
+        img,
+        bgPaddingMode,
+        bgImageOpacity,
+        Math.max(1, Math.round(20 * prevScale)),
+      );
 
       // 立絵レイヤー
       if (showPortrait && portraitImage) {
@@ -532,16 +1026,59 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         color: string,
         xPercent: number,
         yPercent: number,
+        shadowEnabled: boolean,
+        shadowColor: string,
+        shadowBlur: number,
+        strokeEnabled: boolean,
+        strokeColor: string,
+        strokeWidth: number,
+        bgBarEnabled: boolean,
+        bgBarColor: string,
+        bgBarOpacity: number,
       ) => {
         if (!text.trim()) return;
         const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
+        const tx = (pw * xPercent) / 100;
+        const ty = (ph * yPercent) / 100;
         ctx.save();
         ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
-        ctx.fillStyle = color;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
-        ctx.fillText(text, (pw * xPercent) / 100, (ph * yPercent) / 100);
+
+        // 背景バー
+        if (bgBarEnabled) {
+          const textW = ctx.measureText(text).width;
+          const padX = scaledSize * 0.5;
+          const padY = scaledSize * 0.3;
+          const barW = textW + padX * 2;
+          const barH = scaledSize + padY * 2;
+          ctx.save();
+          ctx.globalAlpha = bgBarOpacity / 100;
+          ctx.fillStyle = bgBarColor;
+          ctx.fillRect(tx - padX, ty - barH / 2, barW, barH);
+          ctx.restore();
+        }
+
+        // シャドウ
+        if (shadowEnabled) {
+          const scaledBlur = shadowBlur * prevScale;
+          ctx.shadowColor = shadowColor;
+          ctx.shadowBlur = scaledBlur;
+          ctx.shadowOffsetX = scaledBlur * 0.5;
+          ctx.shadowOffsetY = scaledBlur * 0.5;
+        }
+
+        // 縁取り
+        if (strokeEnabled) {
+          ctx.lineJoin = "round";
+          ctx.lineWidth = strokeWidth * prevScale * 2;
+          ctx.strokeStyle = strokeColor;
+          ctx.strokeText(text, tx, ty);
+        }
+
+        ctx.fillStyle = color;
+        ctx.fillText(text, tx, ty);
         ctx.restore();
       };
       drawTextLayer(
@@ -552,6 +1089,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         mainTextColor,
         mainTextX,
         mainTextY,
+        mainTextShadowEnabled,
+        mainTextShadowColor,
+        mainTextShadowBlur,
+        mainTextStrokeEnabled,
+        mainTextStrokeColor,
+        mainTextStrokeWidth,
+        mainTextBgBarEnabled,
+        mainTextBgBarColor,
+        mainTextBgBarOpacity,
       );
       drawTextLayer(
         subText,
@@ -561,7 +1107,74 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextColor,
         subTextX,
         subTextY,
+        subTextShadowEnabled,
+        subTextShadowColor,
+        subTextShadowBlur,
+        subTextStrokeEnabled,
+        subTextStrokeColor,
+        subTextStrokeWidth,
+        subTextBgBarEnabled,
+        subTextBgBarColor,
+        subTextBgBarOpacity,
       );
+
+      // 歌詞字幕プレビューレイヤー
+      if (lyricsEnabled) {
+        const previewLyric =
+          lyricsSegments.length > 0
+            ? lyricsSegments[0].lyric || "aaaaaaa"
+            : "aaaaaaa";
+        if (previewLyric.trim()) {
+          const maxW = (pw * lyricsMaxWidthPercent) / 100;
+          const minFontSize = 12;
+          let lFontSize = Math.max(1, Math.round(lyricsFontSize * prevScale));
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
+          while (
+            lFontSize > minFontSize &&
+            ctx.measureText(previewLyric).width > maxW
+          ) {
+            lFontSize -= 2;
+            ctx.font = `normal normal ${lFontSize}px ${FONT_STACK}`;
+          }
+          const lcx = pw / 2;
+          const lcy = (ph * lyricsYPercent) / 100;
+          const textW = ctx.measureText(previewLyric).width;
+          // 背景バー
+          if (lyricsBgBarEnabled) {
+            const padX = lFontSize * 0.5;
+            const padY = lFontSize * 0.3;
+            const barW = textW + padX * 2;
+            const barH = lFontSize + padY * 2;
+            ctx.save();
+            ctx.globalAlpha = lyricsBgBarOpacity / 100;
+            ctx.fillStyle = lyricsBgBarColor;
+            ctx.fillRect(lcx - barW / 2, lcy - barH / 2, barW, barH);
+            ctx.restore();
+          }
+          // shadow
+          if (lyricsShadowEnabled) {
+            const scaledBlur = lyricsShadowBlur * prevScale;
+            ctx.shadowColor = lyricsShadowColor;
+            ctx.shadowBlur = scaledBlur;
+            ctx.shadowOffsetX = scaledBlur * 0.5;
+            ctx.shadowOffsetY = scaledBlur * 0.5;
+          }
+          // stroke
+          if (lyricsStrokeEnabled) {
+            ctx.lineJoin = "round";
+            ctx.lineWidth = lyricsStrokeWidth * prevScale * 2;
+            ctx.strokeStyle = lyricsStrokeColor;
+            ctx.strokeText(previewLyric, lcx, lcy);
+          }
+          // fill
+          ctx.fillStyle = lyricsColor;
+          ctx.fillText(previewLyric, lcx, lcy);
+          ctx.restore();
+        }
+      }
     };
 
     if (imagePreviewUrl) {
@@ -575,8 +1188,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     imagePreviewUrl,
     bgSize,
     bgPaddingMode,
-    bgColor,
     bgImageOpacity,
+    backgroundOptions,
     showPortrait,
     portraitImage,
     portraitOpacity,
@@ -590,6 +1203,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     mainTextColor,
     mainTextX,
     mainTextY,
+    mainTextShadowEnabled,
+    mainTextShadowColor,
+    mainTextShadowBlur,
+    mainTextStrokeEnabled,
+    mainTextStrokeColor,
+    mainTextStrokeWidth,
+    mainTextBgBarEnabled,
+    mainTextBgBarColor,
+    mainTextBgBarOpacity,
     subText,
     subTextFontSize,
     subTextBold,
@@ -597,6 +1219,59 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     subTextColor,
     subTextX,
     subTextY,
+    subTextShadowEnabled,
+    subTextShadowColor,
+    subTextShadowBlur,
+    subTextStrokeEnabled,
+    subTextStrokeColor,
+    subTextStrokeWidth,
+    subTextBgBarEnabled,
+    subTextBgBarColor,
+    subTextBgBarOpacity,
+    lyricsEnabled,
+    lyricsSegments,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
+    lyricsShadowEnabled,
+    lyricsShadowColor,
+    lyricsShadowBlur,
+    lyricsStrokeEnabled,
+    lyricsStrokeColor,
+    lyricsStrokeWidth,
+    lyricsBgBarEnabled,
+    lyricsBgBarColor,
+    lyricsBgBarOpacity,
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
+    lyricsScaleEnabled,
+    lyricsScaleFrom,
+    lyricsScaleDurationMs,
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
+    isAnimPreviewPlaying,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -616,6 +1291,153 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     [],
   );
 
+  /** アニメーションプレビュー開始 — rAF ループで最初のセグメントを繰り返し描画する */
+  const startAnimPreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const seg: LyricsSegment = lyricsSegments[0] ?? {
+      lyric: "サンプル歌詞",
+      startMs: 0,
+      endMs: 3000,
+      noteBoundaries: [0, 3000],
+    };
+    const segDuration = Math.max(1000, seg.endMs - seg.startMs);
+
+    const lyricsOpts: LyricsOptions = {
+      segments: lyricsSegments.length > 0 ? lyricsSegments : [seg],
+      fontSize: lyricsFontSize,
+      color: lyricsColor,
+      xPercent: 50,
+      yPercent: lyricsYPercent,
+      maxWidthPercent: lyricsMaxWidthPercent,
+      shadowEnabled: lyricsShadowEnabled,
+      shadowColor: lyricsShadowColor,
+      shadowBlur: lyricsShadowBlur,
+      strokeEnabled: lyricsStrokeEnabled,
+      strokeColor: lyricsStrokeColor,
+      strokeWidth: lyricsStrokeWidth,
+      bgBarEnabled: lyricsBgBarEnabled,
+      bgBarColor: lyricsBgBarColor,
+      bgBarOpacity: lyricsBgBarOpacity,
+      fadeEnabled: lyricsFadeEnabled,
+      fadeDurationMs: lyricsFadeDurationMs,
+      scaleEnabled: lyricsScaleEnabled,
+      scaleFrom: lyricsScaleFrom,
+      scaleDurationMs: lyricsScaleDurationMs,
+      slideEnabled: lyricsSlideEnabled,
+      slideAmount: lyricsSlideAmount,
+      slideDurationMs: lyricsSlideDurationMs,
+      slideInEnabled: lyricsSlideInEnabled,
+      slideInDirection: lyricsSlideInDirection,
+      slideOutEnabled: lyricsSlideOutEnabled,
+      slideOutDirection: lyricsSlideOutDirection,
+      slideInOutDurationMs: lyricsSlideInOutDurationMs,
+      blurEnabled: lyricsBlurEnabled,
+      blurAmount: lyricsBlurAmount,
+      blurDurationMs: lyricsBlurDurationMs,
+      wipeInEnabled: lyricsWipeInEnabled,
+      wipeInDirection: lyricsWipeInDirection,
+      wipeOutEnabled: lyricsWipeOutEnabled,
+      wipeOutDirection: lyricsWipeOutDirection,
+      wipeDurationMs: lyricsWipeDurationMs,
+      bounceInEnabled: lyricsBounceInEnabled,
+      bounceInDirection: lyricsBounceInDirection,
+      bounceOutEnabled: lyricsBounceOutEnabled,
+      bounceOutDirection: lyricsBounceOutDirection,
+      bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+      staggerEnabled: lyricsStaggerEnabled,
+      staggerIntervalMs: lyricsStaggerIntervalMs,
+    };
+
+    animPreviewActiveRef.current = true;
+    animPreviewStartRef.current = performance.now();
+    setIsAnimPreviewPlaying(true);
+
+    const loop = () => {
+      if (!animPreviewActiveRef.current) return;
+      const now = performance.now();
+      const elapsed =
+        (now - (animPreviewStartRef.current ?? now)) % segDuration;
+      const remaining = segDuration - elapsed;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGeneratedBackground(
+        ctx,
+        canvas.width,
+        canvas.height,
+        backgroundOptions,
+      );
+      drawSubtitleOnCanvas(
+        ctx,
+        seg.lyric,
+        lyricsOpts,
+        canvas.width,
+        canvas.height,
+        elapsed,
+        remaining,
+      );
+      animPreviewRafRef.current = requestAnimationFrame(loop);
+    };
+    animPreviewRafRef.current = requestAnimationFrame(loop);
+  }, [
+    previewCanvasRef,
+    lyricsSegments,
+    backgroundOptions,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
+    lyricsShadowEnabled,
+    lyricsShadowColor,
+    lyricsShadowBlur,
+    lyricsStrokeEnabled,
+    lyricsStrokeColor,
+    lyricsStrokeWidth,
+    lyricsBgBarEnabled,
+    lyricsBgBarColor,
+    lyricsBgBarOpacity,
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
+    lyricsScaleEnabled,
+    lyricsScaleFrom,
+    lyricsScaleDurationMs,
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
+  ]);
+
+  /** アニメーションプレビュー停止 */
+  const stopAnimPreview = React.useCallback(() => {
+    if (animPreviewRafRef.current !== null) {
+      cancelAnimationFrame(animPreviewRafRef.current);
+      animPreviewRafRef.current = null;
+    }
+    animPreviewActiveRef.current = false;
+    setIsAnimPreviewPlaying(false);
+  }, []);
+
   return {
     // refs
     fileInputRef,
@@ -623,8 +1445,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     // background
     imageFile,
     imagePreviewUrl,
+    backgroundStyle,
     bgColor,
+    bgSecondaryColor,
+    bgSecondaryOpacity,
     colorInput,
+    secondaryColorInput,
+    backgroundPatternSize,
+    backgroundPatternGap,
+    backgroundPatternRotation,
     bgSize,
     bgPaddingMode,
     bgImageOpacity,
@@ -659,10 +1488,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     handleFileChange,
     clearImage,
     applyColor,
+    applySecondaryColor,
     handleColorInputChange,
+    handleSecondaryColorInputChange,
     handleMainBoldItalicChange,
     handleSubBoldItalicChange,
     // setters
+    setBackgroundStyle,
+    setBackgroundPatternSize,
+    setBackgroundPatternGap,
+    setBackgroundPatternRotation,
+    setBgSecondaryOpacity,
     setBgSize,
     setBgPaddingMode,
     setBgImageOpacity,
@@ -676,10 +1512,150 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setMainTextX,
     setMainTextY,
     setMainTextColor,
+    mainTextShadowEnabled,
+    mainTextShadowColor,
+    mainTextShadowBlur,
+    mainTextStrokeEnabled,
+    mainTextStrokeColor,
+    mainTextStrokeWidth,
+    mainTextBgBarEnabled,
+    mainTextBgBarColor,
+    mainTextBgBarOpacity,
+    setMainTextShadowEnabled,
+    setMainTextShadowColor,
+    setMainTextShadowBlur,
+    setMainTextStrokeEnabled,
+    setMainTextStrokeColor,
+    setMainTextStrokeWidth,
+    setMainTextBgBarEnabled,
+    setMainTextBgBarColor,
+    setMainTextBgBarOpacity,
     setSubText,
     setSubTextFontSize,
     setSubTextX,
     setSubTextY,
     setSubTextColor,
+    setSubTextBold,
+    setSubTextItalic,
+    subTextShadowEnabled,
+    subTextShadowColor,
+    subTextShadowBlur,
+    subTextStrokeEnabled,
+    subTextStrokeColor,
+    subTextStrokeWidth,
+    subTextBgBarEnabled,
+    subTextBgBarColor,
+    subTextBgBarOpacity,
+    setSubTextShadowEnabled,
+    setSubTextShadowColor,
+    setSubTextShadowBlur,
+    setSubTextStrokeEnabled,
+    setSubTextStrokeColor,
+    setSubTextStrokeWidth,
+    setSubTextBgBarEnabled,
+    setSubTextBgBarColor,
+    setSubTextBgBarOpacity,
+    // lyrics
+    lyricsEnabled,
+    lyricsSegments,
+    lyricsFontSize,
+    lyricsColor,
+    lyricsYPercent,
+    lyricsMaxWidthPercent,
+    setLyricsEnabled,
+    setLyricsFontSize,
+    setLyricsColor,
+    setLyricsYPercent,
+    setLyricsMaxWidthPercent,
+    updateSegmentLyric,
+    mergeSegments,
+    splitSegment,
+    // 歌詞文字装飾
+    lyricsShadowEnabled,
+    lyricsShadowColor,
+    lyricsShadowBlur,
+    lyricsStrokeEnabled,
+    lyricsStrokeColor,
+    lyricsStrokeWidth,
+    lyricsBgBarEnabled,
+    lyricsBgBarColor,
+    lyricsBgBarOpacity,
+    setLyricsShadowEnabled,
+    setLyricsShadowColor,
+    setLyricsShadowBlur,
+    setLyricsStrokeEnabled,
+    setLyricsStrokeColor,
+    setLyricsStrokeWidth,
+    setLyricsBgBarEnabled,
+    setLyricsBgBarColor,
+    setLyricsBgBarOpacity,
+    // 歌詞フェード
+    lyricsFadeEnabled,
+    lyricsFadeDurationMs,
+    setLyricsFadeEnabled,
+    setLyricsFadeDurationMs,
+    // 歌詞スケール
+    lyricsScaleEnabled,
+    lyricsScaleFrom,
+    lyricsScaleDurationMs,
+    setLyricsScaleEnabled,
+    setLyricsScaleFrom,
+    setLyricsScaleDurationMs,
+    // 歌詞スライド
+    lyricsSlideEnabled,
+    lyricsSlideAmount,
+    lyricsSlideDurationMs,
+    setLyricsSlideEnabled,
+    setLyricsSlideAmount,
+    setLyricsSlideDurationMs,
+    // 歌詞スライドイン/アウト
+    lyricsSlideInEnabled,
+    lyricsSlideInDirection,
+    lyricsSlideOutEnabled,
+    lyricsSlideOutDirection,
+    lyricsSlideInOutDurationMs,
+    setLyricsSlideInEnabled,
+    setLyricsSlideInDirection,
+    setLyricsSlideOutEnabled,
+    setLyricsSlideOutDirection,
+    setLyricsSlideInOutDurationMs,
+    // 歌詞ブラーイン/アウト
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
+    setLyricsBlurEnabled,
+    setLyricsBlurAmount,
+    setLyricsBlurDurationMs,
+    // 歌詞ワイプイン/アウト
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    setLyricsWipeInEnabled,
+    setLyricsWipeInDirection,
+    setLyricsWipeOutEnabled,
+    setLyricsWipeOutDirection,
+    setLyricsWipeDurationMs,
+    // 歌詞バウンスイン/アウト
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
+    setLyricsBounceInEnabled,
+    setLyricsBounceInDirection,
+    setLyricsBounceOutEnabled,
+    setLyricsBounceOutDirection,
+    setLyricsBounceInOutDurationMs,
+    // 歌詞スタガー
+    lyricsStaggerEnabled,
+    lyricsStaggerIntervalMs,
+    setLyricsStaggerEnabled,
+    setLyricsStaggerIntervalMs,
+    // アニメーションプレビュー
+    isAnimPreviewPlaying,
+    startAnimPreview,
+    stopAnimPreview,
   };
 };

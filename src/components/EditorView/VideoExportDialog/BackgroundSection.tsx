@@ -11,10 +11,19 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { PALETTE } from "../../../config/videoExport";
 import {
+  BACKGROUND_PATTERN_GAP_MAX,
+  BACKGROUND_PATTERN_GAP_MIN,
+  BACKGROUND_PATTERN_ROTATION_MAX,
+  BACKGROUND_PATTERN_ROTATION_MIN,
+  BACKGROUND_PATTERN_SIZE_MAX,
+  BACKGROUND_PATTERN_SIZE_MIN,
+  PALETTE,
+} from "../../../config/videoExport";
+import {
+  BACKGROUND_STYLES,
   BG_PADDING_MODES,
-  VIDEO_RESOLUTIONS,
+  type BackgroundStyle,
   type BgPaddingMode,
   type VideoResolution,
 } from "../../../utils/videoExport";
@@ -28,12 +37,25 @@ type Props = {
   fileInputRef: React.RefObject<HTMLInputElement>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearImage: () => void;
+  backgroundStyle: BackgroundStyle;
+  onBackgroundStyleChange: (style: BackgroundStyle) => void;
   bgColor: string;
+  secondaryColor: string;
+  secondaryOpacity: number;
   colorInput: string;
+  secondaryColorInput: string;
   onColorInputChange: (v: string) => void;
+  onSecondaryColorInputChange: (v: string) => void;
   onColorApply: (hex: string) => void;
+  onSecondaryColorApply: (hex: string) => void;
+  onSecondaryOpacityChange: (v: number) => void;
+  patternSize: number;
+  onPatternSizeChange: (v: number) => void;
+  patternGap: number;
+  onPatternGapChange: (v: number) => void;
+  patternRotation: number;
+  onPatternRotationChange: (v: number) => void;
   bgSize: VideoResolution;
-  onBgSizeChange: (s: VideoResolution) => void;
   bgPaddingMode: BgPaddingMode;
   onBgPaddingModeChange: (m: BgPaddingMode) => void;
   bgImageOpacity: number;
@@ -46,12 +68,25 @@ export const BackgroundSection: React.FC<Props> = ({
   fileInputRef,
   onFileChange,
   onClearImage,
+  backgroundStyle,
+  onBackgroundStyleChange,
   bgColor,
+  secondaryColor,
+  secondaryOpacity,
   colorInput,
+  secondaryColorInput,
   onColorInputChange,
+  onSecondaryColorInputChange,
   onColorApply,
+  onSecondaryColorApply,
+  onSecondaryOpacityChange,
+  patternSize,
+  onPatternSizeChange,
+  patternGap,
+  onPatternGapChange,
+  patternRotation,
+  onPatternRotationChange,
   bgSize,
-  onBgSizeChange,
   bgPaddingMode,
   onBgPaddingModeChange,
   bgImageOpacity,
@@ -102,41 +137,95 @@ export const BackgroundSection: React.FC<Props> = ({
       )}
 
       <Divider sx={{ fontSize: "0.75rem" }}>
-        {t("editor.videoExport.orColor")}
+        {t("editor.videoExport.backgroundStyleSection")}
       </Divider>
 
-      {/* カラーパレット */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Typography variant="caption">
+          {t("editor.videoExport.backgroundStyle")}
+        </Typography>
+        <Select
+          size="small"
+          value={backgroundStyle}
+          onChange={(e) =>
+            onBackgroundStyleChange(e.target.value as BackgroundStyle)
+          }
+          sx={{ minWidth: 180, fontSize: "0.8rem" }}
+        >
+          {BACKGROUND_STYLES.map((style) => (
+            <MenuItem key={style} value={style}>
+              {t(`editor.videoExport.backgroundStyle_${style}`)}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+
+      {/* 第1色 */}
+      <Typography variant="caption">
+        {t("editor.videoExport.backgroundPrimaryColor")}
+      </Typography>
       <ColorPaletteGrid
         palette={PALETTE}
-        activeColor={imageFile ? null : bgColor}
+        activeColor={bgColor}
         onColorSelect={onColorApply}
       />
-
-      {/* Hex 入力 + スウォッチ */}
       <ColorHexInput
         colorInput={colorInput}
         bgColor={bgColor}
         onChange={onColorInputChange}
       />
 
-      {/* 解像度選択 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Typography variant="caption">
-          {t("editor.videoExport.bgSize")}
-        </Typography>
-        <Select
-          size="small"
-          value={bgSize}
-          onChange={(e) => onBgSizeChange(e.target.value as VideoResolution)}
-          sx={{ fontSize: "0.8rem" }}
-        >
-          {VIDEO_RESOLUTIONS.map((s) => (
-            <MenuItem key={s} value={s} disabled={s === "image" && !imageFile}>
-              {s === "image" ? t("editor.videoExport.bgSizeImage") : s}
-            </MenuItem>
-          ))}
-        </Select>
-      </Box>
+      {backgroundStyle !== "solid" && (
+        <>
+          <Typography variant="caption">
+            {t("editor.videoExport.backgroundSecondaryColor")}
+          </Typography>
+          <ColorPaletteGrid
+            palette={PALETTE}
+            activeColor={secondaryColor}
+            onColorSelect={onSecondaryColorApply}
+          />
+          <ColorHexInput
+            colorInput={secondaryColorInput}
+            bgColor={secondaryColor}
+            onChange={onSecondaryColorInputChange}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundSecondaryOpacity")}
+            value={secondaryOpacity}
+            onChange={onSecondaryOpacityChange}
+            min={0}
+            max={100}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundPatternSize")}
+            value={patternSize}
+            onChange={onPatternSizeChange}
+            min={BACKGROUND_PATTERN_SIZE_MIN}
+            max={BACKGROUND_PATTERN_SIZE_MAX}
+            unit="px"
+            valueMinWidth={52}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundPatternGap")}
+            value={patternGap}
+            onChange={onPatternGapChange}
+            min={BACKGROUND_PATTERN_GAP_MIN}
+            max={BACKGROUND_PATTERN_GAP_MAX}
+            unit="px"
+            valueMinWidth={52}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundPatternRotation")}
+            value={patternRotation}
+            onChange={onPatternRotationChange}
+            min={BACKGROUND_PATTERN_ROTATION_MIN}
+            max={BACKGROUND_PATTERN_ROTATION_MAX}
+            unit="deg"
+            valueMinWidth={64}
+          />
+        </>
+      )}
 
       {/* パディングモード（画像あり かつ 固定解像度時のみ） */}
       {imageFile && bgSize !== "image" && (

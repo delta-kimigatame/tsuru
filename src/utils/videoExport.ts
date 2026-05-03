@@ -11,6 +11,7 @@ import {
   type AudioCodec,
   type VideoCodec,
 } from "mediabunny";
+import type { Note } from "../lib/Note";
 
 /** 動画の解像度オプション。"image" は読み込んだ画像サイズに合わせる */
 export type VideoResolution = "1920x1080" | "1080x1920" | "image";
@@ -29,6 +30,42 @@ export const VIDEO_RESOLUTIONS: VideoResolution[] = [
  */
 export type BgPaddingMode = "color" | "image" | "blur";
 export const BG_PADDING_MODES: BgPaddingMode[] = ["color", "image", "blur"];
+
+export type BackgroundStyle =
+  | "solid"
+  | "dots"
+  | "stars"
+  | "gingham"
+  | "grid"
+  | "stripes"
+  | "diagonalStripes"
+  | "checkerboard"
+  | "diamonds";
+
+export const BACKGROUND_STYLES: BackgroundStyle[] = [
+  "solid",
+  "dots",
+  "stars",
+  "gingham",
+  "grid",
+  "stripes",
+  "diagonalStripes",
+  "checkerboard",
+  "diamonds",
+];
+
+export interface BackgroundOptions {
+  style: BackgroundStyle;
+  primaryColor: string;
+  secondaryColor: string;
+  secondaryOpacity: number;
+  size: number;
+  gap: number;
+  rotation: number;
+}
+
+/** スライドイン/アウトの移動方向 */
+export type SlideDirection = "up" | "down" | "left" | "right";
 
 /**
  * 動画キャンバスに重ねる立絵の設定
@@ -91,6 +128,182 @@ export interface TextOptions {
   /** Y 位置（キャンバス高さ基準 %）。テキスト高さの中央が基準点 */
   yPercent: number;
   textAlign: TextAlign;
+  shadowEnabled: boolean;
+  shadowColor: string;
+  shadowBlur: number;
+  strokeEnabled: boolean;
+  strokeColor: string;
+  strokeWidth: number;
+  bgBarEnabled: boolean;
+  bgBarColor: string;
+  bgBarOpacity: number;
+}
+
+/**
+ * 歌詞字幕の1フレーズ分のデータ
+ *
+ * startMs/endMs/noteBoundaries はすべて合成WAV内の時刻（ゼロ起点 ms）。
+ * noteBoundaries[0] = startMs、noteBoundaries[length-1] = endMs。
+ * 分割ポイント k（1 ≤ k ≤ length-2）で分割すると：
+ *   前半: startMs〜noteBoundaries[k]、lyric.slice(0, k)
+ *   後半: noteBoundaries[k]〜endMs、lyric.slice(k)
+ */
+export interface LyricsSegment {
+  startMs: number;
+  endMs: number;
+  /** 編集可能な歌詞テキスト */
+  lyric: string;
+  /**
+   * 元ノートの境界時刻（WAV相対ms）の配列。長さ = 元ノート数 + 1。
+   * 分割UIのポイント選択に使用する。
+   */
+  noteBoundaries: number[];
+}
+
+/** 字幕全体の設定 */
+export interface LyricsOptions {
+  segments: LyricsSegment[];
+  /** フォントサイズ（px、出力解像度基準）*/
+  fontSize: number;
+  /** テキストカラー "#rrggbb" */
+  color: string;
+  /** X 位置（キャンバス幅基準 %）。center 固定のため xPercent=50 */
+  xPercent: number;
+  /** Y 位置（キャンバス高さ基準 %） */
+  yPercent: number;
+  /** テキスト最大幅（キャンバス幅基準 %）。超過時にフォントサイズを自動縮小 */
+  maxWidthPercent: number;
+  // --- 文字装飾 ---
+  shadowEnabled: boolean;
+  /** シャドウ色 "#rrggbb" */
+  shadowColor: string;
+  /** シャドウぼかし半径 px（出力解像度基準）。offset = blur × 0.5 で固定 */
+  shadowBlur: number;
+  strokeEnabled: boolean;
+  /** 縁取り色 "#rrggbb" */
+  strokeColor: string;
+  /** 縁取り太さ px（出力解像度基準） */
+  strokeWidth: number;
+  bgBarEnabled: boolean;
+  /** 背景バー色 "#rrggbb" */
+  bgBarColor: string;
+  /** 背景バー不透明度 0–100 */
+  bgBarOpacity: number;
+  // --- フェード ---
+  fadeEnabled: boolean;
+  /** フェードイン/アウトの時間 ms */
+  fadeDurationMs: number;
+  // --- スケール ---
+  scaleEnabled: boolean;
+  /** 登場・退場時の初期スケール（%）。100 = 等倍 */
+  scaleFrom: number;
+  /** スケールアニメーションの時間 ms */
+  scaleDurationMs: number;
+  // --- スライド ---
+  slideEnabled: boolean;
+  /** 強調移動量 px（出力解像度基準）。正値 = 下から上へスライド */
+  slideAmount: number;
+  /** スライドアニメーションの時間 ms */
+  slideDurationMs: number;
+  // --- スライドイン/スライドアウト ---
+  slideInEnabled: boolean;
+  /** 入場方向（指定方向から画面内へ流入） */
+  slideInDirection: SlideDirection;
+  slideOutEnabled: boolean;
+  /** 退場方向（画面外へ向かって流出） */
+  slideOutDirection: SlideDirection;
+  /** 入場・退場共通のアニメーション時間 ms */
+  slideInOutDurationMs: number;
+  // --- ブラーイン/ブラーアウト ---
+  blurEnabled: boolean;
+  /** 入場・退場時の最大ブラー半径 px（出力解像度基準） */
+  blurAmount: number;
+  /** ブラーアニメーションの時間 ms */
+  blurDurationMs: number;
+  // --- ワイプイン/ワイプアウト ---
+  wipeInEnabled: boolean;
+  /** 入場方向（その方向からワイプしながら出現） */
+  wipeInDirection: SlideDirection;
+  wipeOutEnabled: boolean;
+  /** 退場方向（その方向へワイプしながら消える） */
+  wipeOutDirection: SlideDirection;
+  /** ワイプアニメーションの時間 ms */
+  wipeDurationMs: number;
+  // --- バウンスイン/バウンスアウト ---
+  bounceInEnabled: boolean;
+  /** 入場方向（その方向から彼んで登場） */
+  bounceInDirection: SlideDirection;
+  bounceOutEnabled: boolean;
+  /** 退場方向（その方向へ彼ねて退場） */
+  bounceOutDirection: SlideDirection;
+  /** バウンスアニメーションの時間 ms */
+  bounceInOutDurationMs: number;
+  // --- スタガー ---
+  staggerEnabled: boolean;
+  /** 文字間スタガー間隔 ms。先頭文字はフレーズ開始と同時、末尾文字はフレーズ終了と同時に合わせる */
+  staggerIntervalMs: number;
+}
+
+/**
+ * notes[] と notesLeftMs[] から歌詞字幕セグメントを抽出する。
+ *
+ * @param notes 全ノートの配列
+ * @param notesLeftMs 全ノートの開始時刻（WAV先頭からの絶対ms累積）
+ * @param selectNotesIndex 合成対象ノートのインデックス列（空 = 全ノート）。
+ *        非連続指定はスコープ外（正しい字幕を生成できない場合がある）。
+ * @returns WAV相対ms（ゼロ起点）でタイミングを持つLyricsSegmentの配列
+ */
+export function extractLyricsSegments(
+  notes: Note[],
+  notesLeftMs: number[],
+  selectNotesIndex: number[],
+): LyricsSegment[] {
+  if (notes.length === 0 || notesLeftMs.length === 0) return [];
+
+  const minIndex =
+    selectNotesIndex.length > 0 ? Math.min(...selectNotesIndex) : 0;
+  const maxIndex =
+    selectNotesIndex.length > 0
+      ? Math.max(...selectNotesIndex)
+      : notes.length - 1;
+
+  // WAVのt=0に対応する絶対ms。合成対象ノート先頭の開始時刻。
+  const offsetMs = notesLeftMs[minIndex] ?? 0;
+
+  const targetNotes = notes.slice(minIndex, maxIndex + 1);
+  const targetLeftMs = notesLeftMs.slice(minIndex, maxIndex + 1);
+
+  const segments: LyricsSegment[] = [];
+  let runStart: number | null = null;
+
+  for (let i = 0; i <= targetNotes.length; i++) {
+    const isRest = i === targetNotes.length || targetNotes[i].lyric === "R";
+
+    if (!isRest && runStart === null) {
+      runStart = i;
+    } else if (isRest && runStart !== null) {
+      const runEnd = i - 1;
+      const startMs = targetLeftMs[runStart] - offsetMs;
+      const endMs =
+        targetLeftMs[runEnd] - offsetMs + targetNotes[runEnd].msLength;
+      const lyric = targetNotes
+        .slice(runStart, runEnd + 1)
+        .map((n) => n.lyric)
+        .join("");
+
+      // noteBoundaries: [startMs, leftMs[runStart+1]-offsetMs, ..., endMs]
+      const noteBoundaries: number[] = [];
+      for (let k = runStart; k <= runEnd; k++) {
+        noteBoundaries.push(targetLeftMs[k] - offsetMs);
+      }
+      noteBoundaries.push(endMs);
+
+      segments.push({ startMs, endMs, lyric, noteBoundaries });
+      runStart = null;
+    }
+  }
+
+  return segments;
 }
 
 /** "image" モード時のキャンバス最大サイズ（FHD 上限） */
@@ -117,6 +330,274 @@ const VIDEO_CODEC_PRIORITY: VideoCodec[] = ["avc", "vp9", "av1", "vp8"];
  */
 const AUDIO_CODEC_PRIORITY: AudioCodec[] = ["aac", "opus"];
 
+const drawStarPath = (
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outerRadius: number,
+  innerRadius: number,
+) => {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const angle = -Math.PI / 2 + (Math.PI / 5) * i;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = cx + Math.cos(angle) * radius;
+    const y = cy + Math.sin(angle) * radius;
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.closePath();
+};
+
+const drawDiamondPath = (
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+) => {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - radius);
+  ctx.lineTo(cx + radius, cy);
+  ctx.lineTo(cx, cy + radius);
+  ctx.lineTo(cx - radius, cy);
+  ctx.closePath();
+};
+
+const fillRectTiled = (
+  ctx: CanvasRenderingContext2D,
+  originX: number,
+  originY: number,
+  width: number,
+  height: number,
+  stepX: number,
+  stepY: number,
+  drawTile: (x: number, y: number, row: number, col: number) => void,
+) => {
+  let row = 0;
+  for (let y = originY; y <= originY + height + stepY; y += stepY) {
+    let col = 0;
+    for (let x = originX; x <= originX + width + stepX; x += stepX) {
+      drawTile(x, y, row, col);
+      col += 1;
+    }
+    row += 1;
+  }
+};
+
+export const drawGeneratedBackground = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  options: BackgroundOptions,
+  scale = 1,
+): void => {
+  const motifSize = Math.max(2, options.size * scale);
+  const gap = Math.max(0, options.gap * scale);
+  const cycle = Math.max(2, motifSize + gap);
+  const secondaryAlpha = Math.min(
+    1,
+    Math.max(0, options.secondaryOpacity / 100),
+  );
+  const rotationRad = (options.rotation * Math.PI) / 180;
+  const rotatedBounds = Math.sqrt(width * width + height * height);
+  const patternWidth = rotationRad === 0 ? width : rotatedBounds;
+  const patternHeight = rotationRad === 0 ? height : rotatedBounds;
+  const originX = rotationRad === 0 ? 0 : -patternWidth / 2;
+  const originY = rotationRad === 0 ? 0 : -patternHeight / 2;
+
+  ctx.save();
+  ctx.fillStyle = options.primaryColor;
+  ctx.fillRect(0, 0, width, height);
+
+  if (options.style === "solid") {
+    ctx.restore();
+    return;
+  }
+
+  ctx.fillStyle = options.secondaryColor;
+  ctx.strokeStyle = options.secondaryColor;
+  ctx.globalAlpha = secondaryAlpha;
+
+  if (rotationRad !== 0) {
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(rotationRad);
+  }
+
+  switch (options.style) {
+    case "dots": {
+      const radius = motifSize / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          ctx.beginPath();
+          ctx.arc(x + offsetX + radius, y + radius, radius, 0, Math.PI * 2);
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "stars": {
+      const outerRadius = motifSize / 2;
+      const innerRadius = outerRadius * 0.45;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          drawStarPath(
+            ctx,
+            x + offsetX + outerRadius,
+            y + outerRadius,
+            outerRadius,
+            innerRadius,
+          );
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "gingham": {
+      const stripe = motifSize;
+      ctx.save();
+      ctx.globalAlpha = secondaryAlpha * 0.6;
+      for (let x = originX; x < originX + patternWidth + stripe; x += cycle) {
+        ctx.fillRect(x, originY, stripe, patternHeight);
+      }
+      for (let y = originY; y < originY + patternHeight + stripe; y += cycle) {
+        ctx.fillRect(originX, y, patternWidth, stripe);
+      }
+      ctx.restore();
+      break;
+    }
+    case "grid": {
+      const lineWidth = Math.max(1, motifSize * 0.14);
+      ctx.lineWidth = lineWidth;
+      for (let x = originX; x <= originX + patternWidth; x += cycle) {
+        ctx.beginPath();
+        ctx.moveTo(x, originY);
+        ctx.lineTo(x, originY + patternHeight);
+        ctx.stroke();
+      }
+      for (let y = originY; y <= originY + patternHeight; y += cycle) {
+        ctx.beginPath();
+        ctx.moveTo(originX, y);
+        ctx.lineTo(originX + patternWidth, y);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "stripes": {
+      for (
+        let y = originY;
+        y < originY + patternHeight + motifSize;
+        y += cycle
+      ) {
+        ctx.fillRect(originX, y, patternWidth, motifSize);
+      }
+      break;
+    }
+    case "diagonalStripes": {
+      ctx.save();
+      ctx.rotate(-Math.PI / 4);
+      for (let y = -patternHeight; y < patternHeight; y += cycle) {
+        ctx.fillRect(-patternWidth, y, patternWidth * 2, motifSize);
+      }
+      ctx.restore();
+      break;
+    }
+    case "checkerboard": {
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row, col) => {
+          if ((row + col) % 2 === 0) {
+            ctx.fillRect(x, y, motifSize, motifSize);
+          }
+        },
+      );
+      break;
+    }
+    case "diamonds": {
+      const radius = motifSize / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          drawDiamondPath(ctx, x + offsetX + radius, y + radius, radius);
+          ctx.fill();
+        },
+      );
+      break;
+    }
+  }
+
+  ctx.restore();
+};
+
+export const drawVideoBackground = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  background: BackgroundOptions,
+  image: HTMLImageElement | null,
+  bgPaddingMode: BgPaddingMode,
+  bgImageOpacity: number,
+  blurPx = 20,
+): void => {
+  drawGeneratedBackground(ctx, width, height, background);
+
+  if (!image) {
+    return;
+  }
+
+  const imgW = image.naturalWidth;
+  const imgH = image.naturalHeight;
+
+  if (bgPaddingMode !== "color") {
+    const bgScale = Math.max(width / imgW, height / imgH);
+    const bgW = imgW * bgScale;
+    const bgH = imgH * bgScale;
+    if (bgPaddingMode === "blur") {
+      ctx.filter = `blur(${blurPx}px)`;
+    }
+    ctx.globalAlpha = bgImageOpacity / 100;
+    ctx.drawImage(image, (width - bgW) / 2, (height - bgH) / 2, bgW, bgH);
+    ctx.globalAlpha = 1;
+    ctx.filter = "none";
+  }
+
+  const fgScale = Math.min(1, width / imgW, height / imgH);
+  const fgW = imgW * fgScale;
+  const fgH = imgH * fgScale;
+  ctx.drawImage(image, (width - fgW) / 2, (height - fgH) / 2, fgW, fgH);
+};
+
 /** Canvas にテキストオーバーレイを描画する内部ヘルパー */
 const drawTextOnCanvas = (
   ctx: CanvasRenderingContext2D,
@@ -125,17 +606,556 @@ const drawTextOnCanvas = (
   cH: number,
 ): void => {
   if (!opts.text.trim()) return;
+  const x = (cW * opts.xPercent) / 100;
+  const y = (cH * opts.yPercent) / 100;
   ctx.save();
   ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${FONT_STACK}`;
-  ctx.fillStyle = opts.color;
   ctx.textAlign = opts.textAlign;
   ctx.textBaseline = "middle";
   ctx.globalAlpha = 1;
-  ctx.fillText(
-    opts.text,
-    (cW * opts.xPercent) / 100,
-    (cH * opts.yPercent) / 100,
-  );
+
+  // 背景バー
+  if (opts.bgBarEnabled) {
+    const textW = ctx.measureText(opts.text).width;
+    const padX = opts.fontSize * 0.5;
+    const padY = opts.fontSize * 0.3;
+    const barW = textW + padX * 2;
+    const barH = opts.fontSize + padY * 2;
+    const barX =
+      opts.textAlign === "center"
+        ? x - barW / 2
+        : opts.textAlign === "right"
+          ? x - barW
+          : x - padX;
+    ctx.save();
+    ctx.globalAlpha = opts.bgBarOpacity / 100;
+    ctx.fillStyle = opts.bgBarColor;
+    ctx.fillRect(barX, y - barH / 2, barW, barH);
+    ctx.restore();
+  }
+
+  // シャドウ
+  if (opts.shadowEnabled) {
+    ctx.shadowColor = opts.shadowColor;
+    ctx.shadowBlur = opts.shadowBlur;
+    ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+    ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+  }
+
+  // 縁取り
+  if (opts.strokeEnabled) {
+    ctx.lineJoin = "round";
+    ctx.lineWidth = opts.strokeWidth * 2;
+    ctx.strokeStyle = opts.strokeColor;
+    ctx.strokeText(opts.text, x, y);
+  }
+
+  ctx.fillStyle = opts.color;
+  ctx.fillText(opts.text, x, y);
+  ctx.restore();
+};
+
+/**
+ * ease-out バウンス関数（CSS Animations Spec 準拠の piecewise quadratic、4 バウンス）
+ * t = 0 → 0, t = 1 → 1
+ */
+const easeOutBounce = (t: number): number => {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (t < 1 / d1) {
+    return n1 * t * t;
+  } else if (t < 2 / d1) {
+    t -= 1.5 / d1;
+    return n1 * t * t + 0.75;
+  } else if (t < 2.5 / d1) {
+    t -= 2.25 / d1;
+    return n1 * t * t + 0.9375;
+  } else {
+    t -= 2.625 / d1;
+    return n1 * t * t + 0.984375;
+  }
+};
+
+/**
+ * スライド方向に対応する「画面内正規位置 → 画面外 」のベクトル（最大値就ればテキストが完全に画面外に出る距離）
+ * halfW: テキスト幅の半分, halfH: テキスト高さの半分
+ */
+const slideExitVector = (
+  dir: SlideDirection,
+  cx: number,
+  cy: number,
+  cW: number,
+  cH: number,
+  halfW: number,
+  halfH: number,
+): [number, number] => {
+  switch (dir) {
+    case "up":
+      return [0, -(cy + halfH)];
+    case "down":
+      return [0, cH - cy + halfH];
+    case "left":
+      return [-(cx + halfW), 0];
+    case "right":
+      return [cW - cx + halfW, 0];
+  }
+};
+
+/**
+ * Canvas に歌詞字幕を描画するヘルパー。
+ * テキスト幅が maxWidthPercent を超える場合はフォントサイズを自動縮小する（最小 12px）。
+ * elapsed / remaining によるアニメーション効果をすべて適用する。
+ */
+export const drawSubtitleOnCanvas = (
+  ctx: CanvasRenderingContext2D,
+  lyric: string,
+  opts: LyricsOptions,
+  cW: number,
+  cH: number,
+  elapsed: number,
+  remaining: number,
+): void => {
+  if (!lyric.trim()) return;
+  const maxW = (cW * opts.maxWidthPercent) / 100;
+  const minFontSize = 12;
+  let fontSize = opts.fontSize;
+
+  // --- フレーズ全体のエフェクト値を計算 ---
+  let alpha = 1;
+  if (opts.fadeEnabled) {
+    const fadeMs = opts.fadeDurationMs;
+    alpha = Math.min(
+      Math.min(1, elapsed / fadeMs),
+      Math.min(1, remaining / fadeMs),
+    );
+  }
+  let scale = 1;
+  if (opts.scaleEnabled) {
+    const scaleMs = opts.scaleDurationMs;
+    // ease-out 二乗: SCALE_FROM付近で変化量大、100%付近で変化量小
+    const ce = Math.min(1, elapsed / scaleMs);
+    const cr = Math.min(1, remaining / scaleMs);
+    const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+    const s0 = opts.scaleFrom / 100;
+    scale = s0 + (1 - s0) * t;
+  }
+  let slideY = 0;
+  if (opts.slideEnabled) {
+    const slideMs = opts.slideDurationMs;
+    // ease-out 二乗: 始点付近で変化量大、正規位置近いと緩やか
+    const ce = Math.min(1, elapsed / slideMs);
+    const cr = Math.min(1, remaining / slideMs);
+    const progress = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+    slideY = opts.slideAmount * (1 - progress);
+  }
+  let slideInProgress = 1;
+  let slideOutProgress = 0;
+  if (opts.slideInEnabled) {
+    slideInProgress = Math.min(1, elapsed / opts.slideInOutDurationMs);
+  }
+  if (opts.slideOutEnabled) {
+    slideOutProgress = Math.max(0, 1 - remaining / opts.slideInOutDurationMs);
+  }
+  let blurRadius = 0;
+  if (opts.blurEnabled) {
+    const blurMs = opts.blurDurationMs;
+    const ce = Math.min(1, elapsed / blurMs);
+    const cr = Math.min(1, remaining / blurMs);
+    // ease-out二乗: 入場ほど強く、表示中は0、退場ほど強く
+    blurRadius =
+      opts.blurAmount * Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
+  }
+  let wipeInProgress = 1;
+  let wipeOutProgress = 0;
+  if (opts.wipeInEnabled) {
+    wipeInProgress = Math.min(1, elapsed / opts.wipeDurationMs);
+  }
+  if (opts.wipeOutEnabled) {
+    wipeOutProgress = Math.max(0, 1 - remaining / opts.wipeDurationMs);
+  }
+  let bounceInProgress = 1;
+  let bounceOutProgress = 0;
+  if (opts.bounceInEnabled) {
+    bounceInProgress = Math.min(1, elapsed / opts.bounceInOutDurationMs);
+  }
+  if (opts.bounceOutEnabled) {
+    bounceOutProgress = Math.max(0, 1 - remaining / opts.bounceInOutDurationMs);
+  }
+
+  ctx.save();
+  // スタガーモードではブラーは文字ごとに適用するため外側では設定しない
+  ctx.filter =
+    !opts.staggerEnabled && blurRadius > 0 ? `blur(${blurRadius}px)` : "none";
+  ctx.globalAlpha = alpha;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+
+  // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める（scale=1 基準）
+  while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
+    fontSize -= 2;
+    ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+  }
+
+  const cx = (cW * opts.xPercent) / 100;
+  const cy = (cH * opts.yPercent) / 100;
+  const textW = ctx.measureText(lyric).width;
+  const halfW = textW / 2;
+  const halfH = fontSize * 0.6;
+
+  // スライドイン/アウトのオフセット計算
+  // ease-in 二乗: 目標居に正規位置付近でンマーい、遠いほど高速
+  let dynX = 0;
+  let dynY = 0;
+  if (opts.slideInEnabled && !opts.staggerEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.slideInDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    const p = 1 - slideInProgress;
+    dynX += dvx * p * p;
+    dynY += dvy * p * p;
+  }
+  if (opts.slideOutEnabled && !opts.staggerEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.slideOutDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    dynX += dvx * slideOutProgress * slideOutProgress;
+    dynY += dvy * slideOutProgress * slideOutProgress;
+  }
+  // バウンスイン/アウトのオフセット計算（slideExitVector 再利用、イージングは easeOutBounce）
+  if (opts.bounceInEnabled && !opts.staggerEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.bounceInDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    const factor = 1 - easeOutBounce(bounceInProgress);
+    dynX += dvx * factor;
+    dynY += dvy * factor;
+  }
+  if (opts.bounceOutEnabled && !opts.staggerEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.bounceOutDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    // easeInBounce = 1 - easeOutBounce(1 - t)
+    const factor = 1 - easeOutBounce(1 - bounceOutProgress);
+    dynX += dvx * factor;
+    dynY += dvy * factor;
+  }
+
+  // スタガーモードでは slideY は各文字のアニメーションに委ね、外側 translate に含めない
+  ctx.translate(cx + dynX, cy + (opts.staggerEnabled ? 0 : slideY) + dynY);
+  if (!opts.staggerEnabled) {
+    ctx.scale(scale, scale);
+  }
+
+  // ワイプ: translate 後の座標系（中央 = (0,0)）でクリップ矩形を計算。
+  // bgBar ・ shadow ・ テキスト をまとめてクリッピングする。
+  const wipeBarW = textW + fontSize;
+  const wipeBarH = fontSize * 2;
+  if (opts.wipeInEnabled && wipeInProgress < 1) {
+    // ease-out 二乗: 小さい領域から大きい領域へ、最後はヲント緩やかに全表示
+    const t = 1 - (1 - wipeInProgress) * (1 - wipeInProgress);
+    ctx.save();
+    ctx.beginPath();
+    switch (opts.wipeInDirection) {
+      case "right": // 左苯から右へ出現
+        ctx.rect(
+          wipeBarW / 2 - wipeBarW * t,
+          -wipeBarH / 2,
+          wipeBarW * t,
+          wipeBarH,
+        );
+        break;
+      case "left": // 右苯から左へ出現
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW * t, wipeBarH);
+        break;
+      case "down": // 上辺から下へ出現
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW, wipeBarH * t);
+        break;
+      case "up": // 下辺から上へ出現
+        ctx.rect(
+          -wipeBarW / 2,
+          wipeBarH / 2 - wipeBarH * t,
+          wipeBarW,
+          wipeBarH * t,
+        );
+        break;
+    }
+    ctx.clip();
+  } else if (opts.wipeOutEnabled && wipeOutProgress > 0) {
+    // ease-in 二乗: ヲント経源で小さな領域へ広がっていく
+    const t = wipeOutProgress * wipeOutProgress;
+    ctx.save();
+    ctx.beginPath();
+    switch (opts.wipeOutDirection) {
+      case "right": // 右へ飛び出して降出
+        ctx.rect(
+          -wipeBarW / 2 + wipeBarW * t,
+          -wipeBarH / 2,
+          wipeBarW * (1 - t),
+          wipeBarH,
+        );
+        break;
+      case "left": // 左へ飛び出して降出
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW * (1 - t), wipeBarH);
+        break;
+      case "down": // 下へ飛び出して降出
+        ctx.rect(
+          -wipeBarW / 2,
+          -wipeBarH / 2 + wipeBarH * t,
+          wipeBarW,
+          wipeBarH * (1 - t),
+        );
+        break;
+      case "up": // 上へ飛び出して降出
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW, wipeBarH * (1 - t));
+        break;
+    }
+    ctx.clip();
+  }
+
+  if (opts.staggerEnabled) {
+    // ---- スタガー描画: 文字ごとに異なるタイミングで個別にアニメーション ----
+    const chars = [...lyric];
+    const N = chars.length;
+    const S = opts.staggerIntervalMs;
+    const charWidths = chars.map((c) => {
+      ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+      return ctx.measureText(c).width;
+    });
+
+    // 背景バーはフレーズ全体のアルファで一括描画（文字毎に描くと重なりが出るため）
+    if (opts.bgBarEnabled) {
+      const padX = fontSize * 0.5;
+      const padY = fontSize * 0.3;
+      const barW = textW + padX * 2;
+      const barH = fontSize + padY * 2;
+      ctx.save();
+      ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
+      ctx.fillStyle = opts.bgBarColor;
+      ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
+      ctx.restore();
+    }
+
+    let x = -charWidths.reduce((a, b) => a + b, 0) / 2;
+    for (let i = 0; i < N; i++) {
+      const charElapsed = Math.max(0, elapsed - i * S);
+      const charRemaining = Math.max(0, remaining - (N - 1 - i) * S);
+
+      // 文字ごとのフェード
+      let charAlpha = 1;
+      if (opts.fadeEnabled) {
+        const fadeMs = opts.fadeDurationMs;
+        charAlpha = Math.min(
+          Math.min(1, charElapsed / fadeMs),
+          Math.min(1, charRemaining / fadeMs),
+        );
+      }
+
+      // 文字ごとのスケール
+      let charScale = 1;
+      if (opts.scaleEnabled) {
+        const scaleMs = opts.scaleDurationMs;
+        const ce = Math.min(1, charElapsed / scaleMs);
+        const cr = Math.min(1, charRemaining / scaleMs);
+        const t = Math.min(1 - (1 - ce) * (1 - ce), 1 - (1 - cr) * (1 - cr));
+        const s0 = opts.scaleFrom / 100;
+        charScale = s0 + (1 - s0) * t;
+      }
+
+      // 文字ごとのスライドアップ
+      let charSlideY = 0;
+      if (opts.slideEnabled) {
+        const slideMs = opts.slideDurationMs;
+        const ce = Math.min(1, charElapsed / slideMs);
+        const cr = Math.min(1, charRemaining / slideMs);
+        const progress = Math.min(
+          1 - (1 - ce) * (1 - ce),
+          1 - (1 - cr) * (1 - cr),
+        );
+        charSlideY = opts.slideAmount * (1 - progress);
+      }
+
+      // 文字ごとのブラー
+      let charBlurRadius = 0;
+      if (opts.blurEnabled) {
+        const blurMs = opts.blurDurationMs;
+        const ce = Math.min(1, charElapsed / blurMs);
+        const cr = Math.min(1, charRemaining / blurMs);
+        charBlurRadius =
+          opts.blurAmount * Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
+      }
+
+      // 文字ごとのスライドイン/スライドアウト
+      let charDynX = 0;
+      let charDynY = 0;
+      if (opts.slideInEnabled) {
+        const charSlideInProgress = Math.min(
+          1,
+          charElapsed / opts.slideInOutDurationMs,
+        );
+        const p = 1 - charSlideInProgress;
+        const [dvx, dvy] = slideExitVector(
+          opts.slideInDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        charDynX += dvx * p * p;
+        charDynY += dvy * p * p;
+      }
+      if (opts.slideOutEnabled) {
+        const charSlideOutProgress = Math.max(
+          0,
+          1 - charRemaining / opts.slideInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.slideOutDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        charDynX += dvx * charSlideOutProgress * charSlideOutProgress;
+        charDynY += dvy * charSlideOutProgress * charSlideOutProgress;
+      }
+
+      // 文字ごとのバウンスイン/バウンスアウト
+      if (opts.bounceInEnabled) {
+        const charBounceInProgress = Math.min(
+          1,
+          charElapsed / opts.bounceInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.bounceInDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        const factor = 1 - easeOutBounce(charBounceInProgress);
+        charDynX += dvx * factor;
+        charDynY += dvy * factor;
+      }
+      if (opts.bounceOutEnabled) {
+        const charBounceOutProgress = Math.max(
+          0,
+          1 - charRemaining / opts.bounceInOutDurationMs,
+        );
+        const [dvx, dvy] = slideExitVector(
+          opts.bounceOutDirection,
+          cx + x + charWidths[i] / 2,
+          cy,
+          cW,
+          cH,
+          charWidths[i] / 2,
+          halfH,
+        );
+        // easeInBounce = 1 - easeOutBounce(1 - t)
+        const factor = 1 - easeOutBounce(1 - charBounceOutProgress);
+        charDynX += dvx * factor;
+        charDynY += dvy * factor;
+      }
+
+      ctx.save();
+      ctx.filter = charBlurRadius > 0 ? `blur(${charBlurRadius}px)` : "none";
+      ctx.globalAlpha = charAlpha;
+      // 文字の中央を原点に translate、その後スケール
+      ctx.translate(x + charWidths[i] / 2 + charDynX, charSlideY + charDynY);
+      ctx.scale(charScale, charScale);
+
+      if (opts.shadowEnabled) {
+        ctx.shadowColor = opts.shadowColor;
+        ctx.shadowBlur = opts.shadowBlur;
+        ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+        ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+      }
+      if (opts.strokeEnabled) {
+        ctx.lineJoin = "round";
+        ctx.lineWidth = opts.strokeWidth * 2;
+        ctx.strokeStyle = opts.strokeColor;
+        ctx.strokeText(chars[i], 0, 0);
+      }
+      ctx.fillStyle = opts.color;
+      ctx.fillText(chars[i], 0, 0);
+
+      ctx.restore();
+      x += charWidths[i];
+    }
+  } else {
+    // ---- 通常描画（スタガーなし）----
+    // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
+    if (opts.bgBarEnabled) {
+      const padX = fontSize * 0.5;
+      const padY = fontSize * 0.3;
+      const barW = textW + padX * 2;
+      const barH = fontSize + padY * 2;
+      ctx.save();
+      ctx.globalAlpha = alpha * (opts.bgBarOpacity / 100);
+      ctx.fillStyle = opts.bgBarColor;
+      ctx.fillRect(-barW / 2, -barH / 2, barW, barH);
+      ctx.restore();
+    }
+
+    // Step 3: shadow 設定
+    if (opts.shadowEnabled) {
+      ctx.shadowColor = opts.shadowColor;
+      ctx.shadowBlur = opts.shadowBlur;
+      ctx.shadowOffsetX = opts.shadowBlur * 0.5;
+      ctx.shadowOffsetY = opts.shadowBlur * 0.5;
+    }
+
+    // Step 4: 縁取り
+    if (opts.strokeEnabled) {
+      ctx.lineJoin = "round";
+      ctx.lineWidth = opts.strokeWidth * 2;
+      ctx.strokeStyle = opts.strokeColor;
+      ctx.strokeText(lyric, 0, 0);
+    }
+
+    // Step 5: メインテキスト
+    ctx.fillStyle = opts.color;
+    ctx.fillText(lyric, 0, 0);
+  }
+
+  // ワイプの clip 状態を解除（wipe 適用時は余分に ctx.save() してある）
+  if (
+    (opts.wipeInEnabled && wipeInProgress < 1) ||
+    (opts.wipeOutEnabled && wipeOutProgress > 0)
+  ) {
+    ctx.restore();
+  }
+
   ctx.restore();
 };
 
@@ -161,14 +1181,16 @@ const drawTextOnCanvas = (
  */
 export const generateMp4 = async (
   audioBuffer: ArrayBuffer,
-  imageFile: File,
+  imageFile: File | null,
   resolution: VideoResolution = "image",
+  background: BackgroundOptions,
   bgPaddingMode: BgPaddingMode = "image",
-  bgColor: string = "#000000",
   bgImageOpacity: number = 100,
   portraitOptions?: PortraitOptions | null,
   mainTextOptions?: TextOptions | null,
   subTextOptions?: TextOptions | null,
+  lyricsOptions?: LyricsOptions | null,
+  onProgress?: (current: number, total: number) => void,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
   // 登録後は canEncodeAudio('aac') が true を返すようになる
@@ -193,105 +1215,106 @@ export const generateMp4 = async (
   await audioCtx.close();
 
   // 画像をロードしてキャンバスサイズを決定
-  const imageUrl = URL.createObjectURL(imageFile);
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const el = new Image();
-    el.onload = () => resolve(el);
-    el.onerror = reject;
-    el.src = imageUrl;
-  });
-  URL.revokeObjectURL(imageUrl);
-
-  const imgW = img.naturalWidth;
-  const imgH = img.naturalHeight;
+  let img: HTMLImageElement | null = null;
+  let imgW = 0;
+  let imgH = 0;
+  if (imageFile) {
+    const imageUrl = URL.createObjectURL(imageFile);
+    img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = imageUrl;
+    });
+    URL.revokeObjectURL(imageUrl);
+    imgW = img.naturalWidth;
+    imgH = img.naturalHeight;
+  }
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context is not available");
 
+  // キャンバスサイズを決定
+  let cW: number;
+  let cH: number;
   if (resolution === "image") {
-    // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
+    if (!img) {
+      throw new Error("画像サイズモードでは背景画像が必要です。");
+    }
     const scale = Math.min(1, MAX_WIDTH / imgW, MAX_HEIGHT / imgH);
-    canvas.width = Math.round(imgW * scale);
-    canvas.height = Math.round(imgH * scale);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    cW = Math.round(imgW * scale);
+    cH = Math.round(imgH * scale);
   } else {
-    // 固定解像度モード: bgPaddingMode に従って余白を埋めてから前景を中央配置
-    const [W, H] = resolution.split("x").map(Number);
-    canvas.width = W;
-    canvas.height = H;
+    [cW, cH] = resolution.split("x").map(Number);
+  }
+  canvas.width = cW;
+  canvas.height = cH;
 
-    if (bgPaddingMode === "color") {
-      // 背景色で塗りつぶす
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, W, H);
+  // 立絵をすべての非同期処理の前にロードしておく（drawBase クロージャで再利用するため）
+  let portraitImg: HTMLImageElement | null = null;
+  if (portraitOptions) {
+    const pUrl = URL.createObjectURL(portraitOptions.blob);
+    portraitImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = pUrl;
+    });
+    URL.revokeObjectURL(pUrl);
+  }
+
+  /**
+   * 背景・立絵・タイトルテキストのベースレイヤーをキャンバスに描画する。
+   * 字幕フレームのたびに呼び出して canvas を上書きするため、副作用なしで完結させる。
+   */
+  const drawBase = () => {
+    ctx.clearRect(0, 0, cW, cH);
+
+    if (resolution === "image" && img) {
+      // 「画像サイズ」モード: FHD 超過の場合のみアスペクト比を維持して縮小
+      ctx.drawImage(img, 0, 0, cW, cH);
     } else {
-      // "image" or "blur": 最背面を背景色で塗り、その上に cover スケールで背景画像を重ねる
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, W, H);
-
-      const bgScale = Math.max(W / imgW, H / imgH);
-      const bgW = imgW * bgScale;
-      const bgH = imgH * bgScale;
-      if (bgPaddingMode === "blur") {
-        ctx.filter = "blur(20px)";
-      }
-      ctx.globalAlpha = bgImageOpacity / 100;
-      ctx.drawImage(img, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH);
-      ctx.globalAlpha = 1;
-      ctx.filter = "none";
+      drawVideoBackground(
+        ctx,
+        cW,
+        cH,
+        background,
+        img,
+        bgPaddingMode,
+        bgImageOpacity,
+      );
     }
 
-    // 前景: 画像を contain・拡大なしで中央配置
-    // 例: 1000×1000 → 1920×1080 なら fgScale=1、左右460px/上下40px 余白
-    const fgScale = Math.min(1, W / imgW, H / imgH);
-    const fgW = imgW * fgScale;
-    const fgH = imgH * fgScale;
-    ctx.drawImage(img, (W - fgW) / 2, (H - fgH) / 2, fgW, fgH);
-  }
+    // 立絵の描画（設定有りの場合のみ）
+    if (portraitOptions && portraitImg) {
+      const { naturalHeight, opacity, scalePercent } = portraitOptions;
+      const pNatW = portraitImg.naturalWidth;
+      const pNatH = portraitImg.naturalHeight;
+      // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枠内に contain
+      const maxW = cW * 0.5;
+      const maxH = Math.min(cH * 0.5, naturalHeight);
+      const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+      // ユーザースケール適用。自然サイズ（scale=1）を上限とする
+      const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
+      const drawW = pNatW * drawScale;
+      const drawH = pNatH * drawScale;
+      // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
+      const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
+      const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
+      ctx.globalAlpha = opacity / 100;
+      ctx.drawImage(portraitImg, px, py, drawW, drawH);
+      ctx.globalAlpha = 1;
+    }
 
-  // 立絵の描画（設定有りの場合のみ）
-  if (portraitOptions) {
-    const { blob, naturalHeight, opacity, scalePercent } = portraitOptions;
-    const pUrl = URL.createObjectURL(blob);
-    const portraitImg = await new Promise<HTMLImageElement>(
-      (resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = reject;
-        el.src = pUrl;
-      },
-    );
-    URL.revokeObjectURL(pUrl);
-
-    const pNatW = portraitImg.naturalWidth;
-    const pNatH = portraitImg.naturalHeight;
-    const cW = canvas.width;
-    const cH = canvas.height;
-
-    // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枚内に contain
-    const maxW = cW * 0.5;
-    const maxH = Math.min(cH * 0.5, naturalHeight);
-    const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
-    // ユーザースケール適用。自然サイズ（scale=1）を上限とする
-    const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
-    const drawW = pNatW * drawScale;
-    const drawH = pNatH * drawScale;
-    // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
-    const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
-    const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
-    ctx.globalAlpha = opacity / 100;
-    ctx.drawImage(portraitImg, px, py, drawW, drawH);
-    ctx.globalAlpha = 1;
-  }
-
-  // テキストオーバーレイの描画（立絵より上のレイヤー）
-  if (mainTextOptions) {
-    drawTextOnCanvas(ctx, mainTextOptions, canvas.width, canvas.height);
-  }
-  if (subTextOptions) {
-    drawTextOnCanvas(ctx, subTextOptions, canvas.width, canvas.height);
-  }
+    // テキストオーバーレイの描画（立絵より上のレイヤー）
+    if (mainTextOptions) {
+      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
+    }
+    if (subTextOptions) {
+      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+    }
+  };
 
   // mediabunny Output を構築してトラックを追加
   const output = new Output({
@@ -308,13 +1331,52 @@ export const generateMp4 = async (
     bitrate: 128e3,
   });
 
-  output.addVideoTrack(videoSource, { frameRate: 1 });
+  output.addVideoTrack(videoSource, { frameRate: 30 });
   output.addAudioTrack(audioSource);
 
   await output.start();
 
-  // 静止画 1 フレーム（音声全長分のタイムスタンプ/デュレーションを設定）
-  await videoSource.add(0, durationSec);
+  // 映像フレームの生成（30fps 固定）
+  const FRAME_RATE = 30;
+  const frameDuration = 1 / FRAME_RATE;
+  const totalFrames = Math.ceil(durationSec * FRAME_RATE);
+
+  for (let f = 0; f < totalFrames; f++) {
+    const tSec = f * frameDuration;
+    const tMs = tSec * 1000;
+    const dur = Math.min(frameDuration, durationSec - tSec);
+
+    drawBase();
+
+    if (lyricsOptions && lyricsOptions.segments.length > 0) {
+      const activeSeg = lyricsOptions.segments.find(
+        (seg) => tMs >= seg.startMs && tMs < seg.endMs,
+      );
+      if (activeSeg) {
+        const elapsed = tMs - activeSeg.startMs;
+        const remaining = activeSeg.endMs - tMs;
+        drawSubtitleOnCanvas(
+          ctx,
+          activeSeg.lyric,
+          lyricsOptions,
+          cW,
+          cH,
+          elapsed,
+          remaining,
+        );
+      }
+    }
+
+    await videoSource.add(tSec, dur);
+
+    // 30フレームに1回プログレスを通知（毎フレーム呼ぶとオーバーヘッドになるため）
+    if (onProgress && (f + 1) % 30 === 0) {
+      onProgress(f + 1, totalFrames);
+      // UIスレッドに制御を返してレンダリングを反映させる
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
   videoSource.close();
 
   // デコード済み AudioBuffer をそのまま渡す

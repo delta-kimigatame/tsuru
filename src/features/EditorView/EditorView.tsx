@@ -11,7 +11,9 @@ import { useSnackBarStore } from "../../store/snackBarStore";
 import { NoteSelectMode } from "../../types/noteSelectMode";
 import {
   generateMp4,
+  type BackgroundOptions,
   type BgPaddingMode,
+  type LyricsOptions,
   type PortraitOptions,
   type TextOptions,
   type VideoResolution,
@@ -102,6 +104,10 @@ export const EditorView: React.FC<{
     React.useState<boolean>(false);
   /** 動画エクスポート用に先行合成した WAV データを保持する ref */
   const movieWavBufRef = React.useRef<ArrayBuffer | null>(null);
+  /** 動画エクスポート中の総フレーム数（FooterMenu のプログレス表示用） */
+  const [videoExportTotal, setVideoExportTotal] = React.useState<
+    number | undefined
+  >(undefined);
 
   const backgroundAudioRef = React.useRef<HTMLAudioElement>(null);
   const snackBarStore = useSnackBarStore();
@@ -278,14 +284,15 @@ export const EditorView: React.FC<{
    * 事前に handleDownload 内で合成済みの WAV を movieWavBufRef に格納してから呼び出すこと
    */
   const handleVideoExportConfirm = async (
-    imageFile: File,
+    imageFile: File | null,
     resolution: VideoResolution,
+    background: BackgroundOptions,
     bgPaddingMode: BgPaddingMode,
-    bgColor: string,
     bgImageOpacity: number,
     portraitOptions: PortraitOptions | null,
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
+    lyricsOptions: LyricsOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -302,14 +309,20 @@ export const EditorView: React.FC<{
         wavBuf,
         imageFile,
         resolution,
+        background,
         bgPaddingMode,
-        bgColor,
         bgImageOpacity,
         portraitOptions,
         mainTextOptions,
         subTextOptions,
+        lyricsOptions,
+        (current, total) => {
+          setSynthesisCount(current);
+          setVideoExportTotal(total);
+        },
       );
       setSynthesisProgress(false);
+      setVideoExportTotal(undefined);
       LOG.gtag("download", { downloadName: vb.name });
       const dataUrl = URL.createObjectURL(
         new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
@@ -320,6 +333,7 @@ export const EditorView: React.FC<{
       a.click();
     } catch (e) {
       setSynthesisProgress(false);
+      setVideoExportTotal(undefined);
       LOG.error(
         `動画エクスポートの失敗。${e.message}\n${e.stack}`,
         "EditorView",
@@ -671,6 +685,7 @@ export const EditorView: React.FC<{
         handleDownload={handleDownload}
         synthesisCount={synthesisCount}
         synthesisProgress={synthesisProgress}
+        videoExportTotal={videoExportTotal}
         playing={playing}
         handlePlayStop={handlePlayStop}
         selectMode={selectMode}
@@ -735,6 +750,9 @@ export const EditorView: React.FC<{
           vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
         }
         portraitNaturalHeight={vb?.portraitHeight}
+        notes={notes}
+        notesLeftMs={notesLeftMs}
+        selectNotesIndex={selectNotesIndex}
       />
     </>
   );

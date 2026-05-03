@@ -1,4 +1,9 @@
-import type { BgPaddingMode, VideoResolution } from "../utils/videoExport";
+import type {
+  BackgroundStyle,
+  BgPaddingMode,
+  SlideDirection,
+  VideoResolution,
+} from "../utils/videoExport";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -44,6 +49,18 @@ export const PALETTE: string[][] = [
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_BG_COLOR = "#ffffff";
+export const DEFAULT_BG_SECONDARY_COLOR = "#ffd54f";
+export const DEFAULT_BG_SECONDARY_OPACITY = 100;
+export const DEFAULT_BACKGROUND_STYLE: BackgroundStyle = "solid";
+export const DEFAULT_BACKGROUND_PATTERN_SIZE = 48;
+export const DEFAULT_BACKGROUND_PATTERN_GAP = 24;
+export const DEFAULT_BACKGROUND_PATTERN_ROTATION = 0;
+export const BACKGROUND_PATTERN_SIZE_MIN = 2;
+export const BACKGROUND_PATTERN_SIZE_MAX = 200;
+export const BACKGROUND_PATTERN_GAP_MIN = 0;
+export const BACKGROUND_PATTERN_GAP_MAX = 200;
+export const BACKGROUND_PATTERN_ROTATION_MIN = 0;
+export const BACKGROUND_PATTERN_ROTATION_MAX = 360;
 export const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 // ---------------------------------------------------------------------------
@@ -106,6 +123,102 @@ export const TEXT_POSITION_MIN = 0;
 export const TEXT_POSITION_MAX = 100;
 
 // ---------------------------------------------------------------------------
+// 字幕設定デフォルト・定数
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_LYRICS_FONT_SIZE = 48;
+export const DEFAULT_LYRICS_COLOR = "#ffffff";
+export const DEFAULT_LYRICS_Y_PERCENT = 85;
+export const DEFAULT_LYRICS_MAX_WIDTH_PERCENT = 80;
+export const LYRICS_FONT_SIZE_MIN = 12;
+export const LYRICS_FONT_SIZE_MAX = 120;
+
+// Shadow
+export const DEFAULT_LYRICS_SHADOW_ENABLED = false;
+export const DEFAULT_LYRICS_SHADOW_COLOR = "#000000";
+export const DEFAULT_LYRICS_SHADOW_BLUR = 4;
+export const LYRICS_SHADOW_BLUR_MIN = 0;
+export const LYRICS_SHADOW_BLUR_MAX = 20;
+
+// Stroke
+export const DEFAULT_LYRICS_STROKE_ENABLED = false;
+export const DEFAULT_LYRICS_STROKE_COLOR = "#000000";
+export const DEFAULT_LYRICS_STROKE_WIDTH = 3;
+export const LYRICS_STROKE_WIDTH_MIN = 1;
+export const LYRICS_STROKE_WIDTH_MAX = 10;
+
+// BgBar
+export const DEFAULT_LYRICS_BG_BAR_ENABLED = false;
+export const DEFAULT_LYRICS_BG_BAR_COLOR = "#000000";
+export const DEFAULT_LYRICS_BG_BAR_OPACITY = 60;
+
+// Fade
+export const DEFAULT_LYRICS_FADE_ENABLED = false;
+export const DEFAULT_LYRICS_FADE_DURATION_MS = 300;
+export const LYRICS_FADE_DURATION_MS_MIN = 50;
+export const LYRICS_FADE_DURATION_MS_MAX = 1000;
+
+// Scale
+export const DEFAULT_LYRICS_SCALE_ENABLED = false;
+export const DEFAULT_LYRICS_SCALE_FROM = 300;
+export const DEFAULT_LYRICS_SCALE_DURATION_MS = 300;
+export const LYRICS_SCALE_FROM_MIN = 0;
+export const LYRICS_SCALE_FROM_MAX = 500;
+export const LYRICS_SCALE_DURATION_MS_MIN = 50;
+export const LYRICS_SCALE_DURATION_MS_MAX = 1000;
+
+// Slide
+export const DEFAULT_LYRICS_SLIDE_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_AMOUNT = 100;
+export const DEFAULT_LYRICS_SLIDE_DURATION_MS = 300;
+export const LYRICS_SLIDE_AMOUNT_MIN = 0;
+export const LYRICS_SLIDE_AMOUNT_MAX = 500;
+export const LYRICS_SLIDE_DURATION_MS_MIN = 50;
+export const LYRICS_SLIDE_DURATION_MS_MAX = 1000;
+
+// SlideInOut
+export const DEFAULT_LYRICS_SLIDE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_IN_DIRECTION: SlideDirection = "up";
+export const DEFAULT_LYRICS_SLIDE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_SLIDE_OUT_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS = 300;
+export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN = 50;
+export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX = 1000;
+
+// Blur
+export const DEFAULT_LYRICS_BLUR_ENABLED = false;
+export const DEFAULT_LYRICS_BLUR_AMOUNT = 20;
+export const DEFAULT_LYRICS_BLUR_DURATION_MS = 300;
+export const LYRICS_BLUR_AMOUNT_MIN = 1;
+export const LYRICS_BLUR_AMOUNT_MAX = 100;
+export const LYRICS_BLUR_DURATION_MS_MIN = 50;
+export const LYRICS_BLUR_DURATION_MS_MAX = 1000;
+
+// Wipe
+export const DEFAULT_LYRICS_WIPE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_WIPE_IN_DIRECTION: SlideDirection = "left";
+export const DEFAULT_LYRICS_WIPE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_WIPE_OUT_DIRECTION: SlideDirection = "right";
+export const DEFAULT_LYRICS_WIPE_DURATION_MS = 300;
+export const LYRICS_WIPE_DURATION_MS_MIN = 50;
+export const LYRICS_WIPE_DURATION_MS_MAX = 1000;
+
+// Bounce
+export const DEFAULT_LYRICS_BOUNCE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_BOUNCE_IN_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_BOUNCE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS = 500;
+export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN = 100;
+export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX = 1500;
+
+// Stagger
+export const DEFAULT_LYRICS_STAGGER_ENABLED = false;
+export const DEFAULT_LYRICS_STAGGER_INTERVAL_MS = 50;
+export const LYRICS_STAGGER_INTERVAL_MS_MIN = 10;
+export const LYRICS_STAGGER_INTERVAL_MS_MAX = 300;
+
+// ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------
 
@@ -115,9 +228,27 @@ export const DEFAULT_MAIN_TEXT_Y = 85;
 export const DEFAULT_MAIN_TEXT_COLOR = "#ffffff";
 export const DEFAULT_MAIN_TEXT_BOLD = true;
 export const DEFAULT_MAIN_TEXT_ITALIC = false;
+export const DEFAULT_MAIN_TEXT_SHADOW_ENABLED = false;
+export const DEFAULT_MAIN_TEXT_SHADOW_COLOR = "#000000";
+export const DEFAULT_MAIN_TEXT_SHADOW_BLUR = 4;
+export const DEFAULT_MAIN_TEXT_STROKE_ENABLED = false;
+export const DEFAULT_MAIN_TEXT_STROKE_COLOR = "#000000";
+export const DEFAULT_MAIN_TEXT_STROKE_WIDTH = 3;
+export const DEFAULT_MAIN_TEXT_BG_BAR_ENABLED = false;
+export const DEFAULT_MAIN_TEXT_BG_BAR_COLOR = "#000000";
+export const DEFAULT_MAIN_TEXT_BG_BAR_OPACITY = 60;
 export const DEFAULT_SUB_TEXT_FONT_SIZE = 36;
 export const DEFAULT_SUB_TEXT_X = 5;
 export const DEFAULT_SUB_TEXT_Y = 93;
 export const DEFAULT_SUB_TEXT_COLOR = "#ffffff";
 export const DEFAULT_SUB_TEXT_BOLD = false;
 export const DEFAULT_SUB_TEXT_ITALIC = false;
+export const DEFAULT_SUB_TEXT_SHADOW_ENABLED = false;
+export const DEFAULT_SUB_TEXT_SHADOW_COLOR = "#000000";
+export const DEFAULT_SUB_TEXT_SHADOW_BLUR = 4;
+export const DEFAULT_SUB_TEXT_STROKE_ENABLED = false;
+export const DEFAULT_SUB_TEXT_STROKE_COLOR = "#000000";
+export const DEFAULT_SUB_TEXT_STROKE_WIDTH = 3;
+export const DEFAULT_SUB_TEXT_BG_BAR_ENABLED = false;
+export const DEFAULT_SUB_TEXT_BG_BAR_COLOR = "#000000";
+export const DEFAULT_SUB_TEXT_BG_BAR_OPACITY = 60;

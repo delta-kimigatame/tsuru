@@ -326,11 +326,13 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
               )}
               <span>
                 {props.synthesisProgress
-                  ? `${props.synthesisCount}/${
-                      props.selectedNotesIndex.length !== 0
-                        ? props.selectedNotesIndex.length
-                        : notes.length
-                    }`
+                  ? props.videoExportTotal !== undefined
+                    ? `${props.synthesisCount}/${props.videoExportTotal}`
+                    : `${props.synthesisCount}/${
+                        props.selectedNotesIndex.length !== 0
+                          ? props.selectedNotesIndex.length
+                          : notes.length
+                      }`
                   : props.playing
                     ? t("editor.footer.playStop")
                     : t("editor.footer.play")}
@@ -395,11 +397,13 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
               )}
               <span>
                 {props.synthesisProgress
-                  ? `${props.synthesisCount}/${
-                      props.selectedNotesIndex.length !== 0
-                        ? props.selectedNotesIndex.length
-                        : notes.length
-                    }`
+                  ? props.videoExportTotal !== undefined
+                    ? `${props.synthesisCount}/${props.videoExportTotal}`
+                    : `${props.synthesisCount}/${
+                        props.selectedNotesIndex.length !== 0
+                          ? props.selectedNotesIndex.length
+                          : notes.length
+                      }`
                   : t("editor.footer.wav")}
               </span>
             </Box>
@@ -470,6 +474,8 @@ export interface FooterMenuProps {
   synthesisProgress: boolean;
   /** 生成処理の進捗状況をいくつめのノートまで進んだか */
   synthesisCount: number;
+  /** 動画エクスポート中の総フレーム数。設定されている間は synthesisCount をフレーム番号として表示する */
+  videoExportTotal?: number;
   /** 再生中の状況 */
   playing: boolean;
   /** 再生を終了するためのコールバック */
