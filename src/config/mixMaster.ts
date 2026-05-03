@@ -12,22 +12,21 @@ export const MIX_MASTER_DSP = {
 export const MIX_MASTER_UI_RANGES = {
   vocal: {
     highPassCutoffHz: { min: 40, max: 300, step: 5 },
-    compressorThresholdDb: { min: -24, max: 0, step: 1 },
+    compressorThresholdDb: { min: -24, max: 0, step: 0.1 },
     compressorRatio: { min: 1, max: 8, step: 0.1 },
     eqBoostFreqHz: { min: 1000, max: 4000, step: 100 },
-    eqBoostGainDb: { min: 0, max: 8, step: 0.5 },
+    eqBoostGainDb: { min: 0, max: 8, step: 0.1 },
     reverbWetPercent: { min: 0, max: 60, step: 1 },
     reverbDecayPercent: { min: 20, max: 90, step: 1 },
   },
   background: {
-    normalizeTargetDb: { min: -20, max: -2, step: 1 },
+    normalizeTargetDb: { min: -20, max: -2, step: 0.1 },
     eqCutFreqHz: { min: 1000, max: 4000, step: 100 },
-    eqCutGainDb: { min: -12, max: 0, step: 0.5 },
+    eqCutGainDb: { min: -12, max: 0, step: 0.1 },
   },
   mastering: {
-    rmsTargetDb: { min: -20, max: -8, step: 1 },
-    limiterCeilingDb: { min: -3, max: -0.1, step: 0.1 },
-    limiterReleaseMs: { min: 20, max: 300, step: 5 },
+    rmsTargetDb: { min: -20, max: -8, step: 0.1 },
+    limiterGainDb: { min: -12, max: 12, step: 0.1 },
   },
 } as const;
 
@@ -38,7 +37,7 @@ export const defaultMixMasterSettings: SimpleMixMasterSettings = {
       cutoffHz: 100,
     },
     compressor: {
-      enabled: true,
+      enabled: false,
       thresholdDb: -6,
       ratio: 2.5,
     },
@@ -69,10 +68,9 @@ export const defaultMixMasterSettings: SimpleMixMasterSettings = {
       enabled: true,
       targetRmsDb: -14,
     },
-    hardLimiter: {
+    limiter: {
       enabled: true,
-      ceilingDb: -1,
-      releaseMs: 80,
+      gainDb: 0,
     },
   },
 };

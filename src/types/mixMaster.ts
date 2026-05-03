@@ -36,10 +36,9 @@ export interface SimpleMixMasterSettings {
       enabled: boolean;
       targetRmsDb: number;
     };
-    hardLimiter: {
+    limiter: {
       enabled: boolean;
-      ceilingDb: number;
-      releaseMs: number;
+      gainDb: number;
     };
   };
 }

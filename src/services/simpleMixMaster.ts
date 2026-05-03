@@ -108,12 +108,11 @@ export class SimpleMixMasterService {
       );
     }
 
-    if (input.settings.mastering.hardLimiter.enabled) {
-      [masteredL, masteredR] = this.applyHardLimiter(
+    if (input.settings.mastering.limiter.enabled) {
+      [masteredL, masteredR] = this.applyLimiter(
         masteredL,
         masteredR,
-        input.settings.mastering.hardLimiter.ceilingDb,
-        input.settings.mastering.hardLimiter.releaseMs,
+        input.settings.mastering.limiter.gainDb,
         fs,
       );
     }
@@ -248,29 +247,29 @@ export class SimpleMixMasterService {
     return [left.map((v) => v * gain), right.map((v) => v * gain)];
   }
 
-  private applyHardLimiter(
+  private applyLimiter(
     left: number[],
     right: number[],
-    ceilingDb: number,
-    releaseMs: number,
+    gainDb: number,
     fs: number,
   ): [number[], number[]] {
-    const ceiling = 10 ** (ceilingDb / 20);
-    const releaseSamples = Math.max(1, Math.floor((releaseMs / 1000) * fs));
+    const ceiling = 10 ** (-1 / 20); // -1dB fixed
+    const gain = 10 ** (gainDb / 20);
+    const releaseSamples = Math.max(1, Math.floor((80 / 1000) * fs));
     const outL = new Array<number>(left.length);
     const outR = new Array<number>(right.length);
 
-    let gain = 1;
+    let limitGain = 1;
     for (let i = 0; i < left.length; i++) {
-      const peak = Math.max(Math.abs(left[i]), Math.abs(right[i]));
+      const peak = Math.max(Math.abs(left[i] * gain), Math.abs(right[i] * gain));
       const requiredGain = peak > ceiling ? ceiling / peak : 1;
-      if (requiredGain < gain) {
-        gain = requiredGain;
+      if (requiredGain < limitGain) {
+        limitGain = requiredGain;
       } else {
-        gain += (1 - gain) / releaseSamples;
+        limitGain += (1 - limitGain) / releaseSamples;
       }
-      outL[i] = Math.max(-ceiling, Math.min(ceiling, left[i] * gain));
-      outR[i] = Math.max(-ceiling, Math.min(ceiling, right[i] * gain));
+      outL[i] = Math.max(-ceiling, Math.min(ceiling, left[i] * gain * limitGain));
+      outR[i] = Math.max(-ceiling, Math.min(ceiling, right[i] * gain * limitGain));
     }
 
     return [outL, outR];
