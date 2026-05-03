@@ -276,7 +276,6 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
         if (state.ust.notes.length === 0) return {};
         return {
           ustText: dumpNotes(state.ust.notes, state.ust.tempo, state.ust.flags),
-          mixMasterSettings: state.mixMasterSettings,
         };
       },
       // 初期化時に復元
@@ -297,15 +296,11 @@ export const useMusicProjectStore = create<MusicProjectStore>()(
               state.setNotes(restoredUst.notes);
             }
           }
-          if (parsed.state?.mixMasterSettings) {
-            state.setMixMasterSettings(parsed.state.mixMasterSettings);
-          }
         } catch (e) {
           state.setUst(null);
           state.setUstTempo(120);
           state.setUstFlags("");
           state.setNotes([]);
-          state.setMixMasterSettings(defaultMixMasterSettings);
         }
       },
     },
