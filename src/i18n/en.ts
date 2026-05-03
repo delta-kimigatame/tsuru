@@ -534,6 +534,7 @@ export const translationEn = {
       backgroundEqCutGain: "Cut gain",
       mastering: "Mastering",
       masteringRms: "RMS normalize",
+      masteringRmsDamping: "Reduce loudness differences",
       masteringRmsTarget: "Target RMS",
       masteringLimiter: "Limiter",
       masteringLimiterGain: "Gain",

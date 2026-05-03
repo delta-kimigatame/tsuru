@@ -4,6 +4,11 @@ export const MIX_MASTER_DSP = {
   vocalHighPassQ: 0.707,
   vocalEqQ: 1.0,
   backgroundEqQ: 1.0,
+  masteringRmsWindowSec: 0.2,
+  masteringRmsHopSec: 0.05,
+  masteringRmsSmoothSec: 0.4,
+  masteringRmsMaxBoostDb: 6,
+  masteringRmsSilenceThreshold: 1e-5,
   reverbCombDelaysMs: [29.7, 37.1, 41.1, 43.7],
   reverbAllPassDelaysMs: [7.0, 11.0],
   reverbAllPassFeedback: 0.7,
@@ -72,6 +77,7 @@ export const defaultMixMasterSettings: SimpleMixMasterSettings = {
     rmsNormalize: {
       enabled: true,
       targetRmsDb: -14,
+      damped: true,
     },
     limiter: {
       enabled: true,

@@ -16,6 +16,7 @@ import {
   FormControlLabel,
   IconButton,
   Slider,
+  Switch,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -478,6 +479,22 @@ export const MixMasterDialog: React.FC<Props> = ({
                 />
               }
               label={t("editor.mixMaster.masteringRms")}
+            />
+            <FormControlLabel
+              sx={{ ml: 2 }}
+              control={
+                <Switch
+                  size="small"
+                  checked={settings.mastering.rmsNormalize.damped}
+                  disabled={!settings.mastering.rmsNormalize.enabled}
+                  onChange={(e) =>
+                    update((draft) => {
+                      draft.mastering.rmsNormalize.damped = e.target.checked;
+                    })
+                  }
+                />
+              }
+              label={t("editor.mixMaster.masteringRmsDamping")}
             />
             <LabeledSlider
               label={t("editor.mixMaster.masteringRmsTarget")}

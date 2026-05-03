@@ -536,6 +536,7 @@ export const translationJa = {
       backgroundEqCutGain: "カット量",
       mastering: "マスタリング",
       masteringRms: "RMSノーマライズ",
+      masteringRmsDamping: "音量差を小さくする",
       masteringRmsTarget: "目標RMS",
       masteringLimiter: "リミッター",
       masteringLimiterGain: "ゲイン",

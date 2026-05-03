@@ -113,6 +113,8 @@ export class SimpleMixMasterService {
         masteredL,
         masteredR,
         input.settings.mastering.rmsNormalize.targetRmsDb,
+        input.settings.mastering.rmsNormalize.damped,
+        fs,
       );
     }
 
@@ -242,17 +244,81 @@ export class SimpleMixMasterService {
     left: number[],
     right: number[],
     targetRmsDb: number,
+    damped: boolean,
+    fs: number,
   ): [number[], number[]] {
-    const sumSq = left.reduce(
-      (sum, v, i) => sum + v * v + right[i] * right[i],
-      0,
-    );
-    const rms = Math.sqrt(sumSq / (left.length * 2));
-    if (rms < 1e-10) return [left, right];
+    if (!damped) {
+      const sumSq = left.reduce(
+        (sum, v, i) => sum + v * v + right[i] * right[i],
+        0,
+      );
+      const rms = Math.sqrt(sumSq / (left.length * 2));
+      if (rms < 1e-10) return [left, right];
 
-    const target = 10 ** (targetRmsDb / 20);
-    const gain = target / rms;
-    return [left.map((v) => v * gain), right.map((v) => v * gain)];
+      const target = 10 ** (targetRmsDb / 20);
+      const gain = target / rms;
+      return [left.map((v) => v * gain), right.map((v) => v * gain)];
+    }
+
+    const length = left.length;
+    if (length === 0) return [left, right];
+
+    const rmsWindowFrames = Math.max(
+      1,
+      Math.round(MIX_MASTER_DSP.masteringRmsWindowSec * fs),
+    );
+    const hopFrames = Math.max(
+      1,
+      Math.round(MIX_MASTER_DSP.masteringRmsHopSec * fs),
+    );
+    const numHops = Math.max(1, Math.ceil(length / hopFrames));
+    const targetRmsLinear = 10 ** (targetRmsDb / 20);
+    const maxBoostLinear = 10 ** (MIX_MASTER_DSP.masteringRmsMaxBoostDb / 20);
+
+    const prefixSq = new Array<number>(length + 1).fill(0);
+    for (let i = 0; i < length; i++) {
+      prefixSq[i + 1] = prefixSq[i] + left[i] * left[i] + right[i] * right[i];
+    }
+
+    const rawGain = new Array<number>(numHops).fill(1);
+    for (let hop = 0; hop < numHops; hop++) {
+      const center = hop * hopFrames;
+      const start = Math.max(0, center - Math.floor(rmsWindowFrames / 2));
+      const end = Math.min(length, center + Math.ceil(rmsWindowFrames / 2));
+      const span = Math.max(1, end - start);
+      const sumSq = prefixSq[end] - prefixSq[start];
+      const rms = Math.sqrt(sumSq / (2 * span));
+
+      if (rms < MIX_MASTER_DSP.masteringRmsSilenceThreshold) {
+        rawGain[hop] = hop === 0 ? 1 : rawGain[hop - 1];
+      } else {
+        rawGain[hop] = Math.min(maxBoostLinear, targetRmsLinear / rms);
+      }
+    }
+
+    const smoothAlpha =
+      1 - Math.exp(-hopFrames / (MIX_MASTER_DSP.masteringRmsSmoothSec * fs));
+    const smoothedGain = new Array<number>(numHops).fill(1);
+    smoothedGain[0] = rawGain[0];
+    for (let hop = 1; hop < numHops; hop++) {
+      smoothedGain[hop] =
+        smoothedGain[hop - 1] +
+        smoothAlpha * (rawGain[hop] - smoothedGain[hop - 1]);
+    }
+
+    const outL = new Array<number>(length);
+    const outR = new Array<number>(length);
+    for (let i = 0; i < length; i++) {
+      const frac = i / hopFrames;
+      const hop0 = Math.floor(frac);
+      const hop1 = Math.min(hop0 + 1, numHops - 1);
+      const t = frac - hop0;
+      const gain = smoothedGain[hop0] * (1 - t) + smoothedGain[hop1] * t;
+      outL[i] = left[i] * gain;
+      outR[i] = right[i] * gain;
+    }
+
+    return [outL, outR];
   }
 
   private applyLimiter(

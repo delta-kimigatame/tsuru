@@ -542,6 +542,7 @@ export const translationPt = {
       backgroundEqCutGain: "Ganho de corte",
       mastering: "Masterização",
       masteringRms: "Normalização RMS",
+      masteringRmsDamping: "Reduzir diferença de volume",
       masteringRmsTarget: "RMS alvo",
       masteringLimiter: "Limitador",
       masteringLimiterGain: "Ganho",

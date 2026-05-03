@@ -524,6 +524,7 @@ export const translationZh = {
       backgroundEqCutGain: "削减增益",
       mastering: "母带",
       masteringRms: "RMS归一化",
+      masteringRmsDamping: "减小音量差",
       masteringRmsTarget: "目标RMS",
       masteringLimiter: "限制器",
       masteringLimiterGain: "增益",

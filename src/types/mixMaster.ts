@@ -39,6 +39,7 @@ export interface SimpleMixMasterSettings {
     rmsNormalize: {
       enabled: boolean;
       targetRmsDb: number;
+      damped: boolean;
     };
     limiter: {
       enabled: boolean;
