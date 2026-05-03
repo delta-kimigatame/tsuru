@@ -473,6 +473,12 @@ export const translationPt = {
       lyricsBlur: "Desfoque entrada/saída",
       lyricsBlurAmount: "Intensidade do desfoque",
       lyricsBlurDuration: "Duração do desfoque",
+      lyricsWipeIn: "Limpar entrada (direção)",
+      lyricsWipeOut: "Limpar saída (direção)",
+      lyricsWipeDuration: "Duração do limpar",
+      lyricsBounceIn: "Salto entrada (direção)",
+      lyricsBounceOut: "Salto saída (direção)",
+      lyricsBounceDuration: "Duração do salto",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

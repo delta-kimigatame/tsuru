@@ -465,6 +465,12 @@ export const translationEn = {
       lyricsBlur: "Blur in/out",
       lyricsBlurAmount: "Blur amount",
       lyricsBlurDuration: "Blur duration",
+      lyricsWipeIn: "Wipe in (entry direction)",
+      lyricsWipeOut: "Wipe out (exit direction)",
+      lyricsWipeDuration: "Wipe duration",
+      lyricsBounceIn: "Bounce in (entry direction)",
+      lyricsBounceOut: "Bounce out (exit direction)",
+      lyricsBounceDuration: "Bounce duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:

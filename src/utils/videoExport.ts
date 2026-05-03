@@ -178,6 +178,24 @@ export interface LyricsOptions {
   blurAmount: number;
   /** ブラーアニメーションの時間 ms */
   blurDurationMs: number;
+  // --- ワイプイン/ワイプアウト ---
+  wipeInEnabled: boolean;
+  /** 入場方向（その方向からワイプしながら出現） */
+  wipeInDirection: SlideDirection;
+  wipeOutEnabled: boolean;
+  /** 退場方向（その方向へワイプしながら消える） */
+  wipeOutDirection: SlideDirection;
+  /** ワイプアニメーションの時間 ms */
+  wipeDurationMs: number;
+  // --- バウンスイン/バウンスアウト ---
+  bounceInEnabled: boolean;
+  /** 入場方向（その方向から彼んで登場） */
+  bounceInDirection: SlideDirection;
+  bounceOutEnabled: boolean;
+  /** 退場方向（その方向へ彼ねて退場） */
+  bounceOutDirection: SlideDirection;
+  /** バウンスアニメーションの時間 ms */
+  bounceInOutDurationMs: number;
 }
 
 /**
@@ -289,6 +307,27 @@ const drawTextOnCanvas = (
 };
 
 /**
+ * ease-out バウンス関数（CSS Animations Spec 準拠の piecewise quadratic、4 バウンス）
+ * t = 0 → 0, t = 1 → 1
+ */
+const easeOutBounce = (t: number): number => {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (t < 1 / d1) {
+    return n1 * t * t;
+  } else if (t < 2 / d1) {
+    t -= 1.5 / d1;
+    return n1 * t * t + 0.75;
+  } else if (t < 2.5 / d1) {
+    t -= 2.25 / d1;
+    return n1 * t * t + 0.9375;
+  } else {
+    t -= 2.625 / d1;
+    return n1 * t * t + 0.984375;
+  }
+};
+
+/**
  * スライド方向に対応する「画面内正規位置 → 画面外 」のベクトル（最大値就ればテキストが完全に画面外に出る距離）
  * halfW: テキスト幅の半分, halfH: テキスト高さの半分
  */
@@ -330,6 +369,10 @@ const drawSubtitleOnCanvas = (
   slideInProgress = 1,
   slideOutProgress = 0,
   blurRadius = 0,
+  wipeInProgress = 1,
+  wipeOutProgress = 0,
+  bounceInProgress = 1,
+  bounceOutProgress = 0,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -386,10 +429,107 @@ const drawSubtitleOnCanvas = (
     dynX += dvx * slideOutProgress * slideOutProgress;
     dynY += dvy * slideOutProgress * slideOutProgress;
   }
+  // バウンスイン/アウトのオフセット計算（slideExitVector 再利用、イージングは easeOutBounce）
+  if (opts.bounceInEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.bounceInDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    const factor = 1 - easeOutBounce(bounceInProgress);
+    dynX += dvx * factor;
+    dynY += dvy * factor;
+  }
+  if (opts.bounceOutEnabled) {
+    const [dvx, dvy] = slideExitVector(
+      opts.bounceOutDirection,
+      cx,
+      cy,
+      cW,
+      cH,
+      halfW,
+      halfH,
+    );
+    // easeInBounce = 1 - easeOutBounce(1 - t)
+    const factor = 1 - easeOutBounce(1 - bounceOutProgress);
+    dynX += dvx * factor;
+    dynY += dvy * factor;
+  }
 
   // スケールアニメーション: テキスト中央を軸に変倍。slideY/dynX/dynY を translate に廞算
   ctx.translate(cx + dynX, cy + slideY + dynY);
   ctx.scale(scale, scale);
+
+  // ワイプ: translate/scale 後の座標系（中央 = (0,0)）でクリップ矩形を計算。
+  // bgBar ・ shadow ・ テキスト をまとめてクリッピングする。
+  // barW/barH に余裕を持たせることで scale による拡大時も考慮。
+  const wipeBarW = textW + fontSize;
+  const wipeBarH = fontSize * 2;
+  if (opts.wipeInEnabled && wipeInProgress < 1) {
+    // ease-out 二乗: 小さい領域から大きい領域へ、最後はヲント緩やかに全表示
+    const t = 1 - (1 - wipeInProgress) * (1 - wipeInProgress);
+    ctx.save();
+    ctx.beginPath();
+    switch (opts.wipeInDirection) {
+      case "right": // 左苯から右へ出現
+        ctx.rect(
+          wipeBarW / 2 - wipeBarW * t,
+          -wipeBarH / 2,
+          wipeBarW * t,
+          wipeBarH,
+        );
+        break;
+      case "left": // 右苯から左へ出現
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW * t, wipeBarH);
+        break;
+      case "down": // 上辺から下へ出現
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW, wipeBarH * t);
+        break;
+      case "up": // 下辺から上へ出現
+        ctx.rect(
+          -wipeBarW / 2,
+          wipeBarH / 2 - wipeBarH * t,
+          wipeBarW,
+          wipeBarH * t,
+        );
+        break;
+    }
+    ctx.clip();
+  } else if (opts.wipeOutEnabled && wipeOutProgress > 0) {
+    // ease-in 二乗: ヲント経源で小さな領域へ広がっていく
+    const t = wipeOutProgress * wipeOutProgress;
+    ctx.save();
+    ctx.beginPath();
+    switch (opts.wipeOutDirection) {
+      case "right": // 右へ飛び出して降出
+        ctx.rect(
+          -wipeBarW / 2 + wipeBarW * t,
+          -wipeBarH / 2,
+          wipeBarW * (1 - t),
+          wipeBarH,
+        );
+        break;
+      case "left": // 左へ飛び出して降出
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW * (1 - t), wipeBarH);
+        break;
+      case "down": // 下へ飛び出して降出
+        ctx.rect(
+          -wipeBarW / 2,
+          -wipeBarH / 2 + wipeBarH * t,
+          wipeBarW,
+          wipeBarH * (1 - t),
+        );
+        break;
+      case "up": // 上へ飛び出して降出
+        ctx.rect(-wipeBarW / 2, -wipeBarH / 2, wipeBarW, wipeBarH * (1 - t));
+        break;
+    }
+    ctx.clip();
+  }
 
   // Step 2: 背景バー（shadow 適用前に描画）。座標は translate 後なので中央が (0,0)
   if (opts.bgBarEnabled) {
@@ -423,6 +563,14 @@ const drawSubtitleOnCanvas = (
   // Step 5: メインテキスト
   ctx.fillStyle = opts.color;
   ctx.fillText(lyric, 0, 0);
+
+  // ワイプの clip 状態を解除（wipe 適用時は余分に ctx.save() してある）
+  if (
+    (opts.wipeInEnabled && wipeInProgress < 1) ||
+    (opts.wipeOutEnabled && wipeOutProgress > 0)
+  ) {
+    ctx.restore();
+  }
 
   ctx.restore();
 };
@@ -686,6 +834,31 @@ export const generateMp4 = async (
             lyricsOptions.blurAmount *
             Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
         }
+        let wipeInProgress = 1;
+        let wipeOutProgress = 0;
+        if (lyricsOptions.wipeInEnabled) {
+          wipeInProgress = Math.min(1, elapsed / lyricsOptions.wipeDurationMs);
+        }
+        if (lyricsOptions.wipeOutEnabled) {
+          wipeOutProgress = Math.max(
+            0,
+            1 - remaining / lyricsOptions.wipeDurationMs,
+          );
+        }
+        let bounceInProgress = 1;
+        let bounceOutProgress = 0;
+        if (lyricsOptions.bounceInEnabled) {
+          bounceInProgress = Math.min(
+            1,
+            elapsed / lyricsOptions.bounceInOutDurationMs,
+          );
+        }
+        if (lyricsOptions.bounceOutEnabled) {
+          bounceOutProgress = Math.max(
+            0,
+            1 - remaining / lyricsOptions.bounceInOutDurationMs,
+          );
+        }
         drawSubtitleOnCanvas(
           ctx,
           activeSeg.lyric,
@@ -698,6 +871,10 @@ export const generateMp4 = async (
           slideInProgress,
           slideOutProgress,
           blurRadius,
+          wipeInProgress,
+          wipeOutProgress,
+          bounceInProgress,
+          bounceOutProgress,
         );
       }
     }

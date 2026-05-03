@@ -219,6 +219,26 @@ export const VideoExportDialog: React.FC<Props> = ({
             onBlurEnabledChange={form.setLyricsBlurEnabled}
             onBlurAmountChange={form.setLyricsBlurAmount}
             onBlurDurationMsChange={form.setLyricsBlurDurationMs}
+            wipeInEnabled={form.lyricsWipeInEnabled}
+            wipeInDirection={form.lyricsWipeInDirection}
+            wipeOutEnabled={form.lyricsWipeOutEnabled}
+            wipeOutDirection={form.lyricsWipeOutDirection}
+            wipeDurationMs={form.lyricsWipeDurationMs}
+            onWipeInEnabledChange={form.setLyricsWipeInEnabled}
+            onWipeInDirectionChange={form.setLyricsWipeInDirection}
+            onWipeOutEnabledChange={form.setLyricsWipeOutEnabled}
+            onWipeOutDirectionChange={form.setLyricsWipeOutDirection}
+            onWipeDurationMsChange={form.setLyricsWipeDurationMs}
+            bounceInEnabled={form.lyricsBounceInEnabled}
+            bounceInDirection={form.lyricsBounceInDirection}
+            bounceOutEnabled={form.lyricsBounceOutEnabled}
+            bounceOutDirection={form.lyricsBounceOutDirection}
+            bounceInOutDurationMs={form.lyricsBounceInOutDurationMs}
+            onBounceInEnabledChange={form.setLyricsBounceInEnabled}
+            onBounceInDirectionChange={form.setLyricsBounceInDirection}
+            onBounceOutEnabledChange={form.setLyricsBounceOutEnabled}
+            onBounceOutDirectionChange={form.setLyricsBounceOutDirection}
+            onBounceInOutDurationMsChange={form.setLyricsBounceInOutDurationMs}
           />
 
           <ExportPreviewCanvas

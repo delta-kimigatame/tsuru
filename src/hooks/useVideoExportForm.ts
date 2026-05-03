@@ -12,6 +12,11 @@ import {
   DEFAULT_LYRICS_BLUR_AMOUNT,
   DEFAULT_LYRICS_BLUR_DURATION_MS,
   DEFAULT_LYRICS_BLUR_ENABLED,
+  DEFAULT_LYRICS_BOUNCE_IN_DIRECTION,
+  DEFAULT_LYRICS_BOUNCE_IN_ENABLED,
+  DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS,
+  DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION,
+  DEFAULT_LYRICS_BOUNCE_OUT_ENABLED,
   DEFAULT_LYRICS_COLOR,
   DEFAULT_LYRICS_FADE_DURATION_MS,
   DEFAULT_LYRICS_FADE_ENABLED,
@@ -34,6 +39,11 @@ import {
   DEFAULT_LYRICS_STROKE_COLOR,
   DEFAULT_LYRICS_STROKE_ENABLED,
   DEFAULT_LYRICS_STROKE_WIDTH,
+  DEFAULT_LYRICS_WIPE_DURATION_MS,
+  DEFAULT_LYRICS_WIPE_IN_DIRECTION,
+  DEFAULT_LYRICS_WIPE_IN_ENABLED,
+  DEFAULT_LYRICS_WIPE_OUT_DIRECTION,
+  DEFAULT_LYRICS_WIPE_OUT_ENABLED,
   DEFAULT_LYRICS_Y_PERCENT,
   DEFAULT_MAIN_TEXT_BOLD,
   DEFAULT_MAIN_TEXT_COLOR,
@@ -279,6 +289,27 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [lyricsBlurDurationMs, setLyricsBlurDurationMs] =
     React.useState<number>(DEFAULT_LYRICS_BLUR_DURATION_MS);
+  const [lyricsWipeInEnabled, setLyricsWipeInEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_WIPE_IN_ENABLED,
+  );
+  const [lyricsWipeInDirection, setLyricsWipeInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_WIPE_IN_DIRECTION);
+  const [lyricsWipeOutEnabled, setLyricsWipeOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_WIPE_OUT_ENABLED);
+  const [lyricsWipeOutDirection, setLyricsWipeOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_WIPE_OUT_DIRECTION);
+  const [lyricsWipeDurationMs, setLyricsWipeDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_WIPE_DURATION_MS);
+  const [lyricsBounceInEnabled, setLyricsBounceInEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_BOUNCE_IN_ENABLED);
+  const [lyricsBounceInDirection, setLyricsBounceInDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_BOUNCE_IN_DIRECTION);
+  const [lyricsBounceOutEnabled, setLyricsBounceOutEnabled] =
+    React.useState<boolean>(DEFAULT_LYRICS_BOUNCE_OUT_ENABLED);
+  const [lyricsBounceOutDirection, setLyricsBounceOutDirection] =
+    React.useState<SlideDirection>(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
+  const [lyricsBounceInOutDurationMs, setLyricsBounceInOutDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
 
   // -----------------------------------------------------------------------
 
@@ -447,6 +478,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             blurEnabled: lyricsBlurEnabled,
             blurAmount: lyricsBlurAmount,
             blurDurationMs: lyricsBlurDurationMs,
+            wipeInEnabled: lyricsWipeInEnabled,
+            wipeInDirection: lyricsWipeInDirection,
+            wipeOutEnabled: lyricsWipeOutEnabled,
+            wipeOutDirection: lyricsWipeOutDirection,
+            wipeDurationMs: lyricsWipeDurationMs,
+            bounceInEnabled: lyricsBounceInEnabled,
+            bounceInDirection: lyricsBounceInDirection,
+            bounceOutEnabled: lyricsBounceOutEnabled,
+            bounceOutDirection: lyricsBounceOutDirection,
+            bounceInOutDurationMs: lyricsBounceInOutDurationMs,
           }
         : null;
 
@@ -547,6 +588,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsBlurEnabled(DEFAULT_LYRICS_BLUR_ENABLED);
       setLyricsBlurAmount(DEFAULT_LYRICS_BLUR_AMOUNT);
       setLyricsBlurDurationMs(DEFAULT_LYRICS_BLUR_DURATION_MS);
+      setLyricsWipeInEnabled(DEFAULT_LYRICS_WIPE_IN_ENABLED);
+      setLyricsWipeInDirection(DEFAULT_LYRICS_WIPE_IN_DIRECTION);
+      setLyricsWipeOutEnabled(DEFAULT_LYRICS_WIPE_OUT_ENABLED);
+      setLyricsWipeOutDirection(DEFAULT_LYRICS_WIPE_OUT_DIRECTION);
+      setLyricsWipeDurationMs(DEFAULT_LYRICS_WIPE_DURATION_MS);
+      setLyricsBounceInEnabled(DEFAULT_LYRICS_BOUNCE_IN_ENABLED);
+      setLyricsBounceInDirection(DEFAULT_LYRICS_BOUNCE_IN_DIRECTION);
+      setLyricsBounceOutEnabled(DEFAULT_LYRICS_BOUNCE_OUT_ENABLED);
+      setLyricsBounceOutDirection(DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION);
+      setLyricsBounceInOutDurationMs(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -941,6 +992,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsBlurEnabled,
     lyricsBlurAmount,
     lyricsBlurDurationMs,
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1096,5 +1157,27 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsBlurEnabled,
     setLyricsBlurAmount,
     setLyricsBlurDurationMs,
+    // 歌詞ワイプイン/アウト
+    lyricsWipeInEnabled,
+    lyricsWipeInDirection,
+    lyricsWipeOutEnabled,
+    lyricsWipeOutDirection,
+    lyricsWipeDurationMs,
+    setLyricsWipeInEnabled,
+    setLyricsWipeInDirection,
+    setLyricsWipeOutEnabled,
+    setLyricsWipeOutDirection,
+    setLyricsWipeDurationMs,
+    // 歌詞バウンスイン/アウト
+    lyricsBounceInEnabled,
+    lyricsBounceInDirection,
+    lyricsBounceOutEnabled,
+    lyricsBounceOutDirection,
+    lyricsBounceInOutDurationMs,
+    setLyricsBounceInEnabled,
+    setLyricsBounceInDirection,
+    setLyricsBounceOutEnabled,
+    setLyricsBounceOutDirection,
+    setLyricsBounceInOutDurationMs,
   };
 };

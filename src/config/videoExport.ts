@@ -181,6 +181,24 @@ export const LYRICS_BLUR_AMOUNT_MAX = 100;
 export const LYRICS_BLUR_DURATION_MS_MIN = 50;
 export const LYRICS_BLUR_DURATION_MS_MAX = 1000;
 
+// Wipe
+export const DEFAULT_LYRICS_WIPE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_WIPE_IN_DIRECTION: SlideDirection = "right";
+export const DEFAULT_LYRICS_WIPE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_WIPE_OUT_DIRECTION: SlideDirection = "left";
+export const DEFAULT_LYRICS_WIPE_DURATION_MS = 300;
+export const LYRICS_WIPE_DURATION_MS_MIN = 50;
+export const LYRICS_WIPE_DURATION_MS_MAX = 1000;
+
+// Bounce
+export const DEFAULT_LYRICS_BOUNCE_IN_ENABLED = false;
+export const DEFAULT_LYRICS_BOUNCE_IN_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_BOUNCE_OUT_ENABLED = false;
+export const DEFAULT_LYRICS_BOUNCE_OUT_DIRECTION: SlideDirection = "down";
+export const DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS = 500;
+export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN = 100;
+export const LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX = 1500;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

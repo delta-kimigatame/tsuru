@@ -467,6 +467,12 @@ export const translationJa = {
       lyricsBlur: "ブラーイン/アウト",
       lyricsBlurAmount: "ブラー強度",
       lyricsBlurDuration: "ブラー時間",
+      lyricsWipeIn: "ワイプイン (出現方向)",
+      lyricsWipeOut: "ワイプアウト (退場方向)",
+      lyricsWipeDuration: "ワイプ時間",
+      lyricsBounceIn: "バウンスイン (入場方向)",
+      lyricsBounceOut: "バウンスアウト (退場方向)",
+      lyricsBounceDuration: "バウンス時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

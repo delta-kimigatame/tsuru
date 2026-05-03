@@ -19,6 +19,12 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  LYRICS_BLUR_AMOUNT_MAX,
+  LYRICS_BLUR_AMOUNT_MIN,
+  LYRICS_BLUR_DURATION_MS_MAX,
+  LYRICS_BLUR_DURATION_MS_MIN,
+  LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX,
+  LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN,
   LYRICS_FADE_DURATION_MS_MAX,
   LYRICS_FADE_DURATION_MS_MIN,
   LYRICS_FONT_SIZE_MAX,
@@ -35,12 +41,10 @@ import {
   LYRICS_SLIDE_DURATION_MS_MIN,
   LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX,
   LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN,
-  LYRICS_BLUR_AMOUNT_MIN,
-  LYRICS_BLUR_AMOUNT_MAX,
-  LYRICS_BLUR_DURATION_MS_MIN,
-  LYRICS_BLUR_DURATION_MS_MAX,
   LYRICS_STROKE_WIDTH_MAX,
   LYRICS_STROKE_WIDTH_MIN,
+  LYRICS_WIPE_DURATION_MS_MAX,
+  LYRICS_WIPE_DURATION_MS_MIN,
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
@@ -118,6 +122,28 @@ type Props = {
   onBlurEnabledChange: (v: boolean) => void;
   onBlurAmountChange: (v: number) => void;
   onBlurDurationMsChange: (v: number) => void;
+  // ワイプイン/アウト
+  wipeInEnabled: boolean;
+  wipeInDirection: SlideDirection;
+  wipeOutEnabled: boolean;
+  wipeOutDirection: SlideDirection;
+  wipeDurationMs: number;
+  onWipeInEnabledChange: (v: boolean) => void;
+  onWipeInDirectionChange: (v: SlideDirection) => void;
+  onWipeOutEnabledChange: (v: boolean) => void;
+  onWipeOutDirectionChange: (v: SlideDirection) => void;
+  onWipeDurationMsChange: (v: number) => void;
+  // バウンスイン/アウト
+  bounceInEnabled: boolean;
+  bounceInDirection: SlideDirection;
+  bounceOutEnabled: boolean;
+  bounceOutDirection: SlideDirection;
+  bounceInOutDurationMs: number;
+  onBounceInEnabledChange: (v: boolean) => void;
+  onBounceInDirectionChange: (v: SlideDirection) => void;
+  onBounceOutEnabledChange: (v: boolean) => void;
+  onBounceOutDirectionChange: (v: SlideDirection) => void;
+  onBounceInOutDurationMsChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -193,6 +219,26 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onBlurEnabledChange,
   onBlurAmountChange,
   onBlurDurationMsChange,
+  wipeInEnabled,
+  wipeInDirection,
+  wipeOutEnabled,
+  wipeOutDirection,
+  wipeDurationMs,
+  onWipeInEnabledChange,
+  onWipeInDirectionChange,
+  onWipeOutEnabledChange,
+  onWipeOutDirectionChange,
+  onWipeDurationMsChange,
+  bounceInEnabled,
+  bounceInDirection,
+  bounceOutEnabled,
+  bounceOutDirection,
+  bounceInOutDurationMs,
+  onBounceInEnabledChange,
+  onBounceInDirectionChange,
+  onBounceOutEnabledChange,
+  onBounceOutDirectionChange,
+  onBounceInOutDurationMsChange,
 }) => {
   const { t } = useTranslation();
 
@@ -726,6 +772,252 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 onChange={onBlurDurationMsChange}
                 min={LYRICS_BLUR_DURATION_MS_MIN}
                 max={LYRICS_BLUR_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
+              />
+            </Box>
+          </Collapse>
+
+          {/* ワイプイン (出現方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={wipeInEnabled}
+                onChange={(e) => onWipeInEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsWipeIn")}
+              </Typography>
+            }
+          />
+          <Collapse in={wipeInEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={wipeInDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onWipeInDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* ワイプアウト (退場方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={wipeOutEnabled}
+                onChange={(e) => onWipeOutEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsWipeOut")}
+              </Typography>
+            }
+          />
+          <Collapse in={wipeOutEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={wipeOutDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onWipeOutDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* ワイプ共通時間 */}
+          <Collapse in={wipeInEnabled || wipeOutEnabled} unmountOnExit>
+            <Box sx={{ pl: 1 }}>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsWipeDuration")}
+                value={wipeDurationMs}
+                onChange={onWipeDurationMsChange}
+                min={LYRICS_WIPE_DURATION_MS_MIN}
+                max={LYRICS_WIPE_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
+              />
+            </Box>
+          </Collapse>
+
+          {/* バウンスイン (入場方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bounceInEnabled}
+                onChange={(e) => onBounceInEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsBounceIn")}
+              </Typography>
+            }
+          />
+          <Collapse in={bounceInEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={bounceInDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onBounceInDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* バウンスアウト (退場方向) */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bounceOutEnabled}
+                onChange={(e) => onBounceOutEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsBounceOut")}
+              </Typography>
+            }
+          />
+          <Collapse in={bounceOutEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsSlideDirection")}
+              </Typography>
+              <ToggleButtonGroup
+                value={bounceOutDirection}
+                exclusive
+                size="small"
+                onChange={(_e, v: SlideDirection | null) => {
+                  if (v !== null) onBounceOutDirectionChange(v);
+                }}
+              >
+                <ToggleButton value="up">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideUp")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="down">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideDown")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="left">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideLeft")}
+                  </Typography>
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsSlideRight")}
+                  </Typography>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Collapse>
+
+          {/* バウンス共通時間 */}
+          <Collapse in={bounceInEnabled || bounceOutEnabled} unmountOnExit>
+            <Box sx={{ pl: 1 }}>
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsBounceDuration")}
+                value={bounceInOutDurationMs}
+                onChange={onBounceInOutDurationMsChange}
+                min={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MIN}
+                max={LYRICS_BOUNCE_IN_OUT_DURATION_MS_MAX}
                 unit="ms"
                 valueMinWidth={44}
               />
