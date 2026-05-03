@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { defaultMixMasterSettings } from "../config/mixMaster";
 import { BasePhonemizer } from "../lib/BasePhonemizer";
 import { dumpNotes, Note } from "../lib/Note";
 import { JPCVorVCVPhonemizer } from "../lib/Phonemizer/JPCVorVCVPhonemizer";
@@ -7,7 +8,6 @@ import { Ust } from "../lib/Ust";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import {
   cloneMixMasterSettings,
-  defaultMixMasterSettings,
   SimpleMixMasterSettings,
 } from "../types/mixMaster";
 

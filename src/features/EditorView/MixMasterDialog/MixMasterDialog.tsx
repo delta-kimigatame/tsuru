@@ -15,6 +15,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LabeledSlider } from "../../../components/EditorView/VideoExportDialog/LabeledSlider";
+import { MIX_MASTER_UI_RANGES } from "../../../config/mixMaster";
 import { SimpleMixMasterSettings } from "../../../types/mixMaster";
 
 type Props = {
@@ -88,9 +89,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.highPass.cutoffHz = v;
             })
           }
-          min={40}
-          max={300}
-          step={5}
+          min={MIX_MASTER_UI_RANGES.vocal.highPassCutoffHz.min}
+          max={MIX_MASTER_UI_RANGES.vocal.highPassCutoffHz.max}
+          step={MIX_MASTER_UI_RANGES.vocal.highPassCutoffHz.step}
           unit="Hz"
           valueMinWidth={64}
         />
@@ -116,12 +117,15 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.compressor.thresholdDb = v;
             })
           }
-          min={-36}
-          max={-6}
-          step={1}
+          min={MIX_MASTER_UI_RANGES.vocal.compressorThresholdDb.min}
+          max={MIX_MASTER_UI_RANGES.vocal.compressorThresholdDb.max}
+          step={MIX_MASTER_UI_RANGES.vocal.compressorThresholdDb.step}
           unit="dB"
           valueMinWidth={64}
         />
+        <Typography variant="caption" color="text.secondary">
+          {t("editor.mixMaster.vocalCompressorThresholdHelp")}
+        </Typography>
         <LabeledSlider
           label={t("editor.mixMaster.vocalCompressorRatio")}
           value={settings.vocal.compressor.ratio}
@@ -130,9 +134,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.compressor.ratio = v;
             })
           }
-          min={1}
-          max={8}
-          step={0.1}
+          min={MIX_MASTER_UI_RANGES.vocal.compressorRatio.min}
+          max={MIX_MASTER_UI_RANGES.vocal.compressorRatio.max}
+          step={MIX_MASTER_UI_RANGES.vocal.compressorRatio.step}
           unit=":"
           valueMinWidth={64}
         />
@@ -158,9 +162,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.eqBoost.freqHz = v;
             })
           }
-          min={1000}
-          max={4000}
-          step={100}
+          min={MIX_MASTER_UI_RANGES.vocal.eqBoostFreqHz.min}
+          max={MIX_MASTER_UI_RANGES.vocal.eqBoostFreqHz.max}
+          step={MIX_MASTER_UI_RANGES.vocal.eqBoostFreqHz.step}
           unit="Hz"
           valueMinWidth={64}
         />
@@ -172,9 +176,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.eqBoost.gainDb = v;
             })
           }
-          min={0}
-          max={8}
-          step={0.5}
+          min={MIX_MASTER_UI_RANGES.vocal.eqBoostGainDb.min}
+          max={MIX_MASTER_UI_RANGES.vocal.eqBoostGainDb.max}
+          step={MIX_MASTER_UI_RANGES.vocal.eqBoostGainDb.step}
           unit="dB"
           valueMinWidth={64}
         />
@@ -200,9 +204,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.reverb.wet = v / 100;
             })
           }
-          min={0}
-          max={60}
-          step={1}
+          min={MIX_MASTER_UI_RANGES.vocal.reverbWetPercent.min}
+          max={MIX_MASTER_UI_RANGES.vocal.reverbWetPercent.max}
+          step={MIX_MASTER_UI_RANGES.vocal.reverbWetPercent.step}
         />
         <LabeledSlider
           label={t("editor.mixMaster.vocalReverbDecay")}
@@ -212,9 +216,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.vocal.reverb.decay = v / 100;
             })
           }
-          min={20}
-          max={90}
-          step={1}
+          min={MIX_MASTER_UI_RANGES.vocal.reverbDecayPercent.min}
+          max={MIX_MASTER_UI_RANGES.vocal.reverbDecayPercent.max}
+          step={MIX_MASTER_UI_RANGES.vocal.reverbDecayPercent.step}
         />
 
         <Divider>{t("editor.mixMaster.background")}</Divider>
@@ -239,9 +243,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.background.normalize.targetDb = v;
             })
           }
-          min={-20}
-          max={-2}
-          step={1}
+          min={MIX_MASTER_UI_RANGES.background.normalizeTargetDb.min}
+          max={MIX_MASTER_UI_RANGES.background.normalizeTargetDb.max}
+          step={MIX_MASTER_UI_RANGES.background.normalizeTargetDb.step}
           unit="dB"
           valueMinWidth={64}
         />
@@ -267,9 +271,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.background.eqCut.cutoffHz = v;
             })
           }
-          min={80}
-          max={500}
-          step={10}
+          min={MIX_MASTER_UI_RANGES.background.eqCutFreqHz.min}
+          max={MIX_MASTER_UI_RANGES.background.eqCutFreqHz.max}
+          step={MIX_MASTER_UI_RANGES.background.eqCutFreqHz.step}
           unit="Hz"
           valueMinWidth={64}
         />
@@ -281,9 +285,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.background.eqCut.gainDb = v;
             })
           }
-          min={-12}
-          max={0}
-          step={0.5}
+          min={MIX_MASTER_UI_RANGES.background.eqCutGainDb.min}
+          max={MIX_MASTER_UI_RANGES.background.eqCutGainDb.max}
+          step={MIX_MASTER_UI_RANGES.background.eqCutGainDb.step}
           unit="dB"
           valueMinWidth={64}
         />
@@ -310,9 +314,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.mastering.rmsNormalize.targetRmsDb = v;
             })
           }
-          min={-20}
-          max={-8}
-          step={1}
+          min={MIX_MASTER_UI_RANGES.mastering.rmsTargetDb.min}
+          max={MIX_MASTER_UI_RANGES.mastering.rmsTargetDb.max}
+          step={MIX_MASTER_UI_RANGES.mastering.rmsTargetDb.step}
           unit="dB"
           valueMinWidth={64}
         />
@@ -338,9 +342,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.mastering.hardLimiter.ceilingDb = v;
             })
           }
-          min={-3}
-          max={-0.1}
-          step={0.1}
+          min={MIX_MASTER_UI_RANGES.mastering.limiterCeilingDb.min}
+          max={MIX_MASTER_UI_RANGES.mastering.limiterCeilingDb.max}
+          step={MIX_MASTER_UI_RANGES.mastering.limiterCeilingDb.step}
           unit="dB"
           valueMinWidth={64}
         />
@@ -352,9 +356,9 @@ export const MixMasterDialog: React.FC<Props> = ({
               draft.mastering.hardLimiter.releaseMs = v;
             })
           }
-          min={20}
-          max={300}
-          step={5}
+          min={MIX_MASTER_UI_RANGES.mastering.limiterReleaseMs.min}
+          max={MIX_MASTER_UI_RANGES.mastering.limiterReleaseMs.max}
+          step={MIX_MASTER_UI_RANGES.mastering.limiterReleaseMs.step}
           unit="ms"
           valueMinWidth={64}
         />

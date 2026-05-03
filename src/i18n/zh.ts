@@ -505,6 +505,8 @@ export const translationZh = {
       vocalHighPassCutoff: "截止频率",
       vocalCompressor: "压缩器",
       vocalCompressorThreshold: "阈值",
+      vocalCompressorThresholdHelp:
+        "仅会压缩超过该电平的部分。约 -6 dB 时较轻，继续降低会更强。",
       vocalCompressorRatio: "比率",
       vocalEqBoost: "EQ提升",
       vocalEqBoostFreq: "中心频率",

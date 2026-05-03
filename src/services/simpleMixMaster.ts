@@ -1,4 +1,5 @@
 import { GenerateWave, Wave, WaveProcessing } from "utauwav";
+import { MIX_MASTER_DSP } from "../config/mixMaster";
 import { renderingConfig } from "../config/rendering";
 import { SimpleMixMasterSettings } from "../types/mixMaster";
 
@@ -30,13 +31,13 @@ export class SimpleMixMasterService {
       processedVocalL = this.applyBiquadHighPass(
         processedVocalL,
         input.settings.vocal.highPass.cutoffHz,
-        0.707,
+        MIX_MASTER_DSP.vocalHighPassQ,
         fs,
       );
       processedVocalR = this.applyBiquadHighPass(
         processedVocalR,
         input.settings.vocal.highPass.cutoffHz,
-        0.707,
+        MIX_MASTER_DSP.vocalHighPassQ,
         fs,
       );
     }
@@ -54,14 +55,14 @@ export class SimpleMixMasterService {
       processedVocalL = this.applyBiquadPeakingEQ(
         processedVocalL,
         input.settings.vocal.eqBoost.freqHz,
-        1,
+        MIX_MASTER_DSP.vocalEqQ,
         input.settings.vocal.eqBoost.gainDb,
         fs,
       );
       processedVocalR = this.applyBiquadPeakingEQ(
         processedVocalR,
         input.settings.vocal.eqBoost.freqHz,
-        1,
+        MIX_MASTER_DSP.vocalEqQ,
         input.settings.vocal.eqBoost.gainDb,
         fs,
       );
@@ -157,14 +158,14 @@ export class SimpleMixMasterService {
       bgL = this.applyBiquadPeakingEQ(
         bgL,
         settings.background.eqCut.cutoffHz,
-        0.8,
+        MIX_MASTER_DSP.backgroundEqQ,
         settings.background.eqCut.gainDb,
         fs,
       );
       bgR = this.applyBiquadPeakingEQ(
         bgR,
         settings.background.eqCut.cutoffHz,
-        0.8,
+        MIX_MASTER_DSP.backgroundEqQ,
         settings.background.eqCut.gainDb,
         fs,
       );
@@ -348,7 +349,7 @@ export class SimpleMixMasterService {
     wet: number,
     decay: number,
   ): number[] {
-    const combDelaysMs = [29.7, 37.1, 41.1, 43.7];
+    const combDelaysMs = MIX_MASTER_DSP.reverbCombDelaysMs;
     const reverbSignal = new Array<number>(data.length).fill(0);
 
     for (const delayMs of combDelaysMs) {
@@ -360,10 +361,14 @@ export class SimpleMixMasterService {
     }
 
     let diffused = reverbSignal;
-    const apDelaysMs = [7, 11];
+    const apDelaysMs = MIX_MASTER_DSP.reverbAllPassDelaysMs;
     for (const delayMs of apDelaysMs) {
       const delayFrames = Math.round((delayMs / 1000) * fs);
-      diffused = this.applyAllPassFilter(diffused, delayFrames, 0.7);
+      diffused = this.applyAllPassFilter(
+        diffused,
+        delayFrames,
+        MIX_MASTER_DSP.reverbAllPassFeedback,
+      );
     }
 
     return data.map((v, i) => v + wet * diffused[i]);

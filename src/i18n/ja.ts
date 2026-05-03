@@ -516,7 +516,9 @@ export const translationJa = {
       vocalHighPass: "ハイパスフィルタ",
       vocalHighPassCutoff: "カットオフ",
       vocalCompressor: "コンプレッサ",
-      vocalCompressorThreshold: "しきい値",
+      vocalCompressorThreshold: "スレッショルド",
+      vocalCompressorThresholdHelp:
+        "入力レベルがこの値を超えた部分だけ圧縮されます。-6dB付近なら軽く、さらに下げると強くかかります。",
       vocalCompressorRatio: "比率",
       vocalEqBoost: "EQブースト",
       vocalEqBoostFreq: "中心周波数",
@@ -534,7 +536,7 @@ export const translationJa = {
       masteringRms: "RMSノーマライズ",
       masteringRmsTarget: "目標RMS",
       masteringLimiter: "ハードリミッター",
-      masteringLimiterCeiling: "天井",
+      masteringLimiterCeiling: "シーリング",
       masteringLimiterRelease: "リリース",
       preview: "試聴",
       previewHint:

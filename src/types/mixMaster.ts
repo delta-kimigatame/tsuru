@@ -44,52 +44,6 @@ export interface SimpleMixMasterSettings {
   };
 }
 
-export const defaultMixMasterSettings: SimpleMixMasterSettings = {
-  vocal: {
-    highPass: {
-      enabled: true,
-      cutoffHz: 100,
-    },
-    compressor: {
-      enabled: true,
-      thresholdDb: -18,
-      ratio: 2.5,
-    },
-    eqBoost: {
-      enabled: true,
-      freqHz: 2000,
-      gainDb: 3,
-    },
-    reverb: {
-      enabled: true,
-      wet: 0.2,
-      decay: 0.6,
-    },
-  },
-  background: {
-    normalize: {
-      enabled: true,
-      targetDb: -8,
-    },
-    eqCut: {
-      enabled: true,
-      cutoffHz: 220,
-      gainDb: -2,
-    },
-  },
-  mastering: {
-    rmsNormalize: {
-      enabled: true,
-      targetRmsDb: -14,
-    },
-    hardLimiter: {
-      enabled: true,
-      ceilingDb: -1,
-      releaseMs: 80,
-    },
-  },
-};
-
 export const cloneMixMasterSettings = (
   settings: SimpleMixMasterSettings,
 ): SimpleMixMasterSettings => {
