@@ -470,6 +470,9 @@ export const translationPt = {
       lyricsSlideLeft: "Esquerda",
       lyricsSlideRight: "Direita",
       lyricsSlideInOutDuration: "Duração de entrada/saída",
+      lyricsBlur: "Desfoque entrada/saída",
+      lyricsBlurAmount: "Intensidade do desfoque",
+      lyricsBlurDuration: "Duração do desfoque",
     },
     synthesisError: "Falha no processamento de síntese.",
     workerError:

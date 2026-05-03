@@ -9,6 +9,9 @@ import {
   DEFAULT_LYRICS_BG_BAR_COLOR,
   DEFAULT_LYRICS_BG_BAR_ENABLED,
   DEFAULT_LYRICS_BG_BAR_OPACITY,
+  DEFAULT_LYRICS_BLUR_AMOUNT,
+  DEFAULT_LYRICS_BLUR_DURATION_MS,
+  DEFAULT_LYRICS_BLUR_ENABLED,
   DEFAULT_LYRICS_COLOR,
   DEFAULT_LYRICS_FADE_DURATION_MS,
   DEFAULT_LYRICS_FADE_ENABLED,
@@ -268,6 +271,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     React.useState<SlideDirection>(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
   const [lyricsSlideInOutDurationMs, setLyricsSlideInOutDurationMs] =
     React.useState<number>(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
+  const [lyricsBlurEnabled, setLyricsBlurEnabled] = React.useState<boolean>(
+    DEFAULT_LYRICS_BLUR_ENABLED,
+  );
+  const [lyricsBlurAmount, setLyricsBlurAmount] = React.useState<number>(
+    DEFAULT_LYRICS_BLUR_AMOUNT,
+  );
+  const [lyricsBlurDurationMs, setLyricsBlurDurationMs] =
+    React.useState<number>(DEFAULT_LYRICS_BLUR_DURATION_MS);
 
   // -----------------------------------------------------------------------
 
@@ -433,6 +444,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
             slideOutEnabled: lyricsSlideOutEnabled,
             slideOutDirection: lyricsSlideOutDirection,
             slideInOutDurationMs: lyricsSlideInOutDurationMs,
+            blurEnabled: lyricsBlurEnabled,
+            blurAmount: lyricsBlurAmount,
+            blurDurationMs: lyricsBlurDurationMs,
           }
         : null;
 
@@ -530,6 +544,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsSlideOutEnabled(DEFAULT_LYRICS_SLIDE_OUT_ENABLED);
       setLyricsSlideOutDirection(DEFAULT_LYRICS_SLIDE_OUT_DIRECTION);
       setLyricsSlideInOutDurationMs(DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS);
+      setLyricsBlurEnabled(DEFAULT_LYRICS_BLUR_ENABLED);
+      setLyricsBlurAmount(DEFAULT_LYRICS_BLUR_AMOUNT);
+      setLyricsBlurDurationMs(DEFAULT_LYRICS_BLUR_DURATION_MS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -921,6 +938,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsSlideOutEnabled,
     lyricsSlideOutDirection,
     lyricsSlideInOutDurationMs,
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1069,5 +1089,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsSlideOutEnabled,
     setLyricsSlideOutDirection,
     setLyricsSlideInOutDurationMs,
+    // 歌詞ブラーイン/アウト
+    lyricsBlurEnabled,
+    lyricsBlurAmount,
+    lyricsBlurDurationMs,
+    setLyricsBlurEnabled,
+    setLyricsBlurAmount,
+    setLyricsBlurDurationMs,
   };
 };

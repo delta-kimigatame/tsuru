@@ -464,6 +464,9 @@ export const translationJa = {
       lyricsSlideLeft: "左",
       lyricsSlideRight: "右",
       lyricsSlideInOutDuration: "入場/退場時間",
+      lyricsBlur: "ブラーイン/アウト",
+      lyricsBlurAmount: "ブラー強度",
+      lyricsBlurDuration: "ブラー時間",
     },
     synthesisError: "合成処理に失敗しました。",
     workerError:

@@ -172,6 +172,12 @@ export interface LyricsOptions {
   slideOutDirection: SlideDirection;
   /** 入場・退場共通のアニメーション時間 ms */
   slideInOutDurationMs: number;
+  // --- ブラーイン/ブラーアウト ---
+  blurEnabled: boolean;
+  /** 入場・退場時の最大ブラー半径 px（出力解像度基準） */
+  blurAmount: number;
+  /** ブラーアニメーションの時間 ms */
+  blurDurationMs: number;
 }
 
 /**
@@ -323,6 +329,7 @@ const drawSubtitleOnCanvas = (
   slideY = 0,
   slideInProgress = 1,
   slideOutProgress = 0,
+  blurRadius = 0,
 ): void => {
   if (!lyric.trim()) return;
   const maxW = (cW * opts.maxWidthPercent) / 100;
@@ -330,6 +337,7 @@ const drawSubtitleOnCanvas = (
   let fontSize = opts.fontSize;
 
   ctx.save();
+  ctx.filter = blurRadius > 0 ? `blur(${blurRadius}px)` : "none";
   ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -668,6 +676,16 @@ export const generateMp4 = async (
             1 - remaining / lyricsOptions.slideInOutDurationMs,
           );
         }
+        let blurRadius = 0;
+        if (lyricsOptions.blurEnabled) {
+          const blurMs = lyricsOptions.blurDurationMs;
+          const ce = Math.min(1, elapsed / blurMs);
+          const cr = Math.min(1, remaining / blurMs);
+          // ease-out二乗: 入場ほど強く、表示中は0、退場ほど強く
+          blurRadius =
+            lyricsOptions.blurAmount *
+            Math.max((1 - ce) * (1 - ce), (1 - cr) * (1 - cr));
+        }
         drawSubtitleOnCanvas(
           ctx,
           activeSeg.lyric,
@@ -679,6 +697,7 @@ export const generateMp4 = async (
           slideY,
           slideInProgress,
           slideOutProgress,
+          blurRadius,
         );
       }
     }

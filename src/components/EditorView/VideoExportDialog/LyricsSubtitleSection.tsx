@@ -35,6 +35,10 @@ import {
   LYRICS_SLIDE_DURATION_MS_MIN,
   LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX,
   LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN,
+  LYRICS_BLUR_AMOUNT_MIN,
+  LYRICS_BLUR_AMOUNT_MAX,
+  LYRICS_BLUR_DURATION_MS_MIN,
+  LYRICS_BLUR_DURATION_MS_MAX,
   LYRICS_STROKE_WIDTH_MAX,
   LYRICS_STROKE_WIDTH_MIN,
   TEXT_POSITION_MAX,
@@ -107,6 +111,13 @@ type Props = {
   onSlideOutEnabledChange: (v: boolean) => void;
   onSlideOutDirectionChange: (v: SlideDirection) => void;
   onSlideInOutDurationMsChange: (v: number) => void;
+  // ブラーイン/ブラーアウト
+  blurEnabled: boolean;
+  blurAmount: number;
+  blurDurationMs: number;
+  onBlurEnabledChange: (v: boolean) => void;
+  onBlurAmountChange: (v: number) => void;
+  onBlurDurationMsChange: (v: number) => void;
 };
 
 /** ms → "m:ss.s" 形式の時刻文字列 */
@@ -176,6 +187,12 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onSlideOutEnabledChange,
   onSlideOutDirectionChange,
   onSlideInOutDurationMsChange,
+  blurEnabled,
+  blurAmount,
+  blurDurationMs,
+  onBlurEnabledChange,
+  onBlurAmountChange,
+  onBlurDurationMsChange,
 }) => {
   const { t } = useTranslation();
 
@@ -669,6 +686,46 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 onChange={onSlideInOutDurationMsChange}
                 min={LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN}
                 max={LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX}
+                unit="ms"
+                valueMinWidth={44}
+              />
+            </Box>
+          </Collapse>
+
+          {/* ブラーイン/ブラーアウト */}
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={blurEnabled}
+                onChange={(e) => onBlurEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.lyricsBlur")}
+              </Typography>
+            }
+          />
+          <Collapse in={blurEnabled} unmountOnExit>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, pl: 1 }}
+            >
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsBlurAmount")}
+                value={blurAmount}
+                onChange={onBlurAmountChange}
+                min={LYRICS_BLUR_AMOUNT_MIN}
+                max={LYRICS_BLUR_AMOUNT_MAX}
+                unit="px"
+                valueMinWidth={44}
+              />
+              <LabeledSlider
+                label={t("editor.videoExport.lyricsBlurDuration")}
+                value={blurDurationMs}
+                onChange={onBlurDurationMsChange}
+                min={LYRICS_BLUR_DURATION_MS_MIN}
+                max={LYRICS_BLUR_DURATION_MS_MAX}
                 unit="ms"
                 valueMinWidth={44}
               />

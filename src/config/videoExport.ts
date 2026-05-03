@@ -172,6 +172,15 @@ export const DEFAULT_LYRICS_SLIDE_IN_OUT_DURATION_MS = 300;
 export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MIN = 50;
 export const LYRICS_SLIDE_IN_OUT_DURATION_MS_MAX = 1000;
 
+// Blur
+export const DEFAULT_LYRICS_BLUR_ENABLED = false;
+export const DEFAULT_LYRICS_BLUR_AMOUNT = 20;
+export const DEFAULT_LYRICS_BLUR_DURATION_MS = 300;
+export const LYRICS_BLUR_AMOUNT_MIN = 1;
+export const LYRICS_BLUR_AMOUNT_MAX = 100;
+export const LYRICS_BLUR_DURATION_MS_MIN = 50;
+export const LYRICS_BLUR_DURATION_MS_MAX = 1000;
+
 // ---------------------------------------------------------------------------
 // テキストオーバーレイのデフォルト値
 // ---------------------------------------------------------------------------

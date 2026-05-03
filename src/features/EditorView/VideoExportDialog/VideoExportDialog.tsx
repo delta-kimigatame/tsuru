@@ -213,6 +213,12 @@ export const VideoExportDialog: React.FC<Props> = ({
             onSlideOutEnabledChange={form.setLyricsSlideOutEnabled}
             onSlideOutDirectionChange={form.setLyricsSlideOutDirection}
             onSlideInOutDurationMsChange={form.setLyricsSlideInOutDurationMs}
+            blurEnabled={form.lyricsBlurEnabled}
+            blurAmount={form.lyricsBlurAmount}
+            blurDurationMs={form.lyricsBlurDurationMs}
+            onBlurEnabledChange={form.setLyricsBlurEnabled}
+            onBlurAmountChange={form.setLyricsBlurAmount}
+            onBlurDurationMsChange={form.setLyricsBlurDurationMs}
           />
 
           <ExportPreviewCanvas

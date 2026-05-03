@@ -462,6 +462,9 @@ export const translationEn = {
       lyricsSlideLeft: "Left",
       lyricsSlideRight: "Right",
       lyricsSlideInOutDuration: "Slide in/out duration",
+      lyricsBlur: "Blur in/out",
+      lyricsBlurAmount: "Blur amount",
+      lyricsBlurDuration: "Blur duration",
     },
     synthesisError: "Synthesis process failed.",
     workerError:
