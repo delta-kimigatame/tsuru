@@ -508,6 +508,8 @@ export const translationZh = {
       vocalCompressorThresholdHelp:
         "仅会压缩超过该电平的部分。约 -6 dB 时较轻，继续降低会更强。",
       vocalCompressorRatio: "比率",
+      vocalNormalize: "归一化",
+      vocalNormalizeTarget: "目标电平",
       vocalEqBoost: "EQ提升",
       vocalEqBoostFreq: "中心频率",
       vocalEqBoostGain: "增益",

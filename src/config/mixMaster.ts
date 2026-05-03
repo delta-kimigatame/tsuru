@@ -14,6 +14,7 @@ export const MIX_MASTER_UI_RANGES = {
     highPassCutoffHz: { min: 40, max: 300, step: 5 },
     compressorThresholdDb: { min: -24, max: 0, step: 0.1 },
     compressorRatio: { min: 1, max: 8, step: 0.1 },
+    normalizeTargetDb: { min: -20, max: -2, step: 0.1 },
     eqBoostFreqHz: { min: 1000, max: 4000, step: 100 },
     eqBoostGainDb: { min: 0, max: 8, step: 0.1 },
     reverbWetPercent: { min: 0, max: 60, step: 1 },
@@ -40,6 +41,10 @@ export const defaultMixMasterSettings: SimpleMixMasterSettings = {
       enabled: false,
       thresholdDb: -6,
       ratio: 2.5,
+    },
+    normalize: {
+      enabled: true,
+      targetDb: -6,
     },
     eqBoost: {
       enabled: true,

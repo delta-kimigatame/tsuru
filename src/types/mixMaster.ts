@@ -9,6 +9,10 @@ export interface SimpleMixMasterSettings {
       thresholdDb: number;
       ratio: number;
     };
+    normalize: {
+      enabled: boolean;
+      targetDb: number;
+    };
     eqBoost: {
       enabled: boolean;
       freqHz: number;

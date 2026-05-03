@@ -236,6 +236,33 @@ export const MixMasterDialog: React.FC<Props> = ({
             <FormControlLabel
               control={
                 <Checkbox
+                  checked={settings.vocal.normalize.enabled}
+                  onChange={(e) =>
+                    update((draft) => {
+                      draft.vocal.normalize.enabled = e.target.checked;
+                    })
+                  }
+                />
+              }
+              label={t("editor.mixMaster.vocalNormalize")}
+            />
+            <LabeledSlider
+              label={t("editor.mixMaster.vocalNormalizeTarget")}
+              value={settings.vocal.normalize.targetDb}
+              onChange={(v) =>
+                update((draft) => {
+                  draft.vocal.normalize.targetDb = v;
+                })
+              }
+              min={MIX_MASTER_UI_RANGES.vocal.normalizeTargetDb.min}
+              max={MIX_MASTER_UI_RANGES.vocal.normalizeTargetDb.max}
+              step={MIX_MASTER_UI_RANGES.vocal.normalizeTargetDb.step}
+              unit="dB"
+              valueMinWidth={64}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
                   checked={settings.vocal.eqBoost.enabled}
                   onChange={(e) =>
                     update((draft) => {

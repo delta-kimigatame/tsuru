@@ -518,6 +518,8 @@ export const translationEn = {
       vocalCompressorThresholdHelp:
         "Only the part above this level is compressed. Around -6 dB is light; lower values apply stronger compression.",
       vocalCompressorRatio: "Ratio",
+      vocalNormalize: "Normalize",
+      vocalNormalizeTarget: "Target level",
       vocalEqBoost: "EQ boost",
       vocalEqBoostFreq: "Center frequency",
       vocalEqBoostGain: "Gain",

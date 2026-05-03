@@ -526,6 +526,8 @@ export const translationPt = {
       vocalCompressorThresholdHelp:
         "Somente a parte acima deste nível é comprimida. Em torno de -6 dB é leve; valores menores aplicam compressão mais forte.",
       vocalCompressorRatio: "Razão",
+      vocalNormalize: "Normalizar",
+      vocalNormalizeTarget: "Nível-alvo",
       vocalEqBoost: "Realce de EQ",
       vocalEqBoostFreq: "Frequência central",
       vocalEqBoostGain: "Ganho",

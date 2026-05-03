@@ -51,6 +51,14 @@ export class SimpleMixMasterService {
       );
     }
 
+    if (input.settings.vocal.normalize.enabled) {
+      [processedVocalL, processedVocalR] = this.applyNormalize(
+        processedVocalL,
+        processedVocalR,
+        input.settings.vocal.normalize.targetDb,
+      );
+    }
+
     if (input.settings.vocal.eqBoost.enabled) {
       processedVocalL = this.applyBiquadPeakingEQ(
         processedVocalL,
@@ -261,18 +269,42 @@ export class SimpleMixMasterService {
 
     let limitGain = 1;
     for (let i = 0; i < left.length; i++) {
-      const peak = Math.max(Math.abs(left[i] * gain), Math.abs(right[i] * gain));
+      const peak = Math.max(
+        Math.abs(left[i] * gain),
+        Math.abs(right[i] * gain),
+      );
       const requiredGain = peak > ceiling ? ceiling / peak : 1;
       if (requiredGain < limitGain) {
         limitGain = requiredGain;
       } else {
         limitGain += (1 - limitGain) / releaseSamples;
       }
-      outL[i] = Math.max(-ceiling, Math.min(ceiling, left[i] * gain * limitGain));
-      outR[i] = Math.max(-ceiling, Math.min(ceiling, right[i] * gain * limitGain));
+      outL[i] = Math.max(
+        -ceiling,
+        Math.min(ceiling, left[i] * gain * limitGain),
+      );
+      outR[i] = Math.max(
+        -ceiling,
+        Math.min(ceiling, right[i] * gain * limitGain),
+      );
     }
 
     return [outL, outR];
+  }
+
+  private applyNormalize(
+    left: number[],
+    right: number[],
+    targetDb: number,
+  ): [number[], number[]] {
+    const targetLinear = 10 ** (targetDb / 20);
+    const peak = Math.max(
+      left.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
+      right.reduce((max, v) => Math.max(max, Math.abs(v)), 0),
+    );
+    const gain = peak > 1e-10 ? targetLinear / peak : 1;
+
+    return [left.map((v) => v * gain), right.map((v) => v * gain)];
   }
 
   private applyBiquadHighPass(

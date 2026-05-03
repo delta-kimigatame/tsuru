@@ -520,6 +520,8 @@ export const translationJa = {
       vocalCompressorThresholdHelp:
         "入力レベルがこの値を超えた部分だけ圧縮されます。-6dB付近なら軽く、さらに下げると強くかかります。",
       vocalCompressorRatio: "比率",
+      vocalNormalize: "ノーマライズ",
+      vocalNormalizeTarget: "目標レベル",
       vocalEqBoost: "EQブースト",
       vocalEqBoostFreq: "中心周波数",
       vocalEqBoostGain: "ゲイン",
