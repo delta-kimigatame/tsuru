@@ -511,14 +511,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     ],
   );
 
-  const defaultPianorollLayout = React.useMemo(() => {
-    if (bgSize === "1080x1920") return "portraitFull" as const;
-    if (bgSize === "1920x1080") return "landscapeFull" as const;
-    const ratio = imageNaturalSize
-      ? imageNaturalSize.w / imageNaturalSize.h
-      : 1;
-    return ratio > 1 ? ("landscapeFull" as const) : ("portraitFull" as const);
-  }, [bgSize, imageNaturalSize]);
+  const defaultPianorollLayout = React.useMemo<PianorollVideoLayout>(
+    () => "full",
+    [],
+  );
 
   const [pianorollEnabled, setPianorollEnabled] = React.useState(true);
   const [pianorollLayout, setPianorollLayout] =

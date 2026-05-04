@@ -5,8 +5,7 @@ import { noteNumToTone } from "./Notenum";
 import { makeTimeAxis } from "./interp";
 
 export type PianorollVideoLayout =
-  | "portraitFull"
-  | "landscapeFull"
+  | "full"
   | "portraitMiddleThird"
   | "portraitSafeArea"
   | "landscapeEighty";
@@ -58,7 +57,7 @@ const resolveLayoutRect = (
   layout: PianorollVideoLayout,
   scale: number = 1,
 ): LayoutRect => {
-  if (layout === "portraitFull" || layout === "landscapeFull") {
+  if (layout === "full") {
     return { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
   }
 
@@ -171,9 +170,9 @@ const getCurrentHeadX = (
 };
 
 /**
- * 画面右端に登場したノートが画面外に出る場合のみスクロール目標を返す。
+ * 画面右半分に登場するノートが画面外に出る場合のみスクロール目標を返す。
  * シークバーより左のノートは見切れ許容。
- * 右端スクロールによってシークバーと右端の間のノートが見切れる場合はスクロールしない。
+ * スクロールによって右半分のいずれかのノートが見切れる場合はスクロールしない。
  */
 const getTargetYOffset = (
   currentYOffset: number,
@@ -186,6 +185,7 @@ const getTargetYOffset = (
   horizontalZoom: number,
   verticalZoom: number,
 ): number => {
+  void seekbarLocalX;
   const totalHeight = PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom;
   const maxOffset = Math.max(0, totalHeight - layoutHeight);
 
@@ -194,47 +194,59 @@ const getTargetYOffset = (
   }
 
   const margin = layoutHeight * 0.1;
-  // 画面右端20%を「登場ノートエリア」とみなす
-  const rightZoneLeft = scrollX + noteAreaWidth * 0.8;
-  const rightZoneRight = scrollX + noteAreaWidth;
-  // シークバー左から右端登場エリアまでのノート「表示中ノート」
-  const visibleLeft = scrollX + seekbarLocalX;
-  const visibleRight = rightZoneLeft;
+  // 画面中央から右端までを「右半分」として扱う
+  const rightHalfLeft = scrollX + noteAreaWidth * 0.5;
+  const rightHalfRight = scrollX + noteAreaWidth;
 
-  let rightMinY = Infinity;
-  let rightMaxY = -Infinity;
-  let anyRightOffscreen = false;
+  // 右半分ノートをすべて画面内に収める yOffset の許容区間 [minAllowed, maxAllowed] を求める。
+  // noteY が [yOffset + margin, yOffset + layoutHeight - margin] に入る必要があるため、
+  // yOffset は [noteY - (layoutHeight - margin), noteY - margin] を満たす。
+  let minAllowed = -Infinity;
+  let maxAllowed = Infinity;
+  let anyOffscreen = false;
+  let anyRightHalfNote = false;
 
   for (let i = 0; i < notes.length; i++) {
     const noteX =
       notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
-    if (noteX < rightZoneLeft || noteX > rightZoneRight) continue;
+    if (noteX < rightHalfLeft || noteX > rightHalfRight) continue;
+    anyRightHalfNote = true;
     const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
     if (
       noteY < currentYOffset + margin ||
       noteY > currentYOffset + layoutHeight - margin
     ) {
-      anyRightOffscreen = true;
-      if (noteY < rightMinY) rightMinY = noteY;
-      if (noteY > rightMaxY) rightMaxY = noteY;
+      anyOffscreen = true;
     }
+
+    const lower = noteY - (layoutHeight - margin);
+    const upper = noteY - margin;
+    if (lower > minAllowed) minAllowed = lower;
+    if (upper < maxAllowed) maxAllowed = upper;
   }
 
-  if (!anyRightOffscreen) return currentYOffset;
+  if (!anyRightHalfNote) return currentYOffset;
+  if (!anyOffscreen) return currentYOffset;
 
-  const centerY = (rightMinY + rightMaxY) / 2;
-  const proposedYOffset = clamp(centerY - layoutHeight / 2, 0, maxOffset);
+  const feasibleMin = clamp(minAllowed, 0, maxOffset);
+  const feasibleMax = clamp(maxAllowed, 0, maxOffset);
+  // 収まる範囲が存在しない場合は、無理に動かすと別ノートを見切らせるので据え置き。
+  if (feasibleMin > feasibleMax) return currentYOffset;
 
-  // スクロール実施時に表示中ノートが見切れるかチェック
+  // 最小スクロール量: 現在 yOffset に最も近い端へ寄せる。
+  const proposedYOffset = clamp(currentYOffset, feasibleMin, feasibleMax);
+
+  // スクロール後に右半分のノートがすべて画面内に収まるかチェック
   for (let i = 0; i < notes.length; i++) {
     const noteX =
       notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
-    if (noteX < visibleLeft || noteX > visibleRight) continue;
+    if (noteX < rightHalfLeft || noteX > rightHalfRight) continue;
     const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
     if (
       noteY < proposedYOffset + margin ||
       noteY > proposedYOffset + layoutHeight - margin
     ) {
+      // スクロール後も見切れるノートがある場合はスクロールしない
       return currentYOffset;
     }
   }
@@ -242,7 +254,8 @@ const getTargetYOffset = (
   return proposedYOffset;
 };
 
-const drawBackground = (
+/** ノートエリアのグリッド背景（鍵盤カラー・水平・垂直セパレータ）を描画。鍵盤テキストは含まない。 */
+const drawNoteAreaBackground = (
   ctx: CanvasRenderingContext2D,
   rect: LayoutRect,
   noteAreaX: number,
@@ -269,24 +282,15 @@ const drawBackground = (
     ctx.fillStyle = isBlack ? palette.blackKey : palette.whiteKey;
     ctx.fillRect(noteAreaX, y, noteAreaWidth, keyHeightPx);
 
-    ctx.fillStyle = isBlack ? palette.tonemapBlackKey : palette.tonemapWhiteKey;
-    ctx.fillRect(rect.x, y, PIANOROLL_CONFIG.TONEMAP_WIDTH, keyHeightPx);
-
     ctx.strokeStyle = palette.horizontalSeparator;
     ctx.lineWidth =
       (i + opts.tone) % 12 === 0
         ? PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE
         : PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH;
     ctx.beginPath();
-    ctx.moveTo(rect.x, y);
-    ctx.lineTo(rect.x + rect.width, y);
+    ctx.moveTo(noteAreaX, y);
+    ctx.lineTo(noteAreaX + noteAreaWidth, y);
     ctx.stroke();
-
-    ctx.fillStyle = palette.lyric;
-    ctx.font = `${Math.max(11, Math.round(PIANOROLL_CONFIG.LYRIC_FONT_SIZE * 0.9))}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "left";
-    ctx.fillText(noteNumToTone(107 - i), rect.x + 4, y + keyHeightPx / 2);
   }
 
   const extraTicks = 480 * PIANOROLL_CONFIG.EXTRA_BEATS_COUNT;
@@ -305,6 +309,38 @@ const drawBackground = (
     ctx.moveTo(x, rect.y);
     ctx.lineTo(x, rect.y + rect.height);
     ctx.stroke();
+  }
+};
+
+/** 鍵盤（トーンマップストリップ）をノートの上に描画。 */
+const drawKeyboard = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  yOffset: number,
+  opts: PianorollVideoOptions,
+): void => {
+  const palette =
+    COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
+    COLOR_PALLET.default.light;
+  const keyHeightPx = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
+
+  for (let i = 0; i < PIANOROLL_CONFIG.KEY_COUNT; i++) {
+    const y = rect.y + i * keyHeightPx - yOffset;
+    if (y > rect.y + rect.height || y + keyHeightPx < rect.y) continue;
+
+    const scaleOffset = opts.tone + (opts.isMinor ? 3 : 0);
+    const isBlack = PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(
+      (i + scaleOffset) % 12,
+    );
+
+    ctx.fillStyle = isBlack ? palette.tonemapBlackKey : palette.tonemapWhiteKey;
+    ctx.fillRect(rect.x, y, PIANOROLL_CONFIG.TONEMAP_WIDTH, keyHeightPx);
+
+    ctx.fillStyle = palette.lyric;
+    ctx.font = `${Math.max(11, Math.round(PIANOROLL_CONFIG.LYRIC_FONT_SIZE * 0.9))}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillText(noteNumToTone(107 - i), rect.x + 4, y + keyHeightPx / 2);
   }
 };
 
@@ -453,9 +489,9 @@ const drawSeekbarAndIcon = (
   ctx.stroke();
 
   if (!opts.voiceIconImage) return;
-  const iconSize = 40;
-  const iconX = rect.x + 8;
-  const iconY = rect.y + 8;
+  const iconSize = Math.round(40 * (opts.layoutScale ?? 1));
+  const iconX = rect.x + Math.round(8 * (opts.layoutScale ?? 1));
+  const iconY = rect.y + Math.round(8 * (opts.layoutScale ?? 1));
   ctx.save();
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.fillRect(iconX - 2, iconY - 2, iconSize + 4, iconSize + 4);
@@ -534,7 +570,7 @@ export const drawPianorollVideoFrame = (
   ctx.rect(rect.x, rect.y, rect.width, rect.height);
   ctx.clip();
 
-  drawBackground(
+  drawNoteAreaBackground(
     ctx,
     rect,
     noteAreaX,
@@ -553,6 +589,7 @@ export const drawPianorollVideoFrame = (
     options,
     notesLeftTicks,
   );
+  drawKeyboard(ctx, rect, yOffset, options);
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();

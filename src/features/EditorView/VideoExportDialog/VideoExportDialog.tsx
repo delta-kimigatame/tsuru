@@ -157,6 +157,15 @@ export const VideoExportDialog: React.FC<Props> = ({
               imageFile={form.imageFile}
             />
 
+            {notes && notes.length > 0 && (
+              <PianorollSection
+                enabled={form.pianorollEnabled}
+                layout={form.pianorollLayout}
+                onEnabledChange={form.setPianorollEnabled}
+                onLayoutChange={form.setPianorollLayout}
+              />
+            )}
+
             {portraitBlob && (
               <PortraitSection
                 showPortrait={form.showPortrait}
@@ -244,15 +253,6 @@ export const VideoExportDialog: React.FC<Props> = ({
               onBgBarColorChange={form.setSubTextBgBarColor}
               onBgBarOpacityChange={form.setSubTextBgBarOpacity}
             />
-
-            {notes && notes.length > 0 && (
-              <PianorollSection
-                enabled={form.pianorollEnabled}
-                layout={form.pianorollLayout}
-                onEnabledChange={form.setPianorollEnabled}
-                onLayoutChange={form.setPianorollLayout}
-              />
-            )}
 
             <LyricsSubtitleSection
               lyricsEnabled={form.lyricsEnabled}

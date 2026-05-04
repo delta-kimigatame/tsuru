@@ -20,8 +20,7 @@ type Props = {
 };
 
 const LAYOUT_OPTIONS: PianorollVideoLayout[] = [
-  "portraitFull",
-  "landscapeFull",
+  "full",
   "portraitMiddleThird",
   "portraitSafeArea",
   "landscapeEighty",
