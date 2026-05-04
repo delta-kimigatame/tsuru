@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/05/04\r\n[Adição] Agora é possível ajustar cada parâmetro da função simples de mix.\r\n[Adição] Foram adicionadas configurações em lote de flags, configurações em lote de cor de voz, transposição por intervalo específico e deslocamento por grau de escala específico ao processamento em lote.\r\n[Correção] Corrigido problema em que arquivos WAV de 32 bits não podiam ser carregados no acompanhamento.",
       "2026/05/03\r\n[Adição] Agora é possível usar outros estilos além da cor sólida como fundo na função de criação de vídeo.\r\n[Adição] Adicionadas decorações aplicáveis ao texto de título/crédito na função de criação de vídeo.\r\n[Adição] Adicionada função de exibição de letras baseada nos dados UST na função de geração de vídeo.",
       "2026/05/02\r\n[Adição] Adicionada uma função simples de criação de vídeo. Apenas as configurações de miniatura são suportadas, mas a saída pode ser exportada no formato de vídeo.",
       "2026/05/01\r\n[Adição] Adicionada uma função simples de mix. Embora o mix deva ser feito em um DAW, agora é possível exportar vocais combinados com uma faixa de acompanhamento. Recursos como harmonias não são suportados.",

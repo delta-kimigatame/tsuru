@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/05/04\r\n[Add] Made it possible to adjust each parameter of the simple mix function.\r\n[Add] Added batch flag setting, batch voice color setting, transpose by specific pitch, and shift by specific scale degree to batch processing.\r\n[Fix] Fixed an issue where 32-bit WAV files could not be loaded in accompaniment.",
       "2026/05/03\r\n[Add] Backgrounds other than solid color are now available in the video creation feature.\r\n[Add] Added decorations applicable to title/credit text in the video creation feature.\r\n[Add] Added lyric subtitle display based on UST data in the video generation feature.",
       "2026/05/02\r\n[Add] Added a simple video creation feature. Only thumbnail settings are supported, but the output can be exported in video format.",
       "2026/05/01\r\n[Add] Added a simple mix feature. While mixing should ideally be done in a DAW, you can now output vocals combined with a backing track. Harmonies and similar features are not supported.",
