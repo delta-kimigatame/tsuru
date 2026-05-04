@@ -1,0 +1,560 @@
+import { COLOR_PALLET } from "../config/pallet";
+import { PIANOROLL_CONFIG } from "../config/pianoroll";
+import type { Note } from "../lib/Note";
+import { noteNumToTone } from "./Notenum";
+import { makeTimeAxis } from "./interp";
+
+export type PianorollVideoLayout =
+  | "portraitFull"
+  | "landscapeFull"
+  | "portraitMiddleThird"
+  | "portraitSafeArea"
+  | "landscapeEighty";
+
+export interface PianorollVideoOptions {
+  enabled: boolean;
+  layout: PianorollVideoLayout;
+  notes: Note[];
+  notesLeftMs: number[];
+  colorTheme: string;
+  themeMode: "light" | "dark";
+  horizontalZoom: number;
+  verticalZoom: number;
+  tone: number;
+  isMinor: boolean;
+  voiceIconImage?: HTMLImageElement | null;
+  /** プレビュー用縮小率。固定マージン値をスケールするために使用。デフォルト 1 */
+  layoutScale?: number;
+}
+
+export interface PianorollRenderState {
+  yOffset: number;
+}
+
+export const VERTICAL_ZOOM_STEPS: number[] = [0.25, 0.5, 0.75, 1];
+export const HORIZONTAL_ZOOM_STEPS: number[] = [0.01, 0.1, 0.25, 0.5, 1, 2, 4];
+
+export const getOneStepSmallerZoom = (
+  currentZoom: number,
+  steps: number[],
+): number => {
+  const smaller = steps.filter((step) => step < currentZoom);
+  return smaller.length === 0 ? currentZoom : smaller[smaller.length - 1];
+};
+
+interface LayoutRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const clamp = (v: number, min: number, max: number): number =>
+  Math.max(min, Math.min(max, v));
+
+const resolveLayoutRect = (
+  canvasWidth: number,
+  canvasHeight: number,
+  layout: PianorollVideoLayout,
+  scale: number = 1,
+): LayoutRect => {
+  if (layout === "portraitFull" || layout === "landscapeFull") {
+    return { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
+  }
+
+  if (layout === "portraitMiddleThird") {
+    const height = Math.round(canvasHeight / 3);
+    return {
+      x: 0,
+      y: Math.round((canvasHeight - height) / 2),
+      width: canvasWidth,
+      height,
+    };
+  }
+
+  if (layout === "portraitSafeArea") {
+    const left = Math.round(48 * scale);
+    const top = Math.round(48 * scale);
+    const right = Math.round(240 * scale);
+    const bottom = Math.round(360 * scale);
+    return {
+      x: left,
+      y: top,
+      width: Math.max(1, canvasWidth - left - right),
+      height: Math.max(1, canvasHeight - top - bottom),
+    };
+  }
+
+  const margin = Math.round(48 * scale);
+  return {
+    x: margin,
+    y: margin,
+    width: Math.max(1, Math.round(canvasWidth * 0.8)),
+    height: Math.max(1, Math.round(canvasHeight * 0.8)),
+  };
+};
+
+const msToPoint = (
+  ms: number,
+  tempo: number,
+  horizontalZoom: number,
+): number => {
+  const pixelPerTick = PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+  const msPerTick = 60000 / (tempo * 480);
+  return ms * (pixelPerTick / msPerTick);
+};
+
+const notenumToPoint = (notenum: number, verticalZoom: number): number => {
+  return (
+    PIANOROLL_CONFIG.KEY_HEIGHT * (107 - notenum) * verticalZoom +
+    (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom) / 2
+  );
+};
+
+const deciToneToPoint = (deciTone: number, verticalZoom: number): number => {
+  return (PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom * deciTone) / 10;
+};
+
+const getNotesLeftTicks = (notes: Note[]): number[] => {
+  let acc = 0;
+  return notes.map((n) => {
+    const current = acc;
+    acc += n.length;
+    return current;
+  });
+};
+
+const getCurrentHeadX = (
+  tMs: number,
+  notes: Note[],
+  notesLeftMs: number[],
+  notesLeftTicks: number[],
+  horizontalZoom: number,
+): number => {
+  if (notes.length === 0) return 0;
+  if (notesLeftMs.length !== notes.length) {
+    return (
+      notesLeftTicks[notesLeftTicks.length - 1] *
+      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+      horizontalZoom
+    );
+  }
+
+  const lastIndex = notes.length - 1;
+  const lastEndMs = notesLeftMs[lastIndex] + notes[lastIndex].msLength;
+  if (tMs <= notesLeftMs[0]) return 0;
+  if (tMs >= lastEndMs) {
+    return (
+      (notesLeftTicks[lastIndex] + notes[lastIndex].length) *
+      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+      horizontalZoom
+    );
+  }
+
+  let targetIndex = 0;
+  for (let i = 0; i < notes.length; i++) {
+    const startMs = notesLeftMs[i];
+    const endMs = startMs + notes[i].msLength;
+    if (tMs >= startMs && tMs < endMs) {
+      targetIndex = i;
+      break;
+    }
+  }
+
+  const localMs = tMs - notesLeftMs[targetIndex];
+  return (
+    notesLeftTicks[targetIndex] *
+      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+      horizontalZoom +
+    msToPoint(localMs, notes[targetIndex].tempo, horizontalZoom)
+  );
+};
+
+/**
+ * 画面右端に登場したノートが画面外に出る場合のみスクロール目標を返す。
+ * シークバーより左のノートは見切れ許容。
+ * 右端スクロールによってシークバーと右端の間のノートが見切れる場合はスクロールしない。
+ */
+const getTargetYOffset = (
+  currentYOffset: number,
+  noteAreaWidth: number,
+  scrollX: number,
+  seekbarLocalX: number,
+  layoutHeight: number,
+  notes: Note[],
+  notesLeftTicks: number[],
+  horizontalZoom: number,
+  verticalZoom: number,
+): number => {
+  const totalHeight = PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom;
+  const maxOffset = Math.max(0, totalHeight - layoutHeight);
+
+  if (notes.length === 0) {
+    return clamp(totalHeight / 2 - layoutHeight / 2, 0, maxOffset);
+  }
+
+  const margin = layoutHeight * 0.1;
+  // 画面右端20%を「登場ノートエリア」とみなす
+  const rightZoneLeft = scrollX + noteAreaWidth * 0.8;
+  const rightZoneRight = scrollX + noteAreaWidth;
+  // シークバー左から右端登場エリアまでのノート「表示中ノート」
+  const visibleLeft = scrollX + seekbarLocalX;
+  const visibleRight = rightZoneLeft;
+
+  let rightMinY = Infinity;
+  let rightMaxY = -Infinity;
+  let anyRightOffscreen = false;
+
+  for (let i = 0; i < notes.length; i++) {
+    const noteX =
+      notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+    if (noteX < rightZoneLeft || noteX > rightZoneRight) continue;
+    const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
+    if (
+      noteY < currentYOffset + margin ||
+      noteY > currentYOffset + layoutHeight - margin
+    ) {
+      anyRightOffscreen = true;
+      if (noteY < rightMinY) rightMinY = noteY;
+      if (noteY > rightMaxY) rightMaxY = noteY;
+    }
+  }
+
+  if (!anyRightOffscreen) return currentYOffset;
+
+  const centerY = (rightMinY + rightMaxY) / 2;
+  const proposedYOffset = clamp(centerY - layoutHeight / 2, 0, maxOffset);
+
+  // スクロール実施時に表示中ノートが見切れるかチェック
+  for (let i = 0; i < notes.length; i++) {
+    const noteX =
+      notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+    if (noteX < visibleLeft || noteX > visibleRight) continue;
+    const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
+    if (
+      noteY < proposedYOffset + margin ||
+      noteY > proposedYOffset + layoutHeight - margin
+    ) {
+      return currentYOffset;
+    }
+  }
+
+  return proposedYOffset;
+};
+
+const drawBackground = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  noteAreaX: number,
+  noteAreaWidth: number,
+  scrollX: number,
+  yOffset: number,
+  opts: PianorollVideoOptions,
+  totalTickLength: number,
+): void => {
+  const palette =
+    COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
+    COLOR_PALLET.default.light;
+  const keyHeightPx = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
+
+  for (let i = 0; i < PIANOROLL_CONFIG.KEY_COUNT; i++) {
+    const y = rect.y + i * keyHeightPx - yOffset;
+    if (y > rect.y + rect.height || y + keyHeightPx < rect.y) continue;
+
+    const scaleOffset = opts.tone + (opts.isMinor ? 3 : 0);
+    const isBlack = PIANOROLL_CONFIG.BLACK_KEY_REMAINDERS.includes(
+      (i + scaleOffset) % 12,
+    );
+
+    ctx.fillStyle = isBlack ? palette.blackKey : palette.whiteKey;
+    ctx.fillRect(noteAreaX, y, noteAreaWidth, keyHeightPx);
+
+    ctx.fillStyle = isBlack ? palette.tonemapBlackKey : palette.tonemapWhiteKey;
+    ctx.fillRect(rect.x, y, PIANOROLL_CONFIG.TONEMAP_WIDTH, keyHeightPx);
+
+    ctx.strokeStyle = palette.horizontalSeparator;
+    ctx.lineWidth =
+      (i + opts.tone) % 12 === 0
+        ? PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH_OCTAVE
+        : PIANOROLL_CONFIG.HORIZONTAL_SEPARATOR_WIDTH;
+    ctx.beginPath();
+    ctx.moveTo(rect.x, y);
+    ctx.lineTo(rect.x + rect.width, y);
+    ctx.stroke();
+
+    ctx.fillStyle = palette.lyric;
+    ctx.font = `${Math.max(11, Math.round(PIANOROLL_CONFIG.LYRIC_FONT_SIZE * 0.9))}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillText(noteNumToTone(107 - i), rect.x + 4, y + keyHeightPx / 2);
+  }
+
+  const extraTicks = 480 * PIANOROLL_CONFIG.EXTRA_BEATS_COUNT;
+  for (let tick = 0; tick <= totalTickLength + extraTicks; tick += 480) {
+    const x =
+      noteAreaX +
+      tick * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * opts.horizontalZoom -
+      scrollX;
+    if (x < noteAreaX || x > noteAreaX + noteAreaWidth) continue;
+    ctx.strokeStyle = palette.verticalSeparator;
+    ctx.lineWidth =
+      tick % 1920 === 0
+        ? PIANOROLL_CONFIG.VERTICAL_SEPARATOR_WIDTH_MEASURE
+        : PIANOROLL_CONFIG.VERTICAL_SEPARATOR_WIDTH;
+    ctx.beginPath();
+    ctx.moveTo(x, rect.y);
+    ctx.lineTo(x, rect.y + rect.height);
+    ctx.stroke();
+  }
+};
+
+const drawNotesAndPitch = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  noteAreaX: number,
+  scrollX: number,
+  yOffset: number,
+  opts: PianorollVideoOptions,
+  notesLeftTicks: number[],
+): void => {
+  const palette =
+    COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
+    COLOR_PALLET.default.light;
+  const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+
+  opts.notes.forEach((note, index) => {
+    const x =
+      noteAreaX +
+      notesLeftTicks[index] *
+        PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+        opts.horizontalZoom -
+      scrollX;
+    const y =
+      rect.y +
+      PIANOROLL_CONFIG.KEY_HEIGHT * (107 - note.notenum) * opts.verticalZoom -
+      yOffset;
+    const width =
+      note.length * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * opts.horizontalZoom;
+
+    if (x + width < noteAreaX || x > rect.x + rect.width) return;
+    if (y + noteHeight < rect.y || y > rect.y + rect.height) return;
+
+    ctx.fillStyle = note.lyric === "R" ? palette.restNote : palette.note;
+    ctx.strokeStyle = palette.noteBorder;
+    ctx.lineWidth = PIANOROLL_CONFIG.NOTES_BORDER_WIDTH;
+    ctx.fillRect(x, y, width, noteHeight);
+    ctx.strokeRect(x, y, width, noteHeight);
+
+    ctx.fillStyle = palette.lyric;
+    ctx.fillText(
+      note.lyric,
+      x + PIANOROLL_CONFIG.LYRIC_PADDING_LEFT,
+      y + noteHeight / 2,
+    );
+
+    if (note.atFilename === "" && note.lyric !== "R") {
+      ctx.fillStyle = palette.attention;
+      ctx.fillText(
+        "?",
+        x + PIANOROLL_CONFIG.LYRIC_PADDING_LEFT,
+        y + noteHeight * 0.2,
+      );
+    }
+
+    if (index === 0 || note.hasTempo) {
+      ctx.fillStyle = palette.tempo;
+      ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+      ctx.fillText(
+        `bpm=${note.tempo.toFixed(2)}`,
+        x + 4,
+        y + noteHeight * 0.85,
+      );
+      ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    }
+
+    if (!note.label) return;
+    ctx.fillStyle = palette.tempo;
+    ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    ctx.fillText(note.label, x + 4, y + noteHeight * 0.65);
+    ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+  });
+
+  ctx.strokeStyle = palette.pitch;
+  ctx.lineWidth = 1;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  opts.notes.forEach((note, index) => {
+    if (note.lyric === "R" || !note.pbs) return;
+    const offset = note.pbs.time ?? 0;
+    if (note.msLength - offset <= offset) return;
+
+    const leftOffsetX =
+      notesLeftTicks[index] *
+      PIANOROLL_CONFIG.NOTES_WIDTH_RATE *
+      opts.horizontalZoom;
+    const timeAxis = makeTimeAxis(
+      note.pitchSpan,
+      offset / 1000,
+      (note.msLength - offset) / 1000,
+    );
+    const interpPitches = note.getInterpPitch(note, timeAxis, offset / 1000);
+    const vibratoPitches = note.getVibratoPitches(note, timeAxis, offset);
+    for (let i = 0; i < interpPitches.length; i++) {
+      interpPitches[i] += vibratoPitches[i];
+    }
+    if (timeAxis.length === 0 || interpPitches.length === 0) return;
+
+    let drew = false;
+    ctx.beginPath();
+    for (let i = 0; i < timeAxis.length; i++) {
+      const x =
+        noteAreaX +
+        leftOffsetX +
+        msToPoint(timeAxis[i] * 1000, note.tempo, opts.horizontalZoom) -
+        scrollX;
+      const y =
+        rect.y +
+        notenumToPoint(note.notenum, opts.verticalZoom) -
+        deciToneToPoint(interpPitches[i] / 10, opts.verticalZoom) -
+        yOffset;
+      if (!drew) {
+        ctx.moveTo(x, y);
+        drew = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    if (drew) ctx.stroke();
+  });
+};
+
+const drawSeekbarAndIcon = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  noteAreaX: number,
+  noteAreaWidth: number,
+  seekbarX: number,
+  opts: PianorollVideoOptions,
+): void => {
+  const palette =
+    COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
+    COLOR_PALLET.default.light;
+
+  ctx.strokeStyle = palette.seekBar;
+  ctx.lineWidth = PIANOROLL_CONFIG.SEEKBAR_WIDTH;
+  ctx.beginPath();
+  ctx.moveTo(noteAreaX + seekbarX, rect.y);
+  ctx.lineTo(noteAreaX + seekbarX, rect.y + rect.height);
+  ctx.stroke();
+
+  if (!opts.voiceIconImage) return;
+  const iconSize = 40;
+  const iconX = rect.x + 8;
+  const iconY = rect.y + 8;
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillRect(iconX - 2, iconY - 2, iconSize + 4, iconSize + 4);
+  ctx.drawImage(opts.voiceIconImage, iconX, iconY, iconSize, iconSize);
+  ctx.restore();
+};
+
+export const drawPianorollVideoFrame = (
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  currentMs: number,
+  options: PianorollVideoOptions,
+  previousState?: PianorollRenderState,
+): PianorollRenderState => {
+  if (!options.enabled) {
+    return previousState ?? { yOffset: 0 };
+  }
+
+  const rect = resolveLayoutRect(
+    canvasWidth,
+    canvasHeight,
+    options.layout,
+    options.layoutScale ?? 1,
+  );
+  const noteAreaX = rect.x + PIANOROLL_CONFIG.TONEMAP_WIDTH;
+  const noteAreaWidth = Math.max(
+    1,
+    rect.width - PIANOROLL_CONFIG.TONEMAP_WIDTH,
+  );
+  const notesLeftTicks = getNotesLeftTicks(options.notes);
+  const totalTickLength = options.notes.reduce((sum, n) => sum + n.length, 0);
+
+  const currentHeadX = getCurrentHeadX(
+    currentMs,
+    options.notes,
+    options.notesLeftMs,
+    notesLeftTicks,
+    options.horizontalZoom,
+  );
+  const centerX = noteAreaWidth / 2;
+  const seekbarX = Math.min(currentHeadX, centerX);
+  const scrollX = Math.max(0, currentHeadX - centerX);
+
+  const prevYOffset =
+    previousState?.yOffset ??
+    (() => {
+      // 初期値: 最初のノートを中心に
+      const totalH = PIANOROLL_CONFIG.TOTAL_HEIGHT * options.verticalZoom;
+      const firstY =
+        options.notes.length > 0
+          ? notenumToPoint(options.notes[0].notenum, options.verticalZoom)
+          : totalH / 2;
+      return clamp(
+        firstY - rect.height / 2,
+        0,
+        Math.max(0, totalH - rect.height),
+      );
+    })();
+
+  const targetYOffset = getTargetYOffset(
+    prevYOffset,
+    noteAreaWidth,
+    scrollX,
+    seekbarX,
+    rect.height,
+    options.notes,
+    notesLeftTicks,
+    options.horizontalZoom,
+    options.verticalZoom,
+  );
+  const yOffset = prevYOffset + (targetYOffset - prevYOffset) * 0.03;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rect.x, rect.y, rect.width, rect.height);
+  ctx.clip();
+
+  drawBackground(
+    ctx,
+    rect,
+    noteAreaX,
+    noteAreaWidth,
+    scrollX,
+    yOffset,
+    options,
+    totalTickLength,
+  );
+  drawNotesAndPitch(
+    ctx,
+    rect,
+    noteAreaX,
+    scrollX,
+    yOffset,
+    options,
+    notesLeftTicks,
+  );
+  drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
+
+  ctx.restore();
+  return { yOffset };
+};

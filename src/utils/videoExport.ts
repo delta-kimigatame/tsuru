@@ -12,6 +12,11 @@ import {
   type VideoCodec,
 } from "mediabunny";
 import type { Note } from "../lib/Note";
+import {
+  drawPianorollVideoFrame,
+  type PianorollRenderState,
+  type PianorollVideoOptions,
+} from "./pianorollVideo";
 
 /** 動画の解像度オプション。"image" は読み込んだ画像サイズに合わせる */
 export type VideoResolution = "1920x1080" | "1080x1920" | "image";
@@ -1190,6 +1195,7 @@ export const generateMp4 = async (
   mainTextOptions?: TextOptions | null,
   subTextOptions?: TextOptions | null,
   lyricsOptions?: LyricsOptions | null,
+  pianorollOptions?: PianorollVideoOptions,
   onProgress?: (current: number, total: number) => void,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
@@ -1263,6 +1269,30 @@ export const generateMp4 = async (
     });
     URL.revokeObjectURL(pUrl);
   }
+
+  let iconImg: HTMLImageElement | null = null;
+  if (pianorollOptions?.voiceIconImage) {
+    iconImg = pianorollOptions.voiceIconImage;
+  }
+
+  if (!iconImg) {
+    iconImg = await new Promise<HTMLImageElement | null>((resolve) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => resolve(null);
+      el.src = "./static/logo192.png";
+    });
+  }
+
+  const effectivePianorollOptions: PianorollVideoOptions | undefined =
+    pianorollOptions
+      ? {
+          ...pianorollOptions,
+          voiceIconImage: iconImg,
+        }
+      : undefined;
+
+  let pianorollState: PianorollRenderState | undefined;
 
   /**
    * 背景・立絵・タイトルテキストのベースレイヤーをキャンバスに描画する。
@@ -1365,6 +1395,17 @@ export const generateMp4 = async (
           remaining,
         );
       }
+    }
+
+    if (effectivePianorollOptions?.enabled) {
+      pianorollState = drawPianorollVideoFrame(
+        ctx,
+        cW,
+        cH,
+        tMs,
+        effectivePianorollOptions,
+        pianorollState,
+      );
     }
 
     await videoSource.add(tSec, dur);

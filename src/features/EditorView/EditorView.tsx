@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../config/editor";
+import { useThemeMode } from "../../hooks/useThemeMode";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
 import { SimpleMixMasterService } from "../../services/simpleMixMaster";
@@ -11,6 +12,7 @@ import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { cloneMixMasterSettings } from "../../types/mixMaster";
 import { NoteSelectMode } from "../../types/noteSelectMode";
+import { type PianorollVideoOptions } from "../../utils/pianorollVideo";
 import {
   generateMp4,
   type BackgroundOptions,
@@ -36,13 +38,23 @@ export const EditorView: React.FC<{
   const {
     vb,
     notes,
+    tone,
+    isMinor,
     ustFlags,
     phonemizer,
     setNote,
     mixMasterSettings,
     setMixMasterSettings,
   } = useMusicProjectStore();
-  const { defaultNote, playMode, exportMode } = useCookieStore();
+  const {
+    defaultNote,
+    playMode,
+    exportMode,
+    colorTheme,
+    horizontalZoom,
+    verticalZoom,
+  } = useCookieStore();
+  const themeMode = useThemeMode();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   const mixMasterService = React.useMemo(
     () => new SimpleMixMasterService(),
@@ -490,6 +502,7 @@ export const EditorView: React.FC<{
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
+    pianorollOptions: PianorollVideoOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -513,6 +526,7 @@ export const EditorView: React.FC<{
         mainTextOptions,
         subTextOptions,
         lyricsOptions,
+        pianorollOptions ?? undefined,
         (current, total) => {
           setSynthesisCount(current);
           setVideoExportTotal(total);
@@ -885,6 +899,7 @@ export const EditorView: React.FC<{
           vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
         }
         portraitNaturalHeight={vb?.portraitHeight}
+        voiceIcon={vb?.image}
         notes={notes}
         notesLeftMs={notesLeftMs}
         selectNotesIndex={selectNotesIndex}
