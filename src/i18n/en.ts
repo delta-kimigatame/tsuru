@@ -634,6 +634,10 @@ export const translationEn = {
       title: "Batch Set Flags",
       flagsValue: "Flags to Apply",
     },
+    voiceColorBatchProcess: {
+      title: "Batch Set Voice Color",
+      voiceColorValue: "Voice Color",
+    },
     removeSuffixBatchProcess: {
       title: "Remove Prefix/Suffix from Lyrics",
       suffixRemoveMode: "End of Lyrics",

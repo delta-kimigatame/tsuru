@@ -636,6 +636,10 @@ export const translationJa = {
       title: "フラグ一括設定",
       flagsValue: "設定するフラグ",
     },
+    voiceColorBatchProcess: {
+      title: "ボイスカラー一括設定",
+      voiceColorValue: "ボイスカラー",
+    },
     removeSuffixBatchProcess: {
       title: "歌詞の前後の文字を削除",
       suffixRemoveMode: "歌詞の末尾",

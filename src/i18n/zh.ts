@@ -622,6 +622,10 @@ export const translationZh = {
       title: "批量设置 Flags",
       flagsValue: "要设置的 Flags",
     },
+    voiceColorBatchProcess: {
+      title: "批量设置音色",
+      voiceColorValue: "音色",
+    },
     removeSuffixBatchProcess: {
       title: "删除歌词前后的字符",
       suffixRemoveMode: "歌词末尾",

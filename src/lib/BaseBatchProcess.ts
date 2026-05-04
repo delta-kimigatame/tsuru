@@ -43,7 +43,7 @@ export abstract class BaseBatchProcess<TOptions = any> {
     const oldNotes = notes.map((n) => n.deepCopy());
     this.log(
       `${this.summary}、options:${JSON.stringify(options)}`,
-      LogLevel.INFO
+      LogLevel.INFO,
     );
     const newNotes = this._process(notes, options);
     undoManager.register({

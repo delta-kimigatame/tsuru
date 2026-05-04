@@ -93,6 +93,9 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
    */
   const processBatchProcess = (index: number) => {
     const bp = new batchProcesses[index].cls();
+    // initializeOptionsでもvbを参照できるよう、ui判定前に注入する
+    bp.vb = vb ?? undefined;
+    bp.initializeOptions?.([]);
     setBatchProcessProgress(true);
     if (bp.ui.length === 0) {
       executeBatchProcess<void>(

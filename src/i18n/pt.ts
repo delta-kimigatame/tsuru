@@ -642,6 +642,10 @@ export const translationPt = {
       title: "Definir flags em lote",
       flagsValue: "Flags a aplicar",
     },
+    voiceColorBatchProcess: {
+      title: "Definir cor de voz em lote",
+      voiceColorValue: "Cor de voz",
+    },
     removeSuffixBatchProcess: {
       title: "Remover caracteres do início/fim da letra",
       suffixRemoveMode: "Final da letra",
