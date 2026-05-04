@@ -101,6 +101,19 @@ import {
   DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
+  DEFAULT_WAVEFORM_COLOR,
+  DEFAULT_WAVEFORM_DRAW_METHOD,
+  DEFAULT_WAVEFORM_ENABLED,
+  DEFAULT_WAVEFORM_HEIGHT_PERCENT,
+  DEFAULT_WAVEFORM_OPACITY,
+  DEFAULT_WAVEFORM_ROTATION,
+  DEFAULT_WAVEFORM_ROTATION_SPEED,
+  DEFAULT_WAVEFORM_START_ANGLE,
+  DEFAULT_WAVEFORM_TYPE,
+  DEFAULT_WAVEFORM_WIDTH_PERCENT,
+  DEFAULT_WAVEFORM_WINDOW_SIZE,
+  DEFAULT_WAVEFORM_X_PERCENT,
+  DEFAULT_WAVEFORM_Y_PERCENT,
   HEX_RE,
   PORTRAIT_DRAW_SCALE_MAX,
   PORTRAIT_MAX_HEIGHT_RATIO,
@@ -139,6 +152,13 @@ import {
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
+import {
+  drawWaveformEffect,
+  generateSineWave,
+  type WaveformDrawMethod,
+  type WaveformEffectOptions,
+  type WaveformType,
+} from "../utils/waveformEffect";
 import { useThemeMode } from "./useThemeMode";
 
 type Options = {
@@ -154,6 +174,7 @@ type Options = {
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
     pianorollOptions: PianorollVideoOptions | null,
+    waveformOptions: WaveformEffectOptions | null,
   ) => void;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
@@ -603,6 +624,81 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     applySecondaryColor,
   ]);
 
+  // 波形エフェクト設定
+  const waveformSinePreviewRafRef = React.useRef<number | null>(null);
+  const waveformSinePreviewActiveRef = React.useRef(false);
+  const [isWaveformSinePreviewPlaying, setIsWaveformSinePreviewPlaying] =
+    React.useState(false);
+
+  const [waveformEnabled, setWaveformEnabled] = React.useState<boolean>(
+    DEFAULT_WAVEFORM_ENABLED,
+  );
+  const [waveformType, setWaveformType] = React.useState<WaveformType>(
+    DEFAULT_WAVEFORM_TYPE,
+  );
+  const [waveformDrawMethod, setWaveformDrawMethod] =
+    React.useState<WaveformDrawMethod>(DEFAULT_WAVEFORM_DRAW_METHOD);
+  const [waveformColor, setWaveformColor] = React.useState<string>(
+    DEFAULT_WAVEFORM_COLOR,
+  );
+  const [waveformOpacity, setWaveformOpacity] = React.useState<number>(
+    DEFAULT_WAVEFORM_OPACITY,
+  );
+  const [waveformXPercent, setWaveformXPercent] = React.useState<number>(
+    DEFAULT_WAVEFORM_X_PERCENT,
+  );
+  const [waveformYPercent, setWaveformYPercent] = React.useState<number>(
+    DEFAULT_WAVEFORM_Y_PERCENT,
+  );
+  const [waveformRotation, setWaveformRotation] = React.useState<number>(
+    DEFAULT_WAVEFORM_ROTATION,
+  );
+  const [waveformWidthPercent, setWaveformWidthPercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_WIDTH_PERCENT);
+  const [waveformHeightPercent, setWaveformHeightPercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_HEIGHT_PERCENT);
+  const [waveformStartAngle, setWaveformStartAngle] = React.useState<number>(
+    DEFAULT_WAVEFORM_START_ANGLE,
+  );
+  const [waveformRotationSpeed, setWaveformRotationSpeed] =
+    React.useState<number>(DEFAULT_WAVEFORM_ROTATION_SPEED);
+  const [waveformWindowSize, setWaveformWindowSize] = React.useState<number>(
+    DEFAULT_WAVEFORM_WINDOW_SIZE,
+  );
+
+  const waveformOptions = React.useMemo<WaveformEffectOptions>(
+    () => ({
+      enabled: waveformEnabled,
+      type: waveformType,
+      drawMethod: waveformDrawMethod,
+      color: waveformColor,
+      opacity: waveformOpacity,
+      xPercent: waveformXPercent,
+      yPercent: waveformYPercent,
+      rotation: waveformRotation,
+      widthPercent: waveformWidthPercent,
+      heightPercent: waveformHeightPercent,
+      startAngle: waveformStartAngle,
+      rotationSpeed: waveformRotationSpeed,
+      windowSize: waveformWindowSize,
+    }),
+    [
+      waveformEnabled,
+      waveformType,
+      waveformDrawMethod,
+      waveformColor,
+      waveformOpacity,
+      waveformXPercent,
+      waveformYPercent,
+      waveformRotation,
+      waveformWidthPercent,
+      waveformHeightPercent,
+      waveformStartAngle,
+      waveformRotationSpeed,
+      waveformWindowSize,
+    ],
+  );
+
   /** セグメント i の歌詞テキストを更新する */
   const updateSegmentLyric = React.useCallback((i: number, value: string) => {
     setLyricsSegments((prev) =>
@@ -806,6 +902,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextOptions,
         lyricsOptions,
         pianorollPreviewOptions,
+        waveformOptions.enabled ? waveformOptions : null,
       );
       return;
     }
@@ -820,6 +917,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextOptions,
       lyricsOptions,
       pianorollPreviewOptions,
+      waveformOptions.enabled ? waveformOptions : null,
     );
   };
 
@@ -921,6 +1019,19 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setPianorollColorTheme(colorTheme);
       setPianorollThemeMode(themeMode);
       setPianorollLayout(null);
+      setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
+      setWaveformType(DEFAULT_WAVEFORM_TYPE);
+      setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
+      setWaveformColor(DEFAULT_WAVEFORM_COLOR);
+      setWaveformOpacity(DEFAULT_WAVEFORM_OPACITY);
+      setWaveformXPercent(DEFAULT_WAVEFORM_X_PERCENT);
+      setWaveformYPercent(DEFAULT_WAVEFORM_Y_PERCENT);
+      setWaveformRotation(DEFAULT_WAVEFORM_ROTATION);
+      setWaveformWidthPercent(DEFAULT_WAVEFORM_WIDTH_PERCENT);
+      setWaveformHeightPercent(DEFAULT_WAVEFORM_HEIGHT_PERCENT);
+      setWaveformStartAngle(DEFAULT_WAVEFORM_START_ANGLE);
+      setWaveformRotationSpeed(DEFAULT_WAVEFORM_ROTATION_SPEED);
+      setWaveformWindowSize(DEFAULT_WAVEFORM_WINDOW_SIZE);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -1159,6 +1270,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.globalAlpha = 1;
       }
 
+      // 波形エフェクト（無音でフラットライン描画）
+      if (waveformOptions.enabled) {
+        drawWaveformEffect(ctx, null, waveformOptions, pw, ph, 0);
+      }
+
       const drawTextLayer = (
         text: string,
         fontSize: number,
@@ -1304,13 +1420,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      waveformOptions,
     ],
   );
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
-    // アニメーションプレビュー中は静止画描画をスキップ
-    if (animPreviewActiveRef.current) return;
+    // アニメーションプレビュー中はスキップ
+    if (animPreviewActiveRef.current || waveformSinePreviewActiveRef.current)
+      return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1442,7 +1560,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
     isAnimPreviewPlaying,
+    isWaveformSinePreviewPlaying,
     pianorollPreviewOptions,
+    waveformOptions,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1623,6 +1743,80 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     }
     animPreviewActiveRef.current = false;
     setIsAnimPreviewPlaying(false);
+  }, []);
+
+  /** 波形サイン波プレビュー開始 — 440Hz 正弦波 1 秒を rAF ループで描画する */
+  const startWaveformSinePreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
+
+    const SINE_SAMPLE_RATE = 44100;
+    const SINE_DURATION_SEC = 1;
+    const sineSamples = generateSineWave(
+      440,
+      SINE_DURATION_SEC,
+      SINE_SAMPLE_RATE,
+    );
+
+    waveformSinePreviewActiveRef.current = true;
+    const startTime = performance.now();
+    setIsWaveformSinePreviewPlaying(true);
+
+    const loop = (img: HTMLImageElement | null) => {
+      if (!waveformSinePreviewActiveRef.current) return;
+      const elapsed =
+        ((performance.now() - startTime) / 1000) % SINE_DURATION_SEC;
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
+      if (waveformOptions.enabled) {
+        drawWaveformEffect(
+          ctx,
+          sineSamples,
+          waveformOptions,
+          canvas.width,
+          canvas.height,
+          elapsed,
+          SINE_SAMPLE_RATE,
+        );
+      }
+      waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(img),
+      );
+    };
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!waveformSinePreviewActiveRef.current) return;
+        waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+          loop(el),
+        );
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(null),
+      );
+    }
+  }, [
+    previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
+    renderPreviewBase,
+    waveformOptions,
+  ]);
+
+  /** 波形サイン波プレビュー停止 */
+  const stopWaveformSinePreview = React.useCallback(() => {
+    if (waveformSinePreviewRafRef.current !== null) {
+      cancelAnimationFrame(waveformSinePreviewRafRef.current);
+      waveformSinePreviewRafRef.current = null;
+    }
+    waveformSinePreviewActiveRef.current = false;
+    setIsWaveformSinePreviewPlaying(false);
   }, []);
 
   return {
@@ -1854,5 +2048,34 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
+    waveformEnabled,
+    setWaveformEnabled,
+    waveformType,
+    setWaveformType,
+    waveformDrawMethod,
+    setWaveformDrawMethod,
+    waveformColor,
+    setWaveformColor,
+    waveformOpacity,
+    setWaveformOpacity,
+    waveformXPercent,
+    setWaveformXPercent,
+    waveformYPercent,
+    setWaveformYPercent,
+    waveformRotation,
+    setWaveformRotation,
+    waveformWidthPercent,
+    setWaveformWidthPercent,
+    waveformHeightPercent,
+    setWaveformHeightPercent,
+    waveformStartAngle,
+    setWaveformStartAngle,
+    waveformRotationSpeed,
+    setWaveformRotationSpeed,
+    waveformWindowSize,
+    setWaveformWindowSize,
+    isWaveformSinePreviewPlaying,
+    startWaveformSinePreview,
+    stopWaveformSinePreview,
   };
 };

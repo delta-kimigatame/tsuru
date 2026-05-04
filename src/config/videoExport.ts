@@ -4,6 +4,7 @@ import type {
   SlideDirection,
   VideoResolution,
 } from "../utils/videoExport";
+import type { WaveformDrawMethod, WaveformType } from "../utils/waveformEffect";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -252,3 +253,25 @@ export const DEFAULT_SUB_TEXT_STROKE_WIDTH = 3;
 export const DEFAULT_SUB_TEXT_BG_BAR_ENABLED = false;
 export const DEFAULT_SUB_TEXT_BG_BAR_COLOR = "#000000";
 export const DEFAULT_SUB_TEXT_BG_BAR_OPACITY = 60;
+
+// ---------------------------------------------------------------------------
+// 音声波形エフェクトのデフォルト値
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_WAVEFORM_ENABLED = false;
+export const DEFAULT_WAVEFORM_TYPE: WaveformType = "oscilloscope";
+export const DEFAULT_WAVEFORM_DRAW_METHOD: WaveformDrawMethod = "polyline";
+export const DEFAULT_WAVEFORM_COLOR = "#ffffff";
+export const DEFAULT_WAVEFORM_OPACITY = 100;
+export const DEFAULT_WAVEFORM_X_PERCENT = 50;
+export const DEFAULT_WAVEFORM_Y_PERCENT = 50;
+export const DEFAULT_WAVEFORM_ROTATION = 0;
+export const DEFAULT_WAVEFORM_WIDTH_PERCENT = 80;
+export const DEFAULT_WAVEFORM_HEIGHT_PERCENT = 20;
+export const DEFAULT_WAVEFORM_START_ANGLE = 0;
+export const DEFAULT_WAVEFORM_ROTATION_SPEED = 0;
+export const DEFAULT_WAVEFORM_WINDOW_SIZE = 2048;
+export const WAVEFORM_WINDOW_SIZE_MIN = 256;
+export const WAVEFORM_WINDOW_SIZE_MAX = 4096;
+export const WAVEFORM_ROTATION_SPEED_MIN = -360;
+export const WAVEFORM_ROTATION_SPEED_MAX = 360;

@@ -17,6 +17,7 @@ import { PianorollSection } from "../../../components/EditorView/VideoExportDial
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
 import { ResolutionSection } from "../../../components/EditorView/VideoExportDialog/ResolutionSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
+import { WaveformEffectSection } from "../../../components/EditorView/VideoExportDialog/WaveformEffectSection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
 import type { PianorollVideoOptions } from "../../../utils/pianorollVideo";
@@ -27,6 +28,7 @@ import type {
   PortraitOptions,
   TextOptions,
   VideoResolution,
+  WaveformEffectOptions,
 } from "../../../utils/videoExport";
 
 type Props = {
@@ -43,6 +45,7 @@ type Props = {
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
     pianorollOptions: PianorollVideoOptions | null,
+    waveformOptions: WaveformEffectOptions | null,
   ) => void;
   synthesisProgress: boolean;
   /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
@@ -353,6 +356,38 @@ export const VideoExportDialog: React.FC<Props> = ({
               isAnimPreviewPlaying={form.isAnimPreviewPlaying}
               onStartAnimPreview={form.startAnimPreview}
               onStopAnimPreview={form.stopAnimPreview}
+            />
+
+            <WaveformEffectSection
+              enabled={form.waveformEnabled}
+              type={form.waveformType}
+              drawMethod={form.waveformDrawMethod}
+              color={form.waveformColor}
+              opacity={form.waveformOpacity}
+              xPercent={form.waveformXPercent}
+              yPercent={form.waveformYPercent}
+              rotation={form.waveformRotation}
+              widthPercent={form.waveformWidthPercent}
+              heightPercent={form.waveformHeightPercent}
+              startAngle={form.waveformStartAngle}
+              rotationSpeed={form.waveformRotationSpeed}
+              windowSize={form.waveformWindowSize}
+              isPreviewPlaying={form.isWaveformSinePreviewPlaying}
+              onEnabledChange={form.setWaveformEnabled}
+              onTypeChange={form.setWaveformType}
+              onDrawMethodChange={form.setWaveformDrawMethod}
+              onColorChange={form.setWaveformColor}
+              onOpacityChange={form.setWaveformOpacity}
+              onXPercentChange={form.setWaveformXPercent}
+              onYPercentChange={form.setWaveformYPercent}
+              onRotationChange={form.setWaveformRotation}
+              onWidthPercentChange={form.setWaveformWidthPercent}
+              onHeightPercentChange={form.setWaveformHeightPercent}
+              onStartAngleChange={form.setWaveformStartAngle}
+              onRotationSpeedChange={form.setWaveformRotationSpeed}
+              onWindowSizeChange={form.setWaveformWindowSize}
+              onStartPreview={form.startWaveformSinePreview}
+              onStopPreview={form.stopWaveformSinePreview}
             />
           </Box>
 

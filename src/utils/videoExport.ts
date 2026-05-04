@@ -18,6 +18,13 @@ import {
   type PianorollRenderState,
   type PianorollVideoOptions,
 } from "./pianorollVideo";
+import {
+  drawWaveformEffect,
+  extractMonoSamplesFromWav,
+  type WaveformEffectOptions,
+} from "./waveformEffect";
+
+export type { WaveformEffectOptions } from "./waveformEffect";
 
 /** 動画の解像度オプション。"image" は読み込んだ画像サイズに合わせる */
 export type VideoResolution = "1920x1080" | "1080x1920" | "image";
@@ -1198,6 +1205,7 @@ export const generateMp4 = async (
   subTextOptions?: TextOptions | null,
   lyricsOptions?: LyricsOptions | null,
   pianorollOptions?: PianorollVideoOptions,
+  waveformOptions?: WaveformEffectOptions | null,
   onProgress?: (current: number, total: number) => void,
 ): Promise<ArrayBuffer> => {
   // AAC エンコーダー polyfill を登録（iOS 等 WebCodecs ネイティブ AAC 非対応環境向け）
@@ -1221,6 +1229,11 @@ export const generateMp4 = async (
   const decodedAudio = await audioCtx.decodeAudioData(audioBuffer.slice(0));
   const durationSec = decodedAudio.duration;
   await audioCtx.close();
+
+  // 波形エフェクト用にモノラルサンプル列を事前抽出（有効時のみ）
+  const waveformMonoSamples: Float32Array | null = waveformOptions?.enabled
+    ? extractMonoSamplesFromWav(audioBuffer)
+    : null;
 
   // 画像をロードしてキャンバスサイズを決定
   let img: HTMLImageElement | null = null;
@@ -1379,6 +1392,18 @@ export const generateMp4 = async (
       ctx.globalAlpha = opacity / 100;
       ctx.drawImage(portraitImg, px, py, drawW, drawH);
       ctx.globalAlpha = 1;
+    }
+
+    // 波形エフェクトの描画（立絵より前面・テキストより後面）
+    if (waveformOptions?.enabled) {
+      drawWaveformEffect(
+        ctx,
+        waveformMonoSamples,
+        waveformOptions,
+        cW,
+        cH,
+        tSec,
+      );
     }
 
     // テキストオーバーレイの描画（立絵より上のレイヤー）

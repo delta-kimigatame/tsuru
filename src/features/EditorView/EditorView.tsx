@@ -21,6 +21,7 @@ import {
   type PortraitOptions,
   type TextOptions,
   type VideoResolution,
+  type WaveformEffectOptions,
 } from "../../utils/videoExport";
 import { AddNotePortal } from "./AddNotePortal";
 import { FooterMenu } from "./FooterMenu/FooterMenu";
@@ -507,6 +508,7 @@ export const EditorView: React.FC<{
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
     pianorollOptions: PianorollVideoOptions | null,
+    waveformOptions: WaveformEffectOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -531,6 +533,7 @@ export const EditorView: React.FC<{
         subTextOptions,
         lyricsOptions,
         pianorollOptions ?? undefined,
+        waveformOptions ?? undefined,
         (current, total) => {
           setSynthesisCount(current);
           setVideoExportTotal(total);
