@@ -29,14 +29,14 @@ import { estimateBeatOffset } from "../../../utils/estimateBeatOffset";
 import { estimateBpm } from "../../../utils/estimateBpm";
 
 export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
-  props
+  props,
 ) => {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { ustTempo, setUstTempo } = useMusicProjectStore();
   // テキストボックス用の生値管理
   const [textInputValue, setTextInputValue] = React.useState<string>(
-    props.backgroundOffsetMs.toString()
+    props.backgroundOffsetMs.toString(),
   );
   // propsの値が変更された時にテキストボックスの値も同期
   React.useEffect(() => {
@@ -84,8 +84,8 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
       const arrayBuffer = await file.arrayBuffer();
       const w = new Wave(arrayBuffer);
       w.sampleRate = renderingConfig.frameRate;
-      w.VolumeNormalize();
       w.bitDepth = 16;
+      w.VolumeNormalize();
       // Blobから再作成してObject URLを生成
       const wBuf = await w.Output();
       const blob = new Blob([wBuf], { type: file.type });
@@ -113,7 +113,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
   const handleMuteToggleBackgroundWavClick = () => {
     LOG.info(
       `伴奏音声のミュート切替:${props.backgroundMuted ? "解除" : "ミュート"}`,
-      "FooterAudioTrackMenu"
+      "FooterAudioTrackMenu",
     );
     props.setBackgroundMuted(!props.backgroundMuted);
     props.handleClose();
@@ -133,7 +133,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     props.handleClose();
   };
   const handleBackgroundAudioOffsetTextChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const inputValue = e.target.value;
 
@@ -147,14 +147,14 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
         // 範囲内にクランプ
         const clampedValue = Math.max(
           offsetRange.min,
-          Math.min(offsetRange.max, value)
+          Math.min(offsetRange.max, value),
         );
         props.setBackgroundOffsetMs(clampedValue);
       }
     }
   };
   const handleBackgroundAudioOffsetTextBlur = (
-    e: React.FocusEvent<HTMLInputElement>
+    e: React.FocusEvent<HTMLInputElement>,
   ) => {
     const inputValue = e.target.value;
 
@@ -172,7 +172,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
         // 有効な値の場合は範囲内にクランプして同期
         const clampedValue = Math.max(
           offsetRange.min,
-          Math.min(offsetRange.max, value)
+          Math.min(offsetRange.max, value),
         );
         props.setBackgroundOffsetMs(clampedValue);
         setTextInputValue(clampedValue.toString());
@@ -208,7 +208,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
     if (!props.backgroundAudioWav) {
       LOG.warn(
         "伴奏音声が存在しないため拍頭オフセット推定を中止",
-        "FooterAudioTrackMenu"
+        "FooterAudioTrackMenu",
       );
       return;
     }
