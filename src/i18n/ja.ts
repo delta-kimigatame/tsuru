@@ -640,6 +640,10 @@ export const translationJa = {
       title: "ボイスカラー一括設定",
       voiceColorValue: "ボイスカラー",
     },
+    transposeBatchProcess: {
+      title: "指定音程上下する",
+      semitones: "上下する音程数",
+    },
     removeSuffixBatchProcess: {
       title: "歌詞の前後の文字を削除",
       suffixRemoveMode: "歌詞の末尾",

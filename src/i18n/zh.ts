@@ -626,6 +626,10 @@ export const translationZh = {
       title: "批量设置音色",
       voiceColorValue: "音色",
     },
+    transposeBatchProcess: {
+      title: "按指定音程升降",
+      semitones: "移调半音数",
+    },
     removeSuffixBatchProcess: {
       title: "删除歌词前后的字符",
       suffixRemoveMode: "歌词末尾",

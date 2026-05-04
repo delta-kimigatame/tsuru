@@ -638,6 +638,10 @@ export const translationEn = {
       title: "Batch Set Voice Color",
       voiceColorValue: "Voice Color",
     },
+    transposeBatchProcess: {
+      title: "Shift by Specified Interval",
+      semitones: "Semitones to Transpose",
+    },
     removeSuffixBatchProcess: {
       title: "Remove Prefix/Suffix from Lyrics",
       suffixRemoveMode: "End of Lyrics",

@@ -646,6 +646,10 @@ export const translationPt = {
       title: "Definir cor de voz em lote",
       voiceColorValue: "Cor de voz",
     },
+    transposeBatchProcess: {
+      title: "Subir/Descer intervalo especificado",
+      semitones: "Semitons a transpor",
+    },
     removeSuffixBatchProcess: {
       title: "Remover caracteres do início/fim da letra",
       suffixRemoveMode: "Final da letra",
