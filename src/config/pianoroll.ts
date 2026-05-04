@@ -47,3 +47,67 @@ export const PIANOROLL_CONFIG = {
   // 末尾に追加する拍数
   EXTRA_BEATS_COUNT: 8 * 4,
 };
+
+/** 動画エクスポート用ピアノロール設定 */
+export const PIANOROLL_VIDEO_LAYOUTS = [
+  "full",
+  "portraitMiddleThird",
+  "portraitSafeArea",
+  "landscapeEighty",
+] as const;
+
+/** 動画エクスポート時のピアノロール表示デフォルト */
+export const DEFAULT_PIANOROLL_VIDEO_ENABLED = false;
+
+/** 動画エクスポート時のピアノロールレイアウトデフォルト */
+export const DEFAULT_PIANOROLL_VIDEO_LAYOUT = "full";
+
+/** 動画エクスポート用ズーム候補 */
+export const PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS: number[] = [
+  0.25, 0.5, 0.75, 1,
+];
+export const PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS: number[] = [
+  0.01, 0.1, 0.25, 0.5, 1, 2, 4,
+];
+
+/** 動画エクスポート用レイアウトパラメータ */
+export const PIANOROLL_VIDEO_LAYOUT_CONFIG = {
+  portraitMiddleThirdHeightRatio: 1 / 3,
+  portraitSafeAreaLeft: 48,
+  portraitSafeAreaTop: 48,
+  portraitSafeAreaRight: 240,
+  portraitSafeAreaBottom: 360,
+  landscapeMargin: 48,
+  landscapeWidthRatio: 0.8,
+  landscapeHeightRatio: 0.8,
+};
+
+/** 動画エクスポート用スクロール制御パラメータ */
+export const PIANOROLL_VIDEO_SCROLL_CONFIG = {
+  rightHalfStartRatio: 0.5,
+  marginRatio: 0.1,
+  yOffsetLerpFactor: 0.03,
+};
+
+/** 動画エクスポート用テキスト描画パラメータ */
+export const PIANOROLL_VIDEO_TEXT_CONFIG = {
+  fontFamily: '"Noto Sans JP", "Roboto", sans-serif',
+  keyboardFontMinSize: 11,
+  keyboardFontScale: 0.9,
+  keyboardToneTextOffsetX: 4,
+  missingOtoMarker: "?",
+  missingOtoMarkerYRatio: 0.2,
+  tempoTextOffsetX: 4,
+  tempoTextYRatio: 0.85,
+  labelTextYRatio: 0.65,
+};
+
+/** 動画エクスポート用アイコン描画パラメータ */
+export const PIANOROLL_VIDEO_ICON_CONFIG = {
+  size: 40,
+  padding: 8,
+  backgroundPadding: 2,
+  backgroundColor: "rgba(255,255,255,0.85)",
+  fallbackSrc: "./static/logo192.png",
+  voiceIconMimeType: "image/bmp",
+};

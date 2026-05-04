@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../config/editor";
+import { useThemeMode } from "../../hooks/useThemeMode";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
 import { SimpleMixMasterService } from "../../services/simpleMixMaster";
@@ -11,6 +12,7 @@ import { useMusicProjectStore } from "../../store/musicProjectStore";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import { cloneMixMasterSettings } from "../../types/mixMaster";
 import { NoteSelectMode } from "../../types/noteSelectMode";
+import { type PianorollVideoOptions } from "../../utils/pianorollVideo";
 import {
   generateMp4,
   type BackgroundOptions,
@@ -36,13 +38,23 @@ export const EditorView: React.FC<{
   const {
     vb,
     notes,
+    tone,
+    isMinor,
     ustFlags,
     phonemizer,
     setNote,
     mixMasterSettings,
     setMixMasterSettings,
   } = useMusicProjectStore();
-  const { defaultNote, playMode, exportMode } = useCookieStore();
+  const {
+    defaultNote,
+    playMode,
+    exportMode,
+    colorTheme,
+    horizontalZoom,
+    verticalZoom,
+  } = useCookieStore();
+  const themeMode = useThemeMode();
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   const mixMasterService = React.useMemo(
     () => new SimpleMixMasterService(),
@@ -455,6 +467,10 @@ export const EditorView: React.FC<{
         const dataUrl = URL.createObjectURL(
           new File([mixedBuf], "output.wav", { type: "audio/wav" }),
         );
+        LOG.gtag("download", {
+          downloadName: vb.name,
+          downloadType: "master",
+        });
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "output.wav";
@@ -490,6 +506,7 @@ export const EditorView: React.FC<{
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
+    pianorollOptions: PianorollVideoOptions | null,
   ) => {
     setMovieExportDialogOpen(false);
     const wavBuf = movieWavBufRef.current;
@@ -513,6 +530,7 @@ export const EditorView: React.FC<{
         mainTextOptions,
         subTextOptions,
         lyricsOptions,
+        pianorollOptions ?? undefined,
         (current, total) => {
           setSynthesisCount(current);
           setVideoExportTotal(total);
@@ -520,7 +538,17 @@ export const EditorView: React.FC<{
       );
       setSynthesisProgress(false);
       setVideoExportTotal(undefined);
-      LOG.gtag("download", { downloadName: vb.name });
+      LOG.gtag("movieDownload", {
+        downloadName: vb.name,
+        format: "mp4",
+        resolution,
+        bgPaddingMode,
+        hasPianoroll: Boolean(pianorollOptions?.enabled),
+        hasPortrait: Boolean(portraitOptions),
+        hasMainText: Boolean(mainTextOptions),
+        hasSubText: Boolean(subTextOptions),
+        hasLyrics: Boolean(lyricsOptions),
+      });
       const dataUrl = URL.createObjectURL(
         new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
       );
@@ -574,7 +602,10 @@ export const EditorView: React.FC<{
     }
 
     if (dataUrl !== undefined) {
-      LOG.gtag("movieDownload", { downloadName: vb.name });
+      LOG.gtag("download", {
+        downloadName: vb.name,
+        downloadType: "vocal",
+      });
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -885,6 +916,7 @@ export const EditorView: React.FC<{
           vb?.portrait ? new Blob([vb.portrait], { type: "image/png" }) : null
         }
         portraitNaturalHeight={vb?.portraitHeight}
+        voiceIcon={vb?.image}
         notes={notes}
         notesLeftMs={notesLeftMs}
         selectNotesIndex={selectNotesIndex}

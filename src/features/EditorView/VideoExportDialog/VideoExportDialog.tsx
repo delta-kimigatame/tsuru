@@ -13,11 +13,13 @@ import { useTranslation } from "react-i18next";
 import { BackgroundSection } from "../../../components/EditorView/VideoExportDialog/BackgroundSection";
 import { ExportPreviewCanvas } from "../../../components/EditorView/VideoExportDialog/ExportPreviewCanvas";
 import { LyricsSubtitleSection } from "../../../components/EditorView/VideoExportDialog/LyricsSubtitleSection";
+import { PianorollSection } from "../../../components/EditorView/VideoExportDialog/PianorollSection";
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
 import { ResolutionSection } from "../../../components/EditorView/VideoExportDialog/ResolutionSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
+import type { PianorollVideoOptions } from "../../../utils/pianorollVideo";
 import type {
   BackgroundOptions,
   BgPaddingMode,
@@ -40,12 +42,14 @@ type Props = {
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
+    pianorollOptions: PianorollVideoOptions | null,
   ) => void;
   synthesisProgress: boolean;
   /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
   portraitBlob?: Blob | null;
   /** vb.portraitHeight */
   portraitNaturalHeight?: number;
+  voiceIcon?: ArrayBuffer;
   notes?: Note[];
   notesLeftMs?: number[];
   selectNotesIndex?: number[];
@@ -58,6 +62,7 @@ export const VideoExportDialog: React.FC<Props> = ({
   synthesisProgress,
   portraitBlob,
   portraitNaturalHeight,
+  voiceIcon,
   notes,
   notesLeftMs,
   selectNotesIndex,
@@ -68,6 +73,7 @@ export const VideoExportDialog: React.FC<Props> = ({
     onConfirm,
     portraitBlob,
     portraitNaturalHeight,
+    voiceIcon,
     notes,
     notesLeftMs,
     selectNotesIndex,
@@ -150,6 +156,20 @@ export const VideoExportDialog: React.FC<Props> = ({
               onBgSizeChange={form.setBgSize}
               imageFile={form.imageFile}
             />
+
+            {notes && notes.length > 0 && (
+              <PianorollSection
+                enabled={form.pianorollEnabled}
+                layout={form.pianorollLayout}
+                colorTheme={form.pianorollColorTheme}
+                themeMode={form.pianorollThemeMode}
+                onEnabledChange={form.setPianorollEnabled}
+                onLayoutChange={form.setPianorollLayout}
+                onColorThemeChange={form.setPianorollColorTheme}
+                onThemeModeChange={form.setPianorollThemeMode}
+                onApplyThemeToOutside={form.applyPianorollThemeToOutside}
+              />
+            )}
 
             {portraitBlob && (
               <PortraitSection

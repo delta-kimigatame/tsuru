@@ -234,6 +234,10 @@ export class SynthesisWorker {
       throw new Error(errMsg);
     }
     try {
+      // キャッシュヒット時にappendが連続し過ぎて描画が詰まるため、16ノートごとに制御を返す
+      if (index > 0 && index % 16 === 0) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      }
       LOG.debug(
         `wavtoolで結合。${index},params:${JSON.stringify(
           params[index].append,

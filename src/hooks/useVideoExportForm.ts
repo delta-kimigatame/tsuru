@@ -1,5 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { COLOR_PALLET } from "../config/pallet";
+import {
+  DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  DEFAULT_PIANOROLL_VIDEO_LAYOUT,
+  PIANOROLL_VIDEO_ICON_CONFIG,
+} from "../config/pianoroll";
 import {
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
@@ -106,9 +112,20 @@ import {
   PREVIEW_MAX_W,
 } from "../config/videoExport";
 import type { Note } from "../lib/Note";
+import { useCookieStore } from "../store/cookieStore";
+import { useMusicProjectStore } from "../store/musicProjectStore";
+import type { ColorTheme } from "../types/colorTheme";
+import {
+  HORIZONTAL_ZOOM_STEPS,
+  VERTICAL_ZOOM_STEPS,
+  drawPianorollVideoFrame,
+  getOneStepSmallerZoom,
+  type PianorollRenderState,
+  type PianorollVideoLayout,
+  type PianorollVideoOptions,
+} from "../utils/pianorollVideo";
 import {
   FONT_STACK,
-  drawGeneratedBackground,
   drawSubtitleOnCanvas,
   drawVideoBackground,
   extractLyricsSegments,
@@ -122,6 +139,7 @@ import {
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
+import { useThemeMode } from "./useThemeMode";
 
 type Options = {
   onClose: () => void;
@@ -135,9 +153,11 @@ type Options = {
     mainTextOptions: TextOptions | null,
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
+    pianorollOptions: PianorollVideoOptions | null,
   ) => void;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
+  voiceIcon?: ArrayBuffer;
   notes?: Note[];
   notesLeftMs?: number[];
   selectNotesIndex?: number[];
@@ -149,11 +169,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     onConfirm,
     portraitBlob,
     portraitNaturalHeight,
+    voiceIcon,
     notes,
     notesLeftMs,
     selectNotesIndex,
   } = options;
   const { t } = useTranslation();
+  const { colorTheme, horizontalZoom, verticalZoom } = useCookieStore();
+  const { tone, isMinor } = useMusicProjectStore();
+  const themeMode = useThemeMode();
 
   // アニメーションプレビュー用 refs / state
   const animPreviewRafRef = React.useRef<number | null>(null);
@@ -220,6 +244,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   // プレビュー用にロード済み HTMLImageElement
   const [portraitImage, setPortraitImage] =
+    React.useState<HTMLImageElement | null>(null);
+  const [voiceIconImage, setVoiceIconImage] =
     React.useState<HTMLImageElement | null>(null);
   // 背景画像の自然サイズ（立絵最大スケール計算用）
   const [imageNaturalSize, setImageNaturalSize] = React.useState<{
@@ -491,6 +517,92 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     ],
   );
 
+  const defaultPianorollLayout =
+    DEFAULT_PIANOROLL_VIDEO_LAYOUT as PianorollVideoLayout;
+
+  const [pianorollEnabled, setPianorollEnabled] = React.useState(
+    DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  );
+  const [pianorollColorTheme, setPianorollColorTheme] =
+    React.useState<ColorTheme>(colorTheme);
+  const [pianorollThemeMode, setPianorollThemeMode] = React.useState<
+    "light" | "dark"
+  >(themeMode);
+  const [pianorollLayout, setPianorollLayout] =
+    React.useState<PianorollVideoLayout | null>(null);
+  // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
+  const effectivePianorollLayout = pianorollLayout ?? defaultPianorollLayout;
+
+  const pianorollPreviewOptions =
+    React.useMemo<PianorollVideoOptions | null>(() => {
+      if (
+        !notes ||
+        !notesLeftMs ||
+        notes.length === 0 ||
+        notesLeftMs.length === 0
+      ) {
+        return null;
+      }
+      return {
+        enabled: pianorollEnabled,
+        layout: effectivePianorollLayout,
+        notes,
+        notesLeftMs,
+        colorTheme: pianorollColorTheme,
+        themeMode: pianorollThemeMode,
+        horizontalZoom: getOneStepSmallerZoom(
+          horizontalZoom,
+          HORIZONTAL_ZOOM_STEPS,
+        ),
+        verticalZoom: getOneStepSmallerZoom(verticalZoom, VERTICAL_ZOOM_STEPS),
+        tone,
+        isMinor,
+        voiceIconImage,
+      };
+    }, [
+      notes,
+      notesLeftMs,
+      pianorollEnabled,
+      effectivePianorollLayout,
+      pianorollColorTheme,
+      pianorollThemeMode,
+      horizontalZoom,
+      verticalZoom,
+      tone,
+      isMinor,
+      voiceIconImage,
+    ]);
+
+  const applyPianorollThemeToOutside = React.useCallback(() => {
+    const pallet =
+      COLOR_PALLET[pianorollColorTheme]?.[pianorollThemeMode] ??
+      COLOR_PALLET.default.light;
+
+    applyColor(pallet.whiteKey);
+    applySecondaryColor(pallet.note);
+
+    setMainTextColor(pallet.lyric);
+    setSubTextColor(pallet.lyric);
+    setLyricsColor(pallet.lyric);
+
+    setMainTextShadowColor(pallet.selectedNote);
+    setMainTextStrokeColor(pallet.selectedNote);
+    setMainTextBgBarColor(pallet.selectedNote);
+
+    setSubTextShadowColor(pallet.selectedNote);
+    setSubTextStrokeColor(pallet.selectedNote);
+    setSubTextBgBarColor(pallet.selectedNote);
+
+    setLyricsShadowColor(pallet.selectedNote);
+    setLyricsStrokeColor(pallet.selectedNote);
+    setLyricsBgBarColor(pallet.selectedNote);
+  }, [
+    pianorollColorTheme,
+    pianorollThemeMode,
+    applyColor,
+    applySecondaryColor,
+  ]);
+
   /** セグメント i の歌詞テキストを更新する */
   const updateSegmentLyric = React.useCallback((i: number, value: string) => {
     setLyricsSegments((prev) =>
@@ -693,6 +805,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         mainTextOptions,
         subTextOptions,
         lyricsOptions,
+        pianorollPreviewOptions,
       );
       return;
     }
@@ -706,6 +819,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextOptions,
       subTextOptions,
       lyricsOptions,
+      pianorollPreviewOptions,
     );
   };
 
@@ -803,6 +917,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsBounceInOutDurationMs(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
       setLyricsStaggerEnabled(DEFAULT_LYRICS_STAGGER_ENABLED);
       setLyricsStaggerIntervalMs(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
+      setPianorollEnabled(DEFAULT_PIANOROLL_VIDEO_ENABLED);
+      setPianorollColorTheme(colorTheme);
+      setPianorollThemeMode(themeMode);
+      setPianorollLayout(null);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -840,6 +958,23 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     el.src = url;
     return () => URL.revokeObjectURL(url);
   }, [portraitBlob]);
+
+  React.useEffect(() => {
+    if (!voiceIcon) {
+      setVoiceIconImage(null);
+      return;
+    }
+    const url = URL.createObjectURL(
+      new Blob([voiceIcon], {
+        type: PIANOROLL_VIDEO_ICON_CONFIG.voiceIconMimeType,
+      }),
+    );
+    const el = new Image();
+    el.onload = () => setVoiceIconImage(el);
+    el.onerror = () => setVoiceIconImage(null);
+    el.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [voiceIcon]);
 
   // 解像度に応じた出力サイズを計算する（立絵スライダー上限/下限の共通ロジック）
   const outputSize = React.useMemo(() => {
@@ -933,31 +1068,22 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPortraitYOffset((prev) => Math.max(prev, portraitYOffsetMin));
   }, [portraitYOffsetMin]);
 
-  // エクスポートプレビューをキャンバスにレンダリング
-  React.useEffect(() => {
-    // アニメーションプレビュー中は静止画描画をスキップ
-    if (animPreviewActiveRef.current) return;
-    const canvas = previewCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const renderPreviewBase = React.useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      canvas: HTMLCanvasElement,
+      img: HTMLImageElement | null,
+    ) => {
+      let outW = 0;
+      let outH = 0;
 
-    // "image" モードで画像がない場合は空にして終了
-    if (bgSize === "image" && !imagePreviewUrl) {
-      canvas.width = 1;
-      canvas.height = 1;
-      ctx.clearRect(0, 0, 1, 1);
-      return;
-    }
-
-    let outW = 0;
-    let outH = 0;
-    if (bgSize !== "image") {
-      [outW, outH] = bgSize.split("x").map(Number);
-    }
-
-    const draw = (img: HTMLImageElement | null) => {
-      if (bgSize === "image" && img) {
+      if (bgSize === "image") {
+        if (!img) {
+          canvas.width = 1;
+          canvas.height = 1;
+          ctx.clearRect(0, 0, 1, 1);
+          return null;
+        }
         const s = Math.min(
           1,
           BG_MAX_WIDTH / img.naturalWidth,
@@ -965,6 +1091,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         );
         outW = Math.round(img.naturalWidth * s);
         outH = Math.round(img.naturalHeight * s);
+      } else {
+        [outW, outH] = bgSize.split("x").map(Number);
       }
 
       const prevScale = Math.min(PREVIEW_MAX_W / outW, PREVIEW_MAX_H / outH);
@@ -975,25 +1103,39 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       ctx.clearRect(0, 0, pw, ph);
 
       if (bgSize === "image") {
-        ctx.drawImage(img!, 0, 0, pw, ph);
-        return;
+        ctx.drawImage(img, 0, 0, pw, ph);
+      } else {
+        drawVideoBackground(
+          ctx,
+          pw,
+          ph,
+          backgroundOptions,
+          img,
+          bgPaddingMode,
+          bgImageOpacity,
+          Math.max(1, Math.round(20 * prevScale)),
+          prevScale,
+        );
       }
 
-      const imgW = img?.naturalWidth ?? 0;
-      const imgH = img?.naturalHeight ?? 0;
+      if (pianorollPreviewOptions) {
+        const initialState: PianorollRenderState = { yOffset: 0 };
+        const scaledPianorollOpts = {
+          ...pianorollPreviewOptions,
+          horizontalZoom: pianorollPreviewOptions.horizontalZoom * prevScale,
+          verticalZoom: pianorollPreviewOptions.verticalZoom * prevScale,
+          layoutScale: prevScale,
+        };
+        drawPianorollVideoFrame(
+          ctx,
+          pw,
+          ph,
+          0,
+          scaledPianorollOpts,
+          initialState,
+        );
+      }
 
-      drawVideoBackground(
-        ctx,
-        pw,
-        ph,
-        backgroundOptions,
-        img,
-        bgPaddingMode,
-        bgImageOpacity,
-        Math.max(1, Math.round(20 * prevScale)),
-      );
-
-      // 立絵レイヤー
       if (showPortrait && portraitImage) {
         const pNatW = portraitImage.naturalWidth;
         const pNatH = portraitImage.naturalHeight;
@@ -1017,7 +1159,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.globalAlpha = 1;
       }
 
-      // テキストレイヤー
       const drawTextLayer = (
         text: string,
         fontSize: number,
@@ -1046,7 +1187,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
 
-        // 背景バー
         if (bgBarEnabled) {
           const textW = ctx.measureText(text).width;
           const padX = scaledSize * 0.5;
@@ -1060,7 +1200,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx.restore();
         }
 
-        // シャドウ
         if (shadowEnabled) {
           const scaledBlur = shadowBlur * prevScale;
           ctx.shadowColor = shadowColor;
@@ -1069,7 +1208,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx.shadowOffsetY = scaledBlur * 0.5;
         }
 
-        // 縁取り
         if (strokeEnabled) {
           ctx.lineJoin = "round";
           ctx.lineWidth = strokeWidth * prevScale * 2;
@@ -1081,6 +1219,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.fillText(text, tx, ty);
         ctx.restore();
       };
+
       drawTextLayer(
         mainText,
         mainTextFontSize,
@@ -1117,6 +1256,78 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextBgBarColor,
         subTextBgBarOpacity,
       );
+
+      return { prevScale, pw, ph };
+    },
+    [
+      bgSize,
+      backgroundOptions,
+      bgPaddingMode,
+      bgImageOpacity,
+      pianorollPreviewOptions,
+      showPortrait,
+      portraitImage,
+      portraitNaturalHeight,
+      portraitScalePercent,
+      portraitXOffset,
+      portraitYOffset,
+      portraitOpacity,
+      mainText,
+      mainTextFontSize,
+      mainTextBold,
+      mainTextItalic,
+      mainTextColor,
+      mainTextX,
+      mainTextY,
+      mainTextShadowEnabled,
+      mainTextShadowColor,
+      mainTextShadowBlur,
+      mainTextStrokeEnabled,
+      mainTextStrokeColor,
+      mainTextStrokeWidth,
+      mainTextBgBarEnabled,
+      mainTextBgBarColor,
+      mainTextBgBarOpacity,
+      subText,
+      subTextFontSize,
+      subTextBold,
+      subTextItalic,
+      subTextColor,
+      subTextX,
+      subTextY,
+      subTextShadowEnabled,
+      subTextShadowColor,
+      subTextShadowBlur,
+      subTextStrokeEnabled,
+      subTextStrokeColor,
+      subTextStrokeWidth,
+      subTextBgBarEnabled,
+      subTextBgBarColor,
+      subTextBgBarOpacity,
+    ],
+  );
+
+  // エクスポートプレビューをキャンバスにレンダリング
+  React.useEffect(() => {
+    // アニメーションプレビュー中は静止画描画をスキップ
+    if (animPreviewActiveRef.current) return;
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // "image" モードで画像がない場合は空にして終了
+    if (bgSize === "image" && !imagePreviewUrl) {
+      canvas.width = 1;
+      canvas.height = 1;
+      ctx.clearRect(0, 0, 1, 1);
+      return;
+    }
+
+    const draw = (img: HTMLImageElement | null) => {
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
+      const { prevScale, pw, ph } = metrics;
 
       // 歌詞字幕プレビューレイヤー
       if (lyricsEnabled) {
@@ -1186,48 +1397,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     }
   }, [
     imagePreviewUrl,
-    bgSize,
-    bgPaddingMode,
-    bgImageOpacity,
-    backgroundOptions,
-    showPortrait,
-    portraitImage,
-    portraitOpacity,
-    portraitScalePercent,
-    portraitXOffset,
-    portraitYOffset,
-    mainText,
-    mainTextFontSize,
-    mainTextBold,
-    mainTextItalic,
-    mainTextColor,
-    mainTextX,
-    mainTextY,
-    mainTextShadowEnabled,
-    mainTextShadowColor,
-    mainTextShadowBlur,
-    mainTextStrokeEnabled,
-    mainTextStrokeColor,
-    mainTextStrokeWidth,
-    mainTextBgBarEnabled,
-    mainTextBgBarColor,
-    mainTextBgBarOpacity,
-    subText,
-    subTextFontSize,
-    subTextBold,
-    subTextItalic,
-    subTextColor,
-    subTextX,
-    subTextY,
-    subTextShadowEnabled,
-    subTextShadowColor,
-    subTextShadowBlur,
-    subTextStrokeEnabled,
-    subTextStrokeColor,
-    subTextStrokeWidth,
-    subTextBgBarEnabled,
-    subTextBgBarColor,
-    subTextBgBarOpacity,
+    renderPreviewBase,
     lyricsEnabled,
     lyricsSegments,
     lyricsFontSize,
@@ -1272,6 +1442,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
     isAnimPreviewPlaying,
+    pianorollPreviewOptions,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1297,6 +1468,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
 
     const seg: LyricsSegment = lyricsSegments[0] ?? {
       lyric: "サンプル歌詞",
@@ -1356,35 +1528,50 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     animPreviewStartRef.current = performance.now();
     setIsAnimPreviewPlaying(true);
 
-    const loop = () => {
+    const loop = (img: HTMLImageElement | null) => {
       if (!animPreviewActiveRef.current) return;
       const now = performance.now();
       const elapsed =
         (now - (animPreviewStartRef.current ?? now)) % segDuration;
       const remaining = segDuration - elapsed;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawGeneratedBackground(
-        ctx,
-        canvas.width,
-        canvas.height,
-        backgroundOptions,
-      );
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
+      const scaledLyricsOpts: LyricsOptions = {
+        ...lyricsOpts,
+        fontSize: Math.max(1, lyricsOpts.fontSize * metrics.prevScale),
+        shadowBlur: lyricsOpts.shadowBlur * metrics.prevScale,
+        strokeWidth: lyricsOpts.strokeWidth * metrics.prevScale,
+        slideAmount: lyricsOpts.slideAmount * metrics.prevScale,
+        blurAmount: lyricsOpts.blurAmount * metrics.prevScale,
+      };
       drawSubtitleOnCanvas(
         ctx,
         seg.lyric,
-        lyricsOpts,
+        scaledLyricsOpts,
         canvas.width,
         canvas.height,
         elapsed,
         remaining,
       );
-      animPreviewRafRef.current = requestAnimationFrame(loop);
+      animPreviewRafRef.current = requestAnimationFrame(() => loop(img));
     };
-    animPreviewRafRef.current = requestAnimationFrame(loop);
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!animPreviewActiveRef.current) return;
+        animPreviewRafRef.current = requestAnimationFrame(() => loop(el));
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      animPreviewRafRef.current = requestAnimationFrame(() => loop(null));
+    }
   }, [
     previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
     lyricsSegments,
-    backgroundOptions,
+    renderPreviewBase,
     lyricsFontSize,
     lyricsColor,
     lyricsYPercent,
@@ -1657,5 +1844,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     isAnimPreviewPlaying,
     startAnimPreview,
     stopAnimPreview,
+    // pianoroll
+    pianorollEnabled,
+    setPianorollEnabled,
+    pianorollColorTheme,
+    setPianorollColorTheme,
+    pianorollThemeMode,
+    setPianorollThemeMode,
+    applyPianorollThemeToOutside,
+    pianorollLayout: effectivePianorollLayout,
+    setPianorollLayout,
   };
 };
