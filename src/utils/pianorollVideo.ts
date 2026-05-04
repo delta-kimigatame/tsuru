@@ -1,14 +1,19 @@
 import { COLOR_PALLET } from "../config/pallet";
-import { PIANOROLL_CONFIG } from "../config/pianoroll";
+import {
+  PIANOROLL_CONFIG,
+  PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+  PIANOROLL_VIDEO_ICON_CONFIG,
+  PIANOROLL_VIDEO_LAYOUT_CONFIG,
+  PIANOROLL_VIDEO_LAYOUTS,
+  PIANOROLL_VIDEO_SCROLL_CONFIG,
+  PIANOROLL_VIDEO_TEXT_CONFIG,
+  PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
+} from "../config/pianoroll";
 import type { Note } from "../lib/Note";
 import { noteNumToTone } from "./Notenum";
 import { makeTimeAxis } from "./interp";
 
-export type PianorollVideoLayout =
-  | "full"
-  | "portraitMiddleThird"
-  | "portraitSafeArea"
-  | "landscapeEighty";
+export type PianorollVideoLayout = (typeof PIANOROLL_VIDEO_LAYOUTS)[number];
 
 export interface PianorollVideoOptions {
   enabled: boolean;
@@ -30,8 +35,10 @@ export interface PianorollRenderState {
   yOffset: number;
 }
 
-export const VERTICAL_ZOOM_STEPS: number[] = [0.25, 0.5, 0.75, 1];
-export const HORIZONTAL_ZOOM_STEPS: number[] = [0.01, 0.1, 0.25, 0.5, 1, 2, 4];
+export const VERTICAL_ZOOM_STEPS: number[] =
+  PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS;
+export const HORIZONTAL_ZOOM_STEPS: number[] =
+  PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS;
 
 export const getOneStepSmallerZoom = (
   currentZoom: number,
@@ -62,7 +69,10 @@ const resolveLayoutRect = (
   }
 
   if (layout === "portraitMiddleThird") {
-    const height = Math.round(canvasHeight / 3);
+    const height = Math.round(
+      canvasHeight *
+        PIANOROLL_VIDEO_LAYOUT_CONFIG.portraitMiddleThirdHeightRatio,
+    );
     return {
       x: 0,
       y: Math.round((canvasHeight - height) / 2),
@@ -72,10 +82,18 @@ const resolveLayoutRect = (
   }
 
   if (layout === "portraitSafeArea") {
-    const left = Math.round(48 * scale);
-    const top = Math.round(48 * scale);
-    const right = Math.round(240 * scale);
-    const bottom = Math.round(360 * scale);
+    const left = Math.round(
+      PIANOROLL_VIDEO_LAYOUT_CONFIG.portraitSafeAreaLeft * scale,
+    );
+    const top = Math.round(
+      PIANOROLL_VIDEO_LAYOUT_CONFIG.portraitSafeAreaTop * scale,
+    );
+    const right = Math.round(
+      PIANOROLL_VIDEO_LAYOUT_CONFIG.portraitSafeAreaRight * scale,
+    );
+    const bottom = Math.round(
+      PIANOROLL_VIDEO_LAYOUT_CONFIG.portraitSafeAreaBottom * scale,
+    );
     return {
       x: left,
       y: top,
@@ -84,12 +102,24 @@ const resolveLayoutRect = (
     };
   }
 
-  const margin = Math.round(48 * scale);
+  const margin = Math.round(
+    PIANOROLL_VIDEO_LAYOUT_CONFIG.landscapeMargin * scale,
+  );
   return {
     x: margin,
     y: margin,
-    width: Math.max(1, Math.round(canvasWidth * 0.8)),
-    height: Math.max(1, Math.round(canvasHeight * 0.8)),
+    width: Math.max(
+      1,
+      Math.round(
+        canvasWidth * PIANOROLL_VIDEO_LAYOUT_CONFIG.landscapeWidthRatio,
+      ),
+    ),
+    height: Math.max(
+      1,
+      Math.round(
+        canvasHeight * PIANOROLL_VIDEO_LAYOUT_CONFIG.landscapeHeightRatio,
+      ),
+    ),
   };
 };
 
@@ -193,9 +223,10 @@ const getTargetYOffset = (
     return clamp(totalHeight / 2 - layoutHeight / 2, 0, maxOffset);
   }
 
-  const margin = layoutHeight * 0.1;
+  const margin = layoutHeight * PIANOROLL_VIDEO_SCROLL_CONFIG.marginRatio;
   // 画面中央から右端までを「右半分」として扱う
-  const rightHalfLeft = scrollX + noteAreaWidth * 0.5;
+  const rightHalfLeft =
+    scrollX + noteAreaWidth * PIANOROLL_VIDEO_SCROLL_CONFIG.rightHalfStartRatio;
   const rightHalfRight = scrollX + noteAreaWidth;
 
   // 右半分ノートをすべて画面内に収める yOffset の許容区間 [minAllowed, maxAllowed] を求める。
@@ -337,10 +368,20 @@ const drawKeyboard = (
     ctx.fillRect(rect.x, y, PIANOROLL_CONFIG.TONEMAP_WIDTH, keyHeightPx);
 
     ctx.fillStyle = palette.lyric;
-    ctx.font = `${Math.max(11, Math.round(PIANOROLL_CONFIG.LYRIC_FONT_SIZE * 0.9))}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    ctx.font = `${Math.max(
+      PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontMinSize,
+      Math.round(
+        PIANOROLL_CONFIG.LYRIC_FONT_SIZE *
+          PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontScale,
+      ),
+    )}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
-    ctx.fillText(noteNumToTone(107 - i), rect.x + 4, y + keyHeightPx / 2);
+    ctx.fillText(
+      noteNumToTone(107 - i),
+      rect.x + PIANOROLL_VIDEO_TEXT_CONFIG.keyboardToneTextOffsetX,
+      y + keyHeightPx / 2,
+    );
   }
 };
 
@@ -360,7 +401,7 @@ const drawNotesAndPitch = (
 
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+  ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
 
   opts.notes.forEach((note, index) => {
     const x =
@@ -395,28 +436,32 @@ const drawNotesAndPitch = (
     if (note.atFilename === "" && note.lyric !== "R") {
       ctx.fillStyle = palette.attention;
       ctx.fillText(
-        "?",
+        PIANOROLL_VIDEO_TEXT_CONFIG.missingOtoMarker,
         x + PIANOROLL_CONFIG.LYRIC_PADDING_LEFT,
-        y + noteHeight * 0.2,
+        y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.missingOtoMarkerYRatio,
       );
     }
 
     if (index === 0 || note.hasTempo) {
       ctx.fillStyle = palette.tempo;
-      ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+      ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
       ctx.fillText(
         `bpm=${note.tempo.toFixed(2)}`,
-        x + 4,
-        y + noteHeight * 0.85,
+        x + PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextOffsetX,
+        y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextYRatio,
       );
-      ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+      ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
     }
 
     if (!note.label) return;
     ctx.fillStyle = palette.tempo;
-    ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
-    ctx.fillText(note.label, x + 4, y + noteHeight * 0.65);
-    ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${'"Noto Sans JP", "Roboto", sans-serif'}`;
+    ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+    ctx.fillText(
+      note.label,
+      x + PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextOffsetX,
+      y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.labelTextYRatio,
+    );
+    ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
   });
 
   ctx.strokeStyle = palette.pitch;
@@ -489,12 +534,26 @@ const drawSeekbarAndIcon = (
   ctx.stroke();
 
   if (!opts.voiceIconImage) return;
-  const iconSize = Math.round(40 * (opts.layoutScale ?? 1));
-  const iconX = rect.x + Math.round(8 * (opts.layoutScale ?? 1));
-  const iconY = rect.y + Math.round(8 * (opts.layoutScale ?? 1));
+  const iconSize = Math.round(
+    PIANOROLL_VIDEO_ICON_CONFIG.size * (opts.layoutScale ?? 1),
+  );
+  const iconX =
+    rect.x +
+    Math.round(PIANOROLL_VIDEO_ICON_CONFIG.padding * (opts.layoutScale ?? 1));
+  const iconY =
+    rect.y +
+    Math.round(PIANOROLL_VIDEO_ICON_CONFIG.padding * (opts.layoutScale ?? 1));
+  const iconBgPadding = Math.round(
+    PIANOROLL_VIDEO_ICON_CONFIG.backgroundPadding * (opts.layoutScale ?? 1),
+  );
   ctx.save();
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillRect(iconX - 2, iconY - 2, iconSize + 4, iconSize + 4);
+  ctx.fillStyle = PIANOROLL_VIDEO_ICON_CONFIG.backgroundColor;
+  ctx.fillRect(
+    iconX - iconBgPadding,
+    iconY - iconBgPadding,
+    iconSize + iconBgPadding * 2,
+    iconSize + iconBgPadding * 2,
+  );
   ctx.drawImage(opts.voiceIconImage, iconX, iconY, iconSize, iconSize);
   ctx.restore();
 };
@@ -563,7 +622,10 @@ export const drawPianorollVideoFrame = (
     options.horizontalZoom,
     options.verticalZoom,
   );
-  const yOffset = prevYOffset + (targetYOffset - prevYOffset) * 0.03;
+  const smoothYOffset =
+    prevYOffset +
+    (targetYOffset - prevYOffset) *
+      PIANOROLL_VIDEO_SCROLL_CONFIG.yOffsetLerpFactor;
 
   ctx.save();
   ctx.beginPath();
@@ -576,7 +638,7 @@ export const drawPianorollVideoFrame = (
     noteAreaX,
     noteAreaWidth,
     scrollX,
-    yOffset,
+    smoothYOffset,
     options,
     totalTickLength,
   );
@@ -585,13 +647,13 @@ export const drawPianorollVideoFrame = (
     rect,
     noteAreaX,
     scrollX,
-    yOffset,
+    smoothYOffset,
     options,
     notesLeftTicks,
   );
-  drawKeyboard(ctx, rect, yOffset, options);
+  drawKeyboard(ctx, rect, smoothYOffset, options);
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();
-  return { yOffset };
+  return { yOffset: smoothYOffset };
 };

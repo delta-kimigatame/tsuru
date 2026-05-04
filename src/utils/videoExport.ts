@@ -11,6 +11,7 @@ import {
   type AudioCodec,
   type VideoCodec,
 } from "mediabunny";
+import { PIANOROLL_VIDEO_ICON_CONFIG } from "../config/pianoroll";
 import type { Note } from "../lib/Note";
 import {
   drawPianorollVideoFrame,
@@ -1280,7 +1281,7 @@ export const generateMp4 = async (
       const el = new Image();
       el.onload = () => resolve(el);
       el.onerror = () => resolve(null);
-      el.src = "./static/logo192.png";
+      el.src = PIANOROLL_VIDEO_ICON_CONFIG.fallbackSrc;
     });
   }
 

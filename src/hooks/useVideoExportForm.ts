@@ -1,6 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  DEFAULT_PIANOROLL_VIDEO_LAYOUT,
+  PIANOROLL_VIDEO_ICON_CONFIG,
+} from "../config/pianoroll";
+import {
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
@@ -511,12 +516,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     ],
   );
 
-  const defaultPianorollLayout = React.useMemo<PianorollVideoLayout>(
-    () => "full",
-    [],
-  );
+  const defaultPianorollLayout =
+    DEFAULT_PIANOROLL_VIDEO_LAYOUT as PianorollVideoLayout;
 
-  const [pianorollEnabled, setPianorollEnabled] = React.useState(true);
+  const [pianorollEnabled, setPianorollEnabled] = React.useState(
+    DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  );
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
@@ -876,6 +881,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsBounceInOutDurationMs(DEFAULT_LYRICS_BOUNCE_IN_OUT_DURATION_MS);
       setLyricsStaggerEnabled(DEFAULT_LYRICS_STAGGER_ENABLED);
       setLyricsStaggerIntervalMs(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
+      setPianorollEnabled(DEFAULT_PIANOROLL_VIDEO_ENABLED);
+      setPianorollLayout(null);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -920,7 +927,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       return;
     }
     const url = URL.createObjectURL(
-      new Blob([voiceIcon], { type: "image/bmp" }),
+      new Blob([voiceIcon], {
+        type: PIANOROLL_VIDEO_ICON_CONFIG.voiceIconMimeType,
+      }),
     );
     const el = new Image();
     el.onload = () => setVoiceIconImage(el);

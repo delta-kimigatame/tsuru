@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { PIANOROLL_VIDEO_LAYOUTS } from "../../../config/pianoroll";
 import type { PianorollVideoLayout } from "../../../utils/pianorollVideo";
 
 type Props = {
@@ -19,12 +20,7 @@ type Props = {
   onLayoutChange: (v: PianorollVideoLayout) => void;
 };
 
-const LAYOUT_OPTIONS: PianorollVideoLayout[] = [
-  "full",
-  "portraitMiddleThird",
-  "portraitSafeArea",
-  "landscapeEighty",
-];
+const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
 
 export const PianorollSection: React.FC<Props> = ({
   enabled,
