@@ -630,6 +630,10 @@ export const translationZh = {
       title: "按指定音程升降",
       semitones: "移调半音数",
     },
+    scaleDegreeShiftBatchProcess: {
+      title: "按指定度数升降",
+      degreeValue: "升降度数",
+    },
     removeSuffixBatchProcess: {
       title: "删除歌词前后的字符",
       suffixRemoveMode: "歌词末尾",

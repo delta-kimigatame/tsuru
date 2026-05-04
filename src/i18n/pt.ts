@@ -650,6 +650,10 @@ export const translationPt = {
       title: "Subir/Descer intervalo especificado",
       semitones: "Semitons a transpor",
     },
+    scaleDegreeShiftBatchProcess: {
+      title: "Subir/Descer grau especificado",
+      degreeValue: "Grau",
+    },
     removeSuffixBatchProcess: {
       title: "Remover caracteres do início/fim da letra",
       suffixRemoveMode: "Final da letra",

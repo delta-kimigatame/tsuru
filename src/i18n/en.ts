@@ -642,6 +642,10 @@ export const translationEn = {
       title: "Shift by Specified Interval",
       semitones: "Semitones to Transpose",
     },
+    scaleDegreeShiftBatchProcess: {
+      title: "Shift by Specified Scale Degree",
+      degreeValue: "Scale Degree",
+    },
     removeSuffixBatchProcess: {
       title: "Remove Prefix/Suffix from Lyrics",
       suffixRemoveMode: "End of Lyrics",

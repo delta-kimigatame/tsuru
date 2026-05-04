@@ -644,6 +644,10 @@ export const translationJa = {
       title: "指定音程上下する",
       semitones: "上下する音程数",
     },
+    scaleDegreeShiftBatchProcess: {
+      title: "指定度数上下する",
+      degreeValue: "上下する度数",
+    },
     removeSuffixBatchProcess: {
       title: "歌詞の前後の文字を削除",
       suffixRemoveMode: "歌詞の末尾",
