@@ -499,6 +499,8 @@ export const translationZh = {
       pianorollSection: "钉琴卷",
       pianorollEnable: "将钉琴卷包含在视频中",
       pianorollLayout: "布局",
+      pianorollColorTheme: "颜色主题",
+      pianorollThemeMode: "明暗模式",
       pianorollLayout_full: "全屏",
       pianorollLayout_portraitMiddleThird: "中间1/3",
       pianorollLayout_portraitSafeArea: "安全区内",

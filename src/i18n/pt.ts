@@ -517,6 +517,8 @@ export const translationPt = {
       pianorollSection: "Rolo do piano",
       pianorollEnable: "Incluir rolo do piano no vídeo",
       pianorollLayout: "Layout",
+      pianorollColorTheme: "Tema de cores",
+      pianorollThemeMode: "Modo de brilho",
       pianorollLayout_full: "Tela cheia",
       pianorollLayout_portraitMiddleThird: "Terço central",
       pianorollLayout_portraitSafeArea: "Área segura",

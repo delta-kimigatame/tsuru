@@ -138,6 +138,7 @@ import {
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
+import type { ColorTheme } from "../types/colorTheme";
 import { useThemeMode } from "./useThemeMode";
 
 type Options = {
@@ -522,6 +523,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [pianorollEnabled, setPianorollEnabled] = React.useState(
     DEFAULT_PIANOROLL_VIDEO_ENABLED,
   );
+  const [pianorollColorTheme, setPianorollColorTheme] =
+    React.useState<ColorTheme>(colorTheme);
+  const [pianorollThemeMode, setPianorollThemeMode] = React.useState<
+    "light" | "dark"
+  >(themeMode);
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
@@ -542,8 +548,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         layout: effectivePianorollLayout,
         notes,
         notesLeftMs,
-        colorTheme,
-        themeMode,
+        colorTheme: pianorollColorTheme,
+        themeMode: pianorollThemeMode,
         horizontalZoom: getOneStepSmallerZoom(
           horizontalZoom,
           HORIZONTAL_ZOOM_STEPS,
@@ -558,8 +564,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       notesLeftMs,
       pianorollEnabled,
       effectivePianorollLayout,
-      colorTheme,
-      themeMode,
+      pianorollColorTheme,
+      pianorollThemeMode,
       horizontalZoom,
       verticalZoom,
       tone,
@@ -882,6 +888,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setLyricsStaggerEnabled(DEFAULT_LYRICS_STAGGER_ENABLED);
       setLyricsStaggerIntervalMs(DEFAULT_LYRICS_STAGGER_INTERVAL_MS);
       setPianorollEnabled(DEFAULT_PIANOROLL_VIDEO_ENABLED);
+      setPianorollColorTheme(colorTheme);
+      setPianorollThemeMode(themeMode);
       setPianorollLayout(null);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
@@ -1778,6 +1786,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     // pianoroll
     pianorollEnabled,
     setPianorollEnabled,
+    pianorollColorTheme,
+    setPianorollColorTheme,
+    pianorollThemeMode,
+    setPianorollThemeMode,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
   };

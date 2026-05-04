@@ -511,6 +511,8 @@ export const translationJa = {
       pianorollSection: "ピアノロール",
       pianorollEnable: "ピアノロールを動画に含める",
       pianorollLayout: "レイアウト",
+      pianorollColorTheme: "色テーマ",
+      pianorollThemeMode: "明るさモード",
       pianorollLayout_full: "全画面",
       pianorollLayout_portraitMiddleThird: "中央1/3帯",
       pianorollLayout_portraitSafeArea: "セーフエリア内",

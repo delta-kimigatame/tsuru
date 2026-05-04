@@ -11,13 +11,18 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PIANOROLL_VIDEO_LAYOUTS } from "../../../config/pianoroll";
+import { colors, type ColorTheme } from "../../../types/colorTheme";
 import type { PianorollVideoLayout } from "../../../utils/pianorollVideo";
 
 type Props = {
   enabled: boolean;
   layout: PianorollVideoLayout;
+  colorTheme: ColorTheme;
+  themeMode: "light" | "dark";
   onEnabledChange: (v: boolean) => void;
   onLayoutChange: (v: PianorollVideoLayout) => void;
+  onColorThemeChange: (v: ColorTheme) => void;
+  onThemeModeChange: (v: "light" | "dark") => void;
 };
 
 const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
@@ -25,8 +30,12 @@ const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
 export const PianorollSection: React.FC<Props> = ({
   enabled,
   layout,
+  colorTheme,
+  themeMode,
   onEnabledChange,
   onLayoutChange,
+  onColorThemeChange,
+  onThemeModeChange,
 }) => {
   const { t } = useTranslation();
 
@@ -95,6 +104,51 @@ export const PianorollSection: React.FC<Props> = ({
                 </Typography>
               </MenuItem>
             ))}
+          </Select>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+          >
+            {t("editor.videoExport.pianorollColorTheme")}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={colorTheme}
+            onChange={(e) => onColorThemeChange(e.target.value as ColorTheme)}
+            sx={{ bgcolor: "background.paper" }}
+          >
+            {colors.map((c) => (
+              <MenuItem key={c} value={c}>
+                <Typography variant="body2">{t(`colorTheme.${c}`)}</Typography>
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+          >
+            {t("editor.videoExport.pianorollThemeMode")}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={themeMode}
+            onChange={(e) =>
+              onThemeModeChange(e.target.value as "light" | "dark")
+            }
+            sx={{ bgcolor: "background.paper" }}
+          >
+            <MenuItem value="light">
+              <Typography variant="body2">{t("theme.light")}</Typography>
+            </MenuItem>
+            <MenuItem value="dark">
+              <Typography variant="body2">{t("theme.dark")}</Typography>
+            </MenuItem>
           </Select>
         </Box>
       )}
