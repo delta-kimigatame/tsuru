@@ -37,8 +37,8 @@ export interface SelectUIProp<T = string | number> extends BaseUIProp {
   inputType: "select";
   /** 選択肢のリスト */
   options: T[];
-  /** 各選択肢ラベルのi18nキー。i18n側でoptionsと同じ長さのリストを定義する */
-  displayOptionKey: string;
+  /** 各選択肢ラベルのi18nキー。未指定の場合はoptionsの値をそのまま表示する */
+  displayOptionKey?: string;
   /** 初期値 */
   defaultValue?: string;
 }

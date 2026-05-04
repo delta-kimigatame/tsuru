@@ -12,11 +12,22 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
   onChange,
 }) => {
   const { t } = useTranslation();
+  const displayOptions = config.displayOptionKey
+    ? ((t(config.displayOptionKey, {
+        returnObjects: true,
+      }) as Array<string>) ?? [])
+    : [];
+
+  const getOptionLabel = (option: string | number, index: number): string => {
+    if (displayOptions[index] !== undefined) {
+      return displayOptions[index];
+    }
+    return String(option);
+  };
+
   return (
     <FormControl fullWidth sx={{ m: 1 }}>
-      <InputLabel>
-        {t(config.labelKey, { returnObjects: true }) as Array<string>}
-      </InputLabel>
+      <InputLabel>{t(config.labelKey)}</InputLabel>
       <Select
         label={t(config.labelKey)}
         variant="filled"
@@ -31,20 +42,12 @@ export const BatchProcessSelect: React.FC<BatchProcessSelectProps> = ({
             config.key,
             typeof config.defaultValue === "number"
               ? Number(e.target.value)
-              : e.target.value
+              : e.target.value,
           );
         }}
       >
         {config.options.map((o, i) => (
-          <MenuItem value={o}>
-            {
-              (
-                t(config.displayOptionKey, {
-                  returnObjects: true,
-                }) as Array<string>
-              )[i]
-            }
-          </MenuItem>
+          <MenuItem value={o}>{getOptionLabel(o, i)}</MenuItem>
         ))}
       </Select>
     </FormControl>

@@ -41,12 +41,16 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
   };
 
   const filteredSelectNotesIndex = props.selectedNotesIndex.filter(
-    (idx) => idx >= 0 && idx < notes.length
+    (idx) => idx >= 0 && idx < notes.length,
   );
   const targetNotes =
     filteredSelectNotesIndex.length > 0
       ? filteredSelectNotesIndex.map((idx) => notes[idx])
       : notes;
+
+  // initializeOptionsでもvbを参照できるよう、初期化前に注入する
+  props.batchprocess.vb = vb ?? undefined;
+
   const initialOptions =
     props.batchprocess.initializeOptions?.(targetNotes) ??
     props.batchprocess.initialOptions;
@@ -61,7 +65,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
       LOG.info(`formの値の更新。key:${key}、value:${value}`, `BatchProcess`);
       dispatch({ type: "UPDATE_FIELD", key, value });
     },
-    []
+    [],
   );
 
   /**
@@ -69,14 +73,13 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
    */
   const handleButtonClick = () => {
     LOG.debug(`click`, `BatchProcess`);
-    props.batchprocess.vb = vb;
     executeBatchProcess<FormState>(
       props.selectedNotesIndex,
       notes,
       setNotes,
       vb,
       props.batchprocess.process,
-      formState
+      formState,
     );
     if (props.handleClose !== undefined) props.handleClose();
   };
@@ -100,7 +103,7 @@ export const BatchProcess: React.FC<BatchProcessProps> = (props) => {
             value={get(formState, ui.key)}
             onChange={handleFieldChange}
           />
-        )
+        ),
       )}
       <Button
         fullWidth
