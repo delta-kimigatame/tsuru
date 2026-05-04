@@ -1536,10 +1536,18 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       const remaining = segDuration - elapsed;
       const metrics = renderPreviewBase(ctx, canvas, img);
       if (!metrics) return;
+      const scaledLyricsOpts: LyricsOptions = {
+        ...lyricsOpts,
+        fontSize: Math.max(1, lyricsOpts.fontSize * metrics.prevScale),
+        shadowBlur: lyricsOpts.shadowBlur * metrics.prevScale,
+        strokeWidth: lyricsOpts.strokeWidth * metrics.prevScale,
+        slideAmount: lyricsOpts.slideAmount * metrics.prevScale,
+        blurAmount: lyricsOpts.blurAmount * metrics.prevScale,
+      };
       drawSubtitleOnCanvas(
         ctx,
         seg.lyric,
-        lyricsOpts,
+        scaledLyricsOpts,
         canvas.width,
         canvas.height,
         elapsed,
