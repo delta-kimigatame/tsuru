@@ -512,9 +512,9 @@ export const translationJa = {
       pianorollEnable: "ピアノロールを動画に含める",
       pianorollLayout: "レイアウト",
       pianorollLayout_full: "全画面",
-      pianorollLayout_portraitMiddleThird: "ポートレート 中央1/3帯",
-      pianorollLayout_portraitSafeArea: "ポートレート セーフエリア内",
-      pianorollLayout_landscapeEighty: "ランドスケープ 80%",
+      pianorollLayout_portraitMiddleThird: "中央1/3帯",
+      pianorollLayout_portraitSafeArea: "セーフエリア内",
+      pianorollLayout_landscapeEighty: "80%",
     },
     mixMaster: {
       title: "簡易Mix/マスタリング",

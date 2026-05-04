@@ -500,9 +500,9 @@ export const translationZh = {
       pianorollEnable: "将钉琴卷包含在视频中",
       pianorollLayout: "布局",
       pianorollLayout_full: "全屏",
-      pianorollLayout_portraitMiddleThird: "竖屏 中间1/3",
-      pianorollLayout_portraitSafeArea: "竖屏 安全区",
-      pianorollLayout_landscapeEighty: "横屏 80%",
+      pianorollLayout_portraitMiddleThird: "中间1/3",
+      pianorollLayout_portraitSafeArea: "安全区内",
+      pianorollLayout_landscapeEighty: "80%",
     },
     mixMaster: {
       title: "简易混音/母带",

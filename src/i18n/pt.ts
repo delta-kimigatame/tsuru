@@ -518,9 +518,9 @@ export const translationPt = {
       pianorollEnable: "Incluir rolo do piano no vídeo",
       pianorollLayout: "Layout",
       pianorollLayout_full: "Tela cheia",
-      pianorollLayout_portraitMiddleThird: "Retrato - Terço central",
-      pianorollLayout_portraitSafeArea: "Retrato - Área segura",
-      pianorollLayout_landscapeEighty: "Paisagem - 80%",
+      pianorollLayout_portraitMiddleThird: "Terço central",
+      pianorollLayout_portraitSafeArea: "Área segura",
+      pianorollLayout_landscapeEighty: "80%",
     },
     mixMaster: {
       title: "Mix/Master simples",
