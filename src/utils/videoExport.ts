@@ -575,8 +575,9 @@ export const drawVideoBackground = (
   bgPaddingMode: BgPaddingMode,
   bgImageOpacity: number,
   blurPx = 20,
+  backgroundScale = 1,
 ): void => {
-  drawGeneratedBackground(ctx, width, height, background);
+  drawGeneratedBackground(ctx, width, height, background, backgroundScale);
 
   if (!image) {
     return;

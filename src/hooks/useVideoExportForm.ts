@@ -1,11 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { COLOR_PALLET } from "../config/pallet";
 import {
   DEFAULT_PIANOROLL_VIDEO_ENABLED,
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
   PIANOROLL_VIDEO_ICON_CONFIG,
 } from "../config/pianoroll";
-import { COLOR_PALLET } from "../config/pallet";
 import {
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
@@ -995,6 +995,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     return { outW, outH };
   }, [bgSize, imageNaturalSize]);
 
+  const previewScale = React.useMemo(() => {
+    if (!outputSize) return 1;
+    return Math.min(
+      PREVIEW_MAX_W / outputSize.outW,
+      PREVIEW_MAX_H / outputSize.outH,
+    );
+  }, [outputSize]);
+
   // 立絵サイズスライダーの最大値（自然サイズ = drawScale 1.0 となる scalePercent）
   const portraitMaxScale = React.useMemo(() => {
     if (!portraitImage || !outputSize) return PORTRAIT_MAX_SCALE_FALLBACK;
@@ -1127,6 +1135,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           bgPaddingMode,
           bgImageOpacity,
           Math.max(1, Math.round(20 * prevScale)),
+          prevScale,
         );
       }
 
@@ -1525,6 +1534,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         canvas.width,
         canvas.height,
         backgroundOptions,
+        previewScale,
       );
       drawSubtitleOnCanvas(
         ctx,
@@ -1542,6 +1552,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     previewCanvasRef,
     lyricsSegments,
     backgroundOptions,
+    previewScale,
     lyricsFontSize,
     lyricsColor,
     lyricsYPercent,
