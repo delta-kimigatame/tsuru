@@ -58,6 +58,13 @@ interface LayoutRect {
 const clamp = (v: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, v));
 
+const getToneMapWidth = (layoutScale?: number): number => {
+  return Math.max(
+    1,
+    Math.round(PIANOROLL_CONFIG.TONEMAP_WIDTH * (layoutScale ?? 1)),
+  );
+};
+
 const resolveLayoutRect = (
   canvasWidth: number,
   canvasHeight: number,
@@ -354,6 +361,25 @@ const drawKeyboard = (
     COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
     COLOR_PALLET.default.light;
   const keyHeightPx = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
+  const layoutScale = opts.layoutScale ?? 1;
+  const toneMapWidth = getToneMapWidth(layoutScale);
+  const keyboardBaseFontSize = Math.max(
+    PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontMinSize,
+    Math.round(
+      PIANOROLL_CONFIG.LYRIC_FONT_SIZE *
+        PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontScale,
+    ),
+  );
+  const keyboardFontSize = Math.max(
+    1,
+    Math.round(keyboardBaseFontSize * layoutScale),
+  );
+  const keyboardTextOffsetX = Math.max(
+    1,
+    Math.round(
+      PIANOROLL_VIDEO_TEXT_CONFIG.keyboardToneTextOffsetX * layoutScale,
+    ),
+  );
 
   for (let i = 0; i < PIANOROLL_CONFIG.KEY_COUNT; i++) {
     const y = rect.y + i * keyHeightPx - yOffset;
@@ -365,21 +391,15 @@ const drawKeyboard = (
     );
 
     ctx.fillStyle = isBlack ? palette.tonemapBlackKey : palette.tonemapWhiteKey;
-    ctx.fillRect(rect.x, y, PIANOROLL_CONFIG.TONEMAP_WIDTH, keyHeightPx);
+    ctx.fillRect(rect.x, y, toneMapWidth, keyHeightPx);
 
     ctx.fillStyle = palette.lyric;
-    ctx.font = `${Math.max(
-      PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontMinSize,
-      Math.round(
-        PIANOROLL_CONFIG.LYRIC_FONT_SIZE *
-          PIANOROLL_VIDEO_TEXT_CONFIG.keyboardFontScale,
-      ),
-    )}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+    ctx.font = `${keyboardFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.fillText(
       noteNumToTone(107 - i),
-      rect.x + PIANOROLL_VIDEO_TEXT_CONFIG.keyboardToneTextOffsetX,
+      rect.x + keyboardTextOffsetX,
       y + keyHeightPx / 2,
     );
   }
@@ -576,11 +596,9 @@ export const drawPianorollVideoFrame = (
     options.layout,
     options.layoutScale ?? 1,
   );
-  const noteAreaX = rect.x + PIANOROLL_CONFIG.TONEMAP_WIDTH;
-  const noteAreaWidth = Math.max(
-    1,
-    rect.width - PIANOROLL_CONFIG.TONEMAP_WIDTH,
-  );
+  const toneMapWidth = getToneMapWidth(options.layoutScale);
+  const noteAreaX = rect.x + toneMapWidth;
+  const noteAreaWidth = Math.max(1, rect.width - toneMapWidth);
   const notesLeftTicks = getNotesLeftTicks(options.notes);
   const totalTickLength = options.notes.reduce((sum, n) => sum + n.length, 0);
 
