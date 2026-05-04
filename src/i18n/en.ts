@@ -511,6 +511,7 @@ export const translationEn = {
       pianorollLayout: "Layout",
       pianorollColorTheme: "Color theme",
       pianorollThemeMode: "Brightness mode",
+      applyPianorollThemeToOutside: "Apply theme outside pianoroll",
       pianorollLayout_full: "Full",
       pianorollLayout_portraitMiddleThird: "Middle third",
       pianorollLayout_portraitSafeArea: "Safe area",

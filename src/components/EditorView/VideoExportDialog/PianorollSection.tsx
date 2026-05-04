@@ -1,6 +1,7 @@
 import PianoIcon from "@mui/icons-material/Piano";
 import {
   Box,
+  Button,
   Checkbox,
   FormControlLabel,
   MenuItem,
@@ -23,6 +24,7 @@ type Props = {
   onLayoutChange: (v: PianorollVideoLayout) => void;
   onColorThemeChange: (v: ColorTheme) => void;
   onThemeModeChange: (v: "light" | "dark") => void;
+  onApplyThemeToOutside: () => void;
 };
 
 const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
@@ -36,6 +38,7 @@ export const PianorollSection: React.FC<Props> = ({
   onLayoutChange,
   onColorThemeChange,
   onThemeModeChange,
+  onApplyThemeToOutside,
 }) => {
   const { t } = useTranslation();
 
@@ -150,6 +153,17 @@ export const PianorollSection: React.FC<Props> = ({
               <Typography variant="body2">{t("theme.dark")}</Typography>
             </MenuItem>
           </Select>
+
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            fullWidth
+            sx={{ mt: 1.25 }}
+            onClick={onApplyThemeToOutside}
+          >
+            {t("editor.videoExport.applyPianorollThemeToOutside")}
+          </Button>
         </Box>
       )}
     </Box>

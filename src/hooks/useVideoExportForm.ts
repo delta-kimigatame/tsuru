@@ -5,6 +5,7 @@ import {
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
   PIANOROLL_VIDEO_ICON_CONFIG,
 } from "../config/pianoroll";
+import { COLOR_PALLET } from "../config/pallet";
 import {
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
@@ -113,6 +114,7 @@ import {
 import type { Note } from "../lib/Note";
 import { useCookieStore } from "../store/cookieStore";
 import { useMusicProjectStore } from "../store/musicProjectStore";
+import type { ColorTheme } from "../types/colorTheme";
 import {
   HORIZONTAL_ZOOM_STEPS,
   VERTICAL_ZOOM_STEPS,
@@ -138,7 +140,6 @@ import {
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
-import type { ColorTheme } from "../types/colorTheme";
 import { useThemeMode } from "./useThemeMode";
 
 type Options = {
@@ -572,6 +573,36 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       isMinor,
       voiceIconImage,
     ]);
+
+  const applyPianorollThemeToOutside = React.useCallback(() => {
+    const pallet =
+      COLOR_PALLET[pianorollColorTheme]?.[pianorollThemeMode] ??
+      COLOR_PALLET.default.light;
+
+    applyColor(pallet.whiteKey);
+    applySecondaryColor(pallet.note);
+
+    setMainTextColor(pallet.lyric);
+    setSubTextColor(pallet.lyric);
+    setLyricsColor(pallet.lyric);
+
+    setMainTextShadowColor(pallet.selectedNote);
+    setMainTextStrokeColor(pallet.selectedNote);
+    setMainTextBgBarColor(pallet.selectedNote);
+
+    setSubTextShadowColor(pallet.selectedNote);
+    setSubTextStrokeColor(pallet.selectedNote);
+    setSubTextBgBarColor(pallet.selectedNote);
+
+    setLyricsShadowColor(pallet.selectedNote);
+    setLyricsStrokeColor(pallet.selectedNote);
+    setLyricsBgBarColor(pallet.selectedNote);
+  }, [
+    pianorollColorTheme,
+    pianorollThemeMode,
+    applyColor,
+    applySecondaryColor,
+  ]);
 
   /** セグメント i の歌詞テキストを更新する */
   const updateSegmentLyric = React.useCallback((i: number, value: string) => {
@@ -1790,6 +1821,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPianorollColorTheme,
     pianorollThemeMode,
     setPianorollThemeMode,
+    applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
   };

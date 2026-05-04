@@ -513,6 +513,7 @@ export const translationJa = {
       pianorollLayout: "レイアウト",
       pianorollColorTheme: "色テーマ",
       pianorollThemeMode: "明るさモード",
+      applyPianorollThemeToOutside: "テーマをピアノロール外に適用",
       pianorollLayout_full: "全画面",
       pianorollLayout_portraitMiddleThird: "中央1/3帯",
       pianorollLayout_portraitSafeArea: "セーフエリア内",

@@ -501,6 +501,7 @@ export const translationZh = {
       pianorollLayout: "布局",
       pianorollColorTheme: "颜色主题",
       pianorollThemeMode: "明暗模式",
+      applyPianorollThemeToOutside: "将主题应用到钢琴卷外",
       pianorollLayout_full: "全屏",
       pianorollLayout_portraitMiddleThird: "中间1/3",
       pianorollLayout_portraitSafeArea: "安全区内",
