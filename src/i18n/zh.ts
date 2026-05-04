@@ -618,6 +618,10 @@ export const translationZh = {
       title: "在歌词末尾添加字符",
       suffixValue: "要添加的字符",
     },
+    flagsBatchProcess: {
+      title: "批量设置 Flags",
+      flagsValue: "要设置的 Flags",
+    },
     removeSuffixBatchProcess: {
       title: "删除歌词前后的字符",
       suffixRemoveMode: "歌词末尾",

@@ -630,6 +630,10 @@ export const translationEn = {
       title: "Add Suffix to Lyrics",
       suffixValue: "Suffix to Add",
     },
+    flagsBatchProcess: {
+      title: "Batch Set Flags",
+      flagsValue: "Flags to Apply",
+    },
     removeSuffixBatchProcess: {
       title: "Remove Prefix/Suffix from Lyrics",
       suffixRemoveMode: "End of Lyrics",

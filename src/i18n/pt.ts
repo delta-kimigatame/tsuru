@@ -638,6 +638,10 @@ export const translationPt = {
       title: "Adicionar caracteres ao final da letra",
       suffixValue: "Caracteres a adicionar",
     },
+    flagsBatchProcess: {
+      title: "Definir flags em lote",
+      flagsValue: "Flags a aplicar",
+    },
     removeSuffixBatchProcess: {
       title: "Remover caracteres do início/fim da letra",
       suffixRemoveMode: "Final da letra",

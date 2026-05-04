@@ -632,6 +632,10 @@ export const translationJa = {
       title: "歌詞の末尾に文字を追加",
       suffixValue: "追加する文字",
     },
+    flagsBatchProcess: {
+      title: "フラグ一括設定",
+      flagsValue: "設定するフラグ",
+    },
     removeSuffixBatchProcess: {
       title: "歌詞の前後の文字を削除",
       suffixRemoveMode: "歌詞の末尾",
