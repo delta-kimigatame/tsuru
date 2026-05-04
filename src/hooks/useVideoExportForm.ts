@@ -126,7 +126,6 @@ import {
 } from "../utils/pianorollVideo";
 import {
   FONT_STACK,
-  drawGeneratedBackground,
   drawSubtitleOnCanvas,
   drawVideoBackground,
   extractLyricsSegments,
@@ -995,14 +994,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     return { outW, outH };
   }, [bgSize, imageNaturalSize]);
 
-  const previewScale = React.useMemo(() => {
-    if (!outputSize) return 1;
-    return Math.min(
-      PREVIEW_MAX_W / outputSize.outW,
-      PREVIEW_MAX_H / outputSize.outH,
-    );
-  }, [outputSize]);
-
   // 立絵サイズスライダーの最大値（自然サイズ = drawScale 1.0 となる scalePercent）
   const portraitMaxScale = React.useMemo(() => {
     if (!portraitImage || !outputSize) return PORTRAIT_MAX_SCALE_FALLBACK;
@@ -1077,31 +1068,22 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPortraitYOffset((prev) => Math.max(prev, portraitYOffsetMin));
   }, [portraitYOffsetMin]);
 
-  // エクスポートプレビューをキャンバスにレンダリング
-  React.useEffect(() => {
-    // アニメーションプレビュー中は静止画描画をスキップ
-    if (animPreviewActiveRef.current) return;
-    const canvas = previewCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const renderPreviewBase = React.useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      canvas: HTMLCanvasElement,
+      img: HTMLImageElement | null,
+    ) => {
+      let outW = 0;
+      let outH = 0;
 
-    // "image" モードで画像がない場合は空にして終了
-    if (bgSize === "image" && !imagePreviewUrl) {
-      canvas.width = 1;
-      canvas.height = 1;
-      ctx.clearRect(0, 0, 1, 1);
-      return;
-    }
-
-    let outW = 0;
-    let outH = 0;
-    if (bgSize !== "image") {
-      [outW, outH] = bgSize.split("x").map(Number);
-    }
-
-    const draw = (img: HTMLImageElement | null) => {
-      if (bgSize === "image" && img) {
+      if (bgSize === "image") {
+        if (!img) {
+          canvas.width = 1;
+          canvas.height = 1;
+          ctx.clearRect(0, 0, 1, 1);
+          return null;
+        }
         const s = Math.min(
           1,
           BG_MAX_WIDTH / img.naturalWidth,
@@ -1109,6 +1091,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         );
         outW = Math.round(img.naturalWidth * s);
         outH = Math.round(img.naturalHeight * s);
+      } else {
+        [outW, outH] = bgSize.split("x").map(Number);
       }
 
       const prevScale = Math.min(PREVIEW_MAX_W / outW, PREVIEW_MAX_H / outH);
@@ -1119,13 +1103,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       ctx.clearRect(0, 0, pw, ph);
 
       if (bgSize === "image") {
-        ctx.drawImage(img!, 0, 0, pw, ph);
-      }
-
-      const imgW = img?.naturalWidth ?? 0;
-      const imgH = img?.naturalHeight ?? 0;
-
-      if (bgSize !== "image") {
+        ctx.drawImage(img, 0, 0, pw, ph);
+      } else {
         drawVideoBackground(
           ctx,
           pw,
@@ -1141,7 +1120,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
 
       if (pianorollPreviewOptions) {
         const initialState: PianorollRenderState = { yOffset: 0 };
-        // プレビューcanvasは動画サイズより小さいため、zoomをprevScaleで縮小、固定マージンもscaleで調整
         const scaledPianorollOpts = {
           ...pianorollPreviewOptions,
           horizontalZoom: pianorollPreviewOptions.horizontalZoom * prevScale,
@@ -1158,7 +1136,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         );
       }
 
-      // 立絵レイヤー
       if (showPortrait && portraitImage) {
         const pNatW = portraitImage.naturalWidth;
         const pNatH = portraitImage.naturalHeight;
@@ -1182,7 +1159,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.globalAlpha = 1;
       }
 
-      // テキストレイヤー
       const drawTextLayer = (
         text: string,
         fontSize: number,
@@ -1211,7 +1187,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
 
-        // 背景バー
         if (bgBarEnabled) {
           const textW = ctx.measureText(text).width;
           const padX = scaledSize * 0.5;
@@ -1225,7 +1200,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx.restore();
         }
 
-        // シャドウ
         if (shadowEnabled) {
           const scaledBlur = shadowBlur * prevScale;
           ctx.shadowColor = shadowColor;
@@ -1234,7 +1208,6 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx.shadowOffsetY = scaledBlur * 0.5;
         }
 
-        // 縁取り
         if (strokeEnabled) {
           ctx.lineJoin = "round";
           ctx.lineWidth = strokeWidth * prevScale * 2;
@@ -1246,6 +1219,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.fillText(text, tx, ty);
         ctx.restore();
       };
+
       drawTextLayer(
         mainText,
         mainTextFontSize,
@@ -1282,6 +1256,78 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextBgBarColor,
         subTextBgBarOpacity,
       );
+
+      return { prevScale, pw, ph };
+    },
+    [
+      bgSize,
+      backgroundOptions,
+      bgPaddingMode,
+      bgImageOpacity,
+      pianorollPreviewOptions,
+      showPortrait,
+      portraitImage,
+      portraitNaturalHeight,
+      portraitScalePercent,
+      portraitXOffset,
+      portraitYOffset,
+      portraitOpacity,
+      mainText,
+      mainTextFontSize,
+      mainTextBold,
+      mainTextItalic,
+      mainTextColor,
+      mainTextX,
+      mainTextY,
+      mainTextShadowEnabled,
+      mainTextShadowColor,
+      mainTextShadowBlur,
+      mainTextStrokeEnabled,
+      mainTextStrokeColor,
+      mainTextStrokeWidth,
+      mainTextBgBarEnabled,
+      mainTextBgBarColor,
+      mainTextBgBarOpacity,
+      subText,
+      subTextFontSize,
+      subTextBold,
+      subTextItalic,
+      subTextColor,
+      subTextX,
+      subTextY,
+      subTextShadowEnabled,
+      subTextShadowColor,
+      subTextShadowBlur,
+      subTextStrokeEnabled,
+      subTextStrokeColor,
+      subTextStrokeWidth,
+      subTextBgBarEnabled,
+      subTextBgBarColor,
+      subTextBgBarOpacity,
+    ],
+  );
+
+  // エクスポートプレビューをキャンバスにレンダリング
+  React.useEffect(() => {
+    // アニメーションプレビュー中は静止画描画をスキップ
+    if (animPreviewActiveRef.current) return;
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // "image" モードで画像がない場合は空にして終了
+    if (bgSize === "image" && !imagePreviewUrl) {
+      canvas.width = 1;
+      canvas.height = 1;
+      ctx.clearRect(0, 0, 1, 1);
+      return;
+    }
+
+    const draw = (img: HTMLImageElement | null) => {
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
+      const { prevScale, pw, ph } = metrics;
 
       // 歌詞字幕プレビューレイヤー
       if (lyricsEnabled) {
@@ -1351,48 +1397,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     }
   }, [
     imagePreviewUrl,
-    bgSize,
-    bgPaddingMode,
-    bgImageOpacity,
-    backgroundOptions,
-    showPortrait,
-    portraitImage,
-    portraitOpacity,
-    portraitScalePercent,
-    portraitXOffset,
-    portraitYOffset,
-    mainText,
-    mainTextFontSize,
-    mainTextBold,
-    mainTextItalic,
-    mainTextColor,
-    mainTextX,
-    mainTextY,
-    mainTextShadowEnabled,
-    mainTextShadowColor,
-    mainTextShadowBlur,
-    mainTextStrokeEnabled,
-    mainTextStrokeColor,
-    mainTextStrokeWidth,
-    mainTextBgBarEnabled,
-    mainTextBgBarColor,
-    mainTextBgBarOpacity,
-    subText,
-    subTextFontSize,
-    subTextBold,
-    subTextItalic,
-    subTextColor,
-    subTextX,
-    subTextY,
-    subTextShadowEnabled,
-    subTextShadowColor,
-    subTextShadowBlur,
-    subTextStrokeEnabled,
-    subTextStrokeColor,
-    subTextStrokeWidth,
-    subTextBgBarEnabled,
-    subTextBgBarColor,
-    subTextBgBarOpacity,
+    renderPreviewBase,
     lyricsEnabled,
     lyricsSegments,
     lyricsFontSize,
@@ -1463,6 +1468,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
 
     const seg: LyricsSegment = lyricsSegments[0] ?? {
       lyric: "サンプル歌詞",
@@ -1522,20 +1528,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     animPreviewStartRef.current = performance.now();
     setIsAnimPreviewPlaying(true);
 
-    const loop = () => {
+    const loop = (img: HTMLImageElement | null) => {
       if (!animPreviewActiveRef.current) return;
       const now = performance.now();
       const elapsed =
         (now - (animPreviewStartRef.current ?? now)) % segDuration;
       const remaining = segDuration - elapsed;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawGeneratedBackground(
-        ctx,
-        canvas.width,
-        canvas.height,
-        backgroundOptions,
-        previewScale,
-      );
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
       drawSubtitleOnCanvas(
         ctx,
         seg.lyric,
@@ -1545,14 +1545,25 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         elapsed,
         remaining,
       );
-      animPreviewRafRef.current = requestAnimationFrame(loop);
+      animPreviewRafRef.current = requestAnimationFrame(() => loop(img));
     };
-    animPreviewRafRef.current = requestAnimationFrame(loop);
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!animPreviewActiveRef.current) return;
+        animPreviewRafRef.current = requestAnimationFrame(() => loop(el));
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      animPreviewRafRef.current = requestAnimationFrame(() => loop(null));
+    }
   }, [
     previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
     lyricsSegments,
-    backgroundOptions,
-    previewScale,
+    renderPreviewBase,
     lyricsFontSize,
     lyricsColor,
     lyricsYPercent,
