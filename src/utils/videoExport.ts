@@ -1297,8 +1297,9 @@ export const generateMp4 = async (
   let pianorollState: PianorollRenderState | undefined;
 
   /**
-   * 背景・立絵・タイトルテキストのベースレイヤーをキャンバスに描画する。
+   * 背景レイヤーのみをキャンバスに描画する。
    * 字幕フレームのたびに呼び出して canvas を上書きするため、副作用なしで完結させる。
+   * 描画順序: 背景色1 → 背景色2模様 → 背景画像(拡大) → 背景画像(通常)
    */
   const drawBase = () => {
     ctx.clearRect(0, 0, cW, cH);
@@ -1316,35 +1317,6 @@ export const generateMp4 = async (
         bgPaddingMode,
         bgImageOpacity,
       );
-    }
-
-    // 立絵の描画（設定有りの場合のみ）
-    if (portraitOptions && portraitImg) {
-      const { naturalHeight, opacity, scalePercent } = portraitOptions;
-      const pNatW = portraitImg.naturalWidth;
-      const pNatH = portraitImg.naturalHeight;
-      // エディタと同じアルゴリズム: 横50%・縦min(50%,naturalHeight) の枠内に contain
-      const maxW = cW * 0.5;
-      const maxH = Math.min(cH * 0.5, naturalHeight);
-      const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
-      // ユーザースケール適用。自然サイズ（scale=1）を上限とする
-      const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
-      const drawW = pNatW * drawScale;
-      const drawH = pNatH * drawScale;
-      // 右下配置 + オフセット適用（オフセットは描画サイズ基準の %）
-      const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
-      const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
-      ctx.globalAlpha = opacity / 100;
-      ctx.drawImage(portraitImg, px, py, drawW, drawH);
-      ctx.globalAlpha = 1;
-    }
-
-    // テキストオーバーレイの描画（立絵より上のレイヤー）
-    if (mainTextOptions) {
-      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
-    }
-    if (subTextOptions) {
-      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
     }
   };
 
@@ -1380,6 +1352,43 @@ export const generateMp4 = async (
 
     drawBase();
 
+    if (effectivePianorollOptions?.enabled) {
+      pianorollState = drawPianorollVideoFrame(
+        ctx,
+        cW,
+        cH,
+        tMs,
+        effectivePianorollOptions,
+        pianorollState,
+      );
+    }
+
+    // 立絵の描画（ピアノロールより前面・文字より後面）
+    if (portraitOptions && portraitImg) {
+      const { naturalHeight, opacity, scalePercent } = portraitOptions;
+      const pNatW = portraitImg.naturalWidth;
+      const pNatH = portraitImg.naturalHeight;
+      const maxW = cW * 0.5;
+      const maxH = Math.min(cH * 0.5, naturalHeight);
+      const defaultScale = Math.min(maxW / pNatW, maxH / pNatH);
+      const drawScale = Math.min(defaultScale * (scalePercent / 100), 1.0);
+      const drawW = pNatW * drawScale;
+      const drawH = pNatH * drawScale;
+      const px = cW - drawW + drawW * (portraitOptions.xOffset / 100);
+      const py = cH - drawH + drawH * (portraitOptions.yOffset / 100);
+      ctx.globalAlpha = opacity / 100;
+      ctx.drawImage(portraitImg, px, py, drawW, drawH);
+      ctx.globalAlpha = 1;
+    }
+
+    // テキストオーバーレイの描画（立絵より上のレイヤー）
+    if (mainTextOptions) {
+      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
+    }
+    if (subTextOptions) {
+      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+    }
+
     if (lyricsOptions && lyricsOptions.segments.length > 0) {
       const activeSeg = lyricsOptions.segments.find(
         (seg) => tMs >= seg.startMs && tMs < seg.endMs,
@@ -1397,17 +1406,6 @@ export const generateMp4 = async (
           remaining,
         );
       }
-    }
-
-    if (effectivePianorollOptions?.enabled) {
-      pianorollState = drawPianorollVideoFrame(
-        ctx,
-        cW,
-        cH,
-        tMs,
-        effectivePianorollOptions,
-        pianorollState,
-      );
     }
 
     await videoSource.add(tSec, dur);
