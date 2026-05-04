@@ -467,6 +467,10 @@ export const EditorView: React.FC<{
         const dataUrl = URL.createObjectURL(
           new File([mixedBuf], "output.wav", { type: "audio/wav" }),
         );
+        LOG.gtag("download", {
+          downloadName: vb.name,
+          downloadType: "master",
+        });
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "output.wav";
@@ -534,7 +538,17 @@ export const EditorView: React.FC<{
       );
       setSynthesisProgress(false);
       setVideoExportTotal(undefined);
-      LOG.gtag("download", { downloadName: vb.name });
+      LOG.gtag("movieDownload", {
+        downloadName: vb.name,
+        format: "mp4",
+        resolution,
+        bgPaddingMode,
+        hasPianoroll: Boolean(pianorollOptions?.enabled),
+        hasPortrait: Boolean(portraitOptions),
+        hasMainText: Boolean(mainTextOptions),
+        hasSubText: Boolean(subTextOptions),
+        hasLyrics: Boolean(lyricsOptions),
+      });
       const dataUrl = URL.createObjectURL(
         new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
       );
@@ -588,7 +602,10 @@ export const EditorView: React.FC<{
     }
 
     if (dataUrl !== undefined) {
-      LOG.gtag("movieDownload", { downloadName: vb.name });
+      LOG.gtag("download", {
+        downloadName: vb.name,
+        downloadType: "vocal",
+      });
       // 合成処理に成功した場合のみ実行
       const a = document.createElement("a");
       a.href = dataUrl;
