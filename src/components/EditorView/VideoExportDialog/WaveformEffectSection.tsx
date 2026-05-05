@@ -496,14 +496,16 @@ export const WaveformEffectSection: React.FC<Props> = ({
               max={100}
               unit="%"
             />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformStrokeWidth")}
-              value={strokeWidthPx}
-              onChange={onStrokeWidthPxChange}
-              min={WAVEFORM_STROKE_WIDTH_PX_MIN}
-              max={WAVEFORM_STROKE_WIDTH_PX_MAX}
-              unit="px"
-            />
+            {!isFftIconType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformStrokeWidth")}
+                value={strokeWidthPx}
+                onChange={onStrokeWidthPxChange}
+                min={WAVEFORM_STROKE_WIDTH_PX_MIN}
+                max={WAVEFORM_STROKE_WIDTH_PX_MAX}
+                unit="px"
+              />
+            )}
             {(!isMirrorType || type === "fft-icon-vertical-mirror") && (
               <LabeledSlider
                 label={t("editor.videoExport.waveformX")}
