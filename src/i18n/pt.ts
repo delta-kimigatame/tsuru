@@ -515,9 +515,11 @@ export const translationPt = {
       lyricsAnimations: "Animações",
       lyricsAnimPreviewPlay: "Reproduzir prévia",
       lyricsAnimPreviewStop: "Parar prévia",
-      lyricsCardSection: "Importar cartão de letras",
-      lyricsCardSplitByHalfSpace: "Dividir também por espaço simples",
       lyricsCardLoad: "Carregar cartão de letras (.txt)",
+      lyricsCardEncodingDialogTitle:
+        "Selecionar codificação e opções de divisão",
+      lyricsCardSplitByHalfSpace: "Também dividir por espaço simples",
+      lyricsCardEncodingPreview: "Visualização:",
       lyricsCardDialogTitle: "Atribuição do cartão de letras",
       lyricsCardSelectStart: "Clique na palavra inicial da atribuição",
       lyricsCardMappingHint:

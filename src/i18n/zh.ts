@@ -497,9 +497,10 @@ export const translationZh = {
       lyricsAnimations: "动画效果",
       lyricsAnimPreviewPlay: "预览播放",
       lyricsAnimPreviewStop: "停止预览",
-      lyricsCardSection: "导入歌词卡",
-      lyricsCardSplitByHalfSpace: "同时按半角空格分割",
       lyricsCardLoad: "读取歌词卡 (.txt)",
+      lyricsCardEncodingDialogTitle: "选择编码和分割选项",
+      lyricsCardSplitByHalfSpace: "也按半角空格分割",
+      lyricsCardEncodingPreview: "预览:",
       lyricsCardDialogTitle: "歌词卡分配",
       lyricsCardSelectStart: "单击要开始分配的单词",
       lyricsCardMappingHint:

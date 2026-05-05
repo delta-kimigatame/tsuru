@@ -507,9 +507,10 @@ export const translationEn = {
       lyricsAnimations: "Animations",
       lyricsAnimPreviewPlay: "Preview Play",
       lyricsAnimPreviewStop: "Preview Stop",
-      lyricsCardSection: "Lyrics card import",
-      lyricsCardSplitByHalfSpace: "Also split by half-width space",
       lyricsCardLoad: "Load lyrics card (.txt)",
+      lyricsCardEncodingDialogTitle: "Select encoding & split options",
+      lyricsCardSplitByHalfSpace: "Also split by half-width space",
+      lyricsCardEncodingPreview: "Preview:",
       lyricsCardDialogTitle: "Lyrics card assignment",
       lyricsCardSelectStart: "Click the word to start the assignment from",
       lyricsCardMappingHint:

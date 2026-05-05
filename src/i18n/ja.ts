@@ -509,9 +509,10 @@ export const translationJa = {
       lyricsAnimations: "アニメーション",
       lyricsAnimPreviewPlay: "プレビュー再生",
       lyricsAnimPreviewStop: "プレビュー停止",
-      lyricsCardSection: "歌詞カード読み込み",
-      lyricsCardSplitByHalfSpace: "半角スペースでも分割する",
       lyricsCardLoad: "歌詞カード (.txt) を読み込む",
+      lyricsCardEncodingDialogTitle: "文字コード&分割オプション選択",
+      lyricsCardSplitByHalfSpace: "半角スペースでも分割する",
+      lyricsCardEncodingPreview: "プレビュー:",
       lyricsCardDialogTitle: "歌詞カード割り当て",
       lyricsCardSelectStart: "割り当て開始位置をクリックして選んでください",
       lyricsCardMappingHint:

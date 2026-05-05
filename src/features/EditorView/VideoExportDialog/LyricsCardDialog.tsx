@@ -36,17 +36,21 @@ const localSplitSegment = (
 ): LyricsSegment[] => {
   const seg = segments[i];
   const splitMs = seg.noteBoundaries[k];
+  const noteLyricsA = seg.noteLyrics.slice(0, k);
+  const noteLyricsB = seg.noteLyrics.slice(k);
   const segA: LyricsSegment = {
     startMs: seg.startMs,
     endMs: splitMs,
-    lyric: seg.lyric.slice(0, k),
+    lyric: noteLyricsA.join(""),
     noteBoundaries: seg.noteBoundaries.slice(0, k + 1),
+    noteLyrics: noteLyricsA,
   };
   const segB: LyricsSegment = {
     startMs: splitMs,
     endMs: seg.endMs,
-    lyric: seg.lyric.slice(k),
+    lyric: noteLyricsB.join(""),
     noteBoundaries: seg.noteBoundaries.slice(k),
+    noteLyrics: noteLyricsB,
   };
   return [...segments.slice(0, i), segA, segB, ...segments.slice(i + 1)];
 };
@@ -63,6 +67,7 @@ const localMergeSegments = (
     endMs: b.endMs,
     lyric: a.lyric + b.lyric,
     noteBoundaries: [...a.noteBoundaries.slice(0, -1), ...b.noteBoundaries],
+    noteLyrics: [...a.noteLyrics, ...b.noteLyrics],
   };
   return [...segments.slice(0, i), merged, ...segments.slice(i + 2)];
 };
@@ -71,7 +76,7 @@ type Props = {
   open: boolean;
   words: string[];
   segments: LyricsSegment[];
-  onApply: (newLyrics: string[]) => void;
+  onApply: (newSegments: LyricsSegment[]) => void;
   onClose: () => void;
 };
 
@@ -131,12 +136,15 @@ export const LyricsCardDialog: React.FC<Props> = ({
   };
 
   const handleApply = () => {
-    const newLyrics = localSegments.map((seg, i) => {
+    // localSegments の各要素について、対応する single word があったら更新
+    const newSegments: LyricsSegment[] = localSegments.map((seg, i) => {
       const word = activeWords[i];
-      // activeWordsに対応するwordsがない区間は現在のlyricを維持
-      return word !== undefined ? word : seg.lyric;
+      if (word !== undefined) {
+        return { ...seg, lyric: word };
+      }
+      return seg;
     });
-    onApply(newLyrics);
+    onApply(newSegments);
   };
 
   const splitSeg =
@@ -369,8 +377,8 @@ export const LyricsCardDialog: React.FC<Props> = ({
             </Typography>
             {splitSeg.noteBoundaries.slice(1, -1).map((boundaryMs, ki) => {
               const k = ki + 1;
-              const lyricA = splitSeg.lyric.slice(0, k);
-              const lyricB = splitSeg.lyric.slice(k);
+              const lyricA = splitSeg.noteLyrics.slice(0, k).join("");
+              const lyricB = splitSeg.noteLyrics.slice(k).join("");
               return (
                 <ListItemButton
                   key={k}

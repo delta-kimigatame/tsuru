@@ -331,6 +331,7 @@ export const VideoExportDialog: React.FC<Props> = ({
               onYPercentChange={form.setLyricsYPercent}
               onMaxWidthPercentChange={form.setLyricsMaxWidthPercent}
               onUpdateLyric={form.updateSegmentLyric}
+              onUpdateSegments={form.setLyricsSegmentsDirectly}
               onMerge={form.mergeSegments}
               onSplit={form.splitSegment}
               shadowEnabled={form.lyricsShadowEnabled}
