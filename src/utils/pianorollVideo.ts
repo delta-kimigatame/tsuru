@@ -418,10 +418,33 @@ const drawNotesAndPitch = (
     COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
     COLOR_PALLET.default.light;
   const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
+  const textScale = opts.layoutScale ?? 1;
+  const lyricFontSize = Math.max(
+    1,
+    Math.min(
+      Math.round(PIANOROLL_CONFIG.LYRIC_FONT_SIZE * textScale),
+      Math.floor(noteHeight * 0.75),
+    ),
+  );
+  const tempoFontSize = Math.max(
+    1,
+    Math.min(
+      Math.round(PIANOROLL_CONFIG.TEMPO_FONT_SIZE * textScale),
+      Math.floor(lyricFontSize * 0.8),
+    ),
+  );
+  const lyricPaddingLeft = Math.max(
+    1,
+    Math.round(PIANOROLL_CONFIG.LYRIC_PADDING_LEFT * textScale),
+  );
+  const tempoTextOffsetX = Math.max(
+    1,
+    Math.round(PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextOffsetX * textScale),
+  );
 
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+  ctx.font = `${lyricFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
 
   opts.notes.forEach((note, index) => {
     const x =
@@ -447,41 +470,37 @@ const drawNotesAndPitch = (
     ctx.strokeRect(x, y, width, noteHeight);
 
     ctx.fillStyle = palette.lyric;
-    ctx.fillText(
-      note.lyric,
-      x + PIANOROLL_CONFIG.LYRIC_PADDING_LEFT,
-      y + noteHeight / 2,
-    );
+    ctx.fillText(note.lyric, x + lyricPaddingLeft, y + noteHeight / 2);
 
     if (note.atFilename === "" && note.lyric !== "R") {
       ctx.fillStyle = palette.attention;
       ctx.fillText(
         PIANOROLL_VIDEO_TEXT_CONFIG.missingOtoMarker,
-        x + PIANOROLL_CONFIG.LYRIC_PADDING_LEFT,
+        x + lyricPaddingLeft,
         y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.missingOtoMarkerYRatio,
       );
     }
 
     if (index === 0 || note.hasTempo) {
       ctx.fillStyle = palette.tempo;
-      ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+      ctx.font = `${tempoFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
       ctx.fillText(
         `bpm=${note.tempo.toFixed(2)}`,
-        x + PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextOffsetX,
+        x + tempoTextOffsetX,
         y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextYRatio,
       );
-      ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+      ctx.font = `${lyricFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
     }
 
     if (!note.label) return;
     ctx.fillStyle = palette.tempo;
-    ctx.font = `${PIANOROLL_CONFIG.TEMPO_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+    ctx.font = `${tempoFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
     ctx.fillText(
       note.label,
-      x + PIANOROLL_VIDEO_TEXT_CONFIG.tempoTextOffsetX,
+      x + tempoTextOffsetX,
       y + noteHeight * PIANOROLL_VIDEO_TEXT_CONFIG.labelTextYRatio,
     );
-    ctx.font = `${PIANOROLL_CONFIG.LYRIC_FONT_SIZE}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+    ctx.font = `${lyricFontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
   });
 
   ctx.strokeStyle = palette.pitch;
