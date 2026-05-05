@@ -8,13 +8,19 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Collapse,
   Divider,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
   List,
   ListItemButton,
+  MenuItem,
   Popover,
+  Select,
+  type SelectChangeEvent,
   Switch,
   TextField,
   ToggleButton,
@@ -56,6 +62,13 @@ import {
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
+import { LyricsCardDialog } from "../../../features/EditorView/VideoExportDialog/LyricsCardDialog";
+import { readTextFile } from "../../../services/readTextFile";
+import {
+  EncodingOption,
+  getFileReaderEncoding,
+} from "../../../utils/EncodingMapping";
+import { parseLyricsCard } from "../../../utils/parseLyricsCard";
 import type { LyricsSegment, SlideDirection } from "../../../utils/videoExport";
 import { LabeledSlider } from "./LabeledSlider";
 
@@ -265,6 +278,39 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onStopAnimPreview,
 }) => {
   const { t } = useTranslation();
+
+  // 歌詞カード読み込み関連 state
+  const lyricsCardInputRef = React.useRef<HTMLInputElement>(null);
+  const [cardEncoding, setCardEncoding] = React.useState<EncodingOption>(
+    EncodingOption.UTF8,
+  );
+  const [splitByHalfSpace, setSplitByHalfSpace] = React.useState(false);
+  const [cardWords, setCardWords] = React.useState<string[] | null>(null);
+  const [cardDialogOpen, setCardDialogOpen] = React.useState(false);
+
+  const handleCardFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // 同じファイルを再度選択できるよう value をリセット
+    e.target.value = "";
+    try {
+      const buf = await file.arrayBuffer();
+      const text = await readTextFile(buf, getFileReaderEncoding(cardEncoding));
+      const words = parseLyricsCard(text, splitByHalfSpace);
+      if (words.length === 0) return;
+      setCardWords(words);
+      setCardDialogOpen(true);
+    } catch {
+      // 読み込み失敗時は何もしない
+    }
+  };
+
+  const handleCardApply = (newLyrics: string[]) => {
+    newLyrics.forEach((lyric, i) => onUpdateLyric(i, lyric));
+    setCardDialogOpen(false);
+  };
 
   // 分割ポップオーバーの管理: { rowIndex, anchorEl }
   const [splitPopover, setSplitPopover] = React.useState<{
@@ -1201,6 +1247,81 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
             </AccordionDetails>
           </Accordion>
 
+          {/* 歌詞カード読み込みエリア */}
+          {segments.length > 0 && (
+            <Box
+              sx={{
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                p: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t("editor.videoExport.lyricsCardSection")}
+              </Typography>
+
+              {/* 文字コード選択 */}
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>{t("loadVBDialog.encoding")}</InputLabel>
+                <Select
+                  label={t("loadVBDialog.encoding")}
+                  value={cardEncoding}
+                  onChange={(e: SelectChangeEvent) =>
+                    setCardEncoding(e.target.value as EncodingOption)
+                  }
+                >
+                  <MenuItem value={EncodingOption.UTF8}>UTF-8</MenuItem>
+                  <MenuItem value={EncodingOption.SHIFT_JIS}>
+                    Shift-JIS
+                  </MenuItem>
+                  <MenuItem value={EncodingOption.GB18030}>GB18030</MenuItem>
+                  <MenuItem value={EncodingOption.GBK}>GBK</MenuItem>
+                  <MenuItem value={EncodingOption.BIG5}>BIG5</MenuItem>
+                  <MenuItem value={EncodingOption.WINDOWS_1252}>
+                    Windows-1252
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* 半角スペース分割オプション */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={splitByHalfSpace}
+                    onChange={(e) => setSplitByHalfSpace(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="caption">
+                    {t("editor.videoExport.lyricsCardSplitByHalfSpace")}
+                  </Typography>
+                }
+              />
+
+              {/* 読み込みボタン */}
+              <Box
+                component="input"
+                ref={lyricsCardInputRef}
+                type="file"
+                accept=".txt"
+                style={{ display: "none" }}
+                onChange={handleCardFileChange}
+              />
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => lyricsCardInputRef.current?.click()}
+              >
+                {t("editor.videoExport.lyricsCardLoad")}
+              </Button>
+            </Box>
+          )}
+
           {/* セグメントテーブル */}
           {segments.length > 0 && (
             <Box
@@ -1372,6 +1493,17 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
           </List>
         )}
       </Popover>
+
+      {/* 歌詞カードダイアログ */}
+      {cardWords !== null && (
+        <LyricsCardDialog
+          open={cardDialogOpen}
+          words={cardWords}
+          segments={segments}
+          onApply={handleCardApply}
+          onClose={() => setCardDialogOpen(false)}
+        />
+      )}
     </>
   );
 };
