@@ -154,6 +154,7 @@ export function drawWaveformEffect(
   canvasH: number,
   currentTimeSec: number,
   sampleRate: number = 44100,
+  renderScale: number = 1,
 ): void {
   if (!options.enabled) return;
 
@@ -170,7 +171,7 @@ export function drawWaveformEffect(
   ctx.globalAlpha = options.opacity / 100;
 
   if (options.type === "oscilloscope") {
-    drawOscilloscope(ctx, samples, options, canvasW, canvasH);
+    drawOscilloscope(ctx, samples, options, canvasW, canvasH, renderScale);
   } else {
     drawOscilloscopeCircular(
       ctx,
@@ -179,6 +180,7 @@ export function drawWaveformEffect(
       canvasW,
       canvasH,
       currentTimeSec,
+      renderScale,
     );
   }
 
@@ -195,6 +197,7 @@ function drawOscilloscope(
   options: WaveformEffectOptions,
   canvasW: number,
   canvasH: number,
+  renderScale: number,
 ): void {
   const cx = (canvasW * options.xPercent) / 100;
   const cy = (canvasH * options.yPercent) / 100;
@@ -208,7 +211,7 @@ function drawOscilloscope(
   ctx.rotate((options.rotation * Math.PI) / 180);
   ctx.strokeStyle = options.color;
   ctx.fillStyle = options.color;
-  ctx.lineWidth = clampPx(options.strokeWidthPx);
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
@@ -231,7 +234,7 @@ function drawOscilloscope(
       drawFill(ctx, pts);
       break;
     case "dots":
-      drawDots(ctx, pts, options.strokeWidthPx);
+      drawDots(ctx, pts, options.strokeWidthPx, renderScale);
       break;
   }
 
@@ -249,6 +252,7 @@ function drawOscilloscopeCircular(
   canvasW: number,
   canvasH: number,
   currentTimeSec: number,
+  renderScale: number,
 ): void {
   const cx = (canvasW * options.xPercent) / 100;
   const cy = (canvasH * options.yPercent) / 100;
@@ -266,7 +270,7 @@ function drawOscilloscopeCircular(
   ctx.translate(cx, cy);
   ctx.strokeStyle = options.color;
   ctx.fillStyle = options.color;
-  ctx.lineWidth = clampPx(options.strokeWidthPx);
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
@@ -288,7 +292,7 @@ function drawOscilloscopeCircular(
       drawFillCircular(ctx, pts);
       break;
     case "dots":
-      drawDots(ctx, pts, options.strokeWidthPx);
+      drawDots(ctx, pts, options.strokeWidthPx, renderScale);
       break;
   }
 
@@ -387,9 +391,10 @@ function drawDots(
   ctx: CanvasRenderingContext2D,
   pts: { x: number; y: number }[],
   strokeWidthPx: number,
+  renderScale: number,
 ): void {
   if (pts.length < 2) return;
-  const size = clampPx(strokeWidthPx);
+  const size = scaledStrokeWidthPx(strokeWidthPx, renderScale);
 
   // 点の形よりも「途切れた線」に見えることを優先し、
   // 短い線分を間引いて描く。
@@ -417,4 +422,11 @@ function drawDots(
 
 function clampPx(v: number): number {
   return Math.max(1, Math.min(4, v));
+}
+
+function scaledStrokeWidthPx(
+  strokeWidthPx: number,
+  renderScale: number,
+): number {
+  return Math.max(0.25, clampPx(strokeWidthPx) * renderScale);
 }

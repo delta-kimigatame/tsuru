@@ -1280,7 +1280,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
 
       // 波形エフェクト（無音でフラットライン描画）
       if (waveformOptions.enabled) {
-        drawWaveformEffect(ctx, null, waveformOptions, pw, ph, 0);
+        drawWaveformEffect(
+          ctx,
+          null,
+          waveformOptions,
+          pw,
+          ph,
+          0,
+          44100,
+          prevScale,
+        );
       }
 
       const drawTextLayer = (
@@ -1784,10 +1793,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           ctx,
           sineSamples,
           waveformOptions,
-          canvas.width,
-          canvas.height,
+          metrics.pw,
+          metrics.ph,
           elapsed,
           SINE_SAMPLE_RATE,
+          metrics.prevScale,
         );
       }
       waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
