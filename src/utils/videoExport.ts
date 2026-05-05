@@ -1239,7 +1239,8 @@ export const generateMp4 = async (
     waveformOptions?.enabled &&
     waveformMonoSamples &&
     (waveformOptions.type === "fft-horizontal" ||
-      waveformOptions.type === "fft-circular")
+      waveformOptions.type === "fft-circular" ||
+      waveformOptions.type.startsWith("fft-icon-"))
       ? buildWaveformFftCache(
           waveformMonoSamples,
           44100,

@@ -379,9 +379,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
                   {WAVEFORM_FFT_ICON_SHAPES.map((shape) => (
                     <MenuItem key={shape} value={shape}>
                       <Typography variant="body2">
-                        {t(
-                          `editor.videoExport.waveformFftIconShape_${shape}`,
-                        )}
+                        {t(`editor.videoExport.waveformFftIconShape_${shape}`)}
                       </Typography>
                     </MenuItem>
                   ))}
@@ -408,7 +406,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
                     <MenuItem key={mode} value={mode}>
                       <Typography variant="body2">
                         {t(
-                          `editor.videoExport.waveformFftIconStrengthMode_${mode}`,
+                          `editor.videoExport.waveformFftIconStrengthMode_${mode.replace(/-/g, "_")}`,
                         )}
                       </Typography>
                     </MenuItem>
