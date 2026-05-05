@@ -82,32 +82,32 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
                 // Warnings
                 wav_without_oto:
                   diagnosticResult.warnings.some(
-                    (w) => w.type === "wav_without_oto"
+                    (w) => w.type === "wav_without_oto",
                   ) || false,
                 missing_frq:
                   diagnosticResult.warnings.some(
-                    (w) => w.type === "missing_frq"
+                    (w) => w.type === "missing_frq",
                   ) || false,
                 oto_outside_root:
                   diagnosticResult.warnings.some(
-                    (w) => w.type === "oto_outside_root"
+                    (w) => w.type === "oto_outside_root",
                   ) || false,
                 config_file_misplaced:
                   diagnosticResult.warnings.some(
-                    (w) => w.type === "config_file_misplaced"
+                    (w) => w.type === "config_file_misplaced",
                   ) || false,
                 // Errors
                 invalid_wav_format:
                   diagnosticResult.errors.some(
-                    (e) => e.type === "invalid_wav_format"
+                    (e) => e.type === "invalid_wav_format",
                   ) || false,
                 oto_without_wav:
                   diagnosticResult.errors.some(
-                    (e) => e.type === "oto_without_wav"
+                    (e) => e.type === "oto_without_wav",
                   ) || false,
                 no_stretch_range:
                   diagnosticResult.errors.some(
-                    (e) => e.type === "no_stretch_range"
+                    (e) => e.type === "no_stretch_range",
                   ) || false,
               });
               setLoading(false);
@@ -166,7 +166,8 @@ export const VoiceBankDiagnostics: React.FC<VoiceBankDiagnosticsProps> = ({
             </Alert>
           )}
           <Button
-            variant="outlined"
+            variant="contained"
+            color="primary"
             size="small"
             onClick={handleRunDiagnostics}
             fullWidth

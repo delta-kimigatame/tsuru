@@ -341,9 +341,12 @@ export const LyricsCardDialog: React.FC<Props> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>{t("common.cancel")}</Button>
+        <Button onClick={onClose} variant="contained" color="inherit">
+          {t("common.cancel")}
+        </Button>
         <Button
           variant="contained"
+          color="primary"
           disabled={startIndex === null}
           onClick={handleApply}
         >

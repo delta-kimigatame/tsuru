@@ -126,7 +126,13 @@ export const MixMasterDialog: React.FC<Props> = ({
     <Dialog open={open} onClose={onClose} fullScreen>
       <DialogTitle sx={{ display: "flex", alignItems: "center", py: 1.5 }}>
         <Box sx={{ flex: 1 }}>{t("editor.mixMaster.title")}</Box>
-        <Button size="small" onClick={handleResetAll} disabled={loading}>
+        <Button
+          size="small"
+          variant="contained"
+          color="inherit"
+          onClick={handleResetAll}
+          disabled={loading}
+        >
           {t("editor.mixMaster.resetAll")}
         </Button>
         <IconButton
@@ -608,13 +614,28 @@ export const MixMasterDialog: React.FC<Props> = ({
             width: "100%",
           }}
         >
-          <Button onClick={onClose} disabled={loading}>
+          <Button
+            onClick={onClose}
+            disabled={loading}
+            variant="contained"
+            color="inherit"
+          >
             {t("editor.videoExport.cancel")}
           </Button>
-          <Button onClick={onPreview} disabled={loading} variant="outlined">
+          <Button
+            onClick={onPreview}
+            disabled={loading}
+            variant="contained"
+            color="inherit"
+          >
             {t("editor.mixMaster.previewButton")}
           </Button>
-          <Button onClick={onConfirm} disabled={loading} variant="contained">
+          <Button
+            onClick={onConfirm}
+            disabled={loading}
+            variant="contained"
+            color="primary"
+          >
             {t("editor.mixMaster.applyButton")}
           </Button>
         </Box>

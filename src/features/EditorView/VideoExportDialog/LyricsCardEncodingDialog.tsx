@@ -151,9 +151,12 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onCancel}>{t("common.cancel")}</Button>
+        <Button onClick={onCancel} variant="contained" color="inherit">
+          {t("common.cancel")}
+        </Button>
         <Button
           variant="contained"
+          color="primary"
           disabled={!fileBuf || loading}
           onClick={handleConfirm}
         >

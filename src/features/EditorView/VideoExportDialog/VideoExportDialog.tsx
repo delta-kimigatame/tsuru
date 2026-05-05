@@ -440,12 +440,18 @@ export const VideoExportDialog: React.FC<Props> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={form.handleClose} disabled={synthesisProgress}>
+        <Button
+          onClick={form.handleClose}
+          disabled={synthesisProgress}
+          variant="contained"
+          color="inherit"
+        >
           {t("editor.videoExport.cancel")}
         </Button>
         <Button
           onClick={form.handleConfirm}
           variant="contained"
+          color="primary"
           disabled={
             synthesisProgress || (form.bgSize === "image" && !form.imageFile)
           }

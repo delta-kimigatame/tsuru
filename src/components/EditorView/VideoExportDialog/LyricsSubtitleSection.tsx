@@ -1247,7 +1247,9 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 onChange={handleCardFileChange}
               />
               <Button
-                variant="outlined"
+                fullWidth
+                variant="contained"
+                color="primary"
                 size="small"
                 onClick={() => lyricsCardInputRef.current?.click()}
               >
