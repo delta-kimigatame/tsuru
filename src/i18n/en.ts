@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/05/06\r\n[Add] Added audio waveform to the video creation feature.\r\n[Add] Added a lyrics card loading feature to the video creation feature.\r\n[Add] Added the ability to zoom in/out the piano roll display scale in the video creation feature.\r\n[Fix] Fixed an issue where the note font size in the preview screen of the video creation feature was incorrect.\r\n[Fix] Adjusted the layout.",
       "2026/05/05\r\n[Add] Added piano roll to the video creation feature.\r\n[Fix] Fixed an issue where the preview scale in the video creation feature could differ from the actual exported video.\r\n[Fix] Fixed an issue where synthesis-wait progress was not displayed correctly when all WAV files were already cached.",
       "2026/05/04\r\n[Add] Made it possible to adjust each parameter of the simple mix function.\r\n[Add] Added batch flag setting, batch voice color setting, transpose by specific pitch, and shift by specific scale degree to batch processing.\r\n[Fix] Fixed an issue where 32-bit WAV files could not be loaded in accompaniment.",
       "2026/05/03\r\n[Add] Backgrounds other than solid color are now available in the video creation feature.\r\n[Add] Added decorations applicable to title/credit text in the video creation feature.\r\n[Add] Added lyric subtitle display based on UST data in the video generation feature.",
