@@ -91,7 +91,15 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
         {t("editor.videoExport.lyricsCardEncodingDialogTitle")}
       </DialogTitle>
 
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
         {/* 文字コード選択 */}
         <FormControl fullWidth>
           <InputLabel>{t("loadVBDialog.encoding")}</InputLabel>
@@ -129,21 +137,34 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
         />
 
         {/* プレビュー */}
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
           <Typography variant="caption" color="text.secondary" gutterBottom>
             {t("editor.videoExport.lyricsCardEncodingPreview")}
           </Typography>
           <TextField
             fullWidth
             multiline
-            rows={6}
             value={previewText}
             InputProps={{ readOnly: true }}
             disabled={loading}
             sx={{
+              flex: 1,
               "& .MuiInputBase-root": {
+                height: "100%",
+                alignItems: "flex-start",
                 fontFamily: "monospace",
                 fontSize: "0.85rem",
+              },
+              "& .MuiInputBase-inputMultiline": {
+                height: "100% !important",
+                overflowY: "auto !important",
               },
             }}
           />
