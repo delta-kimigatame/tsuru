@@ -19,6 +19,7 @@ import {
   type PianorollVideoOptions,
 } from "./pianorollVideo";
 import {
+  buildWaveformFftCache,
   drawWaveformEffect,
   extractMonoSamplesFromWav,
   type WaveformEffectOptions,
@@ -1234,6 +1235,18 @@ export const generateMp4 = async (
   const waveformMonoSamples: Float32Array | null = waveformOptions?.enabled
     ? extractMonoSamplesFromWav(audioBuffer)
     : null;
+  const waveformFftCache =
+    waveformOptions?.enabled &&
+    waveformMonoSamples &&
+    (waveformOptions.type === "fft-horizontal" ||
+      waveformOptions.type === "fft-circular")
+      ? buildWaveformFftCache(
+          waveformMonoSamples,
+          44100,
+          waveformOptions.fftSize,
+          waveformOptions.fftBinCount,
+        )
+      : null;
 
   // 画像をロードしてキャンバスサイズを決定
   let img: HTMLImageElement | null = null;
@@ -1403,6 +1416,9 @@ export const generateMp4 = async (
         cW,
         cH,
         tSec,
+        44100,
+        1,
+        waveformFftCache,
       );
     }
 

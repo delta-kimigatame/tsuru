@@ -7,6 +7,8 @@ import type {
 import type {
   WaveformColorMode,
   WaveformDrawMethod,
+  WaveformFftGaugeShape,
+  WaveformFftShape,
   WaveformType,
 } from "../utils/waveformEffect";
 
@@ -277,9 +279,17 @@ export const DEFAULT_WAVEFORM_START_ANGLE = 0;
 export const DEFAULT_WAVEFORM_ROTATION_SPEED = 0;
 export const DEFAULT_WAVEFORM_WINDOW_SIZE = 2048;
 export const DEFAULT_WAVEFORM_STROKE_WIDTH_PX = 1;
+export const DEFAULT_WAVEFORM_FFT_SHAPE: WaveformFftShape = "barBottom";
+export const DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE: WaveformFftGaugeShape = "bar";
+export const DEFAULT_WAVEFORM_FFT_BIN_COUNT = 48;
+export const DEFAULT_WAVEFORM_FFT_SIZE = 256;
 export const WAVEFORM_WINDOW_SIZE_MIN = 256;
 export const WAVEFORM_WINDOW_SIZE_MAX = 4096;
 export const WAVEFORM_ROTATION_SPEED_MIN = -360;
 export const WAVEFORM_ROTATION_SPEED_MAX = 360;
 export const WAVEFORM_STROKE_WIDTH_PX_MIN = 1;
 export const WAVEFORM_STROKE_WIDTH_PX_MAX = 4;
+export const WAVEFORM_FFT_BIN_COUNT_MIN = 8;
+export const WAVEFORM_FFT_BIN_COUNT_MAX = 96;
+export const WAVEFORM_FFT_SIZE_MIN = 64;
+export const WAVEFORM_FFT_SIZE_MAX = 1024;

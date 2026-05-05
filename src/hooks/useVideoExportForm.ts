@@ -105,6 +105,10 @@ import {
   DEFAULT_WAVEFORM_COLOR_MODE,
   DEFAULT_WAVEFORM_DRAW_METHOD,
   DEFAULT_WAVEFORM_ENABLED,
+  DEFAULT_WAVEFORM_FFT_BIN_COUNT,
+  DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE,
+  DEFAULT_WAVEFORM_FFT_SHAPE,
+  DEFAULT_WAVEFORM_FFT_SIZE,
   DEFAULT_WAVEFORM_HEIGHT_PERCENT,
   DEFAULT_WAVEFORM_OPACITY,
   DEFAULT_WAVEFORM_ROTATION,
@@ -160,6 +164,8 @@ import {
   type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformEffectOptions,
+  type WaveformFftGaugeShape,
+  type WaveformFftShape,
   type WaveformType,
 } from "../utils/waveformEffect";
 import { useThemeMode } from "./useThemeMode";
@@ -643,6 +649,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [waveformDrawMethod, setWaveformDrawMethod] =
     React.useState<WaveformDrawMethod>(DEFAULT_WAVEFORM_DRAW_METHOD);
+  const [waveformFftShape, setWaveformFftShape] =
+    React.useState<WaveformFftShape>(DEFAULT_WAVEFORM_FFT_SHAPE);
+  const [waveformFftGaugeShape, setWaveformFftGaugeShape] =
+    React.useState<WaveformFftGaugeShape>(DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE);
   const [waveformColor, setWaveformColor] = React.useState<string>(
     DEFAULT_WAVEFORM_COLOR,
   );
@@ -674,12 +684,20 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [waveformStrokeWidthPx, setWaveformStrokeWidthPx] =
     React.useState<number>(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
+  const [waveformFftBinCount, setWaveformFftBinCount] = React.useState<number>(
+    DEFAULT_WAVEFORM_FFT_BIN_COUNT,
+  );
+  const [waveformFftSize, setWaveformFftSize] = React.useState<number>(
+    DEFAULT_WAVEFORM_FFT_SIZE,
+  );
 
   const waveformOptions = React.useMemo<WaveformEffectOptions>(
     () => ({
       enabled: waveformEnabled,
       type: waveformType,
       drawMethod: waveformDrawMethod,
+      fftShape: waveformFftShape,
+      fftGaugeShape: waveformFftGaugeShape,
       color: waveformColor,
       colorMode: waveformColorMode,
       opacity: waveformOpacity,
@@ -692,11 +710,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       rotationSpeed: waveformRotationSpeed,
       windowSize: waveformWindowSize,
       strokeWidthPx: waveformStrokeWidthPx,
+      fftBinCount: waveformFftBinCount,
+      fftSize: waveformFftSize,
     }),
     [
       waveformEnabled,
       waveformType,
       waveformDrawMethod,
+      waveformFftShape,
+      waveformFftGaugeShape,
       waveformColor,
       waveformColorMode,
       waveformOpacity,
@@ -709,6 +731,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformRotationSpeed,
       waveformWindowSize,
       waveformStrokeWidthPx,
+      waveformFftBinCount,
+      waveformFftSize,
     ],
   );
 
@@ -1035,6 +1059,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
       setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
+      setWaveformFftShape(DEFAULT_WAVEFORM_FFT_SHAPE);
+      setWaveformFftGaugeShape(DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE);
       setWaveformColor(DEFAULT_WAVEFORM_COLOR);
       setWaveformColorMode(DEFAULT_WAVEFORM_COLOR_MODE);
       setWaveformOpacity(DEFAULT_WAVEFORM_OPACITY);
@@ -1047,6 +1073,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformRotationSpeed(DEFAULT_WAVEFORM_ROTATION_SPEED);
       setWaveformWindowSize(DEFAULT_WAVEFORM_WINDOW_SIZE);
       setWaveformStrokeWidthPx(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
+      setWaveformFftBinCount(DEFAULT_WAVEFORM_FFT_BIN_COUNT);
+      setWaveformFftSize(DEFAULT_WAVEFORM_FFT_SIZE);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -2079,6 +2107,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformType,
     waveformDrawMethod,
     setWaveformDrawMethod,
+    waveformFftShape,
+    setWaveformFftShape,
+    waveformFftGaugeShape,
+    setWaveformFftGaugeShape,
     waveformColor,
     setWaveformColor,
     waveformColorMode,
@@ -2103,6 +2135,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformWindowSize,
     waveformStrokeWidthPx,
     setWaveformStrokeWidthPx,
+    waveformFftBinCount,
+    setWaveformFftBinCount,
+    waveformFftSize,
+    setWaveformFftSize,
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,

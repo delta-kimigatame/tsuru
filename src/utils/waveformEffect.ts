@@ -6,8 +6,24 @@
  * - 描画メソッド: 折れ線 / 補間曲線 / 塗りつぶし / 点列
  */
 
-export type WaveformType = "oscilloscope" | "oscilloscope-circular";
+import { WaveAnalyse } from "utauwav";
+
+export type WaveformType =
+  | "oscilloscope"
+  | "oscilloscope-circular"
+  | "fft-horizontal"
+  | "fft-circular";
 export type WaveformDrawMethod = "polyline" | "curve" | "fill" | "dots";
+export type WaveformFftShape =
+  | "barBottom"
+  | "barCenter"
+  | "gauge"
+  | "circle"
+  | "circleFill"
+  | "polyline"
+  | "curve"
+  | "fill";
+export type WaveformFftGaugeShape = "bar" | "square" | "circle";
 export type WaveformColorMode =
   | "solid"
   | "lightness"
@@ -18,12 +34,29 @@ export type WaveformColorMode =
 export const WAVEFORM_TYPES: WaveformType[] = [
   "oscilloscope",
   "oscilloscope-circular",
+  "fft-horizontal",
+  "fft-circular",
 ];
 export const WAVEFORM_DRAW_METHODS: WaveformDrawMethod[] = [
   "polyline",
   "curve",
   "fill",
   "dots",
+];
+export const WAVEFORM_FFT_SHAPES: WaveformFftShape[] = [
+  "barBottom",
+  "barCenter",
+  "gauge",
+  "circle",
+  "circleFill",
+  "polyline",
+  "curve",
+  "fill",
+];
+export const WAVEFORM_FFT_GAUGE_SHAPES: WaveformFftGaugeShape[] = [
+  "bar",
+  "square",
+  "circle",
 ];
 export const WAVEFORM_COLOR_MODES: WaveformColorMode[] = [
   "solid",
@@ -67,6 +100,22 @@ export interface WaveformEffectOptions {
   windowSize: number;
   /** 線の太さ（px） */
   strokeWidthPx: number;
+  /** FFT時の描画形状 */
+  fftShape: WaveformFftShape;
+  /** FFTゲージ時の形状 */
+  fftGaugeShape: WaveformFftGaugeShape;
+  /** FFT表示バンド数 */
+  fftBinCount: number;
+  /** FFTサイズ */
+  fftSize: number;
+}
+
+export interface WaveformFftCache {
+  groupedFrames: Float32Array[];
+  hopSize: number;
+  sampleRate: number;
+  fftSize: number;
+  binCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -154,6 +203,108 @@ function extractWindowSamples(
   return result;
 }
 
+export function buildWaveformFftCache(
+  monoSamples: Float32Array,
+  sampleRate: number,
+  fftSize: number,
+  fftBinCount: number,
+): WaveformFftCache {
+  const wa = new WaveAnalyse();
+  const hopSize = Math.max(16, Math.floor(fftSize / 2));
+  const spectrogram = wa.Spectrogram(
+    Array.from(monoSamples),
+    fftSize,
+    "hanning",
+    hopSize,
+  );
+  const groupedFrames = Array.from(spectrogram, (frame) =>
+    groupFftFrame(frame, fftBinCount),
+  );
+  return {
+    groupedFrames,
+    hopSize,
+    sampleRate,
+    fftSize,
+    binCount: fftBinCount,
+  };
+}
+
+function extractFftBins(
+  monoSamples: Float32Array,
+  currentTimeSec: number,
+  sampleRate: number,
+  fftSize: number,
+  fftBinCount: number,
+  fftCache?: WaveformFftCache | null,
+): Float32Array {
+  if (
+    fftCache &&
+    fftCache.fftSize === fftSize &&
+    fftCache.binCount === fftBinCount &&
+    fftCache.groupedFrames.length > 0
+  ) {
+    const frameIndex = Math.max(
+      0,
+      Math.min(
+        fftCache.groupedFrames.length - 1,
+        Math.round((currentTimeSec * fftCache.sampleRate) / fftCache.hopSize),
+      ),
+    );
+    return fftCache.groupedFrames[frameIndex];
+  }
+
+  const wa = new WaveAnalyse();
+  const window = extractWindowSamples(
+    monoSamples,
+    currentTimeSec,
+    sampleRate,
+    fftSize,
+  );
+  const spectrogram = wa.Spectrogram(
+    Array.from(window),
+    fftSize,
+    "hanning",
+    fftSize,
+  );
+  return groupFftFrame(spectrogram[0] ?? [], fftBinCount);
+}
+
+function groupFftFrame(
+  frame: ArrayLike<number>,
+  fftBinCount: number,
+): Float32Array {
+  const usableStart = Math.min(1, Math.max(0, frame.length - 1));
+  const usableCount = Math.max(1, frame.length - usableStart);
+  const grouped = new Float32Array(fftBinCount);
+
+  for (let groupIndex = 0; groupIndex < fftBinCount; groupIndex++) {
+    const start =
+      usableStart + Math.floor((groupIndex * usableCount) / fftBinCount);
+    const end =
+      usableStart + Math.floor(((groupIndex + 1) * usableCount) / fftBinCount);
+    const actualEnd = Math.max(start + 1, end);
+    let sum = 0;
+    let count = 0;
+    for (let i = start; i < actualEnd && i < frame.length; i++) {
+      const value = Number(frame[i] ?? 0);
+      sum += Math.pow(10, value / 5);
+      count++;
+    }
+    grouped[groupIndex] = count > 0 ? sum / count : 0;
+  }
+
+  let max = 0;
+  for (const value of grouped) {
+    if (value > max) max = value;
+  }
+  if (max <= 0) return grouped;
+
+  for (let i = 0; i < grouped.length; i++) {
+    grouped[i] = Math.sqrt(grouped[i] / max);
+  }
+  return grouped;
+}
+
 /**
  * 波形エフェクトをキャンバスに描画する。
  *
@@ -170,24 +321,32 @@ export function drawWaveformEffect(
   currentTimeSec: number,
   sampleRate: number = 44100,
   renderScale: number = 1,
+  fftCache?: WaveformFftCache | null,
 ): void {
   if (!options.enabled) return;
-
-  const samples = monoSamples
-    ? extractWindowSamples(
-        monoSamples,
-        currentTimeSec,
-        sampleRate,
-        options.windowSize,
-      )
-    : new Float32Array(options.windowSize); // ゼロ配列 = 無音（フラットライン）
 
   ctx.save();
   ctx.globalAlpha = options.opacity / 100;
 
   if (options.type === "oscilloscope") {
+    const samples = monoSamples
+      ? extractWindowSamples(
+          monoSamples,
+          currentTimeSec,
+          sampleRate,
+          options.windowSize,
+        )
+      : new Float32Array(options.windowSize);
     drawOscilloscope(ctx, samples, options, canvasW, canvasH, renderScale);
-  } else {
+  } else if (options.type === "oscilloscope-circular") {
+    const samples = monoSamples
+      ? extractWindowSamples(
+          monoSamples,
+          currentTimeSec,
+          sampleRate,
+          options.windowSize,
+        )
+      : new Float32Array(options.windowSize);
     drawOscilloscopeCircular(
       ctx,
       samples,
@@ -197,6 +356,30 @@ export function drawWaveformEffect(
       currentTimeSec,
       renderScale,
     );
+  } else {
+    const fftBins = monoSamples
+      ? extractFftBins(
+          monoSamples,
+          currentTimeSec,
+          sampleRate,
+          options.fftSize,
+          options.fftBinCount,
+          fftCache,
+        )
+      : new Float32Array(options.fftBinCount);
+    if (options.type === "fft-horizontal") {
+      drawFftHorizontal(ctx, fftBins, options, canvasW, canvasH, renderScale);
+    } else {
+      drawFftCircular(
+        ctx,
+        fftBins,
+        options,
+        canvasW,
+        canvasH,
+        currentTimeSec,
+        renderScale,
+      );
+    }
   }
 
   ctx.restore();
@@ -336,6 +519,584 @@ function drawOscilloscopeCircular(
   }
 
   ctx.restore();
+}
+
+// ---------------------------------------------------------------------------
+// FFT 型オーディオビジュアライザ
+// ---------------------------------------------------------------------------
+
+function drawFftHorizontal(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  renderScale: number,
+): void {
+  const cx = (canvasW * options.xPercent) / 100;
+  const cy = (canvasH * options.yPercent) / 100;
+  const halfW = (canvasW * options.widthPercent) / 100 / 2;
+  const halfH = (canvasH * options.heightPercent) / 100 / 2;
+  if (fftBins.length < 1) return;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((options.rotation * Math.PI) / 180);
+  ctx.strokeStyle = options.color;
+  ctx.fillStyle = options.color;
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const pts = buildHorizontalFftPoints(fftBins, halfW, halfH);
+  const fftSamples = Float32Array.from(fftBins, (value) =>
+    fftValueToSigned(value),
+  );
+  const baseHsl = hexToHsl(options.color);
+
+  switch (options.fftShape) {
+    case "barBottom":
+      drawFftBarsHorizontal(
+        ctx,
+        fftBins,
+        halfW,
+        halfH,
+        options,
+        renderScale,
+        baseHsl,
+        false,
+      );
+      break;
+    case "barCenter":
+      drawFftBarsHorizontal(
+        ctx,
+        fftBins,
+        halfW,
+        halfH,
+        options,
+        renderScale,
+        baseHsl,
+        true,
+      );
+      break;
+    case "gauge":
+      drawFftGaugeHorizontal(
+        ctx,
+        fftBins,
+        halfW,
+        halfH,
+        options,
+        renderScale,
+        baseHsl,
+      );
+      break;
+    case "circle":
+      drawFftCirclesHorizontal(
+        ctx,
+        fftBins,
+        halfW,
+        halfH,
+        options,
+        renderScale,
+        baseHsl,
+        false,
+      );
+      break;
+    case "circleFill":
+      drawFftCirclesHorizontal(
+        ctx,
+        fftBins,
+        halfW,
+        halfH,
+        options,
+        renderScale,
+        baseHsl,
+        true,
+      );
+      break;
+    case "polyline":
+      if (options.colorMode === "solid") {
+        drawPolyline(ctx, pts, false);
+      } else {
+        drawPolylineGradient(ctx, pts, fftSamples, options, false);
+      }
+      break;
+    case "curve":
+      if (options.colorMode === "solid") {
+        drawCurve(ctx, pts);
+      } else {
+        drawPolylineGradient(ctx, pts, fftSamples, options, false);
+      }
+      break;
+    case "fill":
+      if (options.colorMode === "solid") {
+        drawFill(ctx, pts);
+      } else {
+        drawFillGradient(ctx, pts, options, false, 0, halfH);
+      }
+      break;
+  }
+
+  ctx.restore();
+}
+
+function drawFftCircular(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  currentTimeSec: number,
+  renderScale: number,
+): void {
+  const cx = (canvasW * options.xPercent) / 100;
+  const cy = (canvasH * options.yPercent) / 100;
+  const refSize = Math.min(canvasW, canvasH);
+  const baseR = (refSize * options.widthPercent) / 100 / 2;
+  const ampR = (refSize * options.heightPercent) / 100 / 2;
+  if (fftBins.length < 1) return;
+
+  const startAngleDeg =
+    options.startAngle + options.rotationSpeed * currentTimeSec;
+  const startAngleRad = (startAngleDeg * Math.PI) / 180;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.strokeStyle = options.color;
+  ctx.fillStyle = options.color;
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const pts = buildCircularFftPoints(fftBins, baseR, ampR, startAngleRad);
+  const fftSamples = Float32Array.from(fftBins, (value) =>
+    fftValueToSigned(value),
+  );
+  const baseHsl = hexToHsl(options.color);
+
+  switch (options.fftShape) {
+    case "barBottom":
+      drawFftBarsCircular(
+        ctx,
+        fftBins,
+        baseR,
+        ampR,
+        startAngleRad,
+        options,
+        renderScale,
+        baseHsl,
+        false,
+      );
+      break;
+    case "barCenter":
+      drawFftBarsCircular(
+        ctx,
+        fftBins,
+        baseR,
+        ampR,
+        startAngleRad,
+        options,
+        renderScale,
+        baseHsl,
+        true,
+      );
+      break;
+    case "gauge":
+      drawFftGaugeCircular(
+        ctx,
+        fftBins,
+        baseR,
+        ampR,
+        startAngleRad,
+        options,
+        renderScale,
+        baseHsl,
+      );
+      break;
+    case "circle":
+      drawFftCirclesCircular(
+        ctx,
+        fftBins,
+        baseR,
+        ampR,
+        startAngleRad,
+        options,
+        renderScale,
+        baseHsl,
+        false,
+      );
+      break;
+    case "circleFill":
+      drawFftCirclesCircular(
+        ctx,
+        fftBins,
+        baseR,
+        ampR,
+        startAngleRad,
+        options,
+        renderScale,
+        baseHsl,
+        true,
+      );
+      break;
+    case "polyline":
+      if (options.colorMode === "solid") {
+        drawPolyline(ctx, pts, true);
+      } else {
+        drawPolylineGradient(ctx, pts, fftSamples, options, true);
+      }
+      break;
+    case "curve":
+      if (options.colorMode === "solid") {
+        drawCurveCircular(ctx, pts);
+      } else {
+        drawPolylineGradient(ctx, pts, fftSamples, options, true);
+      }
+      break;
+    case "fill":
+      if (options.colorMode === "solid") {
+        drawFillCircular(ctx, pts, baseR);
+      } else {
+        drawFillGradient(ctx, pts, options, true, baseR);
+      }
+      break;
+  }
+
+  ctx.restore();
+}
+
+function buildHorizontalFftPoints(
+  fftBins: Float32Array,
+  halfW: number,
+  halfH: number,
+): { x: number; y: number }[] {
+  const pts: { x: number; y: number }[] = [];
+  const denom = Math.max(1, fftBins.length - 1);
+  for (let i = 0; i < fftBins.length; i++) {
+    pts.push({
+      x: -halfW + (i / denom) * halfW * 2,
+      y: -clamp01(fftBins[i]) * halfH,
+    });
+  }
+  return pts;
+}
+
+function buildCircularFftPoints(
+  fftBins: Float32Array,
+  baseR: number,
+  ampR: number,
+  startAngleRad: number,
+): { x: number; y: number }[] {
+  const pts: { x: number; y: number }[] = [];
+  for (let i = 0; i < fftBins.length; i++) {
+    const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
+    const r = baseR + clamp01(fftBins[i]) * ampR;
+    pts.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r });
+  }
+  return pts;
+}
+
+function drawFftBarsHorizontal(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  halfW: number,
+  halfH: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+  centered: boolean,
+): void {
+  const fullW = halfW * 2;
+  const bandW = fullW / fftBins.length;
+  ctx.save();
+  ctx.lineWidth = Math.max(
+    scaledStrokeWidthPx(options.strokeWidthPx, renderScale),
+    Math.min(bandW * 0.75, 24 * renderScale),
+  );
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const x = -halfW + bandW * (i + 0.5);
+    const h = value * halfH;
+    ctx.strokeStyle = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      false,
+    );
+    ctx.beginPath();
+    if (centered) {
+      ctx.moveTo(x, -h / 2);
+      ctx.lineTo(x, h / 2);
+    } else {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, -h);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFftBarsCircular(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  baseR: number,
+  ampR: number,
+  startAngleRad: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+  centered: boolean,
+): void {
+  const circumference = 2 * Math.PI * Math.max(baseR, 1);
+  const slot = circumference / fftBins.length;
+  ctx.save();
+  ctx.lineWidth = Math.max(
+    scaledStrokeWidthPx(options.strokeWidthPx, renderScale),
+    Math.min(slot * 0.5, 16 * renderScale),
+  );
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
+    const radial = value * ampR;
+    const inner = centered ? Math.max(0, baseR - radial / 2) : baseR;
+    const outer = centered ? baseR + radial / 2 : baseR + radial;
+    ctx.strokeStyle = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      true,
+    );
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+    ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFftGaugeHorizontal(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  halfW: number,
+  halfH: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+): void {
+  const fullW = halfW * 2;
+  const bandW = fullW / fftBins.length;
+  const segmentSize = Math.max(
+    4 * renderScale,
+    scaledStrokeWidthPx(options.strokeWidthPx, renderScale) * 4,
+  );
+  const gap = Math.max(2 * renderScale, segmentSize * 0.25);
+  const maxSegments = Math.max(1, Math.floor(halfH / (segmentSize + gap)));
+  const minorSize = Math.max(
+    2 * renderScale,
+    Math.min(bandW * 0.7, 18 * renderScale),
+  );
+
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const filledSegments = Math.max(0, Math.round(value * maxSegments));
+    const x = -halfW + bandW * (i + 0.5);
+    ctx.fillStyle = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      false,
+    );
+    for (let s = 0; s < filledSegments; s++) {
+      const y = -(segmentSize / 2 + s * (segmentSize + gap));
+      drawFftGaugeGlyph(
+        ctx,
+        options.fftGaugeShape,
+        x,
+        y,
+        segmentSize,
+        minorSize,
+        0,
+      );
+    }
+  }
+}
+
+function drawFftGaugeCircular(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  baseR: number,
+  ampR: number,
+  startAngleRad: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+): void {
+  const segmentSize = Math.max(
+    4 * renderScale,
+    scaledStrokeWidthPx(options.strokeWidthPx, renderScale) * 4,
+  );
+  const gap = Math.max(2 * renderScale, segmentSize * 0.25);
+  const maxSegments = Math.max(1, Math.floor(ampR / (segmentSize + gap)));
+  const minorSize = Math.max(2 * renderScale, segmentSize * 0.55);
+
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const filledSegments = Math.max(0, Math.round(value * maxSegments));
+    const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
+    ctx.fillStyle = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      true,
+    );
+    for (let s = 0; s < filledSegments; s++) {
+      const r = baseR + segmentSize / 2 + s * (segmentSize + gap);
+      drawFftGaugeGlyph(
+        ctx,
+        options.fftGaugeShape,
+        Math.cos(angle) * r,
+        Math.sin(angle) * r,
+        segmentSize,
+        minorSize,
+        angle - Math.PI / 2,
+      );
+    }
+  }
+}
+
+function drawFftGaugeGlyph(
+  ctx: CanvasRenderingContext2D,
+  shape: WaveformFftGaugeShape,
+  x: number,
+  y: number,
+  size: number,
+  minorSize: number,
+  rotation: number,
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  switch (shape) {
+    case "bar":
+      ctx.fillRect(-minorSize / 2, -size / 2, minorSize, size);
+      break;
+    case "square":
+      ctx.fillRect(-size / 2, -size / 2, size, size);
+      break;
+    case "circle":
+      ctx.beginPath();
+      ctx.arc(0, 0, size / 2, 0, 2 * Math.PI);
+      ctx.fill();
+      break;
+  }
+  ctx.restore();
+}
+
+function drawFftCirclesHorizontal(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  halfW: number,
+  halfH: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+  filled: boolean,
+): void {
+  const fullW = halfW * 2;
+  const bandW = fullW / fftBins.length;
+  ctx.save();
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const x = -halfW + bandW * (i + 0.5);
+    const radius = Math.max(renderScale, value * halfH * 0.35);
+    const color = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      false,
+    );
+    ctx.beginPath();
+    ctx.arc(x, 0, radius, 0, 2 * Math.PI);
+    if (filled) {
+      ctx.fillStyle = color;
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawFftCirclesCircular(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  baseR: number,
+  ampR: number,
+  startAngleRad: number,
+  options: WaveformEffectOptions,
+  renderScale: number,
+  baseHsl: Hsl,
+  filled: boolean,
+): void {
+  ctx.save();
+  ctx.lineWidth = scaledStrokeWidthPx(options.strokeWidthPx, renderScale);
+  for (let i = 0; i < fftBins.length; i++) {
+    const value = clamp01(fftBins[i]);
+    const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
+    const x = Math.cos(angle) * baseR;
+    const y = Math.sin(angle) * baseR;
+    const radius = Math.max(renderScale, value * ampR * 0.35);
+    const color = getFftBinColor(
+      options,
+      baseHsl,
+      value,
+      i,
+      fftBins.length,
+      true,
+    );
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    if (filled) {
+      ctx.fillStyle = color;
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function getFftBinColor(
+  options: WaveformEffectOptions,
+  baseHsl: Hsl,
+  value: number,
+  index: number,
+  total: number,
+  close: boolean,
+): string {
+  return sampleColorToCss(
+    options.colorMode,
+    baseHsl,
+    fftValueToSigned(value),
+    normalizedHorizontal(index, total, close),
+  );
+}
+
+function fftValueToSigned(value: number): number {
+  return clamp01(value) * 2 - 1;
 }
 
 // ---------------------------------------------------------------------------

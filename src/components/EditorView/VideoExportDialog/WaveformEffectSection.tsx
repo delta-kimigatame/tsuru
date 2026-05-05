@@ -20,6 +20,10 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   PALETTE,
+  WAVEFORM_FFT_BIN_COUNT_MAX,
+  WAVEFORM_FFT_BIN_COUNT_MIN,
+  WAVEFORM_FFT_SIZE_MAX,
+  WAVEFORM_FFT_SIZE_MIN,
   WAVEFORM_ROTATION_SPEED_MAX,
   WAVEFORM_ROTATION_SPEED_MIN,
   WAVEFORM_STROKE_WIDTH_PX_MAX,
@@ -30,9 +34,13 @@ import {
 import {
   WAVEFORM_COLOR_MODES,
   WAVEFORM_DRAW_METHODS,
+  WAVEFORM_FFT_GAUGE_SHAPES,
+  WAVEFORM_FFT_SHAPES,
   WAVEFORM_TYPES,
   type WaveformColorMode,
   type WaveformDrawMethod,
+  type WaveformFftGaugeShape,
+  type WaveformFftShape,
   type WaveformType,
 } from "../../../utils/waveformEffect";
 import { ColorHexInput } from "./ColorHexInput";
@@ -43,6 +51,10 @@ type Props = {
   enabled: boolean;
   type: WaveformType;
   drawMethod: WaveformDrawMethod;
+  fftShape: WaveformFftShape;
+  fftGaugeShape: WaveformFftGaugeShape;
+  fftBinCount: number;
+  fftSize: number;
   color: string;
   colorMode: WaveformColorMode;
   opacity: number;
@@ -59,6 +71,10 @@ type Props = {
   onEnabledChange: (v: boolean) => void;
   onTypeChange: (v: WaveformType) => void;
   onDrawMethodChange: (v: WaveformDrawMethod) => void;
+  onFftShapeChange: (v: WaveformFftShape) => void;
+  onFftGaugeShapeChange: (v: WaveformFftGaugeShape) => void;
+  onFftBinCountChange: (v: number) => void;
+  onFftSizeChange: (v: number) => void;
   onColorChange: (v: string) => void;
   onColorModeChange: (v: WaveformColorMode) => void;
   onOpacityChange: (v: number) => void;
@@ -79,6 +95,10 @@ export const WaveformEffectSection: React.FC<Props> = ({
   enabled,
   type,
   drawMethod,
+  fftShape,
+  fftGaugeShape,
+  fftBinCount,
+  fftSize,
   color,
   colorMode,
   opacity,
@@ -95,6 +115,10 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onEnabledChange,
   onTypeChange,
   onDrawMethodChange,
+  onFftShapeChange,
+  onFftGaugeShapeChange,
+  onFftBinCountChange,
+  onFftSizeChange,
   onColorChange,
   onColorModeChange,
   onOpacityChange,
@@ -112,6 +136,9 @@ export const WaveformEffectSection: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const [colorInput, setColorInput] = useState(color);
+  const isFftType = type === "fft-horizontal" || type === "fft-circular";
+  const isCircularType =
+    type === "oscilloscope-circular" || type === "fft-circular";
 
   const handleColorInputChange = (raw: string) => {
     setColorInput(raw);
@@ -235,25 +262,83 @@ export const WaveformEffectSection: React.FC<Props> = ({
               color="text.secondary"
               sx={{ mt: 1.25, mb: 0.5, display: "block" }}
             >
-              {t("editor.videoExport.waveformDrawMethod")}
+              {t(
+                isFftType
+                  ? "editor.videoExport.waveformFftShape"
+                  : "editor.videoExport.waveformDrawMethod",
+              )}
             </Typography>
-            <Select
-              size="small"
-              fullWidth
-              value={drawMethod}
-              onChange={(e) =>
-                onDrawMethodChange(e.target.value as WaveformDrawMethod)
-              }
-              sx={{ bgcolor: "background.paper" }}
-            >
-              {WAVEFORM_DRAW_METHODS.map((dm) => (
-                <MenuItem key={dm} value={dm}>
-                  <Typography variant="body2">
-                    {t(`editor.videoExport.waveformDrawMethod_${dm}`)}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Select>
+            {isFftType ? (
+              <>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftShape}
+                  onChange={(e) =>
+                    onFftShapeChange(e.target.value as WaveformFftShape)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_SHAPES.map((shape) => (
+                    <MenuItem key={shape} value={shape}>
+                      <Typography variant="body2">
+                        {t(`editor.videoExport.waveformFftShape_${shape}`)}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {fftShape === "gauge" && (
+                  <>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 0.5, display: "block" }}
+                    >
+                      {t("editor.videoExport.waveformFftGaugeShape")}
+                    </Typography>
+                    <Select
+                      size="small"
+                      fullWidth
+                      value={fftGaugeShape}
+                      onChange={(e) =>
+                        onFftGaugeShapeChange(
+                          e.target.value as WaveformFftGaugeShape,
+                        )
+                      }
+                      sx={{ bgcolor: "background.paper" }}
+                    >
+                      {WAVEFORM_FFT_GAUGE_SHAPES.map((shape) => (
+                        <MenuItem key={shape} value={shape}>
+                          <Typography variant="body2">
+                            {t(
+                              `editor.videoExport.waveformFftGaugeShape_${shape}`,
+                            )}
+                          </Typography>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </>
+                )}
+              </>
+            ) : (
+              <Select
+                size="small"
+                fullWidth
+                value={drawMethod}
+                onChange={(e) =>
+                  onDrawMethodChange(e.target.value as WaveformDrawMethod)
+                }
+                sx={{ bgcolor: "background.paper" }}
+              >
+                {WAVEFORM_DRAW_METHODS.map((dm) => (
+                  <MenuItem key={dm} value={dm}>
+                    <Typography variant="body2">
+                      {t(`editor.videoExport.waveformDrawMethod_${dm}`)}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
 
             <Typography
               variant="caption"
@@ -354,17 +439,40 @@ export const WaveformEffectSection: React.FC<Props> = ({
               max={100}
               unit="%"
             />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformWindowSize")}
-              value={windowSize}
-              onChange={onWindowSizeChange}
-              min={WAVEFORM_WINDOW_SIZE_MIN}
-              max={WAVEFORM_WINDOW_SIZE_MAX}
-              step={256}
-              unit=""
-            />
+            {isFftType ? (
+              <>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftBinCount")}
+                  value={fftBinCount}
+                  onChange={onFftBinCountChange}
+                  min={WAVEFORM_FFT_BIN_COUNT_MIN}
+                  max={WAVEFORM_FFT_BIN_COUNT_MAX}
+                  step={8}
+                  unit=""
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftSize")}
+                  value={fftSize}
+                  onChange={onFftSizeChange}
+                  min={WAVEFORM_FFT_SIZE_MIN}
+                  max={WAVEFORM_FFT_SIZE_MAX}
+                  step={64}
+                  unit=""
+                />
+              </>
+            ) : (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformWindowSize")}
+                value={windowSize}
+                onChange={onWindowSizeChange}
+                min={WAVEFORM_WINDOW_SIZE_MIN}
+                max={WAVEFORM_WINDOW_SIZE_MAX}
+                step={256}
+                unit=""
+              />
+            )}
 
-            {type === "oscilloscope-circular" && (
+            {isCircularType && (
               <>
                 <LabeledSlider
                   label={t("editor.videoExport.waveformStartAngle")}
