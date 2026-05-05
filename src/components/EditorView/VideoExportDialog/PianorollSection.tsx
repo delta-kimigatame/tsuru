@@ -11,7 +11,11 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { PIANOROLL_VIDEO_LAYOUTS } from "../../../config/pianoroll";
+import {
+  PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+  PIANOROLL_VIDEO_LAYOUTS,
+  PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
+} from "../../../config/pianoroll";
 import { colors, type ColorTheme } from "../../../types/colorTheme";
 import type { PianorollVideoLayout } from "../../../utils/pianorollVideo";
 
@@ -20,10 +24,14 @@ type Props = {
   layout: PianorollVideoLayout;
   colorTheme: ColorTheme;
   themeMode: "light" | "dark";
+  horizontalZoom: number;
+  verticalZoom: number;
   onEnabledChange: (v: boolean) => void;
   onLayoutChange: (v: PianorollVideoLayout) => void;
   onColorThemeChange: (v: ColorTheme) => void;
   onThemeModeChange: (v: "light" | "dark") => void;
+  onHorizontalZoomChange: (v: number) => void;
+  onVerticalZoomChange: (v: number) => void;
   onApplyThemeToOutside: () => void;
 };
 
@@ -34,10 +42,14 @@ export const PianorollSection: React.FC<Props> = ({
   layout,
   colorTheme,
   themeMode,
+  horizontalZoom,
+  verticalZoom,
   onEnabledChange,
   onLayoutChange,
   onColorThemeChange,
   onThemeModeChange,
+  onHorizontalZoomChange,
+  onVerticalZoomChange,
   onApplyThemeToOutside,
 }) => {
   const { t } = useTranslation();
@@ -105,6 +117,48 @@ export const PianorollSection: React.FC<Props> = ({
                 <Typography variant="body2">
                   {t(`editor.videoExport.pianorollLayout_${l}`)}
                 </Typography>
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+          >
+            {t("editor.videoExport.pianorollHorizontalZoom")}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={horizontalZoom}
+            onChange={(e) => onHorizontalZoomChange(Number(e.target.value))}
+            sx={{ bgcolor: "background.paper" }}
+          >
+            {PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS.map((zoom) => (
+              <MenuItem key={zoom} value={zoom}>
+                <Typography variant="body2">{`${zoom}x`}</Typography>
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+          >
+            {t("editor.videoExport.pianorollVerticalZoom")}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={verticalZoom}
+            onChange={(e) => onVerticalZoomChange(Number(e.target.value))}
+            sx={{ bgcolor: "background.paper" }}
+          >
+            {PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS.map((zoom) => (
+              <MenuItem key={zoom} value={zoom}>
+                <Typography variant="body2">{`${zoom}x`}</Typography>
               </MenuItem>
             ))}
           </Select>

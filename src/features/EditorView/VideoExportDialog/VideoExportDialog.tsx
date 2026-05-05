@@ -166,10 +166,14 @@ export const VideoExportDialog: React.FC<Props> = ({
                 layout={form.pianorollLayout}
                 colorTheme={form.pianorollColorTheme}
                 themeMode={form.pianorollThemeMode}
+                horizontalZoom={form.pianorollHorizontalZoom}
+                verticalZoom={form.pianorollVerticalZoom}
                 onEnabledChange={form.setPianorollEnabled}
                 onLayoutChange={form.setPianorollLayout}
                 onColorThemeChange={form.setPianorollColorTheme}
                 onThemeModeChange={form.setPianorollThemeMode}
+                onHorizontalZoomChange={form.setPianorollHorizontalZoom}
+                onVerticalZoomChange={form.setPianorollVerticalZoom}
                 onApplyThemeToOutside={form.applyPianorollThemeToOutside}
               />
             )}

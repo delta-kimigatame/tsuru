@@ -4,7 +4,9 @@ import { COLOR_PALLET } from "../config/pallet";
 import {
   DEFAULT_PIANOROLL_VIDEO_ENABLED,
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
+  PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
   PIANOROLL_VIDEO_ICON_CONFIG,
+  PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../config/pianoroll";
 import {
   BACKGROUND_PATTERN_GAP_MAX,
@@ -141,8 +143,6 @@ import { useCookieStore } from "../store/cookieStore";
 import { useMusicProjectStore } from "../store/musicProjectStore";
 import type { ColorTheme } from "../types/colorTheme";
 import {
-  HORIZONTAL_ZOOM_STEPS,
-  VERTICAL_ZOOM_STEPS,
   drawPianorollVideoFrame,
   getOneStepSmallerZoom,
   type PianorollRenderState,
@@ -567,6 +567,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [pianorollThemeMode, setPianorollThemeMode] = React.useState<
     "light" | "dark"
   >(themeMode);
+  const [pianorollHorizontalZoom, setPianorollHorizontalZoom] =
+    React.useState<number>(() =>
+      getOneStepSmallerZoom(
+        horizontalZoom,
+        PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+      ),
+    );
+  const [pianorollVerticalZoom, setPianorollVerticalZoom] =
+    React.useState<number>(() =>
+      getOneStepSmallerZoom(verticalZoom, PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS),
+    );
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
@@ -589,11 +600,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         notesLeftMs,
         colorTheme: pianorollColorTheme,
         themeMode: pianorollThemeMode,
-        horizontalZoom: getOneStepSmallerZoom(
-          horizontalZoom,
-          HORIZONTAL_ZOOM_STEPS,
-        ),
-        verticalZoom: getOneStepSmallerZoom(verticalZoom, VERTICAL_ZOOM_STEPS),
+        horizontalZoom: pianorollHorizontalZoom,
+        verticalZoom: pianorollVerticalZoom,
         tone,
         isMinor,
         voiceIconImage,
@@ -605,8 +613,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       effectivePianorollLayout,
       pianorollColorTheme,
       pianorollThemeMode,
-      horizontalZoom,
-      verticalZoom,
+      pianorollHorizontalZoom,
+      pianorollVerticalZoom,
       tone,
       isMinor,
       voiceIconImage,
@@ -1107,6 +1115,18 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setPianorollEnabled(DEFAULT_PIANOROLL_VIDEO_ENABLED);
       setPianorollColorTheme(colorTheme);
       setPianorollThemeMode(themeMode);
+      setPianorollHorizontalZoom(
+        getOneStepSmallerZoom(
+          horizontalZoom,
+          PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+        ),
+      );
+      setPianorollVerticalZoom(
+        getOneStepSmallerZoom(
+          verticalZoom,
+          PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
+        ),
+      );
       setPianorollLayout(null);
       setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
@@ -2170,6 +2190,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPianorollColorTheme,
     pianorollThemeMode,
     setPianorollThemeMode,
+    pianorollHorizontalZoom,
+    setPianorollHorizontalZoom,
+    pianorollVerticalZoom,
+    setPianorollVerticalZoom,
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,

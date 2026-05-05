@@ -528,6 +528,8 @@ export const translationEn = {
       pianorollSection: "Pianoroll",
       pianorollEnable: "Include pianoroll in video",
       pianorollLayout: "Layout",
+      pianorollHorizontalZoom: "Horizontal zoom",
+      pianorollVerticalZoom: "Vertical zoom",
       pianorollColorTheme: "Color theme",
       pianorollThemeMode: "Brightness mode",
       applyPianorollThemeToOutside: "Apply theme outside pianoroll",
