@@ -519,6 +519,7 @@ export const translationZh = {
       waveformDrawMethod_dots: "点列",
       waveformColor: "颜色",
       waveformOpacity: "不透明度",
+      waveformStrokeWidth: "线宽",
       waveformX: "X 位置",
       waveformY: "Y 位置",
       waveformRotation: "旋转",

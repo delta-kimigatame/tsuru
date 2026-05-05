@@ -529,6 +529,7 @@ export const translationEn = {
       waveformDrawMethod_dots: "Dots",
       waveformColor: "Color",
       waveformOpacity: "Opacity",
+      waveformStrokeWidth: "Stroke width",
       waveformX: "X position",
       waveformY: "Y position",
       waveformRotation: "Rotation",

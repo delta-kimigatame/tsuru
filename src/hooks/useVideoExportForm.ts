@@ -109,6 +109,7 @@ import {
   DEFAULT_WAVEFORM_ROTATION,
   DEFAULT_WAVEFORM_ROTATION_SPEED,
   DEFAULT_WAVEFORM_START_ANGLE,
+  DEFAULT_WAVEFORM_STROKE_WIDTH_PX,
   DEFAULT_WAVEFORM_TYPE,
   DEFAULT_WAVEFORM_WIDTH_PERCENT,
   DEFAULT_WAVEFORM_WINDOW_SIZE,
@@ -617,6 +618,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsShadowColor(pallet.selectedNote);
     setLyricsStrokeColor(pallet.selectedNote);
     setLyricsBgBarColor(pallet.selectedNote);
+
+    setWaveformColor(pallet.selectedNote);
   }, [
     pianorollColorTheme,
     pianorollThemeMode,
@@ -665,6 +668,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [waveformWindowSize, setWaveformWindowSize] = React.useState<number>(
     DEFAULT_WAVEFORM_WINDOW_SIZE,
   );
+  const [waveformStrokeWidthPx, setWaveformStrokeWidthPx] =
+    React.useState<number>(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
 
   const waveformOptions = React.useMemo<WaveformEffectOptions>(
     () => ({
@@ -681,6 +686,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       startAngle: waveformStartAngle,
       rotationSpeed: waveformRotationSpeed,
       windowSize: waveformWindowSize,
+      strokeWidthPx: waveformStrokeWidthPx,
     }),
     [
       waveformEnabled,
@@ -696,6 +702,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformStartAngle,
       waveformRotationSpeed,
       waveformWindowSize,
+      waveformStrokeWidthPx,
     ],
   );
 
@@ -1032,6 +1039,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformStartAngle(DEFAULT_WAVEFORM_START_ANGLE);
       setWaveformRotationSpeed(DEFAULT_WAVEFORM_ROTATION_SPEED);
       setWaveformWindowSize(DEFAULT_WAVEFORM_WINDOW_SIZE);
+      setWaveformStrokeWidthPx(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -2074,6 +2082,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformRotationSpeed,
     waveformWindowSize,
     setWaveformWindowSize,
+    waveformStrokeWidthPx,
+    setWaveformStrokeWidthPx,
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,

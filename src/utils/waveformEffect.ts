@@ -50,6 +50,8 @@ export interface WaveformEffectOptions {
   rotationSpeed: number;
   /** サンプル窓サイズ（フレームあたりの表示サンプル数）*/
   windowSize: number;
+  /** 線の太さ（px） */
+  strokeWidthPx: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -206,7 +208,7 @@ function drawOscilloscope(
   ctx.rotate((options.rotation * Math.PI) / 180);
   ctx.strokeStyle = options.color;
   ctx.fillStyle = options.color;
-  ctx.lineWidth = Math.max(1, canvasH * 0.003);
+  ctx.lineWidth = clampPx(options.strokeWidthPx);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
@@ -229,7 +231,7 @@ function drawOscilloscope(
       drawFill(ctx, pts);
       break;
     case "dots":
-      drawDots(ctx, pts, canvasH);
+      drawDots(ctx, pts, options.strokeWidthPx);
       break;
   }
 
@@ -264,7 +266,7 @@ function drawOscilloscopeCircular(
   ctx.translate(cx, cy);
   ctx.strokeStyle = options.color;
   ctx.fillStyle = options.color;
-  ctx.lineWidth = Math.max(1, refSize * 0.003);
+  ctx.lineWidth = clampPx(options.strokeWidthPx);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
@@ -286,7 +288,7 @@ function drawOscilloscopeCircular(
       drawFillCircular(ctx, pts);
       break;
     case "dots":
-      drawDots(ctx, pts, refSize);
+      drawDots(ctx, pts, options.strokeWidthPx);
       break;
   }
 
@@ -384,12 +386,35 @@ function drawFillCircular(
 function drawDots(
   ctx: CanvasRenderingContext2D,
   pts: { x: number; y: number }[],
-  refSize: number,
+  strokeWidthPx: number,
 ): void {
-  const r = Math.max(1, refSize * 0.004);
-  for (const p of pts) {
+  if (pts.length < 2) return;
+  const size = clampPx(strokeWidthPx);
+
+  // 点の形よりも「途切れた線」に見えることを優先し、
+  // 短い線分を間引いて描く。
+  ctx.save();
+  ctx.lineWidth = size;
+  ctx.lineCap = "round";
+  const stride = 2;
+  for (let i = 0; i < pts.length - 1; i += stride) {
+    const p0 = pts[i];
+    const p1 = pts[i + 1];
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const len = Math.hypot(dx, dy);
+    if (len <= 0.0001) continue;
+    const segLen = Math.min(size, len);
+    const ux = dx / len;
+    const uy = dy / len;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p0.x + ux * segLen, p0.y + uy * segLen);
+    ctx.stroke();
   }
+  ctx.restore();
+}
+
+function clampPx(v: number): number {
+  return Math.max(1, Math.min(4, v));
 }

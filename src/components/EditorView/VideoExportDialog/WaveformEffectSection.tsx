@@ -1,12 +1,19 @@
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import GraphicEqIcon from "@mui/icons-material/GraphicEq";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
-  Button,
   Checkbox,
   FormControlLabel,
+  IconButton,
   MenuItem,
   Select,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
@@ -15,6 +22,8 @@ import {
   PALETTE,
   WAVEFORM_ROTATION_SPEED_MAX,
   WAVEFORM_ROTATION_SPEED_MIN,
+  WAVEFORM_STROKE_WIDTH_PX_MAX,
+  WAVEFORM_STROKE_WIDTH_PX_MIN,
   WAVEFORM_WINDOW_SIZE_MAX,
   WAVEFORM_WINDOW_SIZE_MIN,
 } from "../../../config/videoExport";
@@ -42,6 +51,7 @@ type Props = {
   startAngle: number;
   rotationSpeed: number;
   windowSize: number;
+  strokeWidthPx: number;
   isPreviewPlaying: boolean;
   onEnabledChange: (v: boolean) => void;
   onTypeChange: (v: WaveformType) => void;
@@ -56,6 +66,7 @@ type Props = {
   onStartAngleChange: (v: number) => void;
   onRotationSpeedChange: (v: number) => void;
   onWindowSizeChange: (v: number) => void;
+  onStrokeWidthPxChange: (v: number) => void;
   onStartPreview: () => void;
   onStopPreview: () => void;
 };
@@ -74,6 +85,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   startAngle,
   rotationSpeed,
   windowSize,
+  strokeWidthPx,
   isPreviewPlaying,
   onEnabledChange,
   onTypeChange,
@@ -88,6 +100,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onStartAngleChange,
   onRotationSpeedChange,
   onWindowSizeChange,
+  onStrokeWidthPxChange,
   onStartPreview,
   onStopPreview,
 }) => {
@@ -147,165 +160,202 @@ export const WaveformEffectSection: React.FC<Props> = ({
       />
 
       {enabled && (
-        <Box sx={{ mt: 1 }}>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mb: 0.5, display: "block" }}
+        <Accordion
+          sx={{
+            mt: 1,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            "&:before": { display: "none" },
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ pr: 1 }}>
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {t("editor.videoExport.waveformSection")}
+            </Typography>
+            <Tooltip
+              title={
+                isPreviewPlaying
+                  ? t("editor.videoExport.waveformPreviewSineStop")
+                  : t("editor.videoExport.waveformPreviewSine")
+              }
+            >
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  isPreviewPlaying ? onStopPreview() : onStartPreview();
+                }}
+                sx={{ mr: 0.5 }}
+              >
+                {isPreviewPlaying ? (
+                  <StopIcon fontSize="small" />
+                ) : (
+                  <PlayArrowIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </AccordionSummary>
+          <AccordionDetails
+            sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
           >
-            {t("editor.videoExport.waveformType")}
-          </Typography>
-          <Select
-            size="small"
-            fullWidth
-            value={type}
-            onChange={(e) => onTypeChange(e.target.value as WaveformType)}
-            sx={{ bgcolor: "background.paper" }}
-          >
-            {WAVEFORM_TYPES.map((wt) => (
-              <MenuItem key={wt} value={wt}>
-                <Typography variant="body2">
-                  {t(`editor.videoExport.waveformType_${wt.replace("-", "_")}`)}
-                </Typography>
-              </MenuItem>
-            ))}
-          </Select>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformType")}
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={type}
+              onChange={(e) => onTypeChange(e.target.value as WaveformType)}
+              sx={{ bgcolor: "background.paper" }}
+            >
+              {WAVEFORM_TYPES.map((wt) => (
+                <MenuItem key={wt} value={wt}>
+                  <Typography variant="body2">
+                    {t(
+                      `editor.videoExport.waveformType_${wt.replace("-", "_")}`,
+                    )}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Select>
 
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
-          >
-            {t("editor.videoExport.waveformDrawMethod")}
-          </Typography>
-          <Select
-            size="small"
-            fullWidth
-            value={drawMethod}
-            onChange={(e) =>
-              onDrawMethodChange(e.target.value as WaveformDrawMethod)
-            }
-            sx={{ bgcolor: "background.paper" }}
-          >
-            {WAVEFORM_DRAW_METHODS.map((dm) => (
-              <MenuItem key={dm} value={dm}>
-                <Typography variant="body2">
-                  {t(`editor.videoExport.waveformDrawMethod_${dm}`)}
-                </Typography>
-              </MenuItem>
-            ))}
-          </Select>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformDrawMethod")}
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={drawMethod}
+              onChange={(e) =>
+                onDrawMethodChange(e.target.value as WaveformDrawMethod)
+              }
+              sx={{ bgcolor: "background.paper" }}
+            >
+              {WAVEFORM_DRAW_METHODS.map((dm) => (
+                <MenuItem key={dm} value={dm}>
+                  <Typography variant="body2">
+                    {t(`editor.videoExport.waveformDrawMethod_${dm}`)}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Select>
 
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
-          >
-            {t("editor.videoExport.waveformColor")}
-          </Typography>
-          <ColorPaletteGrid
-            palette={PALETTE}
-            activeColor={color}
-            onColorSelect={handleColorSelect}
-          />
-          <ColorHexInput
-            colorInput={colorInput}
-            bgColor={color}
-            onChange={handleColorInputChange}
-          />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformColor")}
+            </Typography>
+            <ColorPaletteGrid
+              palette={PALETTE}
+              activeColor={color}
+              onColorSelect={handleColorSelect}
+            />
+            <ColorHexInput
+              colorInput={colorInput}
+              bgColor={color}
+              onChange={handleColorInputChange}
+            />
 
-          <LabeledSlider
-            label={t("editor.videoExport.waveformOpacity")}
-            value={opacity}
-            onChange={onOpacityChange}
-            min={0}
-            max={100}
-            unit="%"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformX")}
-            value={xPercent}
-            onChange={onXPercentChange}
-            min={0}
-            max={100}
-            unit="%"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformY")}
-            value={yPercent}
-            onChange={onYPercentChange}
-            min={0}
-            max={100}
-            unit="%"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformRotation")}
-            value={rotation}
-            onChange={onRotationChange}
-            min={-180}
-            max={180}
-            unit="deg"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformWidth")}
-            value={widthPercent}
-            onChange={onWidthPercentChange}
-            min={1}
-            max={100}
-            unit="%"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformHeight")}
-            value={heightPercent}
-            onChange={onHeightPercentChange}
-            min={1}
-            max={100}
-            unit="%"
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.waveformWindowSize")}
-            value={windowSize}
-            onChange={onWindowSizeChange}
-            min={WAVEFORM_WINDOW_SIZE_MIN}
-            max={WAVEFORM_WINDOW_SIZE_MAX}
-            step={256}
-          />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformOpacity")}
+              value={opacity}
+              onChange={onOpacityChange}
+              min={0}
+              max={100}
+              unit="%"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformStrokeWidth")}
+              value={strokeWidthPx}
+              onChange={onStrokeWidthPxChange}
+              min={WAVEFORM_STROKE_WIDTH_PX_MIN}
+              max={WAVEFORM_STROKE_WIDTH_PX_MAX}
+              unit="px"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformX")}
+              value={xPercent}
+              onChange={onXPercentChange}
+              min={-100}
+              max={200}
+              unit="%"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformY")}
+              value={yPercent}
+              onChange={onYPercentChange}
+              min={-100}
+              max={200}
+              unit="%"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformRotation")}
+              value={rotation}
+              onChange={onRotationChange}
+              min={-180}
+              max={180}
+              unit="°"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformWidth")}
+              value={widthPercent}
+              onChange={onWidthPercentChange}
+              min={1}
+              max={100}
+              unit="%"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformHeight")}
+              value={heightPercent}
+              onChange={onHeightPercentChange}
+              min={1}
+              max={100}
+              unit="%"
+            />
+            <LabeledSlider
+              label={t("editor.videoExport.waveformWindowSize")}
+              value={windowSize}
+              onChange={onWindowSizeChange}
+              min={WAVEFORM_WINDOW_SIZE_MIN}
+              max={WAVEFORM_WINDOW_SIZE_MAX}
+              step={256}
+              unit=""
+            />
 
-          {type === "oscilloscope-circular" && (
-            <>
-              <LabeledSlider
-                label={t("editor.videoExport.waveformStartAngle")}
-                value={startAngle}
-                onChange={onStartAngleChange}
-                min={-180}
-                max={180}
-                unit="deg"
-              />
-              <LabeledSlider
-                label={t("editor.videoExport.waveformRotationSpeed")}
-                value={rotationSpeed}
-                onChange={onRotationSpeedChange}
-                min={WAVEFORM_ROTATION_SPEED_MIN}
-                max={WAVEFORM_ROTATION_SPEED_MAX}
-                unit="deg/s"
-                valueMinWidth={72}
-              />
-            </>
-          )}
-
-          <Button
-            variant="contained"
-            color={isPreviewPlaying ? "error" : "primary"}
-            size="small"
-            fullWidth
-            sx={{ mt: 1.25 }}
-            onClick={isPreviewPlaying ? onStopPreview : onStartPreview}
-          >
-            {isPreviewPlaying
-              ? t("editor.videoExport.waveformPreviewSineStop")
-              : t("editor.videoExport.waveformPreviewSine")}
-          </Button>
-        </Box>
+            {type === "oscilloscope-circular" && (
+              <>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformStartAngle")}
+                  value={startAngle}
+                  onChange={onStartAngleChange}
+                  min={-180}
+                  max={180}
+                  unit="°"
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformRotationSpeed")}
+                  value={rotationSpeed}
+                  onChange={onRotationSpeedChange}
+                  min={WAVEFORM_ROTATION_SPEED_MIN}
+                  max={WAVEFORM_ROTATION_SPEED_MAX}
+                  unit="°/s"
+                  valueMinWidth={72}
+                />
+              </>
+            )}
+          </AccordionDetails>
+        </Accordion>
       )}
     </Box>
   );

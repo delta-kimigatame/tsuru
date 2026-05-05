@@ -174,6 +174,40 @@ export const VideoExportDialog: React.FC<Props> = ({
               />
             )}
 
+            <WaveformEffectSection
+              enabled={form.waveformEnabled}
+              type={form.waveformType}
+              drawMethod={form.waveformDrawMethod}
+              color={form.waveformColor}
+              opacity={form.waveformOpacity}
+              xPercent={form.waveformXPercent}
+              yPercent={form.waveformYPercent}
+              rotation={form.waveformRotation}
+              widthPercent={form.waveformWidthPercent}
+              heightPercent={form.waveformHeightPercent}
+              startAngle={form.waveformStartAngle}
+              rotationSpeed={form.waveformRotationSpeed}
+              windowSize={form.waveformWindowSize}
+              strokeWidthPx={form.waveformStrokeWidthPx}
+              isPreviewPlaying={form.isWaveformSinePreviewPlaying}
+              onEnabledChange={form.setWaveformEnabled}
+              onTypeChange={form.setWaveformType}
+              onDrawMethodChange={form.setWaveformDrawMethod}
+              onColorChange={form.setWaveformColor}
+              onOpacityChange={form.setWaveformOpacity}
+              onXPercentChange={form.setWaveformXPercent}
+              onYPercentChange={form.setWaveformYPercent}
+              onRotationChange={form.setWaveformRotation}
+              onWidthPercentChange={form.setWaveformWidthPercent}
+              onHeightPercentChange={form.setWaveformHeightPercent}
+              onStartAngleChange={form.setWaveformStartAngle}
+              onRotationSpeedChange={form.setWaveformRotationSpeed}
+              onWindowSizeChange={form.setWaveformWindowSize}
+              onStrokeWidthPxChange={form.setWaveformStrokeWidthPx}
+              onStartPreview={form.startWaveformSinePreview}
+              onStopPreview={form.stopWaveformSinePreview}
+            />
+
             {portraitBlob && (
               <PortraitSection
                 showPortrait={form.showPortrait}
@@ -356,38 +390,6 @@ export const VideoExportDialog: React.FC<Props> = ({
               isAnimPreviewPlaying={form.isAnimPreviewPlaying}
               onStartAnimPreview={form.startAnimPreview}
               onStopAnimPreview={form.stopAnimPreview}
-            />
-
-            <WaveformEffectSection
-              enabled={form.waveformEnabled}
-              type={form.waveformType}
-              drawMethod={form.waveformDrawMethod}
-              color={form.waveformColor}
-              opacity={form.waveformOpacity}
-              xPercent={form.waveformXPercent}
-              yPercent={form.waveformYPercent}
-              rotation={form.waveformRotation}
-              widthPercent={form.waveformWidthPercent}
-              heightPercent={form.waveformHeightPercent}
-              startAngle={form.waveformStartAngle}
-              rotationSpeed={form.waveformRotationSpeed}
-              windowSize={form.waveformWindowSize}
-              isPreviewPlaying={form.isWaveformSinePreviewPlaying}
-              onEnabledChange={form.setWaveformEnabled}
-              onTypeChange={form.setWaveformType}
-              onDrawMethodChange={form.setWaveformDrawMethod}
-              onColorChange={form.setWaveformColor}
-              onOpacityChange={form.setWaveformOpacity}
-              onXPercentChange={form.setWaveformXPercent}
-              onYPercentChange={form.setWaveformYPercent}
-              onRotationChange={form.setWaveformRotation}
-              onWidthPercentChange={form.setWaveformWidthPercent}
-              onHeightPercentChange={form.setWaveformHeightPercent}
-              onStartAngleChange={form.setWaveformStartAngle}
-              onRotationSpeedChange={form.setWaveformRotationSpeed}
-              onWindowSizeChange={form.setWaveformWindowSize}
-              onStartPreview={form.startWaveformSinePreview}
-              onStopPreview={form.stopWaveformSinePreview}
             />
           </Box>
 

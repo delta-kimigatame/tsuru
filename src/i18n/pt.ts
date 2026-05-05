@@ -537,6 +537,7 @@ export const translationPt = {
       waveformDrawMethod_dots: "Pontos",
       waveformColor: "Cor",
       waveformOpacity: "Opacidade",
+      waveformStrokeWidth: "Espessura da linha",
       waveformX: "Posição X",
       waveformY: "Posição Y",
       waveformRotation: "Rotação",
