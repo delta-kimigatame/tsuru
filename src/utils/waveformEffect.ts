@@ -104,6 +104,8 @@ export interface WaveformEffectOptions {
   fftShape: WaveformFftShape;
   /** FFTゲージ時の形状 */
   fftGaugeShape: WaveformFftGaugeShape;
+  /** FFTゲージの分解能（0=自動） */
+  fftGaugeSegments: number;
   /** FFT表示バンド数 */
   fftBinCount: number;
   /** FFTサイズ */
@@ -159,19 +161,28 @@ export function extractMonoSamplesFromWav(
 }
 
 // ---------------------------------------------------------------------------
-// サイン波生成（プレビュー用）
+// チープ波形生成（プレビュー用）
 // ---------------------------------------------------------------------------
 
-/** 440Hz 正弦波 Float32 サンプル列を生成する（プレビューアニメーション用）*/
-export function generateSineWave(
-  hz: number,
+/**
+ * チープ波形（周波数スイープ）を生成する。
+ * 開始周波数から終了周波数へ線形に周波数が変化する波形。
+ * FFTとオシロスコープ両方の視覚化に適している。
+ */
+export function generateChirpWave(
+  startHz: number,
+  endHz: number,
   durationSec: number,
   sampleRate: number,
 ): Float32Array {
   const len = Math.ceil(durationSec * sampleRate);
   const out = new Float32Array(len);
-  const angFreq = (2 * Math.PI * hz) / sampleRate;
+  const freqRate = (endHz - startHz) / durationSec; // Hz/sec
+
   for (let i = 0; i < len; i++) {
+    const t = i / sampleRate;
+    const freq = startHz + freqRate * t;
+    const angFreq = (2 * Math.PI * freq) / sampleRate;
     out[i] = Math.sin(angFreq * i);
   }
   return out;
@@ -549,7 +560,12 @@ function drawFftHorizontal(
   ctx.lineCap = "round";
 
   const pts = buildHorizontalFftPoints(fftBins, halfW, halfH);
-  const fftSamples = Float32Array.from(fftBins, (value) =>
+  // 色相グラデーション用に位置ベースのサンプル値を生成（振幅ではなく周波数位置→色相）
+  const fftPosSamples = Float32Array.from(
+    { length: fftBins.length },
+    (_, i) => (i / Math.max(1, fftBins.length - 1)) * 2 - 1,
+  );
+  const fftAmpSamples = Float32Array.from(fftBins, (value) =>
     fftValueToSigned(value),
   );
   const baseHsl = hexToHsl(options.color);
@@ -618,21 +634,22 @@ function drawFftHorizontal(
       if (options.colorMode === "solid") {
         drawPolyline(ctx, pts, false);
       } else {
-        drawPolylineGradient(ctx, pts, fftSamples, options, false);
+        drawPolylineGradient(ctx, pts, fftPosSamples, options, false);
       }
       break;
     case "curve":
       if (options.colorMode === "solid") {
         drawCurve(ctx, pts);
       } else {
-        drawPolylineGradient(ctx, pts, fftSamples, options, false);
+        drawPolylineGradient(ctx, pts, fftPosSamples, options, false);
       }
       break;
     case "fill":
       if (options.colorMode === "solid") {
         drawFill(ctx, pts);
       } else {
-        drawFillGradient(ctx, pts, options, false, 0, halfH);
+        // halfH=0 を渡してグラデーション範囲を pts の実際の y 範囲に合わせる（FFT bins は y≤0 のみ）
+        drawFillGradient(ctx, pts, options, false, 0, 0);
       }
       break;
   }
@@ -669,8 +686,9 @@ function drawFftCircular(
   ctx.lineCap = "round";
 
   const pts = buildCircularFftPoints(fftBins, baseR, ampR, startAngleRad);
-  const fftSamples = Float32Array.from(fftBins, (value) =>
-    fftValueToSigned(value),
+  const fftPosSamples = Float32Array.from(
+    { length: fftBins.length },
+    (_, i) => (i / Math.max(1, fftBins.length - 1)) * 2 - 1,
   );
   const baseHsl = hexToHsl(options.color);
 
@@ -743,21 +761,21 @@ function drawFftCircular(
       if (options.colorMode === "solid") {
         drawPolyline(ctx, pts, true);
       } else {
-        drawPolylineGradient(ctx, pts, fftSamples, options, true);
+        drawPolylineGradient(ctx, pts, fftPosSamples, options, true);
       }
       break;
     case "curve":
       if (options.colorMode === "solid") {
         drawCurveCircular(ctx, pts);
       } else {
-        drawPolylineGradient(ctx, pts, fftSamples, options, true);
+        drawPolylineGradient(ctx, pts, fftPosSamples, options, true);
       }
       break;
     case "fill":
       if (options.colorMode === "solid") {
         drawFillCircular(ctx, pts, baseR);
       } else {
-        drawFillGradient(ctx, pts, options, true, baseR);
+        drawFillGradient(ctx, pts, options, true, baseR, 0, startAngleRad);
       }
       break;
   }
@@ -808,16 +826,13 @@ function drawFftBarsHorizontal(
 ): void {
   const fullW = halfW * 2;
   const bandW = fullW / fftBins.length;
+  const barW = Math.max(1, bandW * 0.8);
   ctx.save();
-  ctx.lineWidth = Math.max(
-    scaledStrokeWidthPx(options.strokeWidthPx, renderScale),
-    Math.min(bandW * 0.75, 24 * renderScale),
-  );
   for (let i = 0; i < fftBins.length; i++) {
     const value = clamp01(fftBins[i]);
-    const x = -halfW + bandW * (i + 0.5);
-    const h = value * halfH;
-    ctx.strokeStyle = getFftBinColor(
+    const cx = -halfW + bandW * (i + 0.5);
+    const h = Math.max(1, value * halfH);
+    ctx.fillStyle = getFftBinColor(
       options,
       baseHsl,
       value,
@@ -825,15 +840,11 @@ function drawFftBarsHorizontal(
       fftBins.length,
       false,
     );
-    ctx.beginPath();
     if (centered) {
-      ctx.moveTo(x, -h / 2);
-      ctx.lineTo(x, h / 2);
+      ctx.fillRect(cx - barW / 2, -h / 2, barW, h);
     } else {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, -h);
+      ctx.fillRect(cx - barW / 2, -h, barW, h);
     }
-    ctx.stroke();
   }
   ctx.restore();
 }
@@ -849,20 +860,18 @@ function drawFftBarsCircular(
   baseHsl: Hsl,
   centered: boolean,
 ): void {
+  const slotAngle = (2 * Math.PI) / fftBins.length;
   const circumference = 2 * Math.PI * Math.max(baseR, 1);
   const slot = circumference / fftBins.length;
+  const barAngle = slotAngle * 0.8;
   ctx.save();
-  ctx.lineWidth = Math.max(
-    scaledStrokeWidthPx(options.strokeWidthPx, renderScale),
-    Math.min(slot * 0.5, 16 * renderScale),
-  );
   for (let i = 0; i < fftBins.length; i++) {
     const value = clamp01(fftBins[i]);
     const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
-    const radial = value * ampR;
+    const radial = Math.max(1, value * ampR);
     const inner = centered ? Math.max(0, baseR - radial / 2) : baseR;
     const outer = centered ? baseR + radial / 2 : baseR + radial;
-    ctx.strokeStyle = getFftBinColor(
+    ctx.fillStyle = getFftBinColor(
       options,
       baseHsl,
       value,
@@ -870,10 +879,12 @@ function drawFftBarsCircular(
       fftBins.length,
       true,
     );
-    ctx.beginPath();
-    ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
-    ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
-    ctx.stroke();
+    // 矩形バーを扇形ではなく直線セグメントとして描画（角ばった外観）
+    ctx.save();
+    ctx.rotate(angle);
+    const halfW = Math.min(slot * 0.4, Math.max(1, (inner * barAngle) / 2));
+    ctx.fillRect(-halfW, inner, halfW * 2, radial);
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -889,30 +900,38 @@ function drawFftGaugeHorizontal(
 ): void {
   const fullW = halfW * 2;
   const bandW = fullW / fftBins.length;
-  const segmentSize = Math.max(
-    4 * renderScale,
-    scaledStrokeWidthPx(options.strokeWidthPx, renderScale) * 4,
+  const gap = Math.max(1 * renderScale, 2 * renderScale);
+  const maxSegments = Math.max(
+    1,
+    options.fftGaugeSegments > 0 ? options.fftGaugeSegments : 5,
   );
-  const gap = Math.max(2 * renderScale, segmentSize * 0.25);
-  const maxSegments = Math.max(1, Math.floor(halfH / (segmentSize + gap)));
-  const minorSize = Math.max(
-    2 * renderScale,
-    Math.min(bandW * 0.7, 18 * renderScale),
-  );
+
+  // ゲージ全体の高さを maxSegments で分割
+  const totalHeight = 2 * halfH;
+  const segmentSizeBase =
+    (totalHeight - gap * Math.max(0, maxSegments - 1)) / maxSegments;
+  const segmentSize = Math.max(2 * renderScale, segmentSizeBase);
+
+  // bar のみ minorSize（x方向の幅）、square/circle は segmentSize との小さい方を採用
+  const minorSizeBar = Math.max(1 * renderScale, bandW * 0.6);
+  const minorSizeSquareCircle = Math.min(bandW * 0.6, segmentSize);
 
   for (let i = 0; i < fftBins.length; i++) {
     const value = clamp01(fftBins[i]);
     const filledSegments = Math.max(0, Math.round(value * maxSegments));
     const x = -halfW + bandW * (i + 0.5);
-    ctx.fillStyle = getFftBinColor(
-      options,
-      baseHsl,
-      value,
-      i,
-      fftBins.length,
-      false,
-    );
     for (let s = 0; s < filledSegments; s++) {
+      const segFrac = maxSegments > 1 ? s / (maxSegments - 1) : 1;
+      ctx.fillStyle = getFftSegmentColor(
+        options,
+        baseHsl,
+        segFrac,
+        i,
+        fftBins.length,
+        false,
+      );
+      const minorSize =
+        options.fftGaugeShape === "bar" ? minorSizeBar : minorSizeSquareCircle;
       const y = -(segmentSize / 2 + s * (segmentSize + gap));
       drawFftGaugeGlyph(
         ctx,
@@ -937,27 +956,43 @@ function drawFftGaugeCircular(
   renderScale: number,
   baseHsl: Hsl,
 ): void {
-  const segmentSize = Math.max(
-    4 * renderScale,
-    scaledStrokeWidthPx(options.strokeWidthPx, renderScale) * 4,
+  const gap = Math.max(1 * renderScale, 2 * renderScale);
+  const maxSegments = Math.max(
+    1,
+    options.fftGaugeSegments > 0 ? options.fftGaugeSegments : 5,
   );
-  const gap = Math.max(2 * renderScale, segmentSize * 0.25);
-  const maxSegments = Math.max(1, Math.floor(ampR / (segmentSize + gap)));
-  const minorSize = Math.max(2 * renderScale, segmentSize * 0.55);
+
+  // ゲージ全体の半径を maxSegments で分割
+  const totalRadius = ampR;
+  const segmentSizeBase =
+    (totalRadius - gap * Math.max(0, maxSegments - 1)) / maxSegments;
+  const segmentSize = Math.max(2 * renderScale, segmentSizeBase);
+
+  // 円周上のスロット幅
+  const circumference = 2 * Math.PI * Math.max(baseR, 1);
+  const slotWidth = circumference / fftBins.length;
+
+  // bar のみ minorSize（角度方向の幅）
+  // square/circle は slotWidth との小さい方を採用
+  const minorSizeBar = Math.max(1 * renderScale, slotWidth * 0.5);
+  const minorSizeSquareCircle = Math.min(slotWidth * 0.5, segmentSize);
 
   for (let i = 0; i < fftBins.length; i++) {
     const value = clamp01(fftBins[i]);
     const filledSegments = Math.max(0, Math.round(value * maxSegments));
     const angle = startAngleRad + (i / fftBins.length) * 2 * Math.PI;
-    ctx.fillStyle = getFftBinColor(
-      options,
-      baseHsl,
-      value,
-      i,
-      fftBins.length,
-      true,
-    );
     for (let s = 0; s < filledSegments; s++) {
+      const segFrac = maxSegments > 1 ? s / (maxSegments - 1) : 1;
+      ctx.fillStyle = getFftSegmentColor(
+        options,
+        baseHsl,
+        segFrac,
+        i,
+        fftBins.length,
+        true,
+      );
+      const minorSize =
+        options.fftGaugeShape === "bar" ? minorSizeBar : minorSizeSquareCircle;
       const r = baseR + segmentSize / 2 + s * (segmentSize + gap);
       drawFftGaugeGlyph(
         ctx,
@@ -1087,12 +1122,29 @@ function getFftBinColor(
   total: number,
   close: boolean,
 ): string {
-  return sampleColorToCss(
-    options.colorMode,
-    baseHsl,
-    fftValueToSigned(value),
-    normalizedHorizontal(index, total, close),
-  );
+  const tH = normalizedHorizontal(index, total, close);
+  // hueHorizontal ではバンド位置のみで色相を決定（振幅に依存しない）
+  const sample =
+    options.colorMode === "hueHorizontal" ? 0 : fftValueToSigned(value);
+  return sampleColorToCss(options.colorMode, baseHsl, sample, tH);
+}
+
+/**
+ * ゲージセグメント用: segFrac(0=底/1=頂点)ベースで色を決定。
+ * hueHorizontal ではバンド位置のみで色を決定（全セグメント同色）。
+ */
+function getFftSegmentColor(
+  options: WaveformEffectOptions,
+  baseHsl: Hsl,
+  segFrac: number,
+  index: number,
+  total: number,
+  close: boolean,
+): string {
+  const tH = normalizedHorizontal(index, total, close);
+  // hueHorizontal: バンド固有の色（強さ無関係）
+  const sample = options.colorMode === "hueHorizontal" ? 0 : segFrac * 2 - 1;
+  return sampleColorToCss(options.colorMode, baseHsl, sample, tH);
 }
 
 function fftValueToSigned(value: number): number {
@@ -1270,6 +1322,7 @@ function drawFillGradient(
   isCircular = false,
   baseR = 0,
   halfH = 0,
+  startAngleRad = 0,
 ): void {
   if (pts.length < 2) return;
   const baseHsl = hexToHsl(options.color);
@@ -1293,24 +1346,39 @@ function drawFillGradient(
   const gradBottom = halfH > 0 ? halfH : ptsMaxY;
   const gradTop = halfH > 0 ? -halfH : ptsMinY;
 
-  // 円形モードは放射状グラデーション(基底円縁→波形外縁)、通常は線形グラデーション
-  const grad: CanvasGradient = isCircular
-    ? ctx.createRadialGradient(0, 0, baseR, 0, 0, maxR || 1)
-    : options.colorMode === "hueHorizontal"
-      ? ctx.createLinearGradient(minX, 0, maxX, 0)
-      : ctx.createLinearGradient(0, gradBottom, 0, gradTop);
+  // 円形 hueHorizontal はコニックグラデーション（周波数=角度に沿って色相変化）
+  // 円形 hueVertical は放射状グラデーション（半径方向に色相変化）
+  // 通常は線形グラデーション
+  const isConicHue = isCircular && options.colorMode === "hueHorizontal";
+  const grad: CanvasGradient = isConicHue
+    ? (
+        ctx as CanvasRenderingContext2D & {
+          createConicGradient(
+            startAngle: number,
+            x: number,
+            y: number,
+          ): CanvasGradient;
+        }
+      ).createConicGradient(startAngleRad, 0, 0)
+    : isCircular
+      ? ctx.createRadialGradient(0, 0, baseR, 0, 0, maxR || 1)
+      : options.colorMode === "hueHorizontal"
+        ? ctx.createLinearGradient(minX, 0, maxX, 0)
+        : ctx.createLinearGradient(0, gradBottom, 0, gradTop);
 
   if (
     options.colorMode === "hueVertical" ||
     options.colorMode === "hueHorizontal"
   ) {
-    grad.addColorStop(0, hslToCss(0, baseHsl.s, baseHsl.l));
-    grad.addColorStop(0.17, hslToCss(60, baseHsl.s, baseHsl.l));
-    grad.addColorStop(0.33, hslToCss(120, baseHsl.s, baseHsl.l));
-    grad.addColorStop(0.5, hslToCss(180, baseHsl.s, baseHsl.l));
-    grad.addColorStop(0.67, hslToCss(240, baseHsl.s, baseHsl.l));
-    grad.addColorStop(0.83, hslToCss(300, baseHsl.s, baseHsl.l));
-    grad.addColorStop(1, hslToCss(360, baseHsl.s, baseHsl.l));
+    // baseHsl.h を起点（低周波数）としてスペクトル順に色相を展開
+    const h0 = baseHsl.h;
+    grad.addColorStop(0, hslToCss(h0, baseHsl.s, baseHsl.l));
+    grad.addColorStop(0.17, hslToCss(h0 + 60, baseHsl.s, baseHsl.l));
+    grad.addColorStop(0.33, hslToCss(h0 + 120, baseHsl.s, baseHsl.l));
+    grad.addColorStop(0.5, hslToCss(h0 + 180, baseHsl.s, baseHsl.l));
+    grad.addColorStop(0.67, hslToCss(h0 + 240, baseHsl.s, baseHsl.l));
+    grad.addColorStop(0.83, hslToCss(h0 + 300, baseHsl.s, baseHsl.l));
+    grad.addColorStop(1, hslToCss(h0 + 360, baseHsl.s, baseHsl.l));
   } else if (options.colorMode === "lightness") {
     const l0 = Math.round(baseHsl.l * 0.5);
     const l1 = Math.min(100, baseHsl.l * 2);

@@ -561,9 +561,10 @@ export const translationJa = {
       waveformWindowSize: "ウィンドウサイズ",
       waveformFftBinCount: "FFTバンド数",
       waveformFftSize: "FFTサイズ",
+      waveformFftGaugeSegments: "ゲージ分解能 (0=自動)",
       waveformStartAngle: "開始角度",
       waveformRotationSpeed: "回転速度",
-      waveformPreviewSine: "プレビュー（サイン波）",
+      waveformPreviewSine: "プレビュー（チープ波）",
       waveformPreviewSineStop: "プレビュー停止",
     },
     mixMaster: {

@@ -22,6 +22,8 @@ import {
   PALETTE,
   WAVEFORM_FFT_BIN_COUNT_MAX,
   WAVEFORM_FFT_BIN_COUNT_MIN,
+  WAVEFORM_FFT_GAUGE_SEGMENTS_MAX,
+  WAVEFORM_FFT_GAUGE_SEGMENTS_MIN,
   WAVEFORM_FFT_SIZE_MAX,
   WAVEFORM_FFT_SIZE_MIN,
   WAVEFORM_ROTATION_SPEED_MAX,
@@ -53,6 +55,7 @@ type Props = {
   drawMethod: WaveformDrawMethod;
   fftShape: WaveformFftShape;
   fftGaugeShape: WaveformFftGaugeShape;
+  fftGaugeSegments: number;
   fftBinCount: number;
   fftSize: number;
   color: string;
@@ -73,6 +76,7 @@ type Props = {
   onDrawMethodChange: (v: WaveformDrawMethod) => void;
   onFftShapeChange: (v: WaveformFftShape) => void;
   onFftGaugeShapeChange: (v: WaveformFftGaugeShape) => void;
+  onFftGaugeSegmentsChange: (v: number) => void;
   onFftBinCountChange: (v: number) => void;
   onFftSizeChange: (v: number) => void;
   onColorChange: (v: string) => void;
@@ -97,6 +101,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   drawMethod,
   fftShape,
   fftGaugeShape,
+  fftGaugeSegments,
   fftBinCount,
   fftSize,
   color,
@@ -117,6 +122,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onDrawMethodChange,
   onFftShapeChange,
   onFftGaugeShapeChange,
+  onFftGaugeSegmentsChange,
   onFftBinCountChange,
   onFftSizeChange,
   onColorChange,
@@ -317,6 +323,15 @@ export const WaveformEffectSection: React.FC<Props> = ({
                         </MenuItem>
                       ))}
                     </Select>
+                    <LabeledSlider
+                      label={t("editor.videoExport.waveformFftGaugeSegments")}
+                      value={fftGaugeSegments}
+                      onChange={onFftGaugeSegmentsChange}
+                      min={WAVEFORM_FFT_GAUGE_SEGMENTS_MIN}
+                      max={WAVEFORM_FFT_GAUGE_SEGMENTS_MAX}
+                      step={1}
+                      unit=""
+                    />
                   </>
                 )}
               </>

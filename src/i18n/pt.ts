@@ -567,9 +567,10 @@ export const translationPt = {
       waveformWindowSize: "Tamanho da janela",
       waveformFftBinCount: "Bandas FFT",
       waveformFftSize: "Tamanho FFT",
+      waveformFftGaugeSegments: "Segmentos do gauge (0=auto)",
       waveformStartAngle: "Ângulo inicial",
       waveformRotationSpeed: "Velocidade de rotação",
-      waveformPreviewSine: "Pré-visualizar (onda senoidal)",
+      waveformPreviewSine: "Pré-visualizar (onda Chirp)",
       waveformPreviewSineStop: "Parar pré-visualização",
     },
     mixMaster: {

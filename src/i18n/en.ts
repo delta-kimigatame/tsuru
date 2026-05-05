@@ -559,9 +559,10 @@ export const translationEn = {
       waveformWindowSize: "Window size",
       waveformFftBinCount: "FFT bands",
       waveformFftSize: "FFT size",
+      waveformFftGaugeSegments: "Gauge segments (0=auto)",
       waveformStartAngle: "Start angle",
       waveformRotationSpeed: "Rotation speed",
-      waveformPreviewSine: "Preview (sine wave)",
+      waveformPreviewSine: "Preview (Chirp wave)",
       waveformPreviewSineStop: "Stop preview",
     },
     mixMaster: {

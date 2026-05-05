@@ -549,9 +549,10 @@ export const translationZh = {
       waveformWindowSize: "窗口大小",
       waveformFftBinCount: "FFT 频带数",
       waveformFftSize: "FFT 大小",
+      waveformFftGaugeSegments: "表头分辨率 (0=自动)",
       waveformStartAngle: "起始角度",
       waveformRotationSpeed: "旋转速度",
-      waveformPreviewSine: "预览（正弦波）",
+      waveformPreviewSine: "预览（Chirp波）",
       waveformPreviewSineStop: "停止预览",
     },
     mixMaster: {

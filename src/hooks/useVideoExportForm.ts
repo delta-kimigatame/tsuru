@@ -106,6 +106,7 @@ import {
   DEFAULT_WAVEFORM_DRAW_METHOD,
   DEFAULT_WAVEFORM_ENABLED,
   DEFAULT_WAVEFORM_FFT_BIN_COUNT,
+  DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS,
   DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE,
   DEFAULT_WAVEFORM_FFT_SHAPE,
   DEFAULT_WAVEFORM_FFT_SIZE,
@@ -159,8 +160,9 @@ import {
   type VideoResolution,
 } from "../utils/videoExport";
 import {
+  buildWaveformFftCache,
   drawWaveformEffect,
-  generateSineWave,
+  generateChirpWave,
   type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformEffectOptions,
@@ -690,6 +692,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [waveformFftSize, setWaveformFftSize] = React.useState<number>(
     DEFAULT_WAVEFORM_FFT_SIZE,
   );
+  const [waveformFftGaugeSegments, setWaveformFftGaugeSegments] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
 
   const waveformOptions = React.useMemo<WaveformEffectOptions>(
     () => ({
@@ -698,6 +702,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       drawMethod: waveformDrawMethod,
       fftShape: waveformFftShape,
       fftGaugeShape: waveformFftGaugeShape,
+      fftGaugeSegments: waveformFftGaugeSegments,
       color: waveformColor,
       colorMode: waveformColorMode,
       opacity: waveformOpacity,
@@ -719,6 +724,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformDrawMethod,
       waveformFftShape,
       waveformFftGaugeShape,
+      waveformFftGaugeSegments,
       waveformColor,
       waveformColorMode,
       waveformOpacity,
@@ -1075,6 +1081,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformStrokeWidthPx(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
       setWaveformFftBinCount(DEFAULT_WAVEFORM_FFT_BIN_COUNT);
       setWaveformFftSize(DEFAULT_WAVEFORM_FFT_SIZE);
+      setWaveformFftGaugeSegments(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -1797,7 +1804,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setIsAnimPreviewPlaying(false);
   }, []);
 
-  /** 波形サイン波プレビュー開始 — 440Hz 正弦波 1 秒を rAF ループで描画する */
+  /** 波形プレビュー開始 — 50→800Hz チープ波 0.8秒を rAF ループで描画する */
   const startWaveformSinePreview = React.useCallback(() => {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
@@ -1805,12 +1812,23 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     if (!ctx) return;
     if (bgSize === "image" && !imagePreviewUrl) return;
 
-    const SINE_SAMPLE_RATE = 44100;
-    const SINE_DURATION_SEC = 1;
-    const sineSamples = generateSineWave(
-      440,
-      SINE_DURATION_SEC,
-      SINE_SAMPLE_RATE,
+    const CHIRP_SAMPLE_RATE = 44100;
+    const CHIRP_DURATION_SEC = 1.5;
+    const CHIRP_START_HZ = 50;
+    const CHIRP_END_HZ = 10000;
+    const chirpSamples = generateChirpWave(
+      CHIRP_START_HZ,
+      CHIRP_END_HZ,
+      CHIRP_DURATION_SEC,
+      CHIRP_SAMPLE_RATE,
+    );
+
+    // プレビュー用にFFTキャッシュを事前計算する
+    const chirpFftCache = buildWaveformFftCache(
+      chirpSamples,
+      CHIRP_SAMPLE_RATE,
+      waveformOptions.fftSize,
+      waveformOptions.fftBinCount,
     );
 
     waveformSinePreviewActiveRef.current = true;
@@ -1820,19 +1838,20 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     const loop = (img: HTMLImageElement | null) => {
       if (!waveformSinePreviewActiveRef.current) return;
       const elapsed =
-        ((performance.now() - startTime) / 1000) % SINE_DURATION_SEC;
+        ((performance.now() - startTime) / 1000) % CHIRP_DURATION_SEC;
       const metrics = renderPreviewBase(ctx, canvas, img);
       if (!metrics) return;
       if (waveformOptions.enabled) {
         drawWaveformEffect(
           ctx,
-          sineSamples,
+          chirpSamples,
           waveformOptions,
           metrics.pw,
           metrics.ph,
           elapsed,
-          SINE_SAMPLE_RATE,
+          CHIRP_SAMPLE_RATE,
           metrics.prevScale,
+          chirpFftCache,
         );
       }
       waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
@@ -2139,6 +2158,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformFftBinCount,
     waveformFftSize,
     setWaveformFftSize,
+    waveformFftGaugeSegments,
+    setWaveformFftGaugeSegments,
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,
