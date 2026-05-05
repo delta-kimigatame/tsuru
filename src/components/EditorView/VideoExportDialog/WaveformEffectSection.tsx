@@ -16,7 +16,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   PALETTE,
@@ -172,6 +172,11 @@ export const WaveformEffectSection: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const [colorInput, setColorInput] = useState(color);
+
+  useEffect(() => {
+    setColorInput(color);
+  }, [color]);
+
   const isFftType = type === "fft-horizontal" || type === "fft-circular";
   const isFftIconType = type.startsWith("fft-icon-");
   const isMirrorType =
