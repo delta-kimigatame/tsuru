@@ -552,6 +552,7 @@ export const translationZh = {
       waveformFftIconStrengthMode_hue_by_power: "功率色相",
       waveformFftIconStrengthMode_band_hue_glow: "频带色相+发光",
       waveformFftIconSizePercent: "图标大小",
+      waveformFftIconGlowStrength: "发光强度",
       waveformColor: "颜色",
       waveformColorMode: "颜色模式",
       waveformColorMode_solid: "纯色",

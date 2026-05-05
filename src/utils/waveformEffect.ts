@@ -160,6 +160,8 @@ export interface WaveformEffectOptions {
   fftIconStrengthMode: WaveformFftIconStrengthMode;
   /** FFT アイコングリッド: アイコンサイズ比率（%、100=最大） */
   fftIconSizePercent: number;
+  /** FFT アイコングリッド: グロー最大強度（px、glow/band-hue-glow モードで使用） */
+  fftIconGlowStrength: number;
 }
 
 export interface WaveformFftCache {
@@ -1596,13 +1598,14 @@ function computeFftIconVisual(
   bandIndex: number,
   totalBands: number,
   renderScale: number,
+  glowStrength: number,
 ): { color: string; glowPx: number } {
   const p = clamp01(normalizedPower);
   switch (mode) {
     case "glow":
       return {
         color: hslToCss(baseHsl.h, baseHsl.s, baseHsl.l),
-        glowPx: p * 20 * renderScale,
+        glowPx: p * glowStrength * renderScale,
       };
     case "lightness": {
       const l = lerp(20, 90, p);
@@ -1621,7 +1624,7 @@ function computeFftIconVisual(
       const hue = baseHsl.h + (bandIndex / Math.max(1, totalBands)) * 360;
       return {
         color: hslToCss(hue, baseHsl.s, baseHsl.l),
-        glowPx: p * 20 * renderScale,
+        glowPx: p * glowStrength * renderScale,
       };
     }
   }
@@ -1756,6 +1759,7 @@ function drawFftIconHorizontal(
       i,
       N,
       renderScale,
+      options.fftIconGlowStrength,
     );
     drawFftIconAt(ctx, shape, iconCx, 0, r, visual.color, visual.glowPx);
   }
@@ -1794,6 +1798,7 @@ function drawFftIconVertical(
       i,
       N,
       renderScale,
+      options.fftIconGlowStrength,
     );
     drawFftIconAt(ctx, shape, 0, iconCy, r, visual.color, visual.glowPx);
   }
@@ -1835,6 +1840,7 @@ function drawFftIconHorizontalMirror(
       i,
       N,
       renderScale,
+      options.fftIconGlowStrength,
     );
     drawFftIconAt(ctx, shape, iconX, topY, r, visual.color, visual.glowPx);
     drawFftIconAt(ctx, shape, iconX, bottomY, r, visual.color, visual.glowPx);
@@ -1876,6 +1882,7 @@ function drawFftIconVerticalMirror(
       i,
       N,
       renderScale,
+      options.fftIconGlowStrength,
     );
     drawFftIconAt(ctx, shape, leftX, iconY, r, visual.color, visual.glowPx);
     drawFftIconAt(ctx, shape, rightX, iconY, r, visual.color, visual.glowPx);
@@ -1924,6 +1931,7 @@ function drawFftIconCircular(
       i,
       N,
       renderScale,
+      options.fftIconGlowStrength,
     );
     drawFftIconAt(ctx, shape, iconCx, iconCy, r, visual.color, visual.glowPx);
   }

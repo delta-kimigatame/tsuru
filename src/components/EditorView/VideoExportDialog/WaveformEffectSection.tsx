@@ -24,6 +24,8 @@ import {
   WAVEFORM_FFT_BIN_COUNT_MIN,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MAX,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MIN,
+  WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX,
+  WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN,
   WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX,
   WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN,
   WAVEFORM_FFT_SIZE_MAX,
@@ -67,6 +69,7 @@ type Props = {
   fftIconShape: WaveformFftIconShape;
   fftIconStrengthMode: WaveformFftIconStrengthMode;
   fftIconSizePercent: number;
+  fftIconGlowStrength: number;
   color: string;
   colorMode: WaveformColorMode;
   opacity: number;
@@ -91,6 +94,7 @@ type Props = {
   onFftIconShapeChange: (v: WaveformFftIconShape) => void;
   onFftIconStrengthModeChange: (v: WaveformFftIconStrengthMode) => void;
   onFftIconSizePercentChange: (v: number) => void;
+  onFftIconGlowStrengthChange: (v: number) => void;
   onColorChange: (v: string) => void;
   onColorModeChange: (v: WaveformColorMode) => void;
   onOpacityChange: (v: number) => void;
@@ -119,6 +123,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   fftIconShape,
   fftIconStrengthMode,
   fftIconSizePercent,
+  fftIconGlowStrength,
   color,
   colorMode,
   opacity,
@@ -143,6 +148,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onFftIconShapeChange,
   onFftIconStrengthModeChange,
   onFftIconSizePercentChange,
+  onFftIconGlowStrengthChange,
   onColorChange,
   onColorModeChange,
   onOpacityChange,
@@ -420,6 +426,17 @@ export const WaveformEffectSection: React.FC<Props> = ({
                   max={WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX}
                   unit="%"
                 />
+                {(fftIconStrengthMode === "glow" ||
+                  fftIconStrengthMode === "band-hue-glow") && (
+                  <LabeledSlider
+                    label={t("editor.videoExport.waveformFftIconGlowStrength")}
+                    value={fftIconGlowStrength}
+                    onChange={onFftIconGlowStrengthChange}
+                    min={WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN}
+                    max={WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX}
+                    unit="px"
+                  />
+                )}
               </>
             ) : (
               <Select

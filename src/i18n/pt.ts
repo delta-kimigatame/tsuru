@@ -570,6 +570,7 @@ export const translationPt = {
       waveformFftIconStrengthMode_hue_by_power: "Matiz por potência",
       waveformFftIconStrengthMode_band_hue_glow: "Matiz de banda + brilho",
       waveformFftIconSizePercent: "Tamanho do ícone",
+      waveformFftIconGlowStrength: "Intensidade do brilho",
       waveformColor: "Cor",
       waveformColorMode: "Modo de cor",
       waveformColorMode_solid: "Sólido",

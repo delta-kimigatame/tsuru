@@ -562,6 +562,7 @@ export const translationEn = {
       waveformFftIconStrengthMode_hue_by_power: "Hue by power",
       waveformFftIconStrengthMode_band_hue_glow: "Band hue + glow",
       waveformFftIconSizePercent: "Icon size",
+      waveformFftIconGlowStrength: "Glow strength",
       waveformColor: "Color",
       waveformColorMode: "Color mode",
       waveformColorMode_solid: "Solid",
