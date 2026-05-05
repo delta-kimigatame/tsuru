@@ -336,16 +336,29 @@ function groupFftFrame(
   frame: ArrayLike<number>,
   fftBinCount: number,
 ): Float32Array {
+  // DC成分(index 0)を除いた有効ビン範囲
   const usableStart = Math.min(1, Math.max(0, frame.length - 1));
-  const usableCount = Math.max(1, frame.length - usableStart);
+  const usableEnd = frame.length; // exclusive
+  const usableCount = Math.max(1, usableEnd - usableStart);
   const grouped = new Float32Array(fftBinCount);
 
+  // 対数スペーシング: 低音側に密、高音側に広く分布させる
+  // ビン番号を周波数として扱い log2 スケールで均等割り
+  const logMin = Math.log2(usableStart);
+  const logMax = Math.log2(usableEnd - 1);
+
   for (let groupIndex = 0; groupIndex < fftBinCount; groupIndex++) {
-    const start =
-      usableStart + Math.floor((groupIndex * usableCount) / fftBinCount);
-    const end =
-      usableStart + Math.floor(((groupIndex + 1) * usableCount) / fftBinCount);
-    const actualEnd = Math.max(start + 1, end);
+    const binStart = Math.round(
+      Math.pow(2, logMin + ((logMax - logMin) * groupIndex) / fftBinCount),
+    );
+    const binEnd = Math.round(
+      Math.pow(
+        2,
+        logMin + ((logMax - logMin) * (groupIndex + 1)) / fftBinCount,
+      ),
+    );
+    const start = Math.max(usableStart, binStart);
+    const actualEnd = Math.min(usableEnd, Math.max(start + 1, binEnd));
     let sum = 0;
     let count = 0;
     for (let i = start; i < actualEnd && i < frame.length; i++) {
