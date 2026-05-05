@@ -170,6 +170,8 @@ export interface WaveformFftCache {
   sampleRate: number;
   fftSize: number;
   binCount: number;
+  /** アイコン系タイプ用 EMA スムージング状態（フレーム間で維持される） */
+  smoothedBins?: Float32Array;
 }
 
 // ---------------------------------------------------------------------------
@@ -433,7 +435,7 @@ export function drawWaveformEffect(
       renderScale,
     );
   } else {
-    const fftBins = monoSamples
+    const rawFftBins = monoSamples
       ? extractFftBins(
           monoSamples,
           currentTimeSec,
@@ -443,6 +445,26 @@ export function drawWaveformEffect(
           fftCache,
         )
       : new Float32Array(options.fftBinCount);
+
+    // アイコン系タイプではフレーム間 EMA スムージングを適用する
+    const isIconType = options.type.startsWith("fft-icon-");
+    let fftBins = rawFftBins;
+    if (isIconType && fftCache) {
+      const alpha = 0.85;
+      if (
+        !fftCache.smoothedBins ||
+        fftCache.smoothedBins.length !== rawFftBins.length
+      ) {
+        fftCache.smoothedBins = rawFftBins.slice();
+      } else {
+        for (let i = 0; i < rawFftBins.length; i++) {
+          fftCache.smoothedBins[i] =
+            alpha * fftCache.smoothedBins[i] + (1 - alpha) * rawFftBins[i];
+        }
+      }
+      fftBins = fftCache.smoothedBins;
+    }
+
     if (options.type === "fft-horizontal") {
       drawFftHorizontal(ctx, fftBins, options, canvasW, canvasH, renderScale);
     } else if (options.type === "fft-icon-horizontal") {
