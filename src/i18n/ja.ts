@@ -510,6 +510,7 @@ export const translationJa = {
       lyricsAnimPreviewPlay: "プレビュー再生",
       lyricsAnimPreviewStop: "プレビュー停止",
       lyricsCardLoad: "歌詞カード (.txt) を読み込む",
+      lyricsCardClipboardLoad: "クリップボードから歌詞カードを読み込む",
       lyricsCardEncodingDialogTitle: "文字コード&分割オプション選択",
       lyricsCardSplitByHalfSpace: "半角スペースでも分割する",
       lyricsCardEncodingPreview: "プレビュー:",

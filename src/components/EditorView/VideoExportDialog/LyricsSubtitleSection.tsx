@@ -296,6 +296,18 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
     }
   };
 
+  const handleCardClipboardLoad = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.length === 0) return;
+      const buf = new TextEncoder().encode(text).buffer;
+      setCardFileBuf(buf);
+      setCardEncodingDialogOpen(true);
+    } catch {
+      // クリップボードアクセス失敗時は何もしない
+    }
+  };
+
   const handleCardEncodingConfirm = (words: string[]) => {
     if (words.length === 0) return;
     setCardWords(words);
@@ -1256,6 +1268,19 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                 {t("editor.videoExport.lyricsCardLoad")}
               </Button>
             </Box>
+          )}
+
+          {/* クリップボードから歌詞カード読み込み */}
+          {segments.length > 0 && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={handleCardClipboardLoad}
+            >
+              {t("editor.videoExport.lyricsCardClipboardLoad")}
+            </Button>
           )}
 
           {/* セグメントテーブル */}

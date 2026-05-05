@@ -516,6 +516,8 @@ export const translationPt = {
       lyricsAnimPreviewPlay: "Reproduzir prévia",
       lyricsAnimPreviewStop: "Parar prévia",
       lyricsCardLoad: "Carregar cartão de letras (.txt)",
+      lyricsCardClipboardLoad:
+        "Carregar cartão de letras da área de transferência",
       lyricsCardEncodingDialogTitle:
         "Selecionar codificação e opções de divisão",
       lyricsCardSplitByHalfSpace: "Também dividir por espaço simples",

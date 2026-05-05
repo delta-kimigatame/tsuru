@@ -498,6 +498,7 @@ export const translationZh = {
       lyricsAnimPreviewPlay: "预览播放",
       lyricsAnimPreviewStop: "停止预览",
       lyricsCardLoad: "读取歌词卡 (.txt)",
+      lyricsCardClipboardLoad: "从剪贴板读取歌词卡",
       lyricsCardEncodingDialogTitle: "选择编码和分割选项",
       lyricsCardSplitByHalfSpace: "也按半角空格分割",
       lyricsCardEncodingPreview: "预览:",

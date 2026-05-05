@@ -508,6 +508,7 @@ export const translationEn = {
       lyricsAnimPreviewPlay: "Preview Play",
       lyricsAnimPreviewStop: "Preview Stop",
       lyricsCardLoad: "Load lyrics card (.txt)",
+      lyricsCardClipboardLoad: "Load lyrics card from clipboard",
       lyricsCardEncodingDialogTitle: "Select encoding & split options",
       lyricsCardSplitByHalfSpace: "Also split by half-width space",
       lyricsCardEncodingPreview: "Preview:",
