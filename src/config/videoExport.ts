@@ -8,6 +8,8 @@ import type {
   WaveformColorMode,
   WaveformDrawMethod,
   WaveformFftGaugeShape,
+  WaveformFftIconShape,
+  WaveformFftIconStrengthMode,
   WaveformFftShape,
   WaveformType,
 } from "../utils/waveformEffect";
@@ -284,6 +286,12 @@ export const DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE: WaveformFftGaugeShape = "bar";
 export const DEFAULT_WAVEFORM_FFT_BIN_COUNT = 48;
 export const DEFAULT_WAVEFORM_FFT_SIZE = 256;
 export const DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS = 0;
+export const DEFAULT_WAVEFORM_FFT_ICON_SHAPE: WaveformFftIconShape = "circle";
+export const DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE: WaveformFftIconStrengthMode =
+  "glow";
+export const DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT = 80;
+export const WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN = 10;
+export const WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX = 100;
 export const WAVEFORM_WINDOW_SIZE_MIN = 256;
 export const WAVEFORM_WINDOW_SIZE_MAX = 4096;
 export const WAVEFORM_ROTATION_SPEED_MIN = -360;

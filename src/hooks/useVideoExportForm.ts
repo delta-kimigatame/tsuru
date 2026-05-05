@@ -108,6 +108,9 @@ import {
   DEFAULT_WAVEFORM_FFT_BIN_COUNT,
   DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS,
   DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE,
+  DEFAULT_WAVEFORM_FFT_ICON_SHAPE,
+  DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT,
+  DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE,
   DEFAULT_WAVEFORM_FFT_SHAPE,
   DEFAULT_WAVEFORM_FFT_SIZE,
   DEFAULT_WAVEFORM_HEIGHT_PERCENT,
@@ -167,6 +170,8 @@ import {
   type WaveformDrawMethod,
   type WaveformEffectOptions,
   type WaveformFftGaugeShape,
+  type WaveformFftIconShape,
+  type WaveformFftIconStrengthMode,
   type WaveformFftShape,
   type WaveformType,
 } from "../utils/waveformEffect";
@@ -694,6 +699,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [waveformFftGaugeSegments, setWaveformFftGaugeSegments] =
     React.useState<number>(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
+  const [waveformFftIconShape, setWaveformFftIconShape] =
+    React.useState<WaveformFftIconShape>(DEFAULT_WAVEFORM_FFT_ICON_SHAPE);
+  const [waveformFftIconStrengthMode, setWaveformFftIconStrengthMode] =
+    React.useState<WaveformFftIconStrengthMode>(
+      DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE,
+    );
+  const [waveformFftIconSizePercent, setWaveformFftIconSizePercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
 
   const waveformOptions = React.useMemo<WaveformEffectOptions>(
     () => ({
@@ -717,6 +730,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       strokeWidthPx: waveformStrokeWidthPx,
       fftBinCount: waveformFftBinCount,
       fftSize: waveformFftSize,
+      fftIconShape: waveformFftIconShape,
+      fftIconStrengthMode: waveformFftIconStrengthMode,
+      fftIconSizePercent: waveformFftIconSizePercent,
     }),
     [
       waveformEnabled,
@@ -739,6 +755,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformStrokeWidthPx,
       waveformFftBinCount,
       waveformFftSize,
+      waveformFftIconShape,
+      waveformFftIconStrengthMode,
+      waveformFftIconSizePercent,
     ],
   );
 
@@ -1082,6 +1101,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformFftBinCount(DEFAULT_WAVEFORM_FFT_BIN_COUNT);
       setWaveformFftSize(DEFAULT_WAVEFORM_FFT_SIZE);
       setWaveformFftGaugeSegments(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
+      setWaveformFftIconShape(DEFAULT_WAVEFORM_FFT_ICON_SHAPE);
+      setWaveformFftIconStrengthMode(DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE);
+      setWaveformFftIconSizePercent(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -2160,6 +2182,12 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformFftSize,
     waveformFftGaugeSegments,
     setWaveformFftGaugeSegments,
+    waveformFftIconShape,
+    setWaveformFftIconShape,
+    waveformFftIconStrengthMode,
+    setWaveformFftIconStrengthMode,
+    waveformFftIconSizePercent,
+    setWaveformFftIconSizePercent,
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,

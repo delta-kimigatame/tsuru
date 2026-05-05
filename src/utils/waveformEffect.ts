@@ -12,7 +12,12 @@ export type WaveformType =
   | "oscilloscope"
   | "oscilloscope-circular"
   | "fft-horizontal"
-  | "fft-circular";
+  | "fft-circular"
+  | "fft-icon-horizontal"
+  | "fft-icon-vertical"
+  | "fft-icon-horizontal-mirror"
+  | "fft-icon-vertical-mirror"
+  | "fft-icon-circular";
 export type WaveformDrawMethod = "polyline" | "curve" | "fill" | "dots";
 export type WaveformFftShape =
   | "barBottom"
@@ -36,6 +41,11 @@ export const WAVEFORM_TYPES: WaveformType[] = [
   "oscilloscope-circular",
   "fft-horizontal",
   "fft-circular",
+  "fft-icon-horizontal",
+  "fft-icon-vertical",
+  "fft-icon-horizontal-mirror",
+  "fft-icon-vertical-mirror",
+  "fft-icon-circular",
 ];
 export const WAVEFORM_DRAW_METHODS: WaveformDrawMethod[] = [
   "polyline",
@@ -64,6 +74,40 @@ export const WAVEFORM_COLOR_MODES: WaveformColorMode[] = [
   "saturation",
   "hueVertical",
   "hueHorizontal",
+];
+
+/** FFT アイコングリッド専用: グリフ形状 */
+export type WaveformFftIconShape =
+  | "circle"
+  | "square"
+  | "diamond"
+  | "triangle"
+  | "star"
+  | "heart"
+  | "teardrop";
+export const WAVEFORM_FFT_ICON_SHAPES: WaveformFftIconShape[] = [
+  "circle",
+  "square",
+  "diamond",
+  "triangle",
+  "star",
+  "heart",
+  "teardrop",
+];
+
+/** FFT アイコングリッド専用: 強さ表現モード */
+export type WaveformFftIconStrengthMode =
+  | "glow"
+  | "lightness"
+  | "saturation"
+  | "hue-by-power"
+  | "band-hue-glow";
+export const WAVEFORM_FFT_ICON_STRENGTH_MODES: WaveformFftIconStrengthMode[] = [
+  "glow",
+  "lightness",
+  "saturation",
+  "hue-by-power",
+  "band-hue-glow",
 ];
 
 export interface WaveformEffectOptions {
@@ -110,6 +154,12 @@ export interface WaveformEffectOptions {
   fftBinCount: number;
   /** FFTサイズ */
   fftSize: number;
+  /** FFT アイコングリッド: グリフ形状 */
+  fftIconShape: WaveformFftIconShape;
+  /** FFT アイコングリッド: 強さ表現モード */
+  fftIconStrengthMode: WaveformFftIconStrengthMode;
+  /** FFT アイコングリッド: アイコンサイズ比率（%、100=最大） */
+  fftIconSizePercent: number;
 }
 
 export interface WaveformFftCache {
@@ -380,6 +430,45 @@ export function drawWaveformEffect(
       : new Float32Array(options.fftBinCount);
     if (options.type === "fft-horizontal") {
       drawFftHorizontal(ctx, fftBins, options, canvasW, canvasH, renderScale);
+    } else if (options.type === "fft-icon-horizontal") {
+      drawFftIconHorizontal(
+        ctx,
+        fftBins,
+        options,
+        canvasW,
+        canvasH,
+        renderScale,
+      );
+    } else if (options.type === "fft-icon-vertical") {
+      drawFftIconVertical(ctx, fftBins, options, canvasW, canvasH, renderScale);
+    } else if (options.type === "fft-icon-horizontal-mirror") {
+      drawFftIconHorizontalMirror(
+        ctx,
+        fftBins,
+        options,
+        canvasW,
+        canvasH,
+        renderScale,
+      );
+    } else if (options.type === "fft-icon-vertical-mirror") {
+      drawFftIconVerticalMirror(
+        ctx,
+        fftBins,
+        options,
+        canvasW,
+        canvasH,
+        renderScale,
+      );
+    } else if (options.type === "fft-icon-circular") {
+      drawFftIconCircular(
+        ctx,
+        fftBins,
+        options,
+        canvasW,
+        canvasH,
+        currentTimeSec,
+        renderScale,
+      );
     } else {
       drawFftCircular(
         ctx,
@@ -1493,4 +1582,351 @@ function clampSigned(v: number): number {
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
+}
+
+// ---------------------------------------------------------------------------
+// FFT アイコングリッド描画
+// ---------------------------------------------------------------------------
+
+/** 正規化パワー・バンド情報から色とグロウ量を計算する（アイコングリッド専用）*/
+function computeFftIconVisual(
+  mode: WaveformFftIconStrengthMode,
+  baseHsl: Hsl,
+  normalizedPower: number,
+  bandIndex: number,
+  totalBands: number,
+  renderScale: number,
+): { color: string; glowPx: number } {
+  const p = clamp01(normalizedPower);
+  switch (mode) {
+    case "glow":
+      return {
+        color: hslToCss(baseHsl.h, baseHsl.s, baseHsl.l),
+        glowPx: p * 20 * renderScale,
+      };
+    case "lightness": {
+      const l = lerp(20, 90, p);
+      return { color: hslToCss(baseHsl.h, baseHsl.s, l), glowPx: 0 };
+    }
+    case "saturation": {
+      const s = lerp(0, 100, p);
+      return { color: hslToCss(baseHsl.h, s, baseHsl.l), glowPx: 0 };
+    }
+    case "hue-by-power": {
+      // blue(240°) → green(120°) → red(0°)
+      const hue = lerp(240, 0, p);
+      return { color: hslToCss(hue, baseHsl.s, baseHsl.l), glowPx: 0 };
+    }
+    case "band-hue-glow": {
+      const hue = baseHsl.h + (bandIndex / Math.max(1, totalBands)) * 360;
+      return {
+        color: hslToCss(hue, baseHsl.s, baseHsl.l),
+        glowPx: p * 20 * renderScale,
+      };
+    }
+  }
+}
+
+/**
+ * (0,0) 中心・半径 r のグリフパスを描画する（fill/stroke は呼び出し元で行う）。
+ * ctx.beginPath() は内部で呼ぶ。
+ */
+function drawFftIconGlyph(
+  ctx: CanvasRenderingContext2D,
+  shape: WaveformFftIconShape,
+  r: number,
+): void {
+  ctx.beginPath();
+  switch (shape) {
+    case "circle":
+      ctx.arc(0, 0, r, 0, 2 * Math.PI);
+      break;
+    case "square":
+      ctx.rect(-r, -r, r * 2, r * 2);
+      break;
+    case "diamond":
+      ctx.moveTo(0, -r);
+      ctx.lineTo(r, 0);
+      ctx.lineTo(0, r);
+      ctx.lineTo(-r, 0);
+      ctx.closePath();
+      break;
+    case "triangle": {
+      // 重心中心の正三角形（外接円半径 r）
+      const hx = (r * Math.sqrt(3)) / 2;
+      ctx.moveTo(0, -r);
+      ctx.lineTo(hx, r * 0.5);
+      ctx.lineTo(-hx, r * 0.5);
+      ctx.closePath();
+      break;
+    }
+    case "star": {
+      const innerR = r * 0.4;
+      const pts = 5;
+      for (let i = 0; i < pts * 2; i++) {
+        const angle = (i * Math.PI) / pts - Math.PI / 2;
+        const rr = i % 2 === 0 ? r : innerR;
+        if (i === 0) ctx.moveTo(Math.cos(angle) * rr, Math.sin(angle) * rr);
+        else ctx.lineTo(Math.cos(angle) * rr, Math.sin(angle) * rr);
+      }
+      ctx.closePath();
+      break;
+    }
+    case "heart": {
+      // ハート形: 上部ふくらみ→底端
+      const top = -r * 0.3;
+      const tip = r;
+      const hw = r * 0.95;
+      const hh = r * 0.6;
+      ctx.moveTo(0, top);
+      ctx.bezierCurveTo(-hw, top - hh, -hw * 1.1, tip * 0.2, 0, tip);
+      ctx.bezierCurveTo(hw * 1.1, tip * 0.2, hw, top - hh, 0, top);
+      ctx.closePath();
+      break;
+    }
+    case "teardrop": {
+      // 雫型: 先端が上、丸みが下
+      const topPt = -r;
+      const botR = r * 0.55;
+      ctx.arc(0, r - botR, botR, 0, 2 * Math.PI);
+      ctx.moveTo(-botR * 0.55, r - botR * 0.4);
+      ctx.quadraticCurveTo(-r * 0.35, -r * 0.3, 0, topPt);
+      ctx.quadraticCurveTo(r * 0.35, -r * 0.3, botR * 0.55, r - botR * 0.4);
+      ctx.closePath();
+      break;
+    }
+  }
+}
+
+/** 単一グリフを指定座標に描画する */
+function drawFftIconAt(
+  ctx: CanvasRenderingContext2D,
+  shape: WaveformFftIconShape,
+  cx: number,
+  cy: number,
+  r: number,
+  color: string,
+  glowPx: number,
+): void {
+  if (r <= 0) return;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = color;
+  if (glowPx > 0) {
+    ctx.shadowBlur = glowPx;
+    ctx.shadowColor = color;
+  }
+  drawFftIconGlyph(ctx, shape, r);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** FFT アイコングリッド: 横一列 */
+function drawFftIconHorizontal(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  renderScale: number,
+): void {
+  const N = fftBins.length;
+  if (N === 0) return;
+  const cx = (canvasW * options.xPercent) / 100;
+  const cy = (canvasH * options.yPercent) / 100;
+  const totalW = (canvasW * options.widthPercent) / 100;
+  const maxH = (canvasH * options.heightPercent) / 100;
+  const spacing = totalW / N;
+  const maxR = Math.min(spacing * 0.5, maxH / 2);
+  const r = maxR * clamp01(options.fftIconSizePercent / 100);
+  const baseHsl = hexToHsl(options.color);
+  const shape = options.fftIconShape;
+  const mode = options.fftIconStrengthMode;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((options.rotation * Math.PI) / 180);
+  for (let i = 0; i < N; i++) {
+    const iconCx = (i + 0.5) * spacing - totalW / 2;
+    const visual = computeFftIconVisual(
+      mode,
+      baseHsl,
+      clamp01(fftBins[i]),
+      i,
+      N,
+      renderScale,
+    );
+    drawFftIconAt(ctx, shape, iconCx, 0, r, visual.color, visual.glowPx);
+  }
+  ctx.restore();
+}
+
+/** FFT アイコングリッド: 縦一列 */
+function drawFftIconVertical(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  renderScale: number,
+): void {
+  const N = fftBins.length;
+  if (N === 0) return;
+  const cx = (canvasW * options.xPercent) / 100;
+  const cy = (canvasH * options.yPercent) / 100;
+  const totalH = (canvasH * options.heightPercent) / 100;
+  const maxW = (canvasW * options.widthPercent) / 100;
+  const spacing = totalH / N;
+  const maxR = Math.min(spacing * 0.5, maxW / 2);
+  const r = maxR * clamp01(options.fftIconSizePercent / 100);
+  const baseHsl = hexToHsl(options.color);
+  const shape = options.fftIconShape;
+  const mode = options.fftIconStrengthMode;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((options.rotation * Math.PI) / 180);
+  for (let i = 0; i < N; i++) {
+    const iconCy = (i + 0.5) * spacing - totalH / 2;
+    const visual = computeFftIconVisual(
+      mode,
+      baseHsl,
+      clamp01(fftBins[i]),
+      i,
+      N,
+      renderScale,
+    );
+    drawFftIconAt(ctx, shape, 0, iconCy, r, visual.color, visual.glowPx);
+  }
+  ctx.restore();
+}
+
+/**
+ * FFT アイコングリッド: 横ミラー（上辺・下辺に一列ずつ）
+ * xPercent / yPercent / rotation は無視する。
+ * widthPercent: 列の全幅（キャンバス幅基準 %）
+ * heightPercent: 上端/下端からの距離（キャンバス高さ基準 %）
+ */
+function drawFftIconHorizontalMirror(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  renderScale: number,
+): void {
+  const N = fftBins.length;
+  if (N === 0) return;
+  const totalW = (canvasW * options.widthPercent) / 100;
+  const edgeY = (canvasH * options.heightPercent) / 100;
+  const topY = edgeY;
+  const bottomY = canvasH - edgeY;
+  const startX = (canvasW - totalW) / 2;
+  const spacing = totalW / N;
+  const maxR = Math.min(spacing * 0.5, edgeY * 0.8);
+  const r = maxR * clamp01(options.fftIconSizePercent / 100);
+  const baseHsl = hexToHsl(options.color);
+  const shape = options.fftIconShape;
+  const mode = options.fftIconStrengthMode;
+  for (let i = 0; i < N; i++) {
+    const iconX = startX + (i + 0.5) * spacing;
+    const visual = computeFftIconVisual(
+      mode,
+      baseHsl,
+      clamp01(fftBins[i]),
+      i,
+      N,
+      renderScale,
+    );
+    drawFftIconAt(ctx, shape, iconX, topY, r, visual.color, visual.glowPx);
+    drawFftIconAt(ctx, shape, iconX, bottomY, r, visual.color, visual.glowPx);
+  }
+}
+
+/**
+ * FFT アイコングリッド: 縦ミラー（左辺・右辺に一列ずつ）
+ * xPercent / yPercent / rotation は無視する。
+ * widthPercent: 左端/右端からの距離（キャンバス幅基準 %）
+ * heightPercent: 列の全高さ（キャンバス高さ基準 %）
+ */
+function drawFftIconVerticalMirror(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  renderScale: number,
+): void {
+  const N = fftBins.length;
+  if (N === 0) return;
+  const totalH = (canvasH * options.heightPercent) / 100;
+  const edgeX = (canvasW * options.widthPercent) / 100;
+  const leftX = edgeX;
+  const rightX = canvasW - edgeX;
+  const startY = (canvasH - totalH) / 2;
+  const spacing = totalH / N;
+  const maxR = Math.min(spacing * 0.5, edgeX * 0.8);
+  const r = maxR * clamp01(options.fftIconSizePercent / 100);
+  const baseHsl = hexToHsl(options.color);
+  const shape = options.fftIconShape;
+  const mode = options.fftIconStrengthMode;
+  for (let i = 0; i < N; i++) {
+    const iconY = startY + (i + 0.5) * spacing;
+    const visual = computeFftIconVisual(
+      mode,
+      baseHsl,
+      clamp01(fftBins[i]),
+      i,
+      N,
+      renderScale,
+    );
+    drawFftIconAt(ctx, shape, leftX, iconY, r, visual.color, visual.glowPx);
+    drawFftIconAt(ctx, shape, rightX, iconY, r, visual.color, visual.glowPx);
+  }
+}
+
+/** FFT アイコングリッド: 円形配置 */
+function drawFftIconCircular(
+  ctx: CanvasRenderingContext2D,
+  fftBins: Float32Array,
+  options: WaveformEffectOptions,
+  canvasW: number,
+  canvasH: number,
+  currentTimeSec: number,
+  renderScale: number,
+): void {
+  const N = fftBins.length;
+  if (N === 0) return;
+  const cx = (canvasW * options.xPercent) / 100;
+  const cy = (canvasH * options.yPercent) / 100;
+  const R = (Math.min(canvasW, canvasH) / 2) * (options.widthPercent / 100);
+  const anglePerBin = (2 * Math.PI) / N;
+  const arcHalfChord = R * Math.sin(anglePerBin / 2);
+  const maxR = Math.min(
+    arcHalfChord * 0.9,
+    (canvasH * options.heightPercent) / 100 / 4,
+  );
+  const r = maxR * clamp01(options.fftIconSizePercent / 100);
+  const baseOffsetRad =
+    (options.startAngle * Math.PI) / 180 +
+    (options.rotationSpeed * currentTimeSec * Math.PI) / 180 +
+    (options.rotation * Math.PI) / 180;
+  const baseHsl = hexToHsl(options.color);
+  const shape = options.fftIconShape;
+  const mode = options.fftIconStrengthMode;
+  ctx.save();
+  ctx.translate(cx, cy);
+  for (let i = 0; i < N; i++) {
+    const angle = baseOffsetRad + i * anglePerBin;
+    const iconCx = R * Math.cos(angle);
+    const iconCy = R * Math.sin(angle);
+    const visual = computeFftIconVisual(
+      mode,
+      baseHsl,
+      clamp01(fftBins[i]),
+      i,
+      N,
+      renderScale,
+    );
+    drawFftIconAt(ctx, shape, iconCx, iconCy, r, visual.color, visual.glowPx);
+  }
+  ctx.restore();
 }

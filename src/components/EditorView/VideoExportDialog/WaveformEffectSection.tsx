@@ -42,6 +42,8 @@ import {
   type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformFftGaugeShape,
+  type WaveformFftIconShape,
+  type WaveformFftIconStrengthMode,
   type WaveformFftShape,
   type WaveformType,
 } from "../../../utils/waveformEffect";
@@ -58,6 +60,9 @@ type Props = {
   fftGaugeSegments: number;
   fftBinCount: number;
   fftSize: number;
+  fftIconShape: WaveformFftIconShape;
+  fftIconStrengthMode: WaveformFftIconStrengthMode;
+  fftIconSizePercent: number;
   color: string;
   colorMode: WaveformColorMode;
   opacity: number;
@@ -79,6 +84,9 @@ type Props = {
   onFftGaugeSegmentsChange: (v: number) => void;
   onFftBinCountChange: (v: number) => void;
   onFftSizeChange: (v: number) => void;
+  onFftIconShapeChange: (v: WaveformFftIconShape) => void;
+  onFftIconStrengthModeChange: (v: WaveformFftIconStrengthMode) => void;
+  onFftIconSizePercentChange: (v: number) => void;
   onColorChange: (v: string) => void;
   onColorModeChange: (v: WaveformColorMode) => void;
   onOpacityChange: (v: number) => void;
@@ -104,6 +112,9 @@ export const WaveformEffectSection: React.FC<Props> = ({
   fftGaugeSegments,
   fftBinCount,
   fftSize,
+  fftIconShape,
+  fftIconStrengthMode,
+  fftIconSizePercent,
   color,
   colorMode,
   opacity,
@@ -125,6 +136,9 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onFftGaugeSegmentsChange,
   onFftBinCountChange,
   onFftSizeChange,
+  onFftIconShapeChange,
+  onFftIconStrengthModeChange,
+  onFftIconSizePercentChange,
   onColorChange,
   onColorModeChange,
   onOpacityChange,
@@ -143,8 +157,14 @@ export const WaveformEffectSection: React.FC<Props> = ({
   const { t } = useTranslation();
   const [colorInput, setColorInput] = useState(color);
   const isFftType = type === "fft-horizontal" || type === "fft-circular";
+  const isFftIconType = type.startsWith("fft-icon-");
+  const isMirrorType =
+    type === "fft-icon-horizontal-mirror" ||
+    type === "fft-icon-vertical-mirror";
   const isCircularType =
-    type === "oscilloscope-circular" || type === "fft-circular";
+    type === "oscilloscope-circular" ||
+    type === "fft-circular" ||
+    type === "fft-icon-circular";
 
   const handleColorInputChange = (raw: string) => {
     setColorInput(raw);
@@ -256,7 +276,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
                 <MenuItem key={wt} value={wt}>
                   <Typography variant="body2">
                     {t(
-                      `editor.videoExport.waveformType_${wt.replace("-", "_")}`,
+                      `editor.videoExport.waveformType_${wt.replace(/-/g, "_")}`,
                     )}
                   </Typography>
                 </MenuItem>
@@ -271,7 +291,9 @@ export const WaveformEffectSection: React.FC<Props> = ({
               {t(
                 isFftType
                   ? "editor.videoExport.waveformFftShape"
-                  : "editor.videoExport.waveformDrawMethod",
+                  : isFftIconType
+                    ? "editor.videoExport.waveformFftIconShape"
+                    : "editor.videoExport.waveformDrawMethod",
               )}
             </Typography>
             {isFftType ? (
@@ -373,30 +395,34 @@ export const WaveformEffectSection: React.FC<Props> = ({
               onChange={handleColorInputChange}
             />
 
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 1, mb: 0.5, display: "block" }}
-            >
-              {t("editor.videoExport.waveformColorMode")}
-            </Typography>
-            <Select
-              size="small"
-              fullWidth
-              value={colorMode}
-              onChange={(e) =>
-                onColorModeChange(e.target.value as WaveformColorMode)
-              }
-              sx={{ bgcolor: "background.paper" }}
-            >
-              {WAVEFORM_COLOR_MODES.map((mode) => (
-                <MenuItem key={mode} value={mode}>
-                  <Typography variant="body2">
-                    {t(`editor.videoExport.waveformColorMode_${mode}`)}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Select>
+            {!isFftIconType && (
+              <>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, mb: 0.5, display: "block" }}
+                >
+                  {t("editor.videoExport.waveformColorMode")}
+                </Typography>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={colorMode}
+                  onChange={(e) =>
+                    onColorModeChange(e.target.value as WaveformColorMode)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_COLOR_MODES.map((mode) => (
+                    <MenuItem key={mode} value={mode}>
+                      <Typography variant="body2">
+                        {t(`editor.videoExport.waveformColorMode_${mode}`)}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </>
+            )}
 
             <LabeledSlider
               label={t("editor.videoExport.waveformOpacity")}
@@ -414,30 +440,34 @@ export const WaveformEffectSection: React.FC<Props> = ({
               max={WAVEFORM_STROKE_WIDTH_PX_MAX}
               unit="px"
             />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformX")}
-              value={xPercent}
-              onChange={onXPercentChange}
-              min={-100}
-              max={200}
-              unit="%"
-            />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformY")}
-              value={yPercent}
-              onChange={onYPercentChange}
-              min={-100}
-              max={200}
-              unit="%"
-            />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformRotation")}
-              value={rotation}
-              onChange={onRotationChange}
-              min={-180}
-              max={180}
-              unit="°"
-            />
+            {!isMirrorType && (
+              <>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformX")}
+                  value={xPercent}
+                  onChange={onXPercentChange}
+                  min={-100}
+                  max={200}
+                  unit="%"
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformY")}
+                  value={yPercent}
+                  onChange={onYPercentChange}
+                  min={-100}
+                  max={200}
+                  unit="%"
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformRotation")}
+                  value={rotation}
+                  onChange={onRotationChange}
+                  min={-180}
+                  max={180}
+                  unit="°"
+                />
+              </>
+            )}
             <LabeledSlider
               label={t("editor.videoExport.waveformWidth")}
               value={widthPercent}
@@ -454,7 +484,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
               max={100}
               unit="%"
             />
-            {isFftType ? (
+            {isFftType || isFftIconType ? (
               <>
                 <LabeledSlider
                   label={t("editor.videoExport.waveformFftBinCount")}
