@@ -1,6 +1,9 @@
 import CallSplitIcon from "@mui/icons-material/CallSplit";
 import MergeIcon from "@mui/icons-material/MergeType";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   Chip,
@@ -89,6 +92,7 @@ export const LyricsCardDialog: React.FC<Props> = ({
   const { t } = useTranslation();
 
   const [startIndex, setStartIndex] = React.useState<number | null>(null);
+  const [wordPanelOpen, setWordPanelOpen] = React.useState(true);
   const [localSegments, setLocalSegments] =
     React.useState<LyricsSegment[]>(segments);
   const [splitPopover, setSplitPopover] = React.useState<{
@@ -101,6 +105,7 @@ export const LyricsCardDialog: React.FC<Props> = ({
     if (open) {
       setStartIndex(null);
       setLocalSegments(segments);
+      setWordPanelOpen(true);
     }
   }, [open, segments]);
 
@@ -112,6 +117,7 @@ export const LyricsCardDialog: React.FC<Props> = ({
   const handleWordClick = (idx: number) => {
     setStartIndex(idx);
     setLocalSegments(segments);
+    setWordPanelOpen(false);
   };
 
   const handleSplitClick = (
@@ -150,52 +156,60 @@ export const LyricsCardDialog: React.FC<Props> = ({
     splitPopover !== null ? localSegments[splitPopover.rowIndex] : null;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} fullScreen>
       <DialogTitle>{t("editor.videoExport.lyricsCardDialogTitle")}</DialogTitle>
 
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 1 }}
       >
         {/* ステップ1: 開始単語の選択 */}
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {t("editor.videoExport.lyricsCardSelectStart")}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 0.5,
-              maxHeight: 160,
-              overflowY: "auto",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-              p: 1,
-            }}
-          >
-            {words.map((word, idx) => (
-              <Chip
-                key={idx}
-                label={word}
-                size="small"
-                variant={startIndex === idx ? "filled" : "outlined"}
-                color={startIndex === idx ? "primary" : "default"}
-                onClick={() => handleWordClick(idx)}
-                sx={{ cursor: "pointer" }}
-              />
-            ))}
-          </Box>
-        </Box>
+        <Accordion
+          expanded={wordPanelOpen}
+          onChange={(_, expanded) => setWordPanelOpen(expanded)}
+          disableGutters
+          elevation={0}
+          sx={{
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 1,
+            "&:before": { display: "none" },
+          }}
+        >
+          <AccordionSummary>
+            <Typography variant="body2">
+              {startIndex !== null
+                ? words[startIndex]
+                : t("editor.videoExport.lyricsCardSelectStart")}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 0 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 0.5,
+                maxHeight: 160,
+                overflowY: "auto",
+              }}
+            >
+              {words.map((word, idx) => (
+                <Chip
+                  key={idx}
+                  label={word}
+                  size="small"
+                  variant={startIndex === idx ? "filled" : "outlined"}
+                  color={startIndex === idx ? "primary" : "default"}
+                  onClick={() => handleWordClick(idx)}
+                  sx={{ cursor: "pointer" }}
+                />
+              ))}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
 
         {/* ステップ2: 対照表（開始単語選択後に展開） */}
         {startIndex !== null && (
           <>
-            <Divider />
-            <Typography variant="body2" color="text.secondary">
-              {t("editor.videoExport.lyricsCardMappingHint")}
-            </Typography>
-
             {/* 対照表ヘッダー */}
             <Box
               sx={{
@@ -342,7 +356,7 @@ export const LyricsCardDialog: React.FC<Props> = ({
 
       <DialogActions>
         <Button onClick={onClose} variant="contained" color="inherit">
-          {t("common.cancel")}
+          {t("editor.videoExport.lyricsCardCancel")}
         </Button>
         <Button
           variant="contained"

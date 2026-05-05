@@ -86,7 +86,7 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onCancel} fullScreen>
       <DialogTitle>
         {t("editor.videoExport.lyricsCardEncodingDialogTitle")}
       </DialogTitle>
@@ -152,7 +152,7 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
 
       <DialogActions>
         <Button onClick={onCancel} variant="contained" color="inherit">
-          {t("common.cancel")}
+          {t("editor.videoExport.lyricsCardEncodingCancel")}
         </Button>
         <Button
           variant="contained"
@@ -160,7 +160,7 @@ export const LyricsCardEncodingDialog: React.FC<Props> = ({
           disabled={!fileBuf || loading}
           onClick={handleConfirm}
         >
-          {t("common.ok")}
+          {t("editor.videoExport.lyricsCardEncodingConfirm")}
         </Button>
       </DialogActions>
     </Dialog>
