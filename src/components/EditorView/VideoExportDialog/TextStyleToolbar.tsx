@@ -1,4 +1,4 @@
-import { Box, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
+import { Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -50,24 +50,22 @@ export const TextStyleToolbar: React.FC<Props> = ({
         </ToggleButton>
       </ToggleButtonGroup>
       <Box sx={{ flex: 1 }} />
-      <Tooltip title={t("editor.videoExport.textColor")}>
-        <Box
-          component="input"
-          type="color"
-          value={color}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onColorChange(e.target.value)
-          }
-          sx={{
-            width: 32,
-            height: 32,
-            p: 0,
-            border: "none",
-            borderRadius: 1,
-            cursor: "pointer",
-          }}
-        />
-      </Tooltip>
+      <Box
+        component="input"
+        type="color"
+        value={color}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onColorChange(e.target.value)
+        }
+        sx={{
+          width: 32,
+          height: 32,
+          p: 0,
+          border: "none",
+          borderRadius: 1,
+          cursor: "pointer",
+        }}
+      />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
 import React from "react";
 
 type Props = {
@@ -22,22 +22,21 @@ export const ColorPaletteGrid: React.FC<Props> = ({
         {column.map((color) => {
           const active = activeColor === color;
           return (
-            <Tooltip key={color} title={color} placement="top" arrow>
-              <Box
-                onClick={() => onColorSelect(color)}
-                sx={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: "3px",
-                  bgcolor: color,
-                  cursor: "pointer",
-                  border: active ? "2px solid" : "1px solid",
-                  borderColor: active ? "primary.main" : "divider",
-                  transition: "transform 0.1s",
-                  "&:hover": { transform: "scale(1.2)" },
-                }}
-              />
-            </Tooltip>
+            <Box
+              key={color}
+              onClick={() => onColorSelect(color)}
+              sx={{
+                width: 22,
+                height: 22,
+                borderRadius: "3px",
+                bgcolor: color,
+                cursor: "pointer",
+                border: active ? "2px solid" : "1px solid",
+                borderColor: active ? "primary.main" : "divider",
+                transition: "transform 0.1s",
+                "&:hover": { transform: "scale(1.2)" },
+              }}
+            />
           );
         })}
       </Box>

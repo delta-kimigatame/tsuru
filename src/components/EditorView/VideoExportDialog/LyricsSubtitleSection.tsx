@@ -20,7 +20,6 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -619,30 +618,22 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
               <Typography variant="body2" sx={{ flex: 1 }}>
                 {t("editor.videoExport.lyricsAnimations")}
               </Typography>
-              <Tooltip
-                title={
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
                   isAnimPreviewPlaying
-                    ? t("editor.videoExport.lyricsAnimPreviewStop")
-                    : t("editor.videoExport.lyricsAnimPreviewPlay")
-                }
+                    ? onStopAnimPreview()
+                    : onStartAnimPreview();
+                }}
+                sx={{ mr: 0.5 }}
               >
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    isAnimPreviewPlaying
-                      ? onStopAnimPreview()
-                      : onStartAnimPreview();
-                  }}
-                  sx={{ mr: 0.5 }}
-                >
-                  {isAnimPreviewPlaying ? (
-                    <StopIcon fontSize="small" />
-                  ) : (
-                    <PlayArrowIcon fontSize="small" />
-                  )}
-                </IconButton>
-              </Tooltip>
+                {isAnimPreviewPlaying ? (
+                  <StopIcon fontSize="small" />
+                ) : (
+                  <PlayArrowIcon fontSize="small" />
+                )}
+              </IconButton>
             </AccordionSummary>
             <AccordionDetails
               sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
@@ -1362,25 +1353,21 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                     {/* 操作ボタン */}
                     <Box sx={{ display: "flex", gap: 0 }}>
                       {/* 分割ボタン: noteBoundaries >= 3 (2ノート以上) の場合のみ活性 */}
-                      <Tooltip title={t("editor.videoExport.lyricsSplit")}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={seg.noteBoundaries.length < 3}
-                            onClick={(e) => handleSplitClick(e, i)}
-                          >
-                            <CallSplitIcon fontSize="inherit" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      <span>
+                        <IconButton
+                          size="small"
+                          disabled={seg.noteBoundaries.length < 3}
+                          onClick={(e) => handleSplitClick(e, i)}
+                        >
+                          <CallSplitIcon fontSize="inherit" />
+                        </IconButton>
+                      </span>
 
                       {/* 結合ボタン: 最後の行は非表示 */}
                       {i < segments.length - 1 ? (
-                        <Tooltip title={t("editor.videoExport.lyricsMerge")}>
-                          <IconButton size="small" onClick={() => onMerge(i)}>
-                            <MergeIcon fontSize="inherit" />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton size="small" onClick={() => onMerge(i)}>
+                          <MergeIcon fontSize="inherit" />
+                        </IconButton>
                       ) : (
                         <Box sx={{ width: 28 }} />
                       )}

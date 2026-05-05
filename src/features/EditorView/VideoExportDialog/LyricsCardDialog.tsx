@@ -13,7 +13,6 @@ import {
   List,
   ListItemButton,
   Popover,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -287,26 +286,19 @@ export const LyricsCardDialog: React.FC<Props> = ({
                     <Box
                       sx={{ display: "flex", gap: 0, justifyContent: "center" }}
                     >
-                      <Tooltip title={t("editor.videoExport.lyricsSplit")}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={seg.noteBoundaries.length < 3}
-                            onClick={(e) => handleSplitClick(e, i)}
-                          >
-                            <CallSplitIcon fontSize="inherit" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      <span>
+                        <IconButton
+                          size="small"
+                          disabled={seg.noteBoundaries.length < 3}
+                          onClick={(e) => handleSplitClick(e, i)}
+                        >
+                          <CallSplitIcon fontSize="inherit" />
+                        </IconButton>
+                      </span>
                       {i < localSegments.length - 1 ? (
-                        <Tooltip title={t("editor.videoExport.lyricsMerge")}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleMerge(i)}
-                          >
-                            <MergeIcon fontSize="inherit" />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton size="small" onClick={() => handleMerge(i)}>
+                          <MergeIcon fontSize="inherit" />
+                        </IconButton>
                       ) : (
                         <Box sx={{ width: 28 }} />
                       )}
