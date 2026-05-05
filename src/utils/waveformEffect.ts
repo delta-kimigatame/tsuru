@@ -1735,9 +1735,8 @@ function drawFftIconHorizontal(
   const cx = (canvasW * options.xPercent) / 100;
   const cy = (canvasH * options.yPercent) / 100;
   const totalW = (canvasW * options.widthPercent) / 100;
-  const maxH = (canvasH * options.heightPercent) / 100;
   const spacing = totalW / N;
-  const maxR = Math.min(spacing * 0.5, maxH / 2);
+  const maxR = spacing * 0.5;
   const r = maxR * clamp01(options.fftIconSizePercent / 100);
   const baseHsl = hexToHsl(options.color);
   const shape = options.fftIconShape;
@@ -1774,9 +1773,8 @@ function drawFftIconVertical(
   const cx = (canvasW * options.xPercent) / 100;
   const cy = (canvasH * options.yPercent) / 100;
   const totalH = (canvasH * options.heightPercent) / 100;
-  const maxW = (canvasW * options.widthPercent) / 100;
   const spacing = totalH / N;
-  const maxR = Math.min(spacing * 0.5, maxW / 2);
+  const maxR = spacing * 0.5;
   const r = maxR * clamp01(options.fftIconSizePercent / 100);
   const baseHsl = hexToHsl(options.color);
   const shape = options.fftIconShape;
@@ -1801,9 +1799,9 @@ function drawFftIconVertical(
 
 /**
  * FFT アイコングリッド: 横ミラー（上辺・下辺に一列ずつ）
- * xPercent / yPercent / rotation は無視する。
+ * rotation は無視する。
  * widthPercent: 列の全幅（キャンバス幅基準 %）
- * heightPercent: 上端/下端からの距離（キャンバス高さ基準 %）
+ * yPercent: 上行のY位置（キャンバス高さ基準 %）。下行は canvasH - topY に対称配置。
  */
 function drawFftIconHorizontalMirror(
   ctx: CanvasRenderingContext2D,
@@ -1816,12 +1814,11 @@ function drawFftIconHorizontalMirror(
   const N = fftBins.length;
   if (N === 0) return;
   const totalW = (canvasW * options.widthPercent) / 100;
-  const edgeY = (canvasH * options.heightPercent) / 100;
-  const topY = edgeY;
-  const bottomY = canvasH - edgeY;
+  const topY = (canvasH * options.yPercent) / 100;
+  const bottomY = canvasH - topY;
   const startX = (canvasW - totalW) / 2;
   const spacing = totalW / N;
-  const maxR = Math.min(spacing * 0.5, edgeY * 0.8);
+  const maxR = Math.min(spacing * 0.5, Math.max(1, topY * 0.8));
   const r = maxR * clamp01(options.fftIconSizePercent / 100);
   const baseHsl = hexToHsl(options.color);
   const shape = options.fftIconShape;
@@ -1843,9 +1840,9 @@ function drawFftIconHorizontalMirror(
 
 /**
  * FFT アイコングリッド: 縦ミラー（左辺・右辺に一列ずつ）
- * xPercent / yPercent / rotation は無視する。
- * widthPercent: 左端/右端からの距離（キャンバス幅基準 %）
+ * rotation は無視する。
  * heightPercent: 列の全高さ（キャンバス高さ基準 %）
+ * xPercent: 左列のX位置（キャンバス幅基準 %）。右列は canvasW - leftX に対称配置。
  */
 function drawFftIconVerticalMirror(
   ctx: CanvasRenderingContext2D,
@@ -1858,12 +1855,11 @@ function drawFftIconVerticalMirror(
   const N = fftBins.length;
   if (N === 0) return;
   const totalH = (canvasH * options.heightPercent) / 100;
-  const edgeX = (canvasW * options.widthPercent) / 100;
-  const leftX = edgeX;
-  const rightX = canvasW - edgeX;
+  const leftX = (canvasW * options.xPercent) / 100;
+  const rightX = canvasW - leftX;
   const startY = (canvasH - totalH) / 2;
   const spacing = totalH / N;
-  const maxR = Math.min(spacing * 0.5, edgeX * 0.8);
+  const maxR = Math.min(spacing * 0.5, Math.max(1, leftX * 0.8));
   const r = maxR * clamp01(options.fftIconSizePercent / 100);
   const baseHsl = hexToHsl(options.color);
   const shape = options.fftIconShape;

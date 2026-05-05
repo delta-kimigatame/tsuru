@@ -24,6 +24,8 @@ import {
   WAVEFORM_FFT_BIN_COUNT_MIN,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MAX,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MIN,
+  WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX,
+  WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN,
   WAVEFORM_FFT_SIZE_MAX,
   WAVEFORM_FFT_SIZE_MIN,
   WAVEFORM_ROTATION_SPEED_MAX,
@@ -37,6 +39,8 @@ import {
   WAVEFORM_COLOR_MODES,
   WAVEFORM_DRAW_METHODS,
   WAVEFORM_FFT_GAUGE_SHAPES,
+  WAVEFORM_FFT_ICON_SHAPES,
+  WAVEFORM_FFT_ICON_STRENGTH_MODES,
   WAVEFORM_FFT_SHAPES,
   WAVEFORM_TYPES,
   type WaveformColorMode,
@@ -161,6 +165,10 @@ export const WaveformEffectSection: React.FC<Props> = ({
   const isMirrorType =
     type === "fft-icon-horizontal-mirror" ||
     type === "fft-icon-vertical-mirror";
+  const isIconHorizontalType =
+    type === "fft-icon-horizontal" || type === "fft-icon-horizontal-mirror";
+  const isIconVerticalType =
+    type === "fft-icon-vertical" || type === "fft-icon-vertical-mirror";
   const isCircularType =
     type === "oscilloscope-circular" ||
     type === "fft-circular" ||
@@ -357,6 +365,64 @@ export const WaveformEffectSection: React.FC<Props> = ({
                   </>
                 )}
               </>
+            ) : isFftIconType ? (
+              <>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftIconShape}
+                  onChange={(e) =>
+                    onFftIconShapeChange(e.target.value as WaveformFftIconShape)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_ICON_SHAPES.map((shape) => (
+                    <MenuItem key={shape} value={shape}>
+                      <Typography variant="body2">
+                        {t(
+                          `editor.videoExport.waveformFftIconShape_${shape}`,
+                        )}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, mb: 0.5, display: "block" }}
+                >
+                  {t("editor.videoExport.waveformFftIconStrengthMode")}
+                </Typography>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftIconStrengthMode}
+                  onChange={(e) =>
+                    onFftIconStrengthModeChange(
+                      e.target.value as WaveformFftIconStrengthMode,
+                    )
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_ICON_STRENGTH_MODES.map((mode) => (
+                    <MenuItem key={mode} value={mode}>
+                      <Typography variant="body2">
+                        {t(
+                          `editor.videoExport.waveformFftIconStrengthMode_${mode}`,
+                        )}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftIconSizePercent")}
+                  value={fftIconSizePercent}
+                  onChange={onFftIconSizePercentChange}
+                  min={WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN}
+                  max={WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX}
+                  unit="%"
+                />
+              </>
             ) : (
               <Select
                 size="small"
@@ -440,50 +506,56 @@ export const WaveformEffectSection: React.FC<Props> = ({
               max={WAVEFORM_STROKE_WIDTH_PX_MAX}
               unit="px"
             />
-            {!isMirrorType && (
-              <>
-                <LabeledSlider
-                  label={t("editor.videoExport.waveformX")}
-                  value={xPercent}
-                  onChange={onXPercentChange}
-                  min={-100}
-                  max={200}
-                  unit="%"
-                />
-                <LabeledSlider
-                  label={t("editor.videoExport.waveformY")}
-                  value={yPercent}
-                  onChange={onYPercentChange}
-                  min={-100}
-                  max={200}
-                  unit="%"
-                />
-                <LabeledSlider
-                  label={t("editor.videoExport.waveformRotation")}
-                  value={rotation}
-                  onChange={onRotationChange}
-                  min={-180}
-                  max={180}
-                  unit="°"
-                />
-              </>
+            {(!isMirrorType || type === "fft-icon-vertical-mirror") && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformX")}
+                value={xPercent}
+                onChange={onXPercentChange}
+                min={-100}
+                max={200}
+                unit="%"
+              />
             )}
-            <LabeledSlider
-              label={t("editor.videoExport.waveformWidth")}
-              value={widthPercent}
-              onChange={onWidthPercentChange}
-              min={1}
-              max={100}
-              unit="%"
-            />
-            <LabeledSlider
-              label={t("editor.videoExport.waveformHeight")}
-              value={heightPercent}
-              onChange={onHeightPercentChange}
-              min={1}
-              max={100}
-              unit="%"
-            />
+            {(!isMirrorType || type === "fft-icon-horizontal-mirror") && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformY")}
+                value={yPercent}
+                onChange={onYPercentChange}
+                min={-100}
+                max={200}
+                unit="%"
+              />
+            )}
+            {!isMirrorType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformRotation")}
+                value={rotation}
+                onChange={onRotationChange}
+                min={-180}
+                max={180}
+                unit="°"
+              />
+            )}
+            {!isIconVerticalType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformWidth")}
+                value={widthPercent}
+                onChange={onWidthPercentChange}
+                min={1}
+                max={100}
+                unit="%"
+              />
+            )}
+            {!isIconHorizontalType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformHeight")}
+                value={heightPercent}
+                onChange={onHeightPercentChange}
+                min={1}
+                max={100}
+                unit="%"
+              />
+            )}
             {isFftType || isFftIconType ? (
               <>
                 <LabeledSlider
