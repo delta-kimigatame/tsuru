@@ -1685,13 +1685,16 @@ function drawFftIconGlyph(
       break;
     }
     case "teardrop": {
-      // 雫型: 先端が上、丸みが下
+      // 雫型: 先端が上、下半円 + 左右ベジェで一筆書き
       const topPt = -r;
       const botR = r * 0.55;
-      ctx.arc(0, r - botR, botR, 0, 2 * Math.PI);
-      ctx.moveTo(-botR * 0.55, r - botR * 0.4);
+      const cy = r - botR;
+      // 下半円: 右端(botR, cy) → 底点 → 左端(-botR, cy)  時計回り
+      ctx.arc(0, cy, botR, 0, Math.PI);
+      // 左端 → 先端
       ctx.quadraticCurveTo(-r * 0.35, -r * 0.3, 0, topPt);
-      ctx.quadraticCurveTo(r * 0.35, -r * 0.3, botR * 0.55, r - botR * 0.4);
+      // 先端 → 右端
+      ctx.quadraticCurveTo(r * 0.35, -r * 0.3, botR, cy);
       ctx.closePath();
       break;
     }
