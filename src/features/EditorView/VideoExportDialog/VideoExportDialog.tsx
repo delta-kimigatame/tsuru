@@ -17,6 +17,7 @@ import { PianorollSection } from "../../../components/EditorView/VideoExportDial
 import { PortraitSection } from "../../../components/EditorView/VideoExportDialog/PortraitSection";
 import { ResolutionSection } from "../../../components/EditorView/VideoExportDialog/ResolutionSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
+import { WaveformEffectSection } from "../../../components/EditorView/VideoExportDialog/WaveformEffectSection";
 import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
 import type { PianorollVideoOptions } from "../../../utils/pianorollVideo";
@@ -27,6 +28,7 @@ import type {
   PortraitOptions,
   TextOptions,
   VideoResolution,
+  WaveformEffectOptions,
 } from "../../../utils/videoExport";
 
 type Props = {
@@ -43,6 +45,7 @@ type Props = {
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
     pianorollOptions: PianorollVideoOptions | null,
+    waveformOptions: WaveformEffectOptions | null,
   ) => void;
   synthesisProgress: boolean;
   /** vb.portrait を Blob に変換したもの。立絵なしの場合は null */
@@ -170,6 +173,62 @@ export const VideoExportDialog: React.FC<Props> = ({
                 onApplyThemeToOutside={form.applyPianorollThemeToOutside}
               />
             )}
+
+            <WaveformEffectSection
+              enabled={form.waveformEnabled}
+              type={form.waveformType}
+              drawMethod={form.waveformDrawMethod}
+              fftShape={form.waveformFftShape}
+              fftGaugeShape={form.waveformFftGaugeShape}
+              fftGaugeSegments={form.waveformFftGaugeSegments}
+              fftBinCount={form.waveformFftBinCount}
+              fftSize={form.waveformFftSize}
+              fftIconShape={form.waveformFftIconShape}
+              fftIconStrengthMode={form.waveformFftIconStrengthMode}
+              fftIconSizePercent={form.waveformFftIconSizePercent}
+              fftIconGlowStrength={form.waveformFftIconGlowStrength}
+              fftIconEmitStrength={form.waveformFftIconEmitStrength}
+              color={form.waveformColor}
+              colorMode={form.waveformColorMode}
+              opacity={form.waveformOpacity}
+              xPercent={form.waveformXPercent}
+              yPercent={form.waveformYPercent}
+              rotation={form.waveformRotation}
+              widthPercent={form.waveformWidthPercent}
+              heightPercent={form.waveformHeightPercent}
+              startAngle={form.waveformStartAngle}
+              rotationSpeed={form.waveformRotationSpeed}
+              windowSize={form.waveformWindowSize}
+              strokeWidthPx={form.waveformStrokeWidthPx}
+              isPreviewPlaying={form.isWaveformSinePreviewPlaying}
+              onEnabledChange={form.setWaveformEnabled}
+              onTypeChange={form.setWaveformType}
+              onDrawMethodChange={form.setWaveformDrawMethod}
+              onFftShapeChange={form.setWaveformFftShape}
+              onFftGaugeShapeChange={form.setWaveformFftGaugeShape}
+              onFftGaugeSegmentsChange={form.setWaveformFftGaugeSegments}
+              onFftBinCountChange={form.setWaveformFftBinCount}
+              onFftSizeChange={form.setWaveformFftSize}
+              onFftIconShapeChange={form.setWaveformFftIconShape}
+              onFftIconStrengthModeChange={form.setWaveformFftIconStrengthMode}
+              onFftIconSizePercentChange={form.setWaveformFftIconSizePercent}
+              onFftIconGlowStrengthChange={form.setWaveformFftIconGlowStrength}
+              onFftIconEmitStrengthChange={form.setWaveformFftIconEmitStrength}
+              onColorChange={form.setWaveformColor}
+              onColorModeChange={form.setWaveformColorMode}
+              onOpacityChange={form.setWaveformOpacity}
+              onXPercentChange={form.setWaveformXPercent}
+              onYPercentChange={form.setWaveformYPercent}
+              onRotationChange={form.setWaveformRotation}
+              onWidthPercentChange={form.setWaveformWidthPercent}
+              onHeightPercentChange={form.setWaveformHeightPercent}
+              onStartAngleChange={form.setWaveformStartAngle}
+              onRotationSpeedChange={form.setWaveformRotationSpeed}
+              onWindowSizeChange={form.setWaveformWindowSize}
+              onStrokeWidthPxChange={form.setWaveformStrokeWidthPx}
+              onStartPreview={form.startWaveformSinePreview}
+              onStopPreview={form.stopWaveformSinePreview}
+            />
 
             {portraitBlob && (
               <PortraitSection

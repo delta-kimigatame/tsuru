@@ -4,6 +4,15 @@ import type {
   SlideDirection,
   VideoResolution,
 } from "../utils/videoExport";
+import type {
+  WaveformColorMode,
+  WaveformDrawMethod,
+  WaveformFftGaugeShape,
+  WaveformFftIconShape,
+  WaveformFftIconStrengthMode,
+  WaveformFftShape,
+  WaveformType,
+} from "../utils/waveformEffect";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -127,7 +136,7 @@ export const TEXT_POSITION_MAX = 100;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_LYRICS_FONT_SIZE = 48;
-export const DEFAULT_LYRICS_COLOR = "#ffffff";
+export const DEFAULT_LYRICS_COLOR = "#000000";
 export const DEFAULT_LYRICS_Y_PERCENT = 85;
 export const DEFAULT_LYRICS_MAX_WIDTH_PERCENT = 80;
 export const LYRICS_FONT_SIZE_MIN = 12;
@@ -225,7 +234,7 @@ export const LYRICS_STAGGER_INTERVAL_MS_MAX = 300;
 export const DEFAULT_MAIN_TEXT_FONT_SIZE = 72;
 export const DEFAULT_MAIN_TEXT_X = 5;
 export const DEFAULT_MAIN_TEXT_Y = 85;
-export const DEFAULT_MAIN_TEXT_COLOR = "#ffffff";
+export const DEFAULT_MAIN_TEXT_COLOR = "#000000";
 export const DEFAULT_MAIN_TEXT_BOLD = true;
 export const DEFAULT_MAIN_TEXT_ITALIC = false;
 export const DEFAULT_MAIN_TEXT_SHADOW_ENABLED = false;
@@ -240,7 +249,7 @@ export const DEFAULT_MAIN_TEXT_BG_BAR_OPACITY = 60;
 export const DEFAULT_SUB_TEXT_FONT_SIZE = 36;
 export const DEFAULT_SUB_TEXT_X = 5;
 export const DEFAULT_SUB_TEXT_Y = 93;
-export const DEFAULT_SUB_TEXT_COLOR = "#ffffff";
+export const DEFAULT_SUB_TEXT_COLOR = "#000000";
 export const DEFAULT_SUB_TEXT_BOLD = false;
 export const DEFAULT_SUB_TEXT_ITALIC = false;
 export const DEFAULT_SUB_TEXT_SHADOW_ENABLED = false;
@@ -252,3 +261,52 @@ export const DEFAULT_SUB_TEXT_STROKE_WIDTH = 3;
 export const DEFAULT_SUB_TEXT_BG_BAR_ENABLED = false;
 export const DEFAULT_SUB_TEXT_BG_BAR_COLOR = "#000000";
 export const DEFAULT_SUB_TEXT_BG_BAR_OPACITY = 60;
+
+// ---------------------------------------------------------------------------
+// 音声波形エフェクトのデフォルト値
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_WAVEFORM_ENABLED = false;
+export const DEFAULT_WAVEFORM_TYPE: WaveformType = "oscilloscope";
+export const DEFAULT_WAVEFORM_DRAW_METHOD: WaveformDrawMethod = "polyline";
+export const DEFAULT_WAVEFORM_COLOR = "#000000";
+export const DEFAULT_WAVEFORM_COLOR_MODE: WaveformColorMode = "solid";
+export const DEFAULT_WAVEFORM_OPACITY = 100;
+export const DEFAULT_WAVEFORM_X_PERCENT = 50;
+export const DEFAULT_WAVEFORM_Y_PERCENT = 50;
+export const DEFAULT_WAVEFORM_ROTATION = 0;
+export const DEFAULT_WAVEFORM_WIDTH_PERCENT = 80;
+export const DEFAULT_WAVEFORM_HEIGHT_PERCENT = 20;
+export const DEFAULT_WAVEFORM_START_ANGLE = 0;
+export const DEFAULT_WAVEFORM_ROTATION_SPEED = 0;
+export const DEFAULT_WAVEFORM_WINDOW_SIZE = 2048;
+export const DEFAULT_WAVEFORM_STROKE_WIDTH_PX = 1;
+export const DEFAULT_WAVEFORM_FFT_SHAPE: WaveformFftShape = "barBottom";
+export const DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE: WaveformFftGaugeShape = "bar";
+export const DEFAULT_WAVEFORM_FFT_BIN_COUNT = 48;
+export const DEFAULT_WAVEFORM_FFT_SIZE = 256;
+export const DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS = 0;
+export const DEFAULT_WAVEFORM_FFT_ICON_SHAPE: WaveformFftIconShape = "circle";
+export const DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE: WaveformFftIconStrengthMode =
+  "glow";
+export const DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT = 80;
+export const WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN = 10;
+export const WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX = 100;
+export const DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH = 20;
+export const WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN = 5;
+export const WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX = 100;
+export const DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH = 0;
+export const WAVEFORM_FFT_ICON_EMIT_STRENGTH_MIN = 0;
+export const WAVEFORM_FFT_ICON_EMIT_STRENGTH_MAX = 100;
+export const WAVEFORM_WINDOW_SIZE_MIN = 256;
+export const WAVEFORM_WINDOW_SIZE_MAX = 4096;
+export const WAVEFORM_ROTATION_SPEED_MIN = -360;
+export const WAVEFORM_ROTATION_SPEED_MAX = 360;
+export const WAVEFORM_STROKE_WIDTH_PX_MIN = 1;
+export const WAVEFORM_STROKE_WIDTH_PX_MAX = 4;
+export const WAVEFORM_FFT_BIN_COUNT_MIN = 8;
+export const WAVEFORM_FFT_BIN_COUNT_MAX = 96;
+export const WAVEFORM_FFT_SIZE_MIN = 64;
+export const WAVEFORM_FFT_SIZE_MAX = 1024;
+export const WAVEFORM_FFT_GAUGE_SEGMENTS_MIN = 0;
+export const WAVEFORM_FFT_GAUGE_SEGMENTS_MAX = 20;

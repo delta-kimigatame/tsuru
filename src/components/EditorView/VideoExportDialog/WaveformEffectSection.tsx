@@ -1,0 +1,654 @@
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import GraphicEqIcon from "@mui/icons-material/GraphicEq";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  PALETTE,
+  WAVEFORM_FFT_BIN_COUNT_MAX,
+  WAVEFORM_FFT_BIN_COUNT_MIN,
+  WAVEFORM_FFT_GAUGE_SEGMENTS_MAX,
+  WAVEFORM_FFT_GAUGE_SEGMENTS_MIN,
+  WAVEFORM_FFT_ICON_EMIT_STRENGTH_MAX,
+  WAVEFORM_FFT_ICON_EMIT_STRENGTH_MIN,
+  WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX,
+  WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN,
+  WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX,
+  WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN,
+  WAVEFORM_FFT_SIZE_MAX,
+  WAVEFORM_FFT_SIZE_MIN,
+  WAVEFORM_ROTATION_SPEED_MAX,
+  WAVEFORM_ROTATION_SPEED_MIN,
+  WAVEFORM_STROKE_WIDTH_PX_MAX,
+  WAVEFORM_STROKE_WIDTH_PX_MIN,
+  WAVEFORM_WINDOW_SIZE_MAX,
+  WAVEFORM_WINDOW_SIZE_MIN,
+} from "../../../config/videoExport";
+import {
+  WAVEFORM_COLOR_MODES,
+  WAVEFORM_DRAW_METHODS,
+  WAVEFORM_FFT_GAUGE_SHAPES,
+  WAVEFORM_FFT_ICON_SHAPES,
+  WAVEFORM_FFT_ICON_STRENGTH_MODES,
+  WAVEFORM_FFT_SHAPES,
+  WAVEFORM_TYPES,
+  type WaveformColorMode,
+  type WaveformDrawMethod,
+  type WaveformFftGaugeShape,
+  type WaveformFftIconShape,
+  type WaveformFftIconStrengthMode,
+  type WaveformFftShape,
+  type WaveformType,
+} from "../../../utils/waveformEffect";
+import { ColorHexInput } from "./ColorHexInput";
+import { ColorPaletteGrid } from "./ColorPaletteGrid";
+import { LabeledSlider } from "./LabeledSlider";
+
+type Props = {
+  enabled: boolean;
+  type: WaveformType;
+  drawMethod: WaveformDrawMethod;
+  fftShape: WaveformFftShape;
+  fftGaugeShape: WaveformFftGaugeShape;
+  fftGaugeSegments: number;
+  fftBinCount: number;
+  fftSize: number;
+  fftIconShape: WaveformFftIconShape;
+  fftIconStrengthMode: WaveformFftIconStrengthMode;
+  fftIconSizePercent: number;
+  fftIconGlowStrength: number;
+  fftIconEmitStrength: number;
+  color: string;
+  colorMode: WaveformColorMode;
+  opacity: number;
+  xPercent: number;
+  yPercent: number;
+  rotation: number;
+  widthPercent: number;
+  heightPercent: number;
+  startAngle: number;
+  rotationSpeed: number;
+  windowSize: number;
+  strokeWidthPx: number;
+  isPreviewPlaying: boolean;
+  onEnabledChange: (v: boolean) => void;
+  onTypeChange: (v: WaveformType) => void;
+  onDrawMethodChange: (v: WaveformDrawMethod) => void;
+  onFftShapeChange: (v: WaveformFftShape) => void;
+  onFftGaugeShapeChange: (v: WaveformFftGaugeShape) => void;
+  onFftGaugeSegmentsChange: (v: number) => void;
+  onFftBinCountChange: (v: number) => void;
+  onFftSizeChange: (v: number) => void;
+  onFftIconShapeChange: (v: WaveformFftIconShape) => void;
+  onFftIconStrengthModeChange: (v: WaveformFftIconStrengthMode) => void;
+  onFftIconSizePercentChange: (v: number) => void;
+  onFftIconGlowStrengthChange: (v: number) => void;
+  onFftIconEmitStrengthChange: (v: number) => void;
+  onColorChange: (v: string) => void;
+  onColorModeChange: (v: WaveformColorMode) => void;
+  onOpacityChange: (v: number) => void;
+  onXPercentChange: (v: number) => void;
+  onYPercentChange: (v: number) => void;
+  onRotationChange: (v: number) => void;
+  onWidthPercentChange: (v: number) => void;
+  onHeightPercentChange: (v: number) => void;
+  onStartAngleChange: (v: number) => void;
+  onRotationSpeedChange: (v: number) => void;
+  onWindowSizeChange: (v: number) => void;
+  onStrokeWidthPxChange: (v: number) => void;
+  onStartPreview: () => void;
+  onStopPreview: () => void;
+};
+
+export const WaveformEffectSection: React.FC<Props> = ({
+  enabled,
+  type,
+  drawMethod,
+  fftShape,
+  fftGaugeShape,
+  fftGaugeSegments,
+  fftBinCount,
+  fftSize,
+  fftIconShape,
+  fftIconStrengthMode,
+  fftIconSizePercent,
+  fftIconGlowStrength,
+  fftIconEmitStrength,
+  color,
+  colorMode,
+  opacity,
+  xPercent,
+  yPercent,
+  rotation,
+  widthPercent,
+  heightPercent,
+  startAngle,
+  rotationSpeed,
+  windowSize,
+  strokeWidthPx,
+  isPreviewPlaying,
+  onEnabledChange,
+  onTypeChange,
+  onDrawMethodChange,
+  onFftShapeChange,
+  onFftGaugeShapeChange,
+  onFftGaugeSegmentsChange,
+  onFftBinCountChange,
+  onFftSizeChange,
+  onFftIconShapeChange,
+  onFftIconStrengthModeChange,
+  onFftIconSizePercentChange,
+  onFftIconGlowStrengthChange,
+  onFftIconEmitStrengthChange,
+  onColorChange,
+  onColorModeChange,
+  onOpacityChange,
+  onXPercentChange,
+  onYPercentChange,
+  onRotationChange,
+  onWidthPercentChange,
+  onHeightPercentChange,
+  onStartAngleChange,
+  onRotationSpeedChange,
+  onWindowSizeChange,
+  onStrokeWidthPxChange,
+  onStartPreview,
+  onStopPreview,
+}) => {
+  const { t } = useTranslation();
+  const [colorInput, setColorInput] = useState(color);
+
+  useEffect(() => {
+    setColorInput(color);
+  }, [color]);
+
+  const isFftType = type === "fft-horizontal" || type === "fft-circular";
+  const isFftIconType = type.startsWith("fft-icon-");
+  const isMirrorType =
+    type === "fft-icon-horizontal-mirror" ||
+    type === "fft-icon-vertical-mirror";
+  const isIconHorizontalType =
+    type === "fft-icon-horizontal" || type === "fft-icon-horizontal-mirror";
+  const isIconVerticalType =
+    type === "fft-icon-vertical" || type === "fft-icon-vertical-mirror";
+  const isCircularType =
+    type === "oscilloscope-circular" ||
+    type === "fft-circular" ||
+    type === "fft-icon-circular";
+
+  const handleColorInputChange = (raw: string) => {
+    setColorInput(raw);
+    if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+      onColorChange(raw);
+    }
+  };
+
+  const handleColorSelect = (c: string) => {
+    setColorInput(c);
+    onColorChange(c);
+  };
+
+  return (
+    <Box
+      sx={{
+        border: "2px solid",
+        borderColor: "primary.main",
+        borderRadius: 2,
+        p: 1.5,
+        background: (theme) =>
+          theme.palette.mode === "dark"
+            ? "rgba(144,202,249,0.08)"
+            : "rgba(25,118,210,0.06)",
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <GraphicEqIcon fontSize="small" color="primary" />
+        <Typography
+          variant="subtitle2"
+          color="primary"
+          fontWeight="bold"
+          sx={{ letterSpacing: "0.01em" }}
+        >
+          {t("editor.videoExport.waveformSection")}
+        </Typography>
+      </Stack>
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            size="small"
+            checked={enabled}
+            onChange={(e) => onEnabledChange(e.target.checked)}
+          />
+        }
+        label={
+          <Typography variant="body2">
+            {t("editor.videoExport.waveformEnable")}
+          </Typography>
+        }
+      />
+
+      {enabled && (
+        <Accordion
+          sx={{
+            mt: 1,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            "&:before": { display: "none" },
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ pr: 1 }}>
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {t("editor.videoExport.waveformSection")}
+            </Typography>
+            <Tooltip
+              title={
+                isPreviewPlaying
+                  ? t("editor.videoExport.waveformPreviewSineStop")
+                  : t("editor.videoExport.waveformPreviewSine")
+              }
+            >
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  isPreviewPlaying ? onStopPreview() : onStartPreview();
+                }}
+                sx={{ mr: 0.5 }}
+              >
+                {isPreviewPlaying ? (
+                  <StopIcon fontSize="small" />
+                ) : (
+                  <PlayArrowIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </AccordionSummary>
+          <AccordionDetails
+            sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
+          >
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformType")}
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={type}
+              onChange={(e) => onTypeChange(e.target.value as WaveformType)}
+              sx={{ bgcolor: "background.paper" }}
+            >
+              {WAVEFORM_TYPES.map((wt) => (
+                <MenuItem key={wt} value={wt}>
+                  <Typography variant="body2">
+                    {t(
+                      `editor.videoExport.waveformType_${wt.replace(/-/g, "_")}`,
+                    )}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Select>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+            >
+              {t(
+                isFftType
+                  ? "editor.videoExport.waveformFftShape"
+                  : isFftIconType
+                    ? "editor.videoExport.waveformFftIconShape"
+                    : "editor.videoExport.waveformDrawMethod",
+              )}
+            </Typography>
+            {isFftType ? (
+              <>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftShape}
+                  onChange={(e) =>
+                    onFftShapeChange(e.target.value as WaveformFftShape)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_SHAPES.map((shape) => (
+                    <MenuItem key={shape} value={shape}>
+                      <Typography variant="body2">
+                        {t(`editor.videoExport.waveformFftShape_${shape}`)}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {fftShape === "gauge" && (
+                  <>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 0.5, display: "block" }}
+                    >
+                      {t("editor.videoExport.waveformFftGaugeShape")}
+                    </Typography>
+                    <Select
+                      size="small"
+                      fullWidth
+                      value={fftGaugeShape}
+                      onChange={(e) =>
+                        onFftGaugeShapeChange(
+                          e.target.value as WaveformFftGaugeShape,
+                        )
+                      }
+                      sx={{ bgcolor: "background.paper" }}
+                    >
+                      {WAVEFORM_FFT_GAUGE_SHAPES.map((shape) => (
+                        <MenuItem key={shape} value={shape}>
+                          <Typography variant="body2">
+                            {t(
+                              `editor.videoExport.waveformFftGaugeShape_${shape}`,
+                            )}
+                          </Typography>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <LabeledSlider
+                      label={t("editor.videoExport.waveformFftGaugeSegments")}
+                      value={fftGaugeSegments}
+                      onChange={onFftGaugeSegmentsChange}
+                      min={WAVEFORM_FFT_GAUGE_SEGMENTS_MIN}
+                      max={WAVEFORM_FFT_GAUGE_SEGMENTS_MAX}
+                      step={1}
+                      unit=""
+                    />
+                  </>
+                )}
+              </>
+            ) : isFftIconType ? (
+              <>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftIconShape}
+                  onChange={(e) =>
+                    onFftIconShapeChange(e.target.value as WaveformFftIconShape)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_ICON_SHAPES.map((shape) => (
+                    <MenuItem key={shape} value={shape}>
+                      <Typography variant="body2">
+                        {t(`editor.videoExport.waveformFftIconShape_${shape}`)}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, mb: 0.5, display: "block" }}
+                >
+                  {t("editor.videoExport.waveformFftIconStrengthMode")}
+                </Typography>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={fftIconStrengthMode}
+                  onChange={(e) =>
+                    onFftIconStrengthModeChange(
+                      e.target.value as WaveformFftIconStrengthMode,
+                    )
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_FFT_ICON_STRENGTH_MODES.map((mode) => (
+                    <MenuItem key={mode} value={mode}>
+                      <Typography variant="body2">
+                        {t(
+                          `editor.videoExport.waveformFftIconStrengthMode_${mode.replace(/-/g, "_")}`,
+                        )}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftIconSizePercent")}
+                  value={fftIconSizePercent}
+                  onChange={onFftIconSizePercentChange}
+                  min={WAVEFORM_FFT_ICON_SIZE_PERCENT_MIN}
+                  max={WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX}
+                  unit="%"
+                />
+                {(fftIconStrengthMode === "glow" ||
+                  fftIconStrengthMode === "band-hue-glow") && (
+                  <LabeledSlider
+                    label={t("editor.videoExport.waveformFftIconGlowStrength")}
+                    value={fftIconGlowStrength}
+                    onChange={onFftIconGlowStrengthChange}
+                    min={WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN}
+                    max={WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX}
+                    unit="px"
+                  />
+                )}
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftIconEmitStrength")}
+                  value={fftIconEmitStrength}
+                  onChange={onFftIconEmitStrengthChange}
+                  min={WAVEFORM_FFT_ICON_EMIT_STRENGTH_MIN}
+                  max={WAVEFORM_FFT_ICON_EMIT_STRENGTH_MAX}
+                  unit="px"
+                />
+              </>
+            ) : (
+              <Select
+                size="small"
+                fullWidth
+                value={drawMethod}
+                onChange={(e) =>
+                  onDrawMethodChange(e.target.value as WaveformDrawMethod)
+                }
+                sx={{ bgcolor: "background.paper" }}
+              >
+                {WAVEFORM_DRAW_METHODS.map((dm) => (
+                  <MenuItem key={dm} value={dm}>
+                    <Typography variant="body2">
+                      {t(`editor.videoExport.waveformDrawMethod_${dm}`)}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformColor")}
+            </Typography>
+            <ColorPaletteGrid
+              palette={PALETTE}
+              activeColor={color}
+              onColorSelect={handleColorSelect}
+            />
+            <ColorHexInput
+              colorInput={colorInput}
+              bgColor={color}
+              onChange={handleColorInputChange}
+            />
+
+            {!isFftIconType && (
+              <>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, mb: 0.5, display: "block" }}
+                >
+                  {t("editor.videoExport.waveformColorMode")}
+                </Typography>
+                <Select
+                  size="small"
+                  fullWidth
+                  value={colorMode}
+                  onChange={(e) =>
+                    onColorModeChange(e.target.value as WaveformColorMode)
+                  }
+                  sx={{ bgcolor: "background.paper" }}
+                >
+                  {WAVEFORM_COLOR_MODES.map((mode) => (
+                    <MenuItem key={mode} value={mode}>
+                      <Typography variant="body2">
+                        {t(`editor.videoExport.waveformColorMode_${mode}`)}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </>
+            )}
+
+            <LabeledSlider
+              label={t("editor.videoExport.waveformOpacity")}
+              value={opacity}
+              onChange={onOpacityChange}
+              min={0}
+              max={100}
+              unit="%"
+            />
+            {!isFftIconType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformStrokeWidth")}
+                value={strokeWidthPx}
+                onChange={onStrokeWidthPxChange}
+                min={WAVEFORM_STROKE_WIDTH_PX_MIN}
+                max={WAVEFORM_STROKE_WIDTH_PX_MAX}
+                unit="px"
+              />
+            )}
+            {(!isMirrorType || type === "fft-icon-vertical-mirror") && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformX")}
+                value={xPercent}
+                onChange={onXPercentChange}
+                min={-100}
+                max={200}
+                unit="%"
+              />
+            )}
+            {(!isMirrorType || type === "fft-icon-horizontal-mirror") && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformY")}
+                value={yPercent}
+                onChange={onYPercentChange}
+                min={-100}
+                max={200}
+                unit="%"
+              />
+            )}
+            {!isMirrorType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformRotation")}
+                value={rotation}
+                onChange={onRotationChange}
+                min={-180}
+                max={180}
+                unit="°"
+              />
+            )}
+            {!isIconVerticalType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformWidth")}
+                value={widthPercent}
+                onChange={onWidthPercentChange}
+                min={1}
+                max={100}
+                unit="%"
+              />
+            )}
+            {!isIconHorizontalType && (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformHeight")}
+                value={heightPercent}
+                onChange={onHeightPercentChange}
+                min={1}
+                max={100}
+                unit="%"
+              />
+            )}
+            {isFftType || isFftIconType ? (
+              <>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftBinCount")}
+                  value={fftBinCount}
+                  onChange={onFftBinCountChange}
+                  min={WAVEFORM_FFT_BIN_COUNT_MIN}
+                  max={WAVEFORM_FFT_BIN_COUNT_MAX}
+                  step={8}
+                  unit=""
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftSize")}
+                  value={fftSize}
+                  onChange={onFftSizeChange}
+                  min={WAVEFORM_FFT_SIZE_MIN}
+                  max={WAVEFORM_FFT_SIZE_MAX}
+                  step={64}
+                  unit=""
+                />
+              </>
+            ) : (
+              <LabeledSlider
+                label={t("editor.videoExport.waveformWindowSize")}
+                value={windowSize}
+                onChange={onWindowSizeChange}
+                min={WAVEFORM_WINDOW_SIZE_MIN}
+                max={WAVEFORM_WINDOW_SIZE_MAX}
+                step={256}
+                unit=""
+              />
+            )}
+
+            {isCircularType && (
+              <>
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformStartAngle")}
+                  value={startAngle}
+                  onChange={onStartAngleChange}
+                  min={-180}
+                  max={180}
+                  unit="°"
+                />
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformRotationSpeed")}
+                  value={rotationSpeed}
+                  onChange={onRotationSpeedChange}
+                  min={WAVEFORM_ROTATION_SPEED_MIN}
+                  max={WAVEFORM_ROTATION_SPEED_MAX}
+                  unit="°/s"
+                  valueMinWidth={72}
+                />
+              </>
+            )}
+          </AccordionDetails>
+        </Accordion>
+      )}
+    </Box>
+  );
+};

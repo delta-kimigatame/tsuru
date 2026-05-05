@@ -101,6 +101,31 @@ import {
   DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
+  DEFAULT_WAVEFORM_COLOR,
+  DEFAULT_WAVEFORM_COLOR_MODE,
+  DEFAULT_WAVEFORM_DRAW_METHOD,
+  DEFAULT_WAVEFORM_ENABLED,
+  DEFAULT_WAVEFORM_FFT_BIN_COUNT,
+  DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS,
+  DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE,
+  DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH,
+  DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH,
+  DEFAULT_WAVEFORM_FFT_ICON_SHAPE,
+  DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT,
+  DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE,
+  DEFAULT_WAVEFORM_FFT_SHAPE,
+  DEFAULT_WAVEFORM_FFT_SIZE,
+  DEFAULT_WAVEFORM_HEIGHT_PERCENT,
+  DEFAULT_WAVEFORM_OPACITY,
+  DEFAULT_WAVEFORM_ROTATION,
+  DEFAULT_WAVEFORM_ROTATION_SPEED,
+  DEFAULT_WAVEFORM_START_ANGLE,
+  DEFAULT_WAVEFORM_STROKE_WIDTH_PX,
+  DEFAULT_WAVEFORM_TYPE,
+  DEFAULT_WAVEFORM_WIDTH_PERCENT,
+  DEFAULT_WAVEFORM_WINDOW_SIZE,
+  DEFAULT_WAVEFORM_X_PERCENT,
+  DEFAULT_WAVEFORM_Y_PERCENT,
   HEX_RE,
   PORTRAIT_DRAW_SCALE_MAX,
   PORTRAIT_MAX_HEIGHT_RATIO,
@@ -139,6 +164,19 @@ import {
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
+import {
+  buildWaveformFftCache,
+  drawWaveformEffect,
+  generateChirpWave,
+  type WaveformColorMode,
+  type WaveformDrawMethod,
+  type WaveformEffectOptions,
+  type WaveformFftGaugeShape,
+  type WaveformFftIconShape,
+  type WaveformFftIconStrengthMode,
+  type WaveformFftShape,
+  type WaveformType,
+} from "../utils/waveformEffect";
 import { useThemeMode } from "./useThemeMode";
 
 type Options = {
@@ -154,6 +192,7 @@ type Options = {
     subTextOptions: TextOptions | null,
     lyricsOptions: LyricsOptions | null,
     pianorollOptions: PianorollVideoOptions | null,
+    waveformOptions: WaveformEffectOptions | null,
   ) => void;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
@@ -596,12 +635,141 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setLyricsShadowColor(pallet.selectedNote);
     setLyricsStrokeColor(pallet.selectedNote);
     setLyricsBgBarColor(pallet.selectedNote);
+
+    setWaveformColor(pallet.selectedNote);
   }, [
     pianorollColorTheme,
     pianorollThemeMode,
     applyColor,
     applySecondaryColor,
   ]);
+
+  // 波形エフェクト設定
+  const waveformSinePreviewRafRef = React.useRef<number | null>(null);
+  const waveformSinePreviewActiveRef = React.useRef(false);
+  const [isWaveformSinePreviewPlaying, setIsWaveformSinePreviewPlaying] =
+    React.useState(false);
+
+  const [waveformEnabled, setWaveformEnabled] = React.useState<boolean>(
+    DEFAULT_WAVEFORM_ENABLED,
+  );
+  const [waveformType, setWaveformType] = React.useState<WaveformType>(
+    DEFAULT_WAVEFORM_TYPE,
+  );
+  const [waveformDrawMethod, setWaveformDrawMethod] =
+    React.useState<WaveformDrawMethod>(DEFAULT_WAVEFORM_DRAW_METHOD);
+  const [waveformFftShape, setWaveformFftShape] =
+    React.useState<WaveformFftShape>(DEFAULT_WAVEFORM_FFT_SHAPE);
+  const [waveformFftGaugeShape, setWaveformFftGaugeShape] =
+    React.useState<WaveformFftGaugeShape>(DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE);
+  const [waveformColor, setWaveformColor] = React.useState<string>(
+    DEFAULT_WAVEFORM_COLOR,
+  );
+  const [waveformColorMode, setWaveformColorMode] =
+    React.useState<WaveformColorMode>(DEFAULT_WAVEFORM_COLOR_MODE);
+  const [waveformOpacity, setWaveformOpacity] = React.useState<number>(
+    DEFAULT_WAVEFORM_OPACITY,
+  );
+  const [waveformXPercent, setWaveformXPercent] = React.useState<number>(
+    DEFAULT_WAVEFORM_X_PERCENT,
+  );
+  const [waveformYPercent, setWaveformYPercent] = React.useState<number>(
+    DEFAULT_WAVEFORM_Y_PERCENT,
+  );
+  const [waveformRotation, setWaveformRotation] = React.useState<number>(
+    DEFAULT_WAVEFORM_ROTATION,
+  );
+  const [waveformWidthPercent, setWaveformWidthPercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_WIDTH_PERCENT);
+  const [waveformHeightPercent, setWaveformHeightPercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_HEIGHT_PERCENT);
+  const [waveformStartAngle, setWaveformStartAngle] = React.useState<number>(
+    DEFAULT_WAVEFORM_START_ANGLE,
+  );
+  const [waveformRotationSpeed, setWaveformRotationSpeed] =
+    React.useState<number>(DEFAULT_WAVEFORM_ROTATION_SPEED);
+  const [waveformWindowSize, setWaveformWindowSize] = React.useState<number>(
+    DEFAULT_WAVEFORM_WINDOW_SIZE,
+  );
+  const [waveformStrokeWidthPx, setWaveformStrokeWidthPx] =
+    React.useState<number>(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
+  const [waveformFftBinCount, setWaveformFftBinCount] = React.useState<number>(
+    DEFAULT_WAVEFORM_FFT_BIN_COUNT,
+  );
+  const [waveformFftSize, setWaveformFftSize] = React.useState<number>(
+    DEFAULT_WAVEFORM_FFT_SIZE,
+  );
+  const [waveformFftGaugeSegments, setWaveformFftGaugeSegments] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
+  const [waveformFftIconShape, setWaveformFftIconShape] =
+    React.useState<WaveformFftIconShape>(DEFAULT_WAVEFORM_FFT_ICON_SHAPE);
+  const [waveformFftIconStrengthMode, setWaveformFftIconStrengthMode] =
+    React.useState<WaveformFftIconStrengthMode>(
+      DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE,
+    );
+  const [waveformFftIconSizePercent, setWaveformFftIconSizePercent] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
+  const [waveformFftIconGlowStrength, setWaveformFftIconGlowStrength] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH);
+  const [waveformFftIconEmitStrength, setWaveformFftIconEmitStrength] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH);
+
+  const waveformOptions = React.useMemo<WaveformEffectOptions>(
+    () => ({
+      enabled: waveformEnabled,
+      type: waveformType,
+      drawMethod: waveformDrawMethod,
+      fftShape: waveformFftShape,
+      fftGaugeShape: waveformFftGaugeShape,
+      fftGaugeSegments: waveformFftGaugeSegments,
+      color: waveformColor,
+      colorMode: waveformColorMode,
+      opacity: waveformOpacity,
+      xPercent: waveformXPercent,
+      yPercent: waveformYPercent,
+      rotation: waveformRotation,
+      widthPercent: waveformWidthPercent,
+      heightPercent: waveformHeightPercent,
+      startAngle: waveformStartAngle,
+      rotationSpeed: waveformRotationSpeed,
+      windowSize: waveformWindowSize,
+      strokeWidthPx: waveformStrokeWidthPx,
+      fftBinCount: waveformFftBinCount,
+      fftSize: waveformFftSize,
+      fftIconShape: waveformFftIconShape,
+      fftIconStrengthMode: waveformFftIconStrengthMode,
+      fftIconSizePercent: waveformFftIconSizePercent,
+      fftIconGlowStrength: waveformFftIconGlowStrength,
+      fftIconEmitStrength: waveformFftIconEmitStrength,
+    }),
+    [
+      waveformEnabled,
+      waveformType,
+      waveformDrawMethod,
+      waveformFftShape,
+      waveformFftGaugeShape,
+      waveformFftGaugeSegments,
+      waveformColor,
+      waveformColorMode,
+      waveformOpacity,
+      waveformXPercent,
+      waveformYPercent,
+      waveformRotation,
+      waveformWidthPercent,
+      waveformHeightPercent,
+      waveformStartAngle,
+      waveformRotationSpeed,
+      waveformWindowSize,
+      waveformStrokeWidthPx,
+      waveformFftBinCount,
+      waveformFftSize,
+      waveformFftIconShape,
+      waveformFftIconStrengthMode,
+      waveformFftIconSizePercent,
+      waveformFftIconGlowStrength,
+      waveformFftIconEmitStrength,
+    ],
+  );
 
   /** セグメント i の歌詞テキストを更新する */
   const updateSegmentLyric = React.useCallback((i: number, value: string) => {
@@ -806,6 +974,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         subTextOptions,
         lyricsOptions,
         pianorollPreviewOptions,
+        waveformOptions.enabled ? waveformOptions : null,
       );
       return;
     }
@@ -820,6 +989,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextOptions,
       lyricsOptions,
       pianorollPreviewOptions,
+      waveformOptions.enabled ? waveformOptions : null,
     );
   };
 
@@ -921,6 +1091,31 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setPianorollColorTheme(colorTheme);
       setPianorollThemeMode(themeMode);
       setPianorollLayout(null);
+      setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
+      setWaveformType(DEFAULT_WAVEFORM_TYPE);
+      setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
+      setWaveformFftShape(DEFAULT_WAVEFORM_FFT_SHAPE);
+      setWaveformFftGaugeShape(DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE);
+      setWaveformColor(DEFAULT_WAVEFORM_COLOR);
+      setWaveformColorMode(DEFAULT_WAVEFORM_COLOR_MODE);
+      setWaveformOpacity(DEFAULT_WAVEFORM_OPACITY);
+      setWaveformXPercent(DEFAULT_WAVEFORM_X_PERCENT);
+      setWaveformYPercent(DEFAULT_WAVEFORM_Y_PERCENT);
+      setWaveformRotation(DEFAULT_WAVEFORM_ROTATION);
+      setWaveformWidthPercent(DEFAULT_WAVEFORM_WIDTH_PERCENT);
+      setWaveformHeightPercent(DEFAULT_WAVEFORM_HEIGHT_PERCENT);
+      setWaveformStartAngle(DEFAULT_WAVEFORM_START_ANGLE);
+      setWaveformRotationSpeed(DEFAULT_WAVEFORM_ROTATION_SPEED);
+      setWaveformWindowSize(DEFAULT_WAVEFORM_WINDOW_SIZE);
+      setWaveformStrokeWidthPx(DEFAULT_WAVEFORM_STROKE_WIDTH_PX);
+      setWaveformFftBinCount(DEFAULT_WAVEFORM_FFT_BIN_COUNT);
+      setWaveformFftSize(DEFAULT_WAVEFORM_FFT_SIZE);
+      setWaveformFftGaugeSegments(DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS);
+      setWaveformFftIconShape(DEFAULT_WAVEFORM_FFT_ICON_SHAPE);
+      setWaveformFftIconStrengthMode(DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE);
+      setWaveformFftIconSizePercent(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
+      setWaveformFftIconGlowStrength(DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH);
+      setWaveformFftIconEmitStrength(DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -1159,6 +1354,20 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.globalAlpha = 1;
       }
 
+      // 波形エフェクト（無音でフラットライン描画）
+      if (waveformOptions.enabled) {
+        drawWaveformEffect(
+          ctx,
+          null,
+          waveformOptions,
+          pw,
+          ph,
+          0,
+          44100,
+          prevScale,
+        );
+      }
+
       const drawTextLayer = (
         text: string,
         fontSize: number,
@@ -1304,13 +1513,15 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      waveformOptions,
     ],
   );
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
-    // アニメーションプレビュー中は静止画描画をスキップ
-    if (animPreviewActiveRef.current) return;
+    // アニメーションプレビュー中はスキップ
+    if (animPreviewActiveRef.current || waveformSinePreviewActiveRef.current)
+      return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1442,7 +1653,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
     isAnimPreviewPlaying,
+    isWaveformSinePreviewPlaying,
     pianorollPreviewOptions,
+    waveformOptions,
   ]);
 
   // テキストの bold/italic をあわせて更新するコールバック
@@ -1623,6 +1836,93 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     }
     animPreviewActiveRef.current = false;
     setIsAnimPreviewPlaying(false);
+  }, []);
+
+  /** 波形プレビュー開始 — 50→800Hz チープ波 0.8秒を rAF ループで描画する */
+  const startWaveformSinePreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
+
+    const CHIRP_SAMPLE_RATE = 44100;
+    const CHIRP_DURATION_SEC = 1.5;
+    const CHIRP_START_HZ = 50;
+    const CHIRP_END_HZ = 10000;
+    const chirpSamples = generateChirpWave(
+      CHIRP_START_HZ,
+      CHIRP_END_HZ,
+      CHIRP_DURATION_SEC,
+      CHIRP_SAMPLE_RATE,
+    );
+
+    // プレビュー用にFFTキャッシュを事前計算する
+    const chirpFftCache = buildWaveformFftCache(
+      chirpSamples,
+      CHIRP_SAMPLE_RATE,
+      waveformOptions.fftSize,
+      waveformOptions.fftBinCount,
+    );
+
+    waveformSinePreviewActiveRef.current = true;
+    const startTime = performance.now();
+    setIsWaveformSinePreviewPlaying(true);
+
+    const loop = (img: HTMLImageElement | null) => {
+      if (!waveformSinePreviewActiveRef.current) return;
+      const elapsed =
+        ((performance.now() - startTime) / 1000) % CHIRP_DURATION_SEC;
+      const metrics = renderPreviewBase(ctx, canvas, img);
+      if (!metrics) return;
+      if (waveformOptions.enabled) {
+        drawWaveformEffect(
+          ctx,
+          chirpSamples,
+          waveformOptions,
+          metrics.pw,
+          metrics.ph,
+          elapsed,
+          CHIRP_SAMPLE_RATE,
+          metrics.prevScale,
+          chirpFftCache,
+        );
+      }
+      waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(img),
+      );
+    };
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!waveformSinePreviewActiveRef.current) return;
+        waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+          loop(el),
+        );
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      waveformSinePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(null),
+      );
+    }
+  }, [
+    previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
+    renderPreviewBase,
+    waveformOptions,
+  ]);
+
+  /** 波形サイン波プレビュー停止 */
+  const stopWaveformSinePreview = React.useCallback(() => {
+    if (waveformSinePreviewRafRef.current !== null) {
+      cancelAnimationFrame(waveformSinePreviewRafRef.current);
+      waveformSinePreviewRafRef.current = null;
+    }
+    waveformSinePreviewActiveRef.current = false;
+    setIsWaveformSinePreviewPlaying(false);
   }, []);
 
   return {
@@ -1854,5 +2154,58 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
+    waveformEnabled,
+    setWaveformEnabled,
+    waveformType,
+    setWaveformType,
+    waveformDrawMethod,
+    setWaveformDrawMethod,
+    waveformFftShape,
+    setWaveformFftShape,
+    waveformFftGaugeShape,
+    setWaveformFftGaugeShape,
+    waveformColor,
+    setWaveformColor,
+    waveformColorMode,
+    setWaveformColorMode,
+    waveformOpacity,
+    setWaveformOpacity,
+    waveformXPercent,
+    setWaveformXPercent,
+    waveformYPercent,
+    setWaveformYPercent,
+    waveformRotation,
+    setWaveformRotation,
+    waveformWidthPercent,
+    setWaveformWidthPercent,
+    waveformHeightPercent,
+    setWaveformHeightPercent,
+    waveformStartAngle,
+    setWaveformStartAngle,
+    waveformRotationSpeed,
+    setWaveformRotationSpeed,
+    waveformWindowSize,
+    setWaveformWindowSize,
+    waveformStrokeWidthPx,
+    setWaveformStrokeWidthPx,
+    waveformFftBinCount,
+    setWaveformFftBinCount,
+    waveformFftSize,
+    setWaveformFftSize,
+    waveformFftGaugeSegments,
+    setWaveformFftGaugeSegments,
+    waveformFftIconShape,
+    setWaveformFftIconShape,
+    waveformFftIconStrengthMode,
+    setWaveformFftIconStrengthMode,
+    waveformFftIconSizePercent,
+    setWaveformFftIconSizePercent,
+    waveformFftIconGlowStrength,
+    setWaveformFftIconGlowStrength,
+    waveformFftIconEmitStrength,
+    setWaveformFftIconEmitStrength,
+    isWaveformSinePreviewPlaying,
+    startWaveformSinePreview,
+    stopWaveformSinePreview,
   };
 };
