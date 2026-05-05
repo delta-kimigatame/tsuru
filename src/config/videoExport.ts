@@ -4,7 +4,11 @@ import type {
   SlideDirection,
   VideoResolution,
 } from "../utils/videoExport";
-import type { WaveformDrawMethod, WaveformType } from "../utils/waveformEffect";
+import type {
+  WaveformColorMode,
+  WaveformDrawMethod,
+  WaveformType,
+} from "../utils/waveformEffect";
 
 // ---------------------------------------------------------------------------
 // カラーパレット生成
@@ -262,6 +266,7 @@ export const DEFAULT_WAVEFORM_ENABLED = false;
 export const DEFAULT_WAVEFORM_TYPE: WaveformType = "oscilloscope";
 export const DEFAULT_WAVEFORM_DRAW_METHOD: WaveformDrawMethod = "polyline";
 export const DEFAULT_WAVEFORM_COLOR = "#000000";
+export const DEFAULT_WAVEFORM_COLOR_MODE: WaveformColorMode = "solid";
 export const DEFAULT_WAVEFORM_OPACITY = 100;
 export const DEFAULT_WAVEFORM_X_PERCENT = 50;
 export const DEFAULT_WAVEFORM_Y_PERCENT = 50;

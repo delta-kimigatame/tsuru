@@ -102,6 +102,7 @@ import {
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
   DEFAULT_WAVEFORM_COLOR,
+  DEFAULT_WAVEFORM_COLOR_MODE,
   DEFAULT_WAVEFORM_DRAW_METHOD,
   DEFAULT_WAVEFORM_ENABLED,
   DEFAULT_WAVEFORM_HEIGHT_PERCENT,
@@ -156,6 +157,7 @@ import {
 import {
   drawWaveformEffect,
   generateSineWave,
+  type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformEffectOptions,
   type WaveformType,
@@ -644,6 +646,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [waveformColor, setWaveformColor] = React.useState<string>(
     DEFAULT_WAVEFORM_COLOR,
   );
+  const [waveformColorMode, setWaveformColorMode] =
+    React.useState<WaveformColorMode>(DEFAULT_WAVEFORM_COLOR_MODE);
   const [waveformOpacity, setWaveformOpacity] = React.useState<number>(
     DEFAULT_WAVEFORM_OPACITY,
   );
@@ -677,6 +681,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       type: waveformType,
       drawMethod: waveformDrawMethod,
       color: waveformColor,
+      colorMode: waveformColorMode,
       opacity: waveformOpacity,
       xPercent: waveformXPercent,
       yPercent: waveformYPercent,
@@ -693,6 +698,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformType,
       waveformDrawMethod,
       waveformColor,
+      waveformColorMode,
       waveformOpacity,
       waveformXPercent,
       waveformYPercent,
@@ -1030,6 +1036,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
       setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
       setWaveformColor(DEFAULT_WAVEFORM_COLOR);
+      setWaveformColorMode(DEFAULT_WAVEFORM_COLOR_MODE);
       setWaveformOpacity(DEFAULT_WAVEFORM_OPACITY);
       setWaveformXPercent(DEFAULT_WAVEFORM_X_PERCENT);
       setWaveformYPercent(DEFAULT_WAVEFORM_Y_PERCENT);
@@ -2074,6 +2081,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformDrawMethod,
     waveformColor,
     setWaveformColor,
+    waveformColorMode,
+    setWaveformColorMode,
     waveformOpacity,
     setWaveformOpacity,
     waveformXPercent,

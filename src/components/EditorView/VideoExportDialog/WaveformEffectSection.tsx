@@ -28,8 +28,10 @@ import {
   WAVEFORM_WINDOW_SIZE_MIN,
 } from "../../../config/videoExport";
 import {
+  WAVEFORM_COLOR_MODES,
   WAVEFORM_DRAW_METHODS,
   WAVEFORM_TYPES,
+  type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformType,
 } from "../../../utils/waveformEffect";
@@ -42,6 +44,7 @@ type Props = {
   type: WaveformType;
   drawMethod: WaveformDrawMethod;
   color: string;
+  colorMode: WaveformColorMode;
   opacity: number;
   xPercent: number;
   yPercent: number;
@@ -57,6 +60,7 @@ type Props = {
   onTypeChange: (v: WaveformType) => void;
   onDrawMethodChange: (v: WaveformDrawMethod) => void;
   onColorChange: (v: string) => void;
+  onColorModeChange: (v: WaveformColorMode) => void;
   onOpacityChange: (v: number) => void;
   onXPercentChange: (v: number) => void;
   onYPercentChange: (v: number) => void;
@@ -76,6 +80,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   type,
   drawMethod,
   color,
+  colorMode,
   opacity,
   xPercent,
   yPercent,
@@ -91,6 +96,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onTypeChange,
   onDrawMethodChange,
   onColorChange,
+  onColorModeChange,
   onOpacityChange,
   onXPercentChange,
   onYPercentChange,
@@ -266,6 +272,31 @@ export const WaveformEffectSection: React.FC<Props> = ({
               bgColor={color}
               onChange={handleColorInputChange}
             />
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1, mb: 0.5, display: "block" }}
+            >
+              {t("editor.videoExport.waveformColorMode")}
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={colorMode}
+              onChange={(e) =>
+                onColorModeChange(e.target.value as WaveformColorMode)
+              }
+              sx={{ bgcolor: "background.paper" }}
+            >
+              {WAVEFORM_COLOR_MODES.map((mode) => (
+                <MenuItem key={mode} value={mode}>
+                  <Typography variant="body2">
+                    {t(`editor.videoExport.waveformColorMode_${mode}`)}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Select>
 
             <LabeledSlider
               label={t("editor.videoExport.waveformOpacity")}
