@@ -108,6 +108,7 @@ import {
   DEFAULT_WAVEFORM_FFT_BIN_COUNT,
   DEFAULT_WAVEFORM_FFT_GAUGE_SEGMENTS,
   DEFAULT_WAVEFORM_FFT_GAUGE_SHAPE,
+  DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH,
   DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH,
   DEFAULT_WAVEFORM_FFT_ICON_SHAPE,
   DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT,
@@ -710,6 +711,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
   const [waveformFftIconGlowStrength, setWaveformFftIconGlowStrength] =
     React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH);
+  const [waveformFftIconEmitStrength, setWaveformFftIconEmitStrength] =
+    React.useState<number>(DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH);
 
   const waveformOptions = React.useMemo<WaveformEffectOptions>(
     () => ({
@@ -737,6 +740,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       fftIconStrengthMode: waveformFftIconStrengthMode,
       fftIconSizePercent: waveformFftIconSizePercent,
       fftIconGlowStrength: waveformFftIconGlowStrength,
+      fftIconEmitStrength: waveformFftIconEmitStrength,
     }),
     [
       waveformEnabled,
@@ -763,6 +767,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       waveformFftIconStrengthMode,
       waveformFftIconSizePercent,
       waveformFftIconGlowStrength,
+      waveformFftIconEmitStrength,
     ],
   );
 
@@ -1110,6 +1115,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setWaveformFftIconStrengthMode(DEFAULT_WAVEFORM_FFT_ICON_STRENGTH_MODE);
       setWaveformFftIconSizePercent(DEFAULT_WAVEFORM_FFT_ICON_SIZE_PERCENT);
       setWaveformFftIconGlowStrength(DEFAULT_WAVEFORM_FFT_ICON_GLOW_STRENGTH);
+      setWaveformFftIconEmitStrength(DEFAULT_WAVEFORM_FFT_ICON_EMIT_STRENGTH);
     } else {
       // ダイアログが開いたときに字幕セグメントを初期化する
       if (notes && notesLeftMs && notes.length > 0) {
@@ -2196,6 +2202,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setWaveformFftIconSizePercent,
     waveformFftIconGlowStrength,
     setWaveformFftIconGlowStrength,
+    waveformFftIconEmitStrength,
+    setWaveformFftIconEmitStrength,
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,

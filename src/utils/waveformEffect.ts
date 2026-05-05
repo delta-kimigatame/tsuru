@@ -162,6 +162,8 @@ export interface WaveformEffectOptions {
   fftIconSizePercent: number;
   /** FFT アイコングリッド: グロー最大強度（px、glow/band-hue-glow モードで使用） */
   fftIconGlowStrength: number;
+  /** FFT アイコングリッド: エミット強度（px、0=無効） */
+  fftIconEmitStrength: number;
 }
 
 export interface WaveformFftCache {
@@ -1634,32 +1636,36 @@ function computeFftIconVisual(
   totalBands: number,
   renderScale: number,
   glowStrength: number,
-): { color: string; glowPx: number } {
+  emitStrength: number,
+): { color: string; glowPx: number; emitPx: number } {
   const p = clamp01(normalizedPower);
+  const emitPx = p * emitStrength * renderScale;
   switch (mode) {
     case "glow":
       return {
         color: hslToCss(baseHsl.h, baseHsl.s, baseHsl.l),
         glowPx: p * glowStrength * renderScale,
+        emitPx,
       };
     case "lightness": {
       const l = lerp(20, 90, p);
-      return { color: hslToCss(baseHsl.h, baseHsl.s, l), glowPx: 0 };
+      return { color: hslToCss(baseHsl.h, baseHsl.s, l), glowPx: 0, emitPx };
     }
     case "saturation": {
       const s = lerp(0, 100, p);
-      return { color: hslToCss(baseHsl.h, s, baseHsl.l), glowPx: 0 };
+      return { color: hslToCss(baseHsl.h, s, baseHsl.l), glowPx: 0, emitPx };
     }
     case "hue-by-power": {
       // blue(240°) → green(120°) → red(0°)
       const hue = lerp(240, 0, p);
-      return { color: hslToCss(hue, baseHsl.s, baseHsl.l), glowPx: 0 };
+      return { color: hslToCss(hue, baseHsl.s, baseHsl.l), glowPx: 0, emitPx };
     }
     case "band-hue-glow": {
       const hue = baseHsl.h + (bandIndex / Math.max(1, totalBands)) * 360;
       return {
         color: hslToCss(hue, baseHsl.s, baseHsl.l),
         glowPx: p * glowStrength * renderScale,
+        emitPx,
       };
     }
   }
@@ -1748,10 +1754,37 @@ function drawFftIconAt(
   r: number,
   color: string,
   glowPx: number,
+  emitPx: number,
 ): void {
   if (r <= 0) return;
   ctx.save();
   ctx.translate(cx, cy);
+
+  // エミット効果（グリフより先に描画して背面レイヤーにする）
+  if (emitPx > 0) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.5;
+    // A: ハロー（半透明の外輪）
+    const haloR = r + emitPx * 0.55;
+    ctx.lineWidth = Math.max(0.5, emitPx * 0.08);
+    ctx.beginPath();
+    ctx.arc(0, 0, haloR, 0, 2 * Math.PI);
+    ctx.stroke();
+    // B: 放射ライン（8本）
+    const lineStart = r * 1.15;
+    const lineEnd = r + emitPx;
+    ctx.lineWidth = Math.max(0.5, emitPx * 0.06);
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(angle) * lineStart, Math.sin(angle) * lineStart);
+      ctx.lineTo(Math.cos(angle) * lineEnd, Math.sin(angle) * lineEnd);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   ctx.fillStyle = color;
   if (glowPx > 0) {
     ctx.shadowBlur = glowPx;
@@ -1795,8 +1828,18 @@ function drawFftIconHorizontal(
       N,
       renderScale,
       options.fftIconGlowStrength,
+      options.fftIconEmitStrength,
     );
-    drawFftIconAt(ctx, shape, iconCx, 0, r, visual.color, visual.glowPx);
+    drawFftIconAt(
+      ctx,
+      shape,
+      iconCx,
+      0,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
   }
   ctx.restore();
 }
@@ -1834,8 +1877,18 @@ function drawFftIconVertical(
       N,
       renderScale,
       options.fftIconGlowStrength,
+      options.fftIconEmitStrength,
     );
-    drawFftIconAt(ctx, shape, 0, iconCy, r, visual.color, visual.glowPx);
+    drawFftIconAt(
+      ctx,
+      shape,
+      0,
+      iconCy,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
   }
   ctx.restore();
 }
@@ -1876,9 +1929,28 @@ function drawFftIconHorizontalMirror(
       N,
       renderScale,
       options.fftIconGlowStrength,
+      options.fftIconEmitStrength,
     );
-    drawFftIconAt(ctx, shape, iconX, topY, r, visual.color, visual.glowPx);
-    drawFftIconAt(ctx, shape, iconX, bottomY, r, visual.color, visual.glowPx);
+    drawFftIconAt(
+      ctx,
+      shape,
+      iconX,
+      topY,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
+    drawFftIconAt(
+      ctx,
+      shape,
+      iconX,
+      bottomY,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
   }
 }
 
@@ -1918,9 +1990,28 @@ function drawFftIconVerticalMirror(
       N,
       renderScale,
       options.fftIconGlowStrength,
+      options.fftIconEmitStrength,
     );
-    drawFftIconAt(ctx, shape, leftX, iconY, r, visual.color, visual.glowPx);
-    drawFftIconAt(ctx, shape, rightX, iconY, r, visual.color, visual.glowPx);
+    drawFftIconAt(
+      ctx,
+      shape,
+      leftX,
+      iconY,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
+    drawFftIconAt(
+      ctx,
+      shape,
+      rightX,
+      iconY,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
   }
 }
 
@@ -1967,8 +2058,18 @@ function drawFftIconCircular(
       N,
       renderScale,
       options.fftIconGlowStrength,
+      options.fftIconEmitStrength,
     );
-    drawFftIconAt(ctx, shape, iconCx, iconCy, r, visual.color, visual.glowPx);
+    drawFftIconAt(
+      ctx,
+      shape,
+      iconCx,
+      iconCy,
+      r,
+      visual.color,
+      visual.glowPx,
+      visual.emitPx,
+    );
   }
   ctx.restore();
 }

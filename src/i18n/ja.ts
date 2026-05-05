@@ -565,6 +565,7 @@ export const translationJa = {
       waveformFftIconStrengthMode_band_hue_glow: "バンド色相＋発光",
       waveformFftIconSizePercent: "アイコンサイズ",
       waveformFftIconGlowStrength: "グロー強度",
+      waveformFftIconEmitStrength: "エミット強度",
       waveformColor: "色",
       waveformColorMode: "色モード",
       waveformColorMode_solid: "単色",

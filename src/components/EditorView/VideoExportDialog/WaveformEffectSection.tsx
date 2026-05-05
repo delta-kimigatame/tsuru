@@ -24,6 +24,8 @@ import {
   WAVEFORM_FFT_BIN_COUNT_MIN,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MAX,
   WAVEFORM_FFT_GAUGE_SEGMENTS_MIN,
+  WAVEFORM_FFT_ICON_EMIT_STRENGTH_MAX,
+  WAVEFORM_FFT_ICON_EMIT_STRENGTH_MIN,
   WAVEFORM_FFT_ICON_GLOW_STRENGTH_MAX,
   WAVEFORM_FFT_ICON_GLOW_STRENGTH_MIN,
   WAVEFORM_FFT_ICON_SIZE_PERCENT_MAX,
@@ -70,6 +72,7 @@ type Props = {
   fftIconStrengthMode: WaveformFftIconStrengthMode;
   fftIconSizePercent: number;
   fftIconGlowStrength: number;
+  fftIconEmitStrength: number;
   color: string;
   colorMode: WaveformColorMode;
   opacity: number;
@@ -95,6 +98,7 @@ type Props = {
   onFftIconStrengthModeChange: (v: WaveformFftIconStrengthMode) => void;
   onFftIconSizePercentChange: (v: number) => void;
   onFftIconGlowStrengthChange: (v: number) => void;
+  onFftIconEmitStrengthChange: (v: number) => void;
   onColorChange: (v: string) => void;
   onColorModeChange: (v: WaveformColorMode) => void;
   onOpacityChange: (v: number) => void;
@@ -124,6 +128,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   fftIconStrengthMode,
   fftIconSizePercent,
   fftIconGlowStrength,
+  fftIconEmitStrength,
   color,
   colorMode,
   opacity,
@@ -149,6 +154,7 @@ export const WaveformEffectSection: React.FC<Props> = ({
   onFftIconStrengthModeChange,
   onFftIconSizePercentChange,
   onFftIconGlowStrengthChange,
+  onFftIconEmitStrengthChange,
   onColorChange,
   onColorModeChange,
   onOpacityChange,
@@ -437,6 +443,14 @@ export const WaveformEffectSection: React.FC<Props> = ({
                     unit="px"
                   />
                 )}
+                <LabeledSlider
+                  label={t("editor.videoExport.waveformFftIconEmitStrength")}
+                  value={fftIconEmitStrength}
+                  onChange={onFftIconEmitStrengthChange}
+                  min={WAVEFORM_FFT_ICON_EMIT_STRENGTH_MIN}
+                  max={WAVEFORM_FFT_ICON_EMIT_STRENGTH_MAX}
+                  unit="px"
+                />
               </>
             ) : (
               <Select
