@@ -99,7 +99,9 @@ export const BackgroundSection: React.FC<Props> = ({
       {/* 画像選択 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Button
-          variant="outlined"
+          fullWidth
+          variant="contained"
+          color="primary"
           size="small"
           startIcon={<ImageIcon />}
           onClick={() => fileInputRef.current?.click()}

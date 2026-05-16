@@ -8,6 +8,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Collapse,
   Divider,
   FormControlLabel,
@@ -19,7 +20,6 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -56,6 +56,8 @@ import {
   TEXT_POSITION_MAX,
   TEXT_POSITION_MIN,
 } from "../../../config/videoExport";
+import { LyricsCardDialog } from "../../../features/EditorView/VideoExportDialog/LyricsCardDialog";
+import { LyricsCardEncodingDialog } from "../../../features/EditorView/VideoExportDialog/LyricsCardEncodingDialog";
 import type { LyricsSegment, SlideDirection } from "../../../utils/videoExport";
 import { LabeledSlider } from "./LabeledSlider";
 
@@ -72,6 +74,7 @@ type Props = {
   onYPercentChange: (v: number) => void;
   onMaxWidthPercentChange: (v: number) => void;
   onUpdateLyric: (i: number, value: string) => void;
+  onUpdateSegments: (newSegments: LyricsSegment[]) => void;
   onMerge: (i: number) => void;
   onSplit: (i: number, k: number) => void;
   // 文字装飾
@@ -184,6 +187,7 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onYPercentChange,
   onMaxWidthPercentChange,
   onUpdateLyric,
+  onUpdateSegments,
   onMerge,
   onSplit,
   shadowEnabled,
@@ -265,6 +269,56 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
   onStopAnimPreview,
 }) => {
   const { t } = useTranslation();
+
+  // 歌詞カード読み込み関連 state
+  const lyricsCardInputRef = React.useRef<HTMLInputElement>(null);
+  const [cardFileBuf, setCardFileBuf] = React.useState<ArrayBuffer | null>(
+    null,
+  );
+  const [cardEncodingDialogOpen, setCardEncodingDialogOpen] =
+    React.useState(false);
+  const [cardWords, setCardWords] = React.useState<string[] | null>(null);
+  const [cardDialogOpen, setCardDialogOpen] = React.useState(false);
+
+  const handleCardFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // 同じファイルを再度選択できるよう value をリセット
+    e.target.value = "";
+    try {
+      const buf = await file.arrayBuffer();
+      setCardFileBuf(buf);
+      setCardEncodingDialogOpen(true);
+    } catch {
+      // 読み込み失敗時は何もしない
+    }
+  };
+
+  const handleCardClipboardLoad = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.length === 0) return;
+      const buf = new TextEncoder().encode(text).buffer;
+      setCardFileBuf(buf);
+      setCardEncodingDialogOpen(true);
+    } catch {
+      // クリップボードアクセス失敗時は何もしない
+    }
+  };
+
+  const handleCardEncodingConfirm = (words: string[]) => {
+    if (words.length === 0) return;
+    setCardWords(words);
+    setCardEncodingDialogOpen(false);
+    setCardDialogOpen(true);
+  };
+
+  const handleCardApply = (newSegments: LyricsSegment[]) => {
+    onUpdateSegments(newSegments);
+    setCardDialogOpen(false);
+  };
 
   // 分割ポップオーバーの管理: { rowIndex, anchorEl }
   const [splitPopover, setSplitPopover] = React.useState<{
@@ -576,30 +630,22 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
               <Typography variant="body2" sx={{ flex: 1 }}>
                 {t("editor.videoExport.lyricsAnimations")}
               </Typography>
-              <Tooltip
-                title={
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
                   isAnimPreviewPlaying
-                    ? t("editor.videoExport.lyricsAnimPreviewStop")
-                    : t("editor.videoExport.lyricsAnimPreviewPlay")
-                }
+                    ? onStopAnimPreview()
+                    : onStartAnimPreview();
+                }}
+                sx={{ mr: 0.5 }}
               >
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    isAnimPreviewPlaying
-                      ? onStopAnimPreview()
-                      : onStartAnimPreview();
-                  }}
-                  sx={{ mr: 0.5 }}
-                >
-                  {isAnimPreviewPlaying ? (
-                    <StopIcon fontSize="small" />
-                  ) : (
-                    <PlayArrowIcon fontSize="small" />
-                  )}
-                </IconButton>
-              </Tooltip>
+                {isAnimPreviewPlaying ? (
+                  <StopIcon fontSize="small" />
+                ) : (
+                  <PlayArrowIcon fontSize="small" />
+                )}
+              </IconButton>
             </AccordionSummary>
             <AccordionDetails
               sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}
@@ -1201,6 +1247,42 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
             </AccordionDetails>
           </Accordion>
 
+          {/* 歌詞カード読み込みボタン */}
+          {segments.length > 0 && (
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Box
+                component="input"
+                ref={lyricsCardInputRef}
+                type="file"
+                accept=".txt"
+                style={{ display: "none" }}
+                onChange={handleCardFileChange}
+              />
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => lyricsCardInputRef.current?.click()}
+              >
+                {t("editor.videoExport.lyricsCardLoad")}
+              </Button>
+            </Box>
+          )}
+
+          {/* クリップボードから歌詞カード読み込み */}
+          {segments.length > 0 && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={handleCardClipboardLoad}
+            >
+              {t("editor.videoExport.lyricsCardClipboardLoad")}
+            </Button>
+          )}
+
           {/* セグメントテーブル */}
           {segments.length > 0 && (
             <Box
@@ -1298,25 +1380,21 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
                     {/* 操作ボタン */}
                     <Box sx={{ display: "flex", gap: 0 }}>
                       {/* 分割ボタン: noteBoundaries >= 3 (2ノート以上) の場合のみ活性 */}
-                      <Tooltip title={t("editor.videoExport.lyricsSplit")}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={seg.noteBoundaries.length < 3}
-                            onClick={(e) => handleSplitClick(e, i)}
-                          >
-                            <CallSplitIcon fontSize="inherit" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      <span>
+                        <IconButton
+                          size="small"
+                          disabled={seg.noteBoundaries.length < 3}
+                          onClick={(e) => handleSplitClick(e, i)}
+                        >
+                          <CallSplitIcon fontSize="inherit" />
+                        </IconButton>
+                      </span>
 
                       {/* 結合ボタン: 最後の行は非表示 */}
                       {i < segments.length - 1 ? (
-                        <Tooltip title={t("editor.videoExport.lyricsMerge")}>
-                          <IconButton size="small" onClick={() => onMerge(i)}>
-                            <MergeIcon fontSize="inherit" />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton size="small" onClick={() => onMerge(i)}>
+                          <MergeIcon fontSize="inherit" />
+                        </IconButton>
                       ) : (
                         <Box sx={{ width: 28 }} />
                       )}
@@ -1347,8 +1425,8 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
             </Typography>
             {splitSeg.noteBoundaries.slice(1, -1).map((boundaryMs, ki) => {
               const k = ki + 1; // 実際の境界インデックス (1..N-1)
-              const lyricA = splitSeg.lyric.slice(0, k);
-              const lyricB = splitSeg.lyric.slice(k);
+              const lyricA = splitSeg.noteLyrics.slice(0, k).join("");
+              const lyricB = splitSeg.noteLyrics.slice(k).join("");
               return (
                 <ListItemButton
                   key={k}
@@ -1372,6 +1450,25 @@ export const LyricsSubtitleSection: React.FC<Props> = ({
           </List>
         )}
       </Popover>
+
+      {/* 歌詞カード文字コード&オプション選択ダイアログ */}
+      <LyricsCardEncodingDialog
+        open={cardEncodingDialogOpen}
+        fileBuf={cardFileBuf}
+        onConfirm={handleCardEncodingConfirm}
+        onCancel={() => setCardEncodingDialogOpen(false)}
+      />
+
+      {/* 歌詞カードダイアログ */}
+      {cardWords !== null && (
+        <LyricsCardDialog
+          open={cardDialogOpen}
+          words={cardWords}
+          segments={segments}
+          onApply={handleCardApply}
+          onClose={() => setCardDialogOpen(false)}
+        />
+      )}
     </>
   );
 };

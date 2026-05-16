@@ -13,7 +13,6 @@ import {
   MenuItem,
   Select,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -257,28 +256,20 @@ export const WaveformEffectSection: React.FC<Props> = ({
             <Typography variant="body2" sx={{ flex: 1 }}>
               {t("editor.videoExport.waveformSection")}
             </Typography>
-            <Tooltip
-              title={
-                isPreviewPlaying
-                  ? t("editor.videoExport.waveformPreviewSineStop")
-                  : t("editor.videoExport.waveformPreviewSine")
-              }
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                isPreviewPlaying ? onStopPreview() : onStartPreview();
+              }}
+              sx={{ mr: 0.5 }}
             >
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  isPreviewPlaying ? onStopPreview() : onStartPreview();
-                }}
-                sx={{ mr: 0.5 }}
-              >
-                {isPreviewPlaying ? (
-                  <StopIcon fontSize="small" />
-                ) : (
-                  <PlayArrowIcon fontSize="small" />
-                )}
-              </IconButton>
-            </Tooltip>
+              {isPreviewPlaying ? (
+                <StopIcon fontSize="small" />
+              ) : (
+                <PlayArrowIcon fontSize="small" />
+              )}
+            </IconButton>
           </AccordionSummary>
           <AccordionDetails
             sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 0 }}

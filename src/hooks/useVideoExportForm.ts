@@ -4,7 +4,9 @@ import { COLOR_PALLET } from "../config/pallet";
 import {
   DEFAULT_PIANOROLL_VIDEO_ENABLED,
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
+  PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
   PIANOROLL_VIDEO_ICON_CONFIG,
+  PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../config/pianoroll";
 import {
   BACKGROUND_PATTERN_GAP_MAX,
@@ -141,8 +143,6 @@ import { useCookieStore } from "../store/cookieStore";
 import { useMusicProjectStore } from "../store/musicProjectStore";
 import type { ColorTheme } from "../types/colorTheme";
 import {
-  HORIZONTAL_ZOOM_STEPS,
-  VERTICAL_ZOOM_STEPS,
   drawPianorollVideoFrame,
   getOneStepSmallerZoom,
   type PianorollRenderState,
@@ -567,6 +567,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [pianorollThemeMode, setPianorollThemeMode] = React.useState<
     "light" | "dark"
   >(themeMode);
+  const [pianorollHorizontalZoom, setPianorollHorizontalZoom] =
+    React.useState<number>(() =>
+      getOneStepSmallerZoom(
+        horizontalZoom,
+        PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+      ),
+    );
+  const [pianorollVerticalZoom, setPianorollVerticalZoom] =
+    React.useState<number>(() =>
+      getOneStepSmallerZoom(verticalZoom, PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS),
+    );
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
@@ -589,11 +600,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         notesLeftMs,
         colorTheme: pianorollColorTheme,
         themeMode: pianorollThemeMode,
-        horizontalZoom: getOneStepSmallerZoom(
-          horizontalZoom,
-          HORIZONTAL_ZOOM_STEPS,
-        ),
-        verticalZoom: getOneStepSmallerZoom(verticalZoom, VERTICAL_ZOOM_STEPS),
+        horizontalZoom: pianorollHorizontalZoom,
+        verticalZoom: pianorollVerticalZoom,
         tone,
         isMinor,
         voiceIconImage,
@@ -605,8 +613,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       effectivePianorollLayout,
       pianorollColorTheme,
       pianorollThemeMode,
-      horizontalZoom,
-      verticalZoom,
+      pianorollHorizontalZoom,
+      pianorollVerticalZoom,
       tone,
       isMinor,
       voiceIconImage,
@@ -790,32 +798,49 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         lyric: a.lyric + b.lyric,
         // a の最後の境界点と b の最初の境界点が同じ値なので重複を除去
         noteBoundaries: [...a.noteBoundaries.slice(0, -1), ...b.noteBoundaries],
+        noteLyrics: [...a.noteLyrics, ...b.noteLyrics],
       };
       return [...prev.slice(0, i), merged, ...prev.slice(i + 2)];
     });
   }, []);
 
-  /** セグメント i を noteBoundaries[k] の位置で分割する */
+  /**
+   * セグメント i を noteBoundaries[k] の位置で分割する。
+   * 分割後の lyric はノート単位の歌詞配列 (noteLyrics) を基に再構築するため、
+   * 1ノート複数文字の場合でも正しく分割される。
+   */
   const splitSegment = React.useCallback((i: number, k: number) => {
     setLyricsSegments((prev) => {
       const seg = prev[i];
       if (!seg || k <= 0 || k >= seg.noteBoundaries.length - 1) return prev;
       const splitMs = seg.noteBoundaries[k];
+      const noteLyricsA = seg.noteLyrics.slice(0, k);
+      const noteLyricsB = seg.noteLyrics.slice(k);
       const a: LyricsSegment = {
         startMs: seg.startMs,
         endMs: splitMs,
-        lyric: seg.lyric.slice(0, k),
+        lyric: noteLyricsA.join(""),
         noteBoundaries: seg.noteBoundaries.slice(0, k + 1),
+        noteLyrics: noteLyricsA,
       };
       const b: LyricsSegment = {
         startMs: splitMs,
         endMs: seg.endMs,
-        lyric: seg.lyric.slice(k),
+        lyric: noteLyricsB.join(""),
         noteBoundaries: seg.noteBoundaries.slice(k),
+        noteLyrics: noteLyricsB,
       };
       return [...prev.slice(0, i), a, b, ...prev.slice(i + 1)];
     });
   }, []);
+
+  /** セグメント配列全体を一括で更新する（歌詞カードダイアログから使用） */
+  const setLyricsSegmentsDirectly = React.useCallback(
+    (newSegments: LyricsSegment[]) => {
+      setLyricsSegments(newSegments);
+    },
+    [],
+  );
 
   const handleClose = () => {
     clearImage();
@@ -1090,6 +1115,18 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setPianorollEnabled(DEFAULT_PIANOROLL_VIDEO_ENABLED);
       setPianorollColorTheme(colorTheme);
       setPianorollThemeMode(themeMode);
+      setPianorollHorizontalZoom(
+        getOneStepSmallerZoom(
+          horizontalZoom,
+          PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
+        ),
+      );
+      setPianorollVerticalZoom(
+        getOneStepSmallerZoom(
+          verticalZoom,
+          PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
+        ),
+      );
       setPianorollLayout(null);
       setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
@@ -1688,6 +1725,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       startMs: 0,
       endMs: 3000,
       noteBoundaries: [0, 3000],
+      noteLyrics: ["サンプル歌詞"],
     };
     const segDuration = Math.max(1000, seg.endMs - seg.startMs);
 
@@ -2057,6 +2095,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     updateSegmentLyric,
     mergeSegments,
     splitSegment,
+    setLyricsSegmentsDirectly,
     // 歌詞文字装飾
     lyricsShadowEnabled,
     lyricsShadowColor,
@@ -2151,6 +2190,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPianorollColorTheme,
     pianorollThemeMode,
     setPianorollThemeMode,
+    pianorollHorizontalZoom,
+    setPianorollHorizontalZoom,
+    pianorollVerticalZoom,
+    setPianorollVerticalZoom,
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,

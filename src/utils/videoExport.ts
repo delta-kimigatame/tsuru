@@ -158,20 +158,28 @@ export interface TextOptions {
  *
  * startMs/endMs/noteBoundaries はすべて合成WAV内の時刻（ゼロ起点 ms）。
  * noteBoundaries[0] = startMs、noteBoundaries[length-1] = endMs。
+ * noteBoundaries.length - 1 = noteLyrics.length = セグメント内のノート数。
+ *
  * 分割ポイント k（1 ≤ k ≤ length-2）で分割すると：
- *   前半: startMs〜noteBoundaries[k]、lyric.slice(0, k)
- *   後半: noteBoundaries[k]〜endMs、lyric.slice(k)
+ *   前半: startMs〜noteBoundaries[k]、noteLyrics.slice(0, k)
+ *   後半: noteBoundaries[k]〜endMs、noteLyrics.slice(k)
  */
 export interface LyricsSegment {
   startMs: number;
   endMs: number;
-  /** 編集可能な歌詞テキスト */
+  /** 編集可能な歌詞テキスト（表示・出力用。ユーザが自由に変更可能） */
   lyric: string;
   /**
    * 元ノートの境界時刻（WAV相対ms）の配列。長さ = 元ノート数 + 1。
    * 分割UIのポイント選択に使用する。
    */
   noteBoundaries: number[];
+  /**
+   * 元ノートごとの歌詞文字列の配列。長さ = 元ノート数 = noteBoundaries.length - 1。
+   * 1ノートが複数文字を持つ場合もあるため、分割時のlyric計算はこの配列を使用する。
+   * ユーザがlyricを手編集した場合でも、noteLyricsは元ノート歌詞を保持したまま。
+   */
+  noteLyrics: string[];
 }
 
 /** 字幕全体の設定 */
@@ -312,7 +320,11 @@ export function extractLyricsSegments(
       }
       noteBoundaries.push(endMs);
 
-      segments.push({ startMs, endMs, lyric, noteBoundaries });
+      const noteLyrics = targetNotes
+        .slice(runStart, runEnd + 1)
+        .map((n) => n.lyric);
+
+      segments.push({ startMs, endMs, lyric, noteBoundaries, noteLyrics });
       runStart = null;
     }
   }

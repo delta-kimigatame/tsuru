@@ -166,10 +166,14 @@ export const VideoExportDialog: React.FC<Props> = ({
                 layout={form.pianorollLayout}
                 colorTheme={form.pianorollColorTheme}
                 themeMode={form.pianorollThemeMode}
+                horizontalZoom={form.pianorollHorizontalZoom}
+                verticalZoom={form.pianorollVerticalZoom}
                 onEnabledChange={form.setPianorollEnabled}
                 onLayoutChange={form.setPianorollLayout}
                 onColorThemeChange={form.setPianorollColorTheme}
                 onThemeModeChange={form.setPianorollThemeMode}
+                onHorizontalZoomChange={form.setPianorollHorizontalZoom}
+                onVerticalZoomChange={form.setPianorollVerticalZoom}
                 onApplyThemeToOutside={form.applyPianorollThemeToOutside}
               />
             )}
@@ -331,6 +335,7 @@ export const VideoExportDialog: React.FC<Props> = ({
               onYPercentChange={form.setLyricsYPercent}
               onMaxWidthPercentChange={form.setLyricsMaxWidthPercent}
               onUpdateLyric={form.updateSegmentLyric}
+              onUpdateSegments={form.setLyricsSegmentsDirectly}
               onMerge={form.mergeSegments}
               onSplit={form.splitSegment}
               shadowEnabled={form.lyricsShadowEnabled}
@@ -439,12 +444,18 @@ export const VideoExportDialog: React.FC<Props> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={form.handleClose} disabled={synthesisProgress}>
+        <Button
+          onClick={form.handleClose}
+          disabled={synthesisProgress}
+          variant="contained"
+          color="inherit"
+        >
           {t("editor.videoExport.cancel")}
         </Button>
         <Button
           onClick={form.handleConfirm}
           variant="contained"
+          color="primary"
           disabled={
             synthesisProgress || (form.bgSize === "image" && !form.imageFile)
           }
