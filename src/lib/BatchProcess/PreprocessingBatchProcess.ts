@@ -102,13 +102,13 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
   summary = "total:おまかせ下処理";
   public override process(
     notes: Note[],
-    options: PreprocessingBatchProcessOptions
+    options: PreprocessingBatchProcessOptions,
   ): Note[] {
     return super.process(notes, options);
   }
   protected _process(
     notes: Note[],
-    options: PreprocessingBatchProcessOptions
+    options: PreprocessingBatchProcessOptions,
   ): Note[] {
     const newNotes = notes.map((n) => n.deepCopy());
     newNotes.forEach((n) => {
@@ -206,7 +206,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
     const match = reg.exec(n.lyric);
     this.log(
       `lyric:${n.lyric},length:${n.lyric.length},${match}`,
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
     if (!match) {
       /** マッチしない場合何もしない */
@@ -264,7 +264,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
         /** ここには来ないことを期待しているが念のため例外処理として実装 */
         this.log(
           `開発者の意図しない例外。lyric:${n.lyric}、prevLyric:${prevLyric}`,
-          LogLevel.WARN
+          LogLevel.WARN,
         );
         n.lyric = `- ${match[2]}`;
       }
@@ -593,7 +593,7 @@ export class PreprocessingBatchProcess extends BaseBatchProcess<PreprocessingBat
     pitchOptions: { timing: -45, speed: 60 },
     vibrato: true,
     vibratoOptions: {
-      default: { isProcess: false, threshold: 720 },
+      default: { isProcess: false, threshold: 480 },
       long: { isProcess: true, threshold: 960 },
       ending: { isProcess: true, threshold: 960 },
     },
