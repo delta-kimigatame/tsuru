@@ -317,7 +317,7 @@ export class Note {
    */
   setPitches(value: Array<number>): void {
     this._pitches = value.map((v) =>
-      Math.max(Math.min(Math.floor(v), 2047), -2048)
+      Math.max(Math.min(Math.floor(v), 2047), -2048),
     );
   }
 
@@ -391,7 +391,7 @@ export class Note {
    */
   setPby(value: Array<number>): void {
     this._pby = value.map((v) =>
-      Math.min(Math.max(isNaN(v) ? 0 : v, -200), 200)
+      Math.min(Math.max(isNaN(v) ? 0 : v, -200), 200),
     );
   }
 
@@ -472,7 +472,7 @@ export class Note {
    * エンベロープ。
    */
   setEnvelope(
-    value: { point: Array<number>; value: Array<number> } | undefined
+    value: { point: Array<number>; value: Array<number> } | undefined,
   ): void {
     if (value === undefined) {
       this._envelope = undefined;
@@ -637,25 +637,26 @@ export class Note {
    * wavtoolが出力する際のノートの長さ
    */
   get outputMs(): number {
-    if (this.next === undefined || this.next.lyric === "R") {
-      return this.msLength + (this.atPreutter ? this.atPreutter : 0);
-    } else {
-      return (
+    const outputMs =
+      this.next === undefined || this.next.lyric === "R"
+        ? this.msLength + (this.atPreutter ? this.atPreutter : 0)
+        : (
         this.msLength +
         (this.atPreutter ? this.atPreutter : 0) -
         (this.next.atPreutter ? this.next.atPreutter : 0) +
         (this.next.atOverlap ? this.next.atOverlap : 0)
       );
-    }
+    return Math.max(outputMs, 0);
   }
   /**
    * resamplerが出力するノートの長さ
    */
   get targetLength(): number {
-    return (
-      (Math.round((this.outputMs + (this.atStp ? this.atStp : 0)) / 50) + 1) *
-      50
-    );
+    const targetLength =
+      (Math.round((this.outputMs + (this.atStp ? this.atStp : 0)) / 50) +
+        1) *
+      50;
+    return Math.max(targetLength, 0);
   }
 
   /**
@@ -679,7 +680,7 @@ export class Note {
         ? this.getVibratoPitches(
             this.prev,
             timeAxis,
-            offset - this.prev.msLength
+            offset - this.prev.msLength,
           )
         : new Array(timeAxis.length).fill(0);
     const interpPitch = this.getInterpPitch(this, timeAxis, offset);
@@ -695,7 +696,7 @@ export class Note {
         prevVbrPitch[i] +
         interpPitch[i] +
         vbrPitch[i] +
-        nextInterpPitch[i]
+        nextInterpPitch[i],
     );
   }
 
@@ -758,7 +759,7 @@ export class Note {
    */
   getPitchInterpBase(
     note: Note,
-    offset: number
+    offset: number,
   ): {
     x: Array<number>;
     y: Array<number>;
@@ -791,7 +792,7 @@ export class Note {
   getInterpPitch(
     note: Note,
     timeAxis: Array<number>,
-    offset: number
+    offset: number,
   ): Array<number> {
     const result = new Array(timeAxis.length).fill(0);
     if (note.pbs === undefined || note.pbw === undefined) {
@@ -835,7 +836,7 @@ export class Note {
   getVibratoPitches(
     note: Note,
     timeAxis: Array<number>,
-    offset: number
+    offset: number,
   ): Array<number> {
     const result = new Array(timeAxis.length).fill(0);
     if (note.vibrato === undefined) {
@@ -853,7 +854,7 @@ export class Note {
     const vibratoFrames = end - start;
     const fadeIn = Math.floor((vibratoFrames * note.vibrato.fadeInTime) / 100);
     const fadeOut = Math.floor(
-      (vibratoFrames * note.vibrato.fadeOutTime) / 100
+      (vibratoFrames * note.vibrato.fadeOutTime) / 100,
     );
     const phaseOffset = (2 * Math.PI * note.vibrato.phase) / 100;
     for (let i = start; i < end; i++) {
@@ -863,15 +864,15 @@ export class Note {
         start,
         end,
         fadeIn,
-        fadeOut
+        fadeOut,
       );
       const phase = timeAxis[i] - startMs / 1000;
       result[i] = Math.round(
         (Math.sin(
-          ((2 * Math.PI) / (note.vibrato.cycle / 1000)) * phase + phaseOffset
+          ((2 * Math.PI) / (note.vibrato.cycle / 1000)) * phase + phaseOffset,
         ) +
           note.vibrato.height / 100) *
-          depth
+          depth,
       );
     }
     return result;
@@ -893,13 +894,13 @@ export class Note {
     start: number,
     end: number,
     fadeIn: number,
-    fadeOut: number
+    fadeOut: number,
   ): number {
     return i <= start + fadeIn && fadeIn !== 0
       ? (depth * (i - start)) / fadeIn
       : i >= end - fadeOut && fadeOut !== 0
-      ? depth * (1 - (i - end + fadeOut) / fadeOut)
-      : depth;
+        ? depth * (1 - (i - end + fadeOut) / fadeOut)
+        : depth;
   }
 
   /**
@@ -911,7 +912,7 @@ export class Note {
   getRequestParam(
     vb: BaseVoiceBank,
     flags: string,
-    defaultValue: defaultParam
+    defaultValue: defaultParam,
   ): {
     resamp: ResampRequest | undefined;
     append: AppendRequestBase;
@@ -1040,13 +1041,13 @@ export class Note {
     if (this.vibrato) {
       //オブジェクトかundefined
       noteText += `VBR=${this.vibrato.length.toFixed(
-        0
+        0,
       )},${this.vibrato.cycle.toFixed(0)},${this.vibrato.depth.toFixed(
-        0
+        0,
       )},${this.vibrato.fadeInTime.toFixed(
-        0
+        0,
       )},${this.vibrato.fadeOutTime.toFixed(0)},${this.vibrato.phase.toFixed(
-        0
+        0,
       )},${this.vibrato.height.toFixed(0)},0\r\n`;
     }
     if (this.envelope) {
@@ -1089,11 +1090,11 @@ export const dumpEnvelope = (envelope: {
   value: Array<number>;
 }): string => {
   let output = `${envelope.point[0].toFixed(2)},${envelope.point[1].toFixed(
-    2
+    2,
   )}`;
   if (envelope.point.length >= 3) {
     output += `,${envelope.point[2].toFixed(2)},${envelope.value[0].toFixed(
-      0
+      0,
     )},${envelope.value[1].toFixed(0)},${envelope.value[2].toFixed(0)}`;
     if (envelope.value.length >= 4) {
       output += `,${envelope.value[3].toFixed(0)}`;
@@ -1101,7 +1102,7 @@ export const dumpEnvelope = (envelope: {
         output += `,%,${envelope.point[3].toFixed(2)}`;
         if (envelope.point.length === 5 && envelope.value.length === 5) {
           output += `,${envelope.point[4].toFixed(
-            2
+            2,
           )},${envelope.value[4].toFixed(0)}`;
         }
       }

@@ -1100,6 +1100,21 @@ describe("RenderNote", () => {
     expect(n.outputMs).toBe(600); // 500 + 100
   });
 
+  it("負の値になる条件でもoutputMsとtargetLengthは0以上に保たれる", () => {
+    const n = new Note();
+    n.length = 480;
+    n.tempo = 120;
+    n.atStp = -1000;
+    const next_n = new Note();
+    next_n.lyric = "あ";
+    next_n.atPreutter = 1000;
+    next_n.atOverlap = 0;
+    n.next = next_n;
+
+    expect(n.outputMs).toBe(0);
+    expect(n.targetLength).toBe(0);
+  });
+
   it("targetLengthが50ms単位で切り上げて計算される", () => {
     const n = new Note();
     n.length = 480;
