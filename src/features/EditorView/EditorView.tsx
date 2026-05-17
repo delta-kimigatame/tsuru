@@ -267,13 +267,29 @@ export const EditorView: React.FC<{
     return (notesLeftMs[minIndex] - notes[minIndex].atPreutter) / 1000;
   }, [selectNotesIndex, notesLeftMs]);
 
+  /** 選択ノートを[min,max]の連続インデックスへ正規化する */
+  const toContiguousNotesIndex = React.useCallback((indexes: number[]) => {
+    if (indexes.length === 0) {
+      return indexes;
+    }
+    const minIndex = Math.min(...indexes);
+    const maxIndex = Math.max(...indexes);
+    return Array.from(
+      { length: maxIndex - minIndex + 1 },
+      (_, index) => minIndex + index,
+    );
+  }, []);
+
   /** playとwavdownloadの共通処理 */
-  const synthesis = async (backgroundAudio?: {
-    wav: Wave;
-    offsetMs: number;
-    volume: number;
-    mute: boolean;
-  }) => {
+  const synthesis = async (
+    backgroundAudio?: {
+      wav: Wave;
+      offsetMs: number;
+      volume: number;
+      mute: boolean;
+    },
+    targetNotesIndex: number[] = selectNotesIndex,
+  ) => {
     if (!synthesisWorker.isReady) {
       LOG.error("エンジンが起動していません", "EditorView");
       synthesisWorker.reload();
@@ -293,7 +309,7 @@ export const EditorView: React.FC<{
       setSynthesisCount(0);
       const synthesisStartTime = Date.now();
       const wavBuf = await synthesisWorker.synthesis(
-        selectNotesIndex,
+        targetNotesIndex,
         setSynthesisCount,
         backgroundAudio,
       );
@@ -317,7 +333,9 @@ export const EditorView: React.FC<{
     }
   };
 
-  const synthesisVocalBuffer = async (): Promise<ArrayBuffer | undefined> => {
+  const synthesisVocalBuffer = async (
+    targetNotesIndex: number[] = selectNotesIndex,
+  ): Promise<ArrayBuffer | undefined> => {
     if (!synthesisWorker.isReady) {
       LOG.error("エンジンが起動していません", "EditorView");
       synthesisWorker.reload();
@@ -335,7 +353,7 @@ export const EditorView: React.FC<{
     setSynthesisCount(0);
     try {
       const wavBuf = await synthesisWorker.synthesis(
-        selectNotesIndex,
+        targetNotesIndex,
         setSynthesisCount,
       );
       return wavBuf;
@@ -410,8 +428,11 @@ export const EditorView: React.FC<{
     );
   }, []);
 
-  const openMixMasterFlow = async (target: "play" | "download" | "movie") => {
-    const vocalBuf = await synthesisVocalBuffer();
+  const openMixMasterFlow = async (
+    target: "play" | "download" | "movie",
+    targetNotesIndex: number[] = selectNotesIndex,
+  ) => {
+    const vocalBuf = await synthesisVocalBuffer(targetNotesIndex);
     if (!vocalBuf) {
       return;
     }
@@ -584,23 +605,24 @@ export const EditorView: React.FC<{
       return;
     }
     setPlayReady(false);
+    const contiguousNotesIndex = toContiguousNotesIndex(selectNotesIndex);
 
     if (exportMode === "movie") {
-      await openMixMasterFlow("movie");
+      await openMixMasterFlow("movie", contiguousNotesIndex);
       return;
     }
 
     let dataUrl: string | undefined;
 
     if (exportMode === "master") {
-      await openMixMasterFlow("download");
+      await openMixMasterFlow("download", contiguousNotesIndex);
       return;
     } else {
       /**
        * vocalモードは常に無加工vocalを再合成して出力する。
        * 既存wavUrlはmaster処理結果が含まれる可能性があるため使わない。
        */
-      dataUrl = await synthesis();
+      dataUrl = await synthesis(undefined, contiguousNotesIndex);
       setSynthesisProgress(false);
     }
 
@@ -630,7 +652,8 @@ export const EditorView: React.FC<{
     }
     LOG.gtag("play", { playName: vb.name });
     if (playMode === "master") {
-      await openMixMasterFlow("play");
+      const contiguousNotesIndex = toContiguousNotesIndex(selectNotesIndex);
+      await openMixMasterFlow("play", contiguousNotesIndex);
       return;
     }
     if (wavUrl !== undefined) {
@@ -639,16 +662,20 @@ export const EditorView: React.FC<{
       audioRef.current.play();
     } else {
       setPlayReady(true);
-      if (backgroundAudioWav) {
+      if (backgroundAudioWav && !backgroundMuted) {
+        const contiguousNotesIndex = toContiguousNotesIndex(selectNotesIndex);
         const realOffsetMs = getAudioTimeOffset() * 1000 - backgroundOffsetMs;
-        await synthesis({
-          wav: backgroundAudioWav,
-          offsetMs: realOffsetMs,
-          volume: backgroundVolume,
-          mute: backgroundMuted,
-        });
+        await synthesis(
+          {
+            wav: backgroundAudioWav,
+            offsetMs: realOffsetMs,
+            volume: backgroundVolume,
+            mute: backgroundMuted,
+          },
+          contiguousNotesIndex,
+        );
       } else {
-        await synthesis();
+        await synthesis(undefined, selectNotesIndex);
       }
       setSynthesisProgress(false);
     }
