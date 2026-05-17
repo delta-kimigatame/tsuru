@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/05/17\r\n[Fix] Fixed an issue where the piano roll could not be rendered correctly when the effective note length became negative due to negative overlap, etc.\r\n[Fix] Fixed an issue in the note property dialog where pre-utterance and overlap could not be reset.\r\n[Fix] Adjusted playback/download behavior when non-contiguous notes are selected. When a backing track is set or when downloading, notes are always treated as a contiguous range.",
       '2026/05/16\r\n[Fix] Fixed an issue where vibrato was not rendered correctly in some cases on the piano roll.\r\n[Fix] Reviewed the default value of "Apply light vibrato to all notes" in "Automatic Preprocessing".',
       "2026/05/06\r\n[Add] Added audio waveform to the video creation feature.\r\n[Add] Added a lyrics card loading feature to the video creation feature.\r\n[Add] Added the ability to zoom in/out the piano roll display scale in the video creation feature.\r\n[Fix] Fixed an issue where the note font size in the preview screen of the video creation feature was incorrect.\r\n[Fix] Adjusted the layout.",
       "2026/05/05\r\n[Add] Added piano roll to the video creation feature.\r\n[Fix] Fixed an issue where the preview scale in the video creation feature could differ from the actual exported video.\r\n[Fix] Fixed an issue where synthesis-wait progress was not displayed correctly when all WAV files were already cached.",
