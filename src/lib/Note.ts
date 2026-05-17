@@ -174,7 +174,12 @@ export class Note {
   }
 
   /** 先行発声の入力値 */
-  set preutter(value: number) {
+  set preutter(value: number | undefined) {
+    if (value === undefined) {
+      this._preutter = undefined;
+      this.autoFitParam();
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -188,7 +193,12 @@ export class Note {
   }
 
   /** オーバーラップの入力値 */
-  set overlap(value: number) {
+  set overlap(value: number | undefined) {
+    if (value === undefined) {
+      this._overlap = undefined;
+      this.autoFitParam();
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -203,7 +213,12 @@ export class Note {
   }
 
   /** stpの入力値。正の数 */
-  set stp(value: number) {
+  set stp(value: number | undefined) {
+    if (value === undefined) {
+      this._stp = undefined;
+      this.autoFitParam();
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -261,7 +276,12 @@ export class Note {
   }
 
   /** 子音速度。0～200の整数 */
-  set velocity(value: number) {
+  set velocity(value: number | undefined) {
+    if (value === undefined) {
+      this._velocity = undefined;
+      this.autoFitParam();
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -276,7 +296,11 @@ export class Note {
   }
 
   /** 音量。0～200の整数 */
-  set intensity(value: number) {
+  set intensity(value: number | undefined) {
+    if (value === undefined) {
+      this._intensity = undefined;
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -290,7 +314,11 @@ export class Note {
   }
 
   /** モジュレーション。-200～200の整数 */
-  set modulation(value: number) {
+  set modulation(value: number | undefined) {
+    if (value === undefined) {
+      this._modulation = undefined;
+      return;
+    }
     if (typeof value !== "number" || !Number.isFinite(value)) {
       // 異常値の場合は何もしない
       return;
@@ -640,12 +668,10 @@ export class Note {
     const outputMs =
       this.next === undefined || this.next.lyric === "R"
         ? this.msLength + (this.atPreutter ? this.atPreutter : 0)
-        : (
-        this.msLength +
-        (this.atPreutter ? this.atPreutter : 0) -
-        (this.next.atPreutter ? this.next.atPreutter : 0) +
-        (this.next.atOverlap ? this.next.atOverlap : 0)
-      );
+        : this.msLength +
+          (this.atPreutter ? this.atPreutter : 0) -
+          (this.next.atPreutter ? this.next.atPreutter : 0) +
+          (this.next.atOverlap ? this.next.atOverlap : 0);
     return Math.max(outputMs, 0);
   }
   /**
@@ -653,8 +679,7 @@ export class Note {
    */
   get targetLength(): number {
     const targetLength =
-      (Math.round((this.outputMs + (this.atStp ? this.atStp : 0)) / 50) +
-        1) *
+      (Math.round((this.outputMs + (this.atStp ? this.atStp : 0)) / 50) + 1) *
       50;
     return Math.max(targetLength, 0);
   }
