@@ -157,14 +157,12 @@ export class SynthesisWorker {
         `$direct_true。index:${index},request:${JSON.stringify(param.append)}`,
         "synthesis,SynthesisWorker",
       );
-      const promise = getWaveData(
-        param.append.inputWav,
-        param.append.stp,
-        param.append.length,
-        vb,
-      ).then((result) => {
-        return Float64Array.from(result);
-      });
+      // direct時は元wav全体を取得し、stp/lengthの適用はwavtool.append側で行う
+      const promise = getWaveData(param.append.inputWav, 0, 0, vb).then(
+        (result) => {
+          return Float64Array.from(result);
+        },
+      );
       return promise;
     }
     if (param.resamp === undefined) {
