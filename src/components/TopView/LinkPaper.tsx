@@ -61,6 +61,16 @@ export const LinkPaper: React.FC = () => {
         </ul>
         <Divider />
         <br />
+        <Typography variant="subtitle2">ページリンク</Typography>
+        <ul style={{ marginTop: 0 }}>
+          <li>
+            <Link variant="body2" href="./videoeditor.html">
+              動画エディタを開く
+            </Link>
+          </li>
+        </ul>
+        <Divider />
+        <br />
         <Typography variant="subtitle2">{t("top.linkThirdParty")}</Typography>
         <ul style={{ marginTop: 0 }}>
           <li>

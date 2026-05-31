@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja" translate="no">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#9575CD" />
+    <meta name="google" content="notranslate" />
+    <link rel="icon" href="./static/favicon.ico" />
+    <meta
+      name="keywords"
+      content="UTAU,動画作成,UTAlet,video editor,歌声合成"
+    />
+    <meta
+      name="description"
+      content="UTAletの動画作成機能を独立して使える動画エディタページです。"
+    />
+    <meta name="author" content="デルタ＠きみがため" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:title" content="UTAlet Video Editor" />
+    <meta
+      property="og:image"
+      content="https://k-uta.jp/utalet/static/ogi.png"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="きみがためtools" />
+    <link rel="apple-touch-icon" href="./static/logo192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    />
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-Z99Z805D8C"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-Z99Z805D8C");
+    </script>
+    <title>きみがためtools - UTAlet Video Editor -</title>
+  </head>
+  <body translate="no" class="notranslate">
+    <noscript>
+      このサイトを閲覧するにはjavascriptをオンにする必要があります。
+    </noscript>
+    <div id="root-videoeditor" translate="no" class="notranslate"></div>
+    <script type="module" src="./src/videoeditor/index.tsx"></script>
+  </body>
+</html>
