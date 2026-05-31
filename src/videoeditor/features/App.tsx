@@ -54,6 +54,7 @@ export const App: React.FC = () => {
 
   const [notes, setNotes] = React.useState<Note[] | null>(null);
   const [notesLeftMs, setNotesLeftMs] = React.useState<number[] | null>(null);
+  const [ustFlags, setUstFlags] = React.useState<string>("");
   const [wavBuffer, setWavBuffer] = React.useState<ArrayBuffer | null>(null);
   const [portraitBlob, setPortraitBlob] = React.useState<Blob | null>(null);
   const [voiceIcon, setVoiceIcon] = React.useState<ArrayBuffer | undefined>(
@@ -107,6 +108,7 @@ export const App: React.FC = () => {
         await ust.load(buf);
         setNotes(ust.notes);
         setNotesLeftMs(computeNotesLeftMs(ust.notes));
+        setUstFlags(ust.flags ?? "");
         setUstFileName(file.name);
         if (wavBuffer) {
           setEditorMode(true);
@@ -246,6 +248,7 @@ export const App: React.FC = () => {
           onUstOffsetMsChange={setUstOffsetMs}
           notes={notes}
           notesLeftMs={notesLeftMs}
+          ustFlags={ustFlags}
           selectNotesIndex={[]}
           formContext={formContext}
         />

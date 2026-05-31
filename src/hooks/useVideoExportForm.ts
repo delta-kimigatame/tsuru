@@ -199,6 +199,7 @@ type Options = {
   voiceIcon?: ArrayBuffer;
   notes?: Note[];
   notesLeftMs?: number[];
+  ustFlags?: string;
   selectNotesIndex?: number[];
 };
 
@@ -225,6 +226,7 @@ export const useVideoExportForm = (
     notes,
     notesLeftMs,
     selectNotesIndex,
+    ustFlags,
   } = options;
   const { colorTheme, horizontalZoom, verticalZoom, tone, isMinor, themeMode } =
     context;
@@ -615,6 +617,26 @@ export const useVideoExportForm = (
   ] = React.useState<VoiceColorLegendPosition>("topRight");
   const [pianorollVoiceColorLegendScale, setPianorollVoiceColorLegendScale] =
     React.useState<number>(1);
+  const [pianorollCurrentNoteInfoEnabled, setPianorollCurrentNoteInfoEnabled] =
+    React.useState(false);
+  const [
+    pianorollCurrentNoteInfoShowVelocity,
+    setPianorollCurrentNoteInfoShowVelocity,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoShowFlags,
+    setPianorollCurrentNoteInfoShowFlags,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoShowIntensity,
+    setPianorollCurrentNoteInfoShowIntensity,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoPosition,
+    setPianorollCurrentNoteInfoPosition,
+  ] = React.useState<VoiceColorLegendPosition>("bottomLeft");
+  const [pianorollCurrentNoteInfoScale, setPianorollCurrentNoteInfoScale] =
+    React.useState<number>(1);
   const [pianorollVoiceColorMap, setPianorollVoiceColorMap] = React.useState<
     Record<string, string>
   >({});
@@ -677,6 +699,16 @@ export const useVideoExportForm = (
         voiceColorLegendEnabled: pianorollVoiceColorLegendEnabled,
         voiceColorLegendPosition: pianorollVoiceColorLegendPosition,
         voiceColorLegendScale: pianorollVoiceColorLegendScale,
+        currentNoteInfoEnabled: pianorollCurrentNoteInfoEnabled,
+        currentNoteInfoShowVelocity: pianorollCurrentNoteInfoShowVelocity,
+        currentNoteInfoShowFlags: pianorollCurrentNoteInfoShowFlags,
+        currentNoteInfoShowIntensity: pianorollCurrentNoteInfoShowIntensity,
+        currentNoteInfoPosition: pianorollCurrentNoteInfoPosition,
+        currentNoteInfoScale: pianorollCurrentNoteInfoScale,
+        currentNoteInfoVelocityLabel: t("editor.noteProperty.velocity"),
+        currentNoteInfoFlagsLabel: t("editor.noteProperty.flags"),
+        currentNoteInfoIntensityLabel: t("editor.noteProperty.intensity"),
+        ustFlags,
       };
     }, [
       notes,
@@ -697,6 +729,14 @@ export const useVideoExportForm = (
       pianorollVoiceColorLegendEnabled,
       pianorollVoiceColorLegendPosition,
       pianorollVoiceColorLegendScale,
+      pianorollCurrentNoteInfoEnabled,
+      pianorollCurrentNoteInfoShowVelocity,
+      pianorollCurrentNoteInfoShowFlags,
+      pianorollCurrentNoteInfoShowIntensity,
+      pianorollCurrentNoteInfoPosition,
+      pianorollCurrentNoteInfoScale,
+      t,
+      ustFlags,
     ]);
 
   const applyPianorollThemeToOutside = React.useCallback(() => {
@@ -2574,6 +2614,18 @@ export const useVideoExportForm = (
     setPianorollVoiceColorLegendPosition,
     pianorollVoiceColorLegendScale,
     setPianorollVoiceColorLegendScale,
+    pianorollCurrentNoteInfoEnabled,
+    setPianorollCurrentNoteInfoEnabled,
+    pianorollCurrentNoteInfoShowVelocity,
+    setPianorollCurrentNoteInfoShowVelocity,
+    pianorollCurrentNoteInfoShowFlags,
+    setPianorollCurrentNoteInfoShowFlags,
+    pianorollCurrentNoteInfoShowIntensity,
+    setPianorollCurrentNoteInfoShowIntensity,
+    pianorollCurrentNoteInfoPosition,
+    setPianorollCurrentNoteInfoPosition,
+    pianorollCurrentNoteInfoScale,
+    setPianorollCurrentNoteInfoScale,
     pianorollVoiceColors,
     pianorollDefaultVoiceColorMap,
     pianorollVoiceColorMap,

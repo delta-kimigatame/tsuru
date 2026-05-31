@@ -51,6 +51,26 @@ export interface PianorollVideoOptions {
   voiceColorLegendPosition?: VoiceColorLegendPosition;
   /** voiceColor 凡例のサイズ倍率。デフォルト 1 */
   voiceColorLegendScale?: number;
+  /** 現在再生中ノート情報を表示するか。デフォルト false */
+  currentNoteInfoEnabled?: boolean;
+  /** 現在再生中ノート情報で子音速度を表示するか。デフォルト true */
+  currentNoteInfoShowVelocity?: boolean;
+  /** 現在再生中ノート情報でフラグを表示するか。デフォルト true */
+  currentNoteInfoShowFlags?: boolean;
+  /** 現在再生中ノート情報で音量を表示するか。デフォルト true */
+  currentNoteInfoShowIntensity?: boolean;
+  /** 現在再生中ノート情報の表示位置 */
+  currentNoteInfoPosition?: VoiceColorLegendPosition;
+  /** 現在再生中ノート情報のサイズ倍率。デフォルト 1 */
+  currentNoteInfoScale?: number;
+  /** 現在再生中ノート情報の子音速度ラベル（i18n 済み文字列） */
+  currentNoteInfoVelocityLabel?: string;
+  /** 現在再生中ノート情報のフラグラベル（i18n 済み文字列） */
+  currentNoteInfoFlagsLabel?: string;
+  /** 現在再生中ノート情報の音量ラベル（i18n 済み文字列） */
+  currentNoteInfoIntensityLabel?: string;
+  /** フラグのフォールバック値（note.flags が存在しない場合に使用） */
+  ustFlags?: string;
 }
 
 export interface PianorollRenderState {
@@ -76,6 +96,8 @@ interface LayoutRect {
   width: number;
   height: number;
 }
+
+type ThemeColors = (typeof COLOR_PALLET)[keyof typeof COLOR_PALLET]["light"];
 
 type Rgb = { r: number; g: number; b: number };
 type Hsl = { h: number; s: number; l: number };
@@ -375,6 +397,20 @@ const getNotesLeftTicks = (notes: Note[]): number[] => {
     acc += n.length;
     return current;
   });
+};
+
+const getCurrentNoteIndexByMs = (
+  tMs: number,
+  notes: Note[],
+  notesLeftMs: number[],
+): number => {
+  if (notes.length === 0 || notesLeftMs.length !== notes.length) return -1;
+  for (let i = 0; i < notes.length; i++) {
+    const startMs = notesLeftMs[i];
+    const endMs = startMs + notes[i].msLength;
+    if (tMs >= startMs && tMs < endMs) return i;
+  }
+  return -1;
 };
 
 const getCurrentHeadX = (
@@ -869,6 +905,98 @@ const drawVoiceColorLegend = (
   ctx.restore();
 };
 
+const drawCurrentNoteInfoOverlay = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  opts: PianorollVideoOptions,
+  currentNoteIndex: number,
+  palette: ThemeColors,
+): void => {
+  if (opts.currentNoteInfoEnabled !== true) return;
+  if (currentNoteIndex < 0 || !opts.notes) return;
+
+  const note = opts.notes[currentNoteIndex];
+  if (!note) return;
+
+  // サイズスケール：currentNoteInfoScale を独立して使用、その上で layoutScale を適用
+  const scale =
+    clamp(opts.currentNoteInfoScale ?? 1, 0.6, 2) * (opts.layoutScale ?? 1);
+  const fontSize = Math.max(1, Math.round(12 * scale));
+  const rowGap = Math.max(1, Math.round(4 * scale));
+  const padX = Math.max(1, Math.round(8 * scale));
+  const padY = Math.max(1, Math.round(6 * scale));
+  const margin = Math.max(1, Math.round(10 * scale));
+
+  // 表示する情報行を構築
+  const infoLines: string[] = [];
+  const velocityLabel = opts.currentNoteInfoVelocityLabel ?? "Velocity";
+  const flagsLabel = opts.currentNoteInfoFlagsLabel ?? "Flags";
+  const intensityLabel = opts.currentNoteInfoIntensityLabel ?? "Intensity";
+  if (opts.currentNoteInfoShowVelocity !== false) {
+    const velocity = note.velocity ?? 100;
+    infoLines.push(`${velocityLabel}: ${velocity}`);
+  }
+  if (opts.currentNoteInfoShowFlags !== false) {
+    const flags = note.flags || opts.ustFlags || "";
+    infoLines.push(`${flagsLabel}: ${flags}`);
+  }
+  if (opts.currentNoteInfoShowIntensity !== false) {
+    const intensity = note.intensity ?? 100;
+    infoLines.push(`${intensityLabel}: ${intensity}`);
+  }
+
+  if (infoLines.length === 0) return;
+
+  ctx.save();
+  ctx.font = `${fontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+
+  // テキスト寸法を計算
+  const textMetrics = infoLines.map((line) => ctx.measureText(line));
+  const maxWidth = Math.max(...textMetrics.map((m) => m.width));
+  const rowHeight = fontSize;
+  const totalHeight =
+    infoLines.length * rowHeight + (infoLines.length - 1) * rowGap;
+
+  // ボックス寸法
+  const boxWidth = maxWidth + padX * 2;
+  const boxHeight = totalHeight + padY * 2;
+
+  // 位置（凡例と同じ位置オプション）
+  const position = opts.currentNoteInfoPosition ?? "bottomLeft";
+  let x =
+    position === "topLeft" || position === "bottomLeft"
+      ? rect.x + margin
+      : rect.x + rect.width - boxWidth - margin;
+  let y =
+    position === "topLeft" || position === "topRight"
+      ? rect.y + margin
+      : rect.y + rect.height - boxHeight - margin;
+
+  // ボックスを描画（凡例と同じテーマ依存の色）
+  ctx.fillStyle =
+    opts.themeMode === "dark"
+      ? "rgba(0, 0, 0, 0.55)"
+      : "rgba(255, 255, 255, 0.78)";
+  ctx.fillRect(x, y, boxWidth, boxHeight);
+  ctx.strokeStyle =
+    opts.themeMode === "dark"
+      ? "rgba(255, 255, 255, 0.35)"
+      : "rgba(0, 0, 0, 0.25)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, boxWidth, boxHeight);
+
+  // テキストを描画
+  ctx.fillStyle = palette.lyric;
+  for (let i = 0; i < infoLines.length; i++) {
+    const textY = y + padY + i * (rowHeight + rowGap) + rowHeight / 2;
+    ctx.fillText(infoLines[i], x + padX, textY);
+  }
+
+  ctx.restore();
+};
+
 const drawSeekbarAndIcon = (
   ctx: CanvasRenderingContext2D,
   rect: LayoutRect,
@@ -1024,6 +1152,12 @@ export const drawPianorollVideoFrame = (
     drawKeyboard(ctx, rect, smoothYOffset, options);
   }
   drawVoiceColorLegend(ctx, rect, options, voiceColorMap);
+  const currentNoteIndex = getCurrentNoteIndexByMs(
+    currentMs,
+    options.notes,
+    options.notesLeftMs,
+  );
+  drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();

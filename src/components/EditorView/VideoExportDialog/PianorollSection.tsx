@@ -56,6 +56,18 @@ type Props = {
   onVoiceColorLegendPositionChange: (v: VoiceColorLegendPosition) => void;
   onVoiceColorLegendScaleChange: (v: number) => void;
   onVoiceColorMapChange: (key: string, color: string) => void;
+  currentNoteInfoEnabled: boolean;
+  currentNoteInfoShowVelocity: boolean;
+  currentNoteInfoShowFlags: boolean;
+  currentNoteInfoShowIntensity: boolean;
+  onCurrentNoteInfoEnabledChange: (v: boolean) => void;
+  onCurrentNoteInfoShowVelocityChange: (v: boolean) => void;
+  onCurrentNoteInfoShowFlagsChange: (v: boolean) => void;
+  onCurrentNoteInfoShowIntensityChange: (v: boolean) => void;
+  currentNoteInfoPosition: VoiceColorLegendPosition;
+  currentNoteInfoScale: number;
+  onCurrentNoteInfoPositionChange: (v: VoiceColorLegendPosition) => void;
+  onCurrentNoteInfoScaleChange: (v: number) => void;
 };
 
 const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
@@ -91,6 +103,18 @@ export const PianorollSection: React.FC<Props> = ({
   onVoiceColorLegendPositionChange,
   onVoiceColorLegendScaleChange,
   onVoiceColorMapChange,
+  currentNoteInfoEnabled,
+  currentNoteInfoShowVelocity,
+  currentNoteInfoShowFlags,
+  currentNoteInfoShowIntensity,
+  onCurrentNoteInfoEnabledChange,
+  onCurrentNoteInfoShowVelocityChange,
+  onCurrentNoteInfoShowFlagsChange,
+  onCurrentNoteInfoShowIntensityChange,
+  currentNoteInfoPosition,
+  currentNoteInfoScale,
+  onCurrentNoteInfoPositionChange,
+  onCurrentNoteInfoScaleChange,
 }) => {
   const { t } = useTranslation();
 
@@ -416,6 +440,132 @@ export const PianorollSection: React.FC<Props> = ({
               )}
             </Box>
           )}
+
+          {/* 現在再生中ノート情報セクション */}
+          <Box sx={{ mb: 1.25 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  checked={currentNoteInfoEnabled}
+                  onChange={(e) =>
+                    onCurrentNoteInfoEnabledChange(e.target.checked)
+                  }
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  {t("editor.videoExport.currentNoteInfoEnabled")}
+                </Typography>
+              }
+              sx={{ mb: currentNoteInfoEnabled ? 1 : 0 }}
+            />
+
+            {currentNoteInfoEnabled && (
+              <Stack spacing={0.75} sx={{ pl: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={currentNoteInfoShowVelocity}
+                      onChange={(e) =>
+                        onCurrentNoteInfoShowVelocityChange(e.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">
+                      {t("editor.videoExport.currentNoteInfoShowVelocity")}
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={currentNoteInfoShowFlags}
+                      onChange={(e) =>
+                        onCurrentNoteInfoShowFlagsChange(e.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">
+                      {t("editor.videoExport.currentNoteInfoShowFlags")}
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={currentNoteInfoShowIntensity}
+                      onChange={(e) =>
+                        onCurrentNoteInfoShowIntensityChange(e.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">
+                      {t("editor.videoExport.currentNoteInfoShowIntensity")}
+                    </Typography>
+                  }
+                />
+
+                <Box>
+                  <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                    {t("editor.videoExport.currentNoteInfoPosition")}
+                  </InputLabel>
+                  <Select
+                    size="small"
+                    fullWidth
+                    value={currentNoteInfoPosition}
+                    onChange={(e) =>
+                      onCurrentNoteInfoPositionChange(
+                        e.target.value as VoiceColorLegendPosition,
+                      )
+                    }
+                    sx={{ bgcolor: "background.paper" }}
+                  >
+                    {VOICE_COLOR_LEGEND_POSITIONS.map((position) => (
+                      <MenuItem key={position} value={position}>
+                        <Typography variant="body2">
+                          {t(
+                            `editor.videoExport.voiceColorLegendPosition_${position}`,
+                          )}
+                        </Typography>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+
+                <Box>
+                  <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                    {t("editor.videoExport.currentNoteInfoScale")}
+                  </InputLabel>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Slider
+                      value={currentNoteInfoScale}
+                      onChange={(_, value) =>
+                        onCurrentNoteInfoScaleChange(
+                          Array.isArray(value) ? value[0] : value,
+                        )
+                      }
+                      min={0.6}
+                      max={2}
+                      step={0.1}
+                      size="small"
+                      valueLabelDisplay="auto"
+                      sx={{ flex: 1 }}
+                    />
+                    <Typography variant="caption" sx={{ minWidth: 36 }}>
+                      {currentNoteInfoScale.toFixed(1)}x
+                    </Typography>
+                  </Stack>
+                </Box>
+              </Stack>
+            )}
+          </Box>
 
           <Button
             variant="contained"

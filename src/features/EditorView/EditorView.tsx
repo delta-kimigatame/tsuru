@@ -962,6 +962,7 @@ export const EditorView: React.FC<{
         notes={notes}
         notesLeftMs={notesLeftMs}
         selectNotesIndex={selectNotesIndex}
+        ustFlags={ustFlags}
         formContext={videoExportFormContext}
       />
     </>

@@ -73,6 +73,7 @@ type Props = {
   notes?: Note[];
   notesLeftMs?: number[];
   selectNotesIndex?: number[];
+  ustFlags?: string;
   formContext: VideoExportFormContext;
 };
 
@@ -97,6 +98,7 @@ export const VideoEditorView: React.FC<Props> = ({
   notes,
   notesLeftMs,
   selectNotesIndex,
+  ustFlags,
   formContext,
 }) => {
   const { t } = useTranslation();
@@ -145,6 +147,7 @@ export const VideoEditorView: React.FC<Props> = ({
       notes,
       notesLeftMs: adjustedNotesLeftMs,
       selectNotesIndex,
+      ustFlags,
     },
     formContext,
   );
@@ -421,6 +424,34 @@ export const VideoEditorView: React.FC<Props> = ({
                 form.setPianorollVoiceColorLegendScale
               }
               onVoiceColorMapChange={form.handlePianorollVoiceColorChange}
+              currentNoteInfoEnabled={form.pianorollCurrentNoteInfoEnabled}
+              currentNoteInfoShowVelocity={
+                form.pianorollCurrentNoteInfoShowVelocity
+              }
+              currentNoteInfoShowFlags={form.pianorollCurrentNoteInfoShowFlags}
+              currentNoteInfoShowIntensity={
+                form.pianorollCurrentNoteInfoShowIntensity
+              }
+              onCurrentNoteInfoEnabledChange={
+                form.setPianorollCurrentNoteInfoEnabled
+              }
+              onCurrentNoteInfoShowVelocityChange={
+                form.setPianorollCurrentNoteInfoShowVelocity
+              }
+              onCurrentNoteInfoShowFlagsChange={
+                form.setPianorollCurrentNoteInfoShowFlags
+              }
+              onCurrentNoteInfoShowIntensityChange={
+                form.setPianorollCurrentNoteInfoShowIntensity
+              }
+              currentNoteInfoPosition={form.pianorollCurrentNoteInfoPosition}
+              currentNoteInfoScale={form.pianorollCurrentNoteInfoScale}
+              onCurrentNoteInfoPositionChange={
+                form.setPianorollCurrentNoteInfoPosition
+              }
+              onCurrentNoteInfoScaleChange={
+                form.setPianorollCurrentNoteInfoScale
+              }
               extraContentWhenEnabled={
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                   <Button
