@@ -2,13 +2,14 @@ import HomeIcon from "@mui/icons-material/Home";
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { HeaderMenu } from "../../features/Header/HeaderMenu";
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
 
   return (
     <AppBar position="fixed">
-      <Toolbar sx={{ justifyContent: "space-between" }}>
+      <Toolbar sx={{ justifyContent: "space-between", minHeight: "40" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <img
             src="./static/logo192.png"
@@ -19,9 +20,12 @@ export const Header: React.FC = () => {
             {t("videoEditor.headerTitle")}
           </Typography>
         </Box>
-        <Button color="inherit" href="./index.html" startIcon={<HomeIcon />}>
-          {t("videoEditor.headerBackToMain")}
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Button color="inherit" href="./index.html" startIcon={<HomeIcon />}>
+            {t("videoEditor.headerBackToMain")}
+          </Button>
+          <HeaderMenu />
+        </Box>
       </Toolbar>
     </AppBar>
   );
