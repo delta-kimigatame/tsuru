@@ -4,8 +4,10 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  InputLabel,
   MenuItem,
   Select,
+  Slider,
   Stack,
   Typography,
 } from "@mui/material";
@@ -17,7 +19,11 @@ import {
   PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../../../config/pianoroll";
 import { colors, type ColorTheme } from "../../../types/colorTheme";
-import type { PianorollVideoLayout } from "../../../utils/pianorollVideo";
+import {
+  VOICE_COLOR_LEGEND_POSITIONS,
+  type PianorollVideoLayout,
+  type VoiceColorLegendPosition,
+} from "../../../utils/pianorollVideo";
 
 type Props = {
   enabled: boolean;
@@ -37,12 +43,18 @@ type Props = {
   showKeyboard: boolean;
   showBackground: boolean;
   voiceColorEnabled: boolean;
+  voiceColorLegendEnabled: boolean;
+  voiceColorLegendPosition: VoiceColorLegendPosition;
+  voiceColorLegendScale: number;
   voiceColors: string[];
   defaultVoiceColorMap: Record<string, string>;
   voiceColorMap: Record<string, string>;
   onShowKeyboardChange: (v: boolean) => void;
   onShowBackgroundChange: (v: boolean) => void;
   onVoiceColorEnabledChange: (v: boolean) => void;
+  onVoiceColorLegendEnabledChange: (v: boolean) => void;
+  onVoiceColorLegendPositionChange: (v: VoiceColorLegendPosition) => void;
+  onVoiceColorLegendScaleChange: (v: number) => void;
   onVoiceColorMapChange: (key: string, color: string) => void;
 };
 
@@ -66,12 +78,18 @@ export const PianorollSection: React.FC<Props> = ({
   showKeyboard,
   showBackground,
   voiceColorEnabled,
+  voiceColorLegendEnabled,
+  voiceColorLegendPosition,
+  voiceColorLegendScale,
   voiceColors,
   defaultVoiceColorMap,
   voiceColorMap,
   onShowKeyboardChange,
   onShowBackgroundChange,
   onVoiceColorEnabledChange,
+  onVoiceColorLegendEnabledChange,
+  onVoiceColorLegendPositionChange,
+  onVoiceColorLegendScaleChange,
   onVoiceColorMapChange,
 }) => {
   const { t } = useTranslation();
@@ -278,47 +296,125 @@ export const PianorollSection: React.FC<Props> = ({
             sx={{ mb: 1.25 }}
           />
 
-          {voiceColorEnabled && voiceColors.length > 0 && (
-            <Stack spacing={0.75} sx={{ mb: 1.25, ml: 2 }}>
-              {voiceColors.map((voiceColor) => {
-                const displayLabel =
-                  voiceColor === ""
-                    ? t("editor.videoExport.voiceColorDefault")
-                    : voiceColor;
-                const colorValue =
-                  voiceColorMap[voiceColor] ??
-                  defaultVoiceColorMap[voiceColor] ??
-                  "#000000";
-                return (
-                  <Stack
-                    key={voiceColor || "__default__"}
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                  >
-                    <input
-                      type="color"
-                      value={colorValue}
+          {voiceColorEnabled && (
+            <Box sx={{ mb: 1.25, ml: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={voiceColorLegendEnabled}
+                    onChange={(e) =>
+                      onVoiceColorLegendEnabledChange(e.target.checked)
+                    }
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.voiceColorLegendEnabled")}
+                  </Typography>
+                }
+                sx={{ mb: voiceColorLegendEnabled ? 1 : 0 }}
+              />
+
+              {voiceColorLegendEnabled && (
+                <Stack spacing={1.25} sx={{ pl: 2 }}>
+                  <Box>
+                    <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                      {t("editor.videoExport.voiceColorLegendPosition")}
+                    </InputLabel>
+                    <Select
+                      size="small"
+                      fullWidth
+                      value={voiceColorLegendPosition}
                       onChange={(e) =>
-                        onVoiceColorMapChange(voiceColor, e.target.value)
+                        onVoiceColorLegendPositionChange(
+                          e.target.value as VoiceColorLegendPosition,
+                        )
                       }
-                      style={{
-                        width: 32,
-                        height: 24,
-                        border: "none",
-                        borderRadius: 2,
-                        padding: 0,
-                        background: "transparent",
-                        cursor: "pointer",
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ minWidth: 100 }}>
-                      {displayLabel}
-                    </Typography>
-                  </Stack>
-                );
-              })}
-            </Stack>
+                      sx={{ bgcolor: "background.paper" }}
+                    >
+                      {VOICE_COLOR_LEGEND_POSITIONS.map((position) => (
+                        <MenuItem key={position} value={position}>
+                          <Typography variant="body2">
+                            {t(
+                              `editor.videoExport.voiceColorLegendPosition_${position}`,
+                            )}
+                          </Typography>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Box>
+
+                  <Box>
+                    <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                      {t("editor.videoExport.voiceColorLegendScale")}
+                    </InputLabel>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Slider
+                        value={voiceColorLegendScale}
+                        onChange={(_, value) =>
+                          onVoiceColorLegendScaleChange(
+                            Array.isArray(value) ? value[0] : value,
+                          )
+                        }
+                        min={0.6}
+                        max={2}
+                        step={0.1}
+                        size="small"
+                        valueLabelDisplay="auto"
+                        sx={{ flex: 1 }}
+                      />
+                      <Typography variant="caption" sx={{ minWidth: 36 }}>
+                        {voiceColorLegendScale.toFixed(1)}x
+                      </Typography>
+                    </Stack>
+                  </Box>
+                </Stack>
+              )}
+
+              {voiceColors.length > 0 && (
+                <Stack spacing={0.75} sx={{ mt: 1.25 }}>
+                  {voiceColors.map((voiceColor) => {
+                    const displayLabel =
+                      voiceColor === ""
+                        ? t("editor.videoExport.voiceColorDefault")
+                        : voiceColor;
+                    const colorValue =
+                      voiceColorMap[voiceColor] ??
+                      defaultVoiceColorMap[voiceColor] ??
+                      "#000000";
+                    return (
+                      <Stack
+                        key={voiceColor || "__default__"}
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                      >
+                        <input
+                          type="color"
+                          value={colorValue}
+                          onChange={(e) =>
+                            onVoiceColorMapChange(voiceColor, e.target.value)
+                          }
+                          style={{
+                            width: 32,
+                            height: 24,
+                            border: "none",
+                            borderRadius: 2,
+                            padding: 0,
+                            background: "transparent",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <Typography variant="caption" sx={{ minWidth: 100 }}>
+                          {displayLabel}
+                        </Typography>
+                      </Stack>
+                    );
+                  })}
+                </Stack>
+              )}
+            </Box>
           )}
 
           <Button

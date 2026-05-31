@@ -187,12 +187,26 @@ export const VideoExportDialog: React.FC<Props> = ({
                 showKeyboard={form.pianorollShowKeyboard}
                 showBackground={form.pianorollShowBackground}
                 voiceColorEnabled={form.pianorollVoiceColorEnabled}
+                voiceColorLegendEnabled={form.pianorollVoiceColorLegendEnabled}
+                voiceColorLegendPosition={
+                  form.pianorollVoiceColorLegendPosition
+                }
+                voiceColorLegendScale={form.pianorollVoiceColorLegendScale}
                 voiceColors={form.pianorollVoiceColors}
                 defaultVoiceColorMap={form.pianorollDefaultVoiceColorMap}
                 voiceColorMap={form.pianorollVoiceColorMap}
                 onShowKeyboardChange={form.setPianorollShowKeyboard}
                 onShowBackgroundChange={form.setPianorollShowBackground}
                 onVoiceColorEnabledChange={form.setPianorollVoiceColorEnabled}
+                onVoiceColorLegendEnabledChange={
+                  form.setPianorollVoiceColorLegendEnabled
+                }
+                onVoiceColorLegendPositionChange={
+                  form.setPianorollVoiceColorLegendPosition
+                }
+                onVoiceColorLegendScaleChange={
+                  form.setPianorollVoiceColorLegendScale
+                }
                 onVoiceColorMapChange={form.handlePianorollVoiceColorChange}
               />
             )}

@@ -14,6 +14,14 @@ import { noteNumToTone } from "./Notenum";
 import { makeTimeAxis } from "./interp";
 
 export type PianorollVideoLayout = (typeof PIANOROLL_VIDEO_LAYOUTS)[number];
+export const VOICE_COLOR_LEGEND_POSITIONS = [
+  "topLeft",
+  "topRight",
+  "bottomLeft",
+  "bottomRight",
+] as const;
+export type VoiceColorLegendPosition =
+  (typeof VOICE_COLOR_LEGEND_POSITIONS)[number];
 
 export interface PianorollVideoOptions {
   enabled: boolean;
@@ -37,6 +45,12 @@ export interface PianorollVideoOptions {
   voiceColorEnabled?: boolean;
   /** voiceColor ごとの色上書き。未指定キーはデフォルト計算色を使用 */
   voiceColorMap?: Record<string, string>;
+  /** voiceColor 凡例を表示するか。voiceColorEnabled=true のときのみ有効 */
+  voiceColorLegendEnabled?: boolean;
+  /** voiceColor 凡例の表示位置 */
+  voiceColorLegendPosition?: VoiceColorLegendPosition;
+  /** voiceColor 凡例のサイズ倍率。デフォルト 1 */
+  voiceColorLegendScale?: number;
 }
 
 export interface PianorollRenderState {
@@ -233,6 +247,31 @@ export const buildPianorollVoiceColorMap = (
     map.set("", paletteNoteHex);
   }
 
+  return map;
+};
+
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+const resolveVoiceColorRenderMap = (
+  opts: PianorollVideoOptions,
+  paletteNoteHex: string,
+  paletteBackgroundHex: string,
+): Map<string, string> | null => {
+  if (opts.voiceColorEnabled !== true) return null;
+
+  const map = buildPianorollVoiceColorMap(
+    opts.notes,
+    paletteNoteHex,
+    paletteBackgroundHex,
+  );
+  const overrideMap = opts.voiceColorMap ?? {};
+  for (const [key, value] of Object.entries(overrideMap)) {
+    if (!HEX_COLOR_RE.test(value)) continue;
+    map.set(key, value);
+  }
+  if (!map.has("")) {
+    map.set("", paletteNoteHex);
+  }
   return map;
 };
 
@@ -591,15 +630,11 @@ const drawNotesAndPitch = (
   yOffset: number,
   opts: PianorollVideoOptions,
   notesLeftTicks: number[],
+  voiceColorMap: Map<string, string> | null,
 ): void => {
   const palette =
     COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
     COLOR_PALLET.default.light;
-  const defaultVoiceColorMap =
-    opts.voiceColorEnabled === true
-      ? buildPianorollVoiceColorMap(opts.notes, palette.note, palette.whiteKey)
-      : null;
-  const overrideVoiceColorMap = opts.voiceColorMap ?? {};
   const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
   const textScale = opts.layoutScale ?? 1;
   const lyricFontSize = Math.max(
@@ -649,10 +684,8 @@ const drawNotesAndPitch = (
     const noteFill =
       note.lyric === "R"
         ? palette.restNote
-        : (overrideVoiceColorMap[note.voiceColor ?? ""] ??
-          overrideVoiceColorMap[""] ??
-          defaultVoiceColorMap?.get(note.voiceColor ?? "") ??
-          defaultVoiceColorMap?.get("") ??
+        : (voiceColorMap?.get(note.voiceColor ?? "") ??
+          voiceColorMap?.get("") ??
           palette.note);
     ctx.fillStyle = noteFill;
     ctx.strokeStyle = palette.noteBorder;
@@ -742,6 +775,98 @@ const drawNotesAndPitch = (
     }
     if (drew) ctx.stroke();
   });
+};
+
+const drawVoiceColorLegend = (
+  ctx: CanvasRenderingContext2D,
+  rect: LayoutRect,
+  opts: PianorollVideoOptions,
+  voiceColorMap: Map<string, string> | null,
+): void => {
+  if (opts.voiceColorEnabled !== true) return;
+  if (opts.voiceColorLegendEnabled !== true) return;
+  if (!voiceColorMap || voiceColorMap.size === 0) return;
+
+  const voiceColors = Array.from(
+    new Set((opts.notes ?? []).map((note) => note.voiceColor ?? "")),
+  ).sort((a, b) => a.localeCompare(b));
+  if (voiceColors.length === 0) return;
+
+  const scale =
+    clamp(opts.voiceColorLegendScale ?? 1, 0.6, 2) * (opts.layoutScale ?? 1);
+  const fontSize = Math.max(1, Math.round(12 * scale));
+  const markerSize = Math.max(1, Math.round(12 * scale));
+  const rowGap = Math.max(1, Math.round(4 * scale));
+  const padX = Math.max(1, Math.round(8 * scale));
+  const padY = Math.max(1, Math.round(6 * scale));
+  const markerGap = Math.max(1, Math.round(8 * scale));
+  const margin = Math.max(1, Math.round(10 * scale));
+
+  ctx.save();
+  ctx.font = `${fontSize}px ${PIANOROLL_VIDEO_TEXT_CONFIG.fontFamily}`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+
+  const labels = voiceColors.map((key) => (key === "" ? "Default" : key));
+  let maxLabelWidth = 0;
+  for (const label of labels) {
+    maxLabelWidth = Math.max(maxLabelWidth, ctx.measureText(label).width);
+  }
+
+  const rowHeight = Math.max(markerSize, fontSize);
+  const contentWidth = markerSize + markerGap + maxLabelWidth;
+  const contentHeight =
+    rowHeight * voiceColors.length +
+    rowGap * Math.max(0, voiceColors.length - 1);
+  const legendW = Math.ceil(contentWidth + padX * 2);
+  const legendH = Math.ceil(contentHeight + padY * 2);
+
+  const position = opts.voiceColorLegendPosition ?? "topRight";
+  const x =
+    position === "topLeft" || position === "bottomLeft"
+      ? rect.x + margin
+      : rect.x + rect.width - legendW - margin;
+  const y =
+    position === "topLeft" || position === "topRight"
+      ? rect.y + margin
+      : rect.y + rect.height - legendH - margin;
+
+  ctx.fillStyle =
+    opts.themeMode === "dark"
+      ? "rgba(0, 0, 0, 0.55)"
+      : "rgba(255, 255, 255, 0.78)";
+  ctx.strokeStyle =
+    opts.themeMode === "dark"
+      ? "rgba(255, 255, 255, 0.35)"
+      : "rgba(0, 0, 0, 0.25)";
+  ctx.lineWidth = 1;
+  ctx.fillRect(x, y, legendW, legendH);
+  ctx.strokeRect(x, y, legendW, legendH);
+
+  const palette =
+    COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
+    COLOR_PALLET.default.light;
+  ctx.fillStyle = palette.lyric;
+
+  for (let i = 0; i < voiceColors.length; i++) {
+    const key = voiceColors[i];
+    const label = labels[i];
+    const rowTop = y + padY + i * (rowHeight + rowGap);
+    const markerY = rowTop + (rowHeight - markerSize) / 2;
+    const textY = rowTop + rowHeight / 2;
+
+    ctx.fillStyle =
+      voiceColorMap.get(key) ?? voiceColorMap.get("") ?? palette.note;
+    ctx.fillRect(x + padX, markerY, markerSize, markerSize);
+    ctx.strokeStyle = palette.noteBorder;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + padX, markerY, markerSize, markerSize);
+
+    ctx.fillStyle = palette.lyric;
+    ctx.fillText(label, x + padX + markerSize + markerGap, textY);
+  }
+
+  ctx.restore();
 };
 
 const drawSeekbarAndIcon = (
@@ -864,6 +989,15 @@ export const drawPianorollVideoFrame = (
   ctx.rect(rect.x, rect.y, rect.width, rect.height);
   ctx.clip();
 
+  const palette =
+    COLOR_PALLET[options.colorTheme]?.[options.themeMode] ??
+    COLOR_PALLET.default.light;
+  const voiceColorMap = resolveVoiceColorRenderMap(
+    options,
+    palette.note,
+    palette.whiteKey,
+  );
+
   if (backgroundVisible) {
     drawNoteAreaBackground(
       ctx,
@@ -884,10 +1018,12 @@ export const drawPianorollVideoFrame = (
     smoothYOffset,
     options,
     notesLeftTicks,
+    voiceColorMap,
   );
   if (keyboardVisible) {
     drawKeyboard(ctx, rect, smoothYOffset, options);
   }
+  drawVoiceColorLegend(ctx, rect, options, voiceColorMap);
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();

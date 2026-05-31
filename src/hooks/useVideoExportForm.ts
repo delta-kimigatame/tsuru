@@ -147,6 +147,7 @@ import {
   type PianorollRenderState,
   type PianorollVideoLayout,
   type PianorollVideoOptions,
+  type VoiceColorLegendPosition,
 } from "../utils/pianorollVideo";
 import {
   FONT_STACK,
@@ -604,6 +605,16 @@ export const useVideoExportForm = (
     React.useState(true);
   const [pianorollVoiceColorEnabled, setPianorollVoiceColorEnabled] =
     React.useState(false);
+  const [
+    pianorollVoiceColorLegendEnabled,
+    setPianorollVoiceColorLegendEnabled,
+  ] = React.useState(false);
+  const [
+    pianorollVoiceColorLegendPosition,
+    setPianorollVoiceColorLegendPosition,
+  ] = React.useState<VoiceColorLegendPosition>("topRight");
+  const [pianorollVoiceColorLegendScale, setPianorollVoiceColorLegendScale] =
+    React.useState<number>(1);
   const [pianorollVoiceColorMap, setPianorollVoiceColorMap] = React.useState<
     Record<string, string>
   >({});
@@ -663,6 +674,9 @@ export const useVideoExportForm = (
         showBackground: pianorollShowBackground,
         voiceColorEnabled: pianorollVoiceColorEnabled,
         voiceColorMap: pianorollVoiceColorMap,
+        voiceColorLegendEnabled: pianorollVoiceColorLegendEnabled,
+        voiceColorLegendPosition: pianorollVoiceColorLegendPosition,
+        voiceColorLegendScale: pianorollVoiceColorLegendScale,
       };
     }, [
       notes,
@@ -680,6 +694,9 @@ export const useVideoExportForm = (
       pianorollShowBackground,
       pianorollVoiceColorEnabled,
       pianorollVoiceColorMap,
+      pianorollVoiceColorLegendEnabled,
+      pianorollVoiceColorLegendPosition,
+      pianorollVoiceColorLegendScale,
     ]);
 
   const applyPianorollThemeToOutside = React.useCallback(() => {
@@ -2551,6 +2568,12 @@ export const useVideoExportForm = (
     setPianorollShowBackground,
     pianorollVoiceColorEnabled,
     setPianorollVoiceColorEnabled,
+    pianorollVoiceColorLegendEnabled,
+    setPianorollVoiceColorLegendEnabled,
+    pianorollVoiceColorLegendPosition,
+    setPianorollVoiceColorLegendPosition,
+    pianorollVoiceColorLegendScale,
+    setPianorollVoiceColorLegendScale,
     pianorollVoiceColors,
     pianorollDefaultVoiceColorMap,
     pianorollVoiceColorMap,
