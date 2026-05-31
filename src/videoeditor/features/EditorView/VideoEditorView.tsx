@@ -398,41 +398,30 @@ export const VideoEditorView: React.FC<Props> = ({
               onHorizontalZoomChange={form.setPianorollHorizontalZoom}
               onVerticalZoomChange={form.setPianorollVerticalZoom}
               onApplyThemeToOutside={form.applyPianorollThemeToOutside}
+              extraContentWhenEnabled={
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    startIcon={<ImageIcon />}
+                    onClick={() => iconInputRef.current?.click()}
+                  >
+                    {iconFileName ?? t("videoEditor.loadIconOptional")}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    fullWidth
+                    startIcon={<RestartAltIcon />}
+                    disabled={!voiceIcon}
+                    onClick={() => onIconSelected(null)}
+                  >
+                    {t("videoEditor.clearOptional")}
+                  </Button>
+                </Stack>
+              }
             />
           )}
-
-          <Box
-            sx={{
-              p: 1.5,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              {t("videoEditor.iconLoadTitle")}
-            </Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={<ImageIcon />}
-                onClick={() => iconInputRef.current?.click()}
-              >
-                {iconFileName ?? t("videoEditor.loadIconOptional")}
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                fullWidth
-                startIcon={<RestartAltIcon />}
-                disabled={!voiceIcon}
-                onClick={() => onIconSelected(null)}
-              >
-                {t("videoEditor.clearOptional")}
-              </Button>
-            </Stack>
-          </Box>
 
           <Box
             sx={{

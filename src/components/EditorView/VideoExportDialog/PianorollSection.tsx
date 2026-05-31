@@ -26,6 +26,7 @@ type Props = {
   themeMode: "light" | "dark";
   horizontalZoom: number;
   verticalZoom: number;
+  extraContentWhenEnabled?: React.ReactNode;
   onEnabledChange: (v: boolean) => void;
   onLayoutChange: (v: PianorollVideoLayout) => void;
   onColorThemeChange: (v: ColorTheme) => void;
@@ -44,6 +45,7 @@ export const PianorollSection: React.FC<Props> = ({
   themeMode,
   horizontalZoom,
   verticalZoom,
+  extraContentWhenEnabled,
   onEnabledChange,
   onLayoutChange,
   onColorThemeChange,
@@ -218,6 +220,10 @@ export const PianorollSection: React.FC<Props> = ({
           >
             {t("editor.videoExport.applyPianorollThemeToOutside")}
           </Button>
+
+          {extraContentWhenEnabled && (
+            <Box sx={{ mt: 1.25 }}>{extraContentWhenEnabled}</Box>
+          )}
         </Box>
       )}
     </Box>
