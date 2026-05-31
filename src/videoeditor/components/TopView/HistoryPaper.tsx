@@ -1,16 +1,18 @@
 import { Box, Divider, Typography } from "@mui/material";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { BasePaper } from "../../../components/common/BasePaper";
 
-const HISTORY = [
-  "2026/05/31\nVideo Editorページを追加。UST→WAV→編集画面の導線を実装。",
-];
-
 export const HistoryPaper: React.FC = () => {
+  const { t } = useTranslation();
+  const history = t("videoEditor.historyEntries", {
+    returnObjects: true,
+  }) as string[];
+
   return (
-    <BasePaper title="Video Editor 更新履歴">
+    <BasePaper title={t("videoEditor.historyTitle")}>
       <Box sx={{ m: 1, p: 1 }}>
-        {HISTORY.map((item) => (
+        {history.map((item) => (
           <React.Fragment key={item}>
             <Typography variant="body2">
               {item.split("\n").map((line) => (

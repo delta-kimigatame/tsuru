@@ -1,8 +1,11 @@
 import HomeIcon from "@mui/icons-material/Home";
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export const Header: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
     <AppBar position="fixed">
       <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -12,10 +15,12 @@ export const Header: React.FC = () => {
             alt="UTAlet"
             style={{ width: 32, height: 32 }}
           />
-          <Typography variant="subtitle1">UTAlet Video Editor</Typography>
+          <Typography variant="subtitle1">
+            {t("videoEditor.headerTitle")}
+          </Typography>
         </Box>
         <Button color="inherit" href="./index.html" startIcon={<HomeIcon />}>
-          UTAlet本体へ
+          {t("videoEditor.headerBackToMain")}
         </Button>
       </Toolbar>
     </AppBar>

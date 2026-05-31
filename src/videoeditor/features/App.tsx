@@ -1,6 +1,7 @@
 import { CssBaseline } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { Footer } from "../../components/Footer/Footer";
 import { renderingConfig } from "../../config/rendering";
@@ -37,6 +38,7 @@ const computeNotesLeftMs = (notes: Note[]): number[] => {
 };
 
 export const App: React.FC = () => {
+  const { t } = useTranslation();
   const mode = useThemeMode();
   const { language, colorTheme, horizontalZoom, verticalZoom } =
     useCookieStore();
@@ -108,10 +110,10 @@ export const App: React.FC = () => {
           setEditorMode(true);
         }
       } catch (e) {
-        setErrorMessage(`USTの読み込みに失敗しました: ${String(e)}`);
+        setErrorMessage(t("videoEditor.errorLoadUst", { error: String(e) }));
       }
     },
-    [wavBuffer],
+    [wavBuffer, t],
   );
 
   const handleWavSelected = React.useCallback(
@@ -130,10 +132,10 @@ export const App: React.FC = () => {
           setEditorMode(true);
         }
       } catch (e) {
-        setErrorMessage(`WAVの読み込みに失敗しました: ${String(e)}`);
+        setErrorMessage(t("videoEditor.errorLoadWav", { error: String(e) }));
       }
     },
-    [notes],
+    [notes, t],
   );
 
   const handlePortraitSelected = React.useCallback(async (file: File) => {
@@ -196,13 +198,13 @@ export const App: React.FC = () => {
         a.download = "output.mp4";
         a.click();
       } catch (e) {
-        setErrorMessage(`動画エクスポートに失敗しました: ${String(e)}`);
+        setErrorMessage(t("videoEditor.errorExport", { error: String(e) }));
       } finally {
         setSynthesisProgress(false);
         setVideoExportTotal(undefined);
       }
     },
-    [wavBuffer],
+    [wavBuffer, t],
   );
 
   return (
@@ -216,7 +218,10 @@ export const App: React.FC = () => {
           synthesisProgress={synthesisProgress}
           progressText={
             videoExportTotal
-              ? `${synthesisCount}/${videoExportTotal} フレーム`
+              ? t("videoEditor.progressFrames", {
+                  current: synthesisCount,
+                  total: videoExportTotal,
+                })
               : undefined
           }
           portraitBlob={portraitBlob}

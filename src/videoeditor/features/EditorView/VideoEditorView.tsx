@@ -103,7 +103,7 @@ export const VideoEditorView: React.FC<Props> = ({
           onClick={onBack}
           disabled={synthesisProgress}
         >
-          素材選択へ戻る
+          {t("videoEditor.backToMaterials")}
         </Button>
         <Typography variant="h6" sx={{ flex: 1 }}>
           {t("editor.videoExport.title")}
@@ -112,7 +112,7 @@ export const VideoEditorView: React.FC<Props> = ({
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CircularProgress size={20} />
             <Typography variant="body2">
-              {progressText ?? "動画生成中..."}
+              {progressText ?? t("videoEditor.exporting")}
             </Typography>
           </Box>
         )}
@@ -463,7 +463,7 @@ export const VideoEditorView: React.FC<Props> = ({
           variant="contained"
           color="inherit"
         >
-          戻る
+          {t("videoEditor.back")}
         </Button>
         <Button
           onClick={form.handleConfirm}

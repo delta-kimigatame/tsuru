@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { BasePaper } from "../../../components/common/BasePaper";
 import { HistoryPaper } from "./HistoryPaper";
 import { LinkPaper } from "./LinkPaper";
@@ -45,6 +46,7 @@ export const TopView: React.FC<Props> = ({
   onIconSelected,
   onOpenEditor,
 }) => {
+  const { t } = useTranslation();
   const ustInputRef = React.useRef<HTMLInputElement>(null);
   const wavInputRef = React.useRef<HTMLInputElement>(null);
   const portraitInputRef = React.useRef<HTMLInputElement>(null);
@@ -97,11 +99,10 @@ export const TopView: React.FC<Props> = ({
         }}
       />
 
-      <BasePaper title="Video Editor">
+      <BasePaper title={t("videoEditor.topTitle")}>
         <Box sx={{ m: 1, p: 1 }}>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            動画編集は UST を必須入力として開始します。UST 読込後に WAV
-            を読み込むと、編集画面を表示できます。
+            {t("videoEditor.topDescription")}
           </Typography>
           {errorMessage && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -114,7 +115,7 @@ export const TopView: React.FC<Props> = ({
               startIcon={<MusicNoteIcon />}
               onClick={() => ustInputRef.current?.click()}
             >
-              UST読込（必須）
+              {t("videoEditor.loadUstRequired")}
             </Button>
             <Button
               variant="contained"
@@ -123,21 +124,21 @@ export const TopView: React.FC<Props> = ({
               disabled={!canLoadWav}
               onClick={() => wavInputRef.current?.click()}
             >
-              WAV読込（必須）
+              {t("videoEditor.loadWavRequired")}
             </Button>
             <Button
               variant="outlined"
               startIcon={<ImageIcon />}
               onClick={() => portraitInputRef.current?.click()}
             >
-              立ち絵読込（任意）
+              {t("videoEditor.loadPortraitOptional")}
             </Button>
             <Button
               variant="outlined"
               startIcon={<ImageIcon />}
               onClick={() => iconInputRef.current?.click()}
             >
-              アイコン読込（任意）
+              {t("videoEditor.loadIconOptional")}
             </Button>
           </Stack>
 
@@ -145,28 +146,38 @@ export const TopView: React.FC<Props> = ({
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
             <Chip
-              label={ustFileName ? `UST: ${ustFileName}` : "UST: 未読込"}
+              label={
+                ustFileName
+                  ? t("videoEditor.ustStatusLoaded", { name: ustFileName })
+                  : t("videoEditor.ustStatusEmpty")
+              }
               color={ustFileName ? "success" : "default"}
               variant={ustFileName ? "filled" : "outlined"}
             />
             <Chip
-              label={wavFileName ? `WAV: ${wavFileName}` : "WAV: 未読込"}
+              label={
+                wavFileName
+                  ? t("videoEditor.wavStatusLoaded", { name: wavFileName })
+                  : t("videoEditor.wavStatusEmpty")
+              }
               color={wavFileName ? "success" : "default"}
               variant={wavFileName ? "filled" : "outlined"}
             />
             <Chip
               label={
                 portraitFileName
-                  ? `立ち絵: ${portraitFileName}`
-                  : "立ち絵: 未読込（任意）"
+                  ? t("videoEditor.portraitStatusLoaded", {
+                      name: portraitFileName,
+                    })
+                  : t("videoEditor.portraitStatusEmpty")
               }
               variant="outlined"
             />
             <Chip
               label={
                 iconFileName
-                  ? `アイコン: ${iconFileName}`
-                  : "アイコン: 未読込（任意）"
+                  ? t("videoEditor.iconStatusLoaded", { name: iconFileName })
+                  : t("videoEditor.iconStatusEmpty")
               }
               variant="outlined"
             />
@@ -180,7 +191,7 @@ export const TopView: React.FC<Props> = ({
               disabled={!canOpenEditor}
               onClick={onOpenEditor}
             >
-              動画編集画面を開く
+              {t("videoEditor.openEditor")}
             </Button>
           </Box>
         </Box>
