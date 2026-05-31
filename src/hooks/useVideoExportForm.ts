@@ -141,6 +141,7 @@ import {
 import type { Note } from "../lib/Note";
 import type { ColorTheme } from "../types/colorTheme";
 import {
+  buildPianorollVoiceColorMap,
   drawPianorollVideoFrame,
   getOneStepSmallerZoom,
   type PianorollRenderState,
@@ -597,6 +598,45 @@ export const useVideoExportForm = (
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
   const effectivePianorollLayout = pianorollLayout ?? defaultPianorollLayout;
 
+  const [pianorollShowKeyboard, setPianorollShowKeyboard] =
+    React.useState(true);
+  const [pianorollShowBackground, setPianorollShowBackground] =
+    React.useState(true);
+  const [pianorollVoiceColorEnabled, setPianorollVoiceColorEnabled] =
+    React.useState(false);
+  const [pianorollVoiceColorMap, setPianorollVoiceColorMap] = React.useState<
+    Record<string, string>
+  >({});
+
+  const pianorollVoiceColors = React.useMemo<string[]>(() => {
+    if (!notes || notes.length === 0) return [];
+    return Array.from(new Set(notes.map((note) => note.voiceColor ?? ""))).sort(
+      (a, b) => a.localeCompare(b),
+    );
+  }, [notes]);
+
+  const pianorollDefaultVoiceColorMap = React.useMemo<
+    Record<string, string>
+  >(() => {
+    const pallet =
+      COLOR_PALLET[pianorollColorTheme]?.[pianorollThemeMode] ??
+      COLOR_PALLET.default.light;
+    const calculated = buildPianorollVoiceColorMap(
+      notes ?? [],
+      pallet.note,
+      pallet.whiteKey,
+    );
+    return Object.fromEntries(calculated.entries());
+  }, [notes, pianorollColorTheme, pianorollThemeMode]);
+
+  const handlePianorollVoiceColorChange = React.useCallback(
+    (key: string, color: string) => {
+      if (!HEX_RE.test(color)) return;
+      setPianorollVoiceColorMap((prev) => ({ ...prev, [key]: color }));
+    },
+    [],
+  );
+
   const pianorollPreviewOptions =
     React.useMemo<PianorollVideoOptions | null>(() => {
       if (
@@ -619,6 +659,10 @@ export const useVideoExportForm = (
         tone,
         isMinor,
         voiceIconImage,
+        showKeyboard: pianorollShowKeyboard,
+        showBackground: pianorollShowBackground,
+        voiceColorEnabled: pianorollVoiceColorEnabled,
+        voiceColorMap: pianorollVoiceColorMap,
       };
     }, [
       notes,
@@ -632,6 +676,10 @@ export const useVideoExportForm = (
       tone,
       isMinor,
       voiceIconImage,
+      pianorollShowKeyboard,
+      pianorollShowBackground,
+      pianorollVoiceColorEnabled,
+      pianorollVoiceColorMap,
     ]);
 
   const applyPianorollThemeToOutside = React.useCallback(() => {
@@ -2497,6 +2545,17 @@ export const useVideoExportForm = (
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
+    pianorollShowKeyboard,
+    setPianorollShowKeyboard,
+    pianorollShowBackground,
+    setPianorollShowBackground,
+    pianorollVoiceColorEnabled,
+    setPianorollVoiceColorEnabled,
+    pianorollVoiceColors,
+    pianorollDefaultVoiceColorMap,
+    pianorollVoiceColorMap,
+    setPianorollVoiceColorMap,
+    handlePianorollVoiceColorChange,
     waveformEnabled,
     setWaveformEnabled,
     waveformType,

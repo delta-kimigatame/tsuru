@@ -34,6 +34,16 @@ type Props = {
   onHorizontalZoomChange: (v: number) => void;
   onVerticalZoomChange: (v: number) => void;
   onApplyThemeToOutside: () => void;
+  showKeyboard: boolean;
+  showBackground: boolean;
+  voiceColorEnabled: boolean;
+  voiceColors: string[];
+  defaultVoiceColorMap: Record<string, string>;
+  voiceColorMap: Record<string, string>;
+  onShowKeyboardChange: (v: boolean) => void;
+  onShowBackgroundChange: (v: boolean) => void;
+  onVoiceColorEnabledChange: (v: boolean) => void;
+  onVoiceColorMapChange: (key: string, color: string) => void;
 };
 
 const LAYOUT_OPTIONS: PianorollVideoLayout[] = [...PIANOROLL_VIDEO_LAYOUTS];
@@ -53,6 +63,16 @@ export const PianorollSection: React.FC<Props> = ({
   onHorizontalZoomChange,
   onVerticalZoomChange,
   onApplyThemeToOutside,
+  showKeyboard,
+  showBackground,
+  voiceColorEnabled,
+  voiceColors,
+  defaultVoiceColorMap,
+  voiceColorMap,
+  onShowKeyboardChange,
+  onShowBackgroundChange,
+  onVoiceColorEnabledChange,
+  onVoiceColorMapChange,
 }) => {
   const { t } = useTranslation();
 
@@ -209,6 +229,97 @@ export const PianorollSection: React.FC<Props> = ({
               <Typography variant="body2">{t("theme.dark")}</Typography>
             </MenuItem>
           </Select>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={showKeyboard}
+                onChange={(e) => onShowKeyboardChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.pianorollShowKeyboard")}
+              </Typography>
+            }
+            sx={{ mt: 1.25, mb: 1 }}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={showBackground}
+                onChange={(e) => onShowBackgroundChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.pianorollShowBackground")}
+              </Typography>
+            }
+            sx={{ mb: 1 }}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={voiceColorEnabled}
+                onChange={(e) => onVoiceColorEnabledChange(e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("editor.videoExport.pianorollVoiceColorEnabled")}
+              </Typography>
+            }
+            sx={{ mb: 1.25 }}
+          />
+
+          {voiceColorEnabled && voiceColors.length > 0 && (
+            <Stack spacing={0.75} sx={{ mb: 1.25, ml: 2 }}>
+              {voiceColors.map((voiceColor) => {
+                const displayLabel =
+                  voiceColor === ""
+                    ? t("editor.videoExport.voiceColorDefault")
+                    : voiceColor;
+                const colorValue =
+                  voiceColorMap[voiceColor] ??
+                  defaultVoiceColorMap[voiceColor] ??
+                  "#000000";
+                return (
+                  <Stack
+                    key={voiceColor || "__default__"}
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                  >
+                    <input
+                      type="color"
+                      value={colorValue}
+                      onChange={(e) =>
+                        onVoiceColorMapChange(voiceColor, e.target.value)
+                      }
+                      style={{
+                        width: 32,
+                        height: 24,
+                        border: "none",
+                        borderRadius: 2,
+                        padding: 0,
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ minWidth: 100 }}>
+                      {displayLabel}
+                    </Typography>
+                  </Stack>
+                );
+              })}
+            </Stack>
+          )}
 
           <Button
             variant="contained"

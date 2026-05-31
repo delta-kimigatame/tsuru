@@ -399,6 +399,16 @@ export const VideoEditorView: React.FC<Props> = ({
               onHorizontalZoomChange={form.setPianorollHorizontalZoom}
               onVerticalZoomChange={form.setPianorollVerticalZoom}
               onApplyThemeToOutside={form.applyPianorollThemeToOutside}
+              showKeyboard={form.pianorollShowKeyboard}
+              showBackground={form.pianorollShowBackground}
+              voiceColorEnabled={form.pianorollVoiceColorEnabled}
+              voiceColors={form.pianorollVoiceColors}
+              defaultVoiceColorMap={form.pianorollDefaultVoiceColorMap}
+              voiceColorMap={form.pianorollVoiceColorMap}
+              onShowKeyboardChange={form.setPianorollShowKeyboard}
+              onShowBackgroundChange={form.setPianorollShowBackground}
+              onVoiceColorEnabledChange={form.setPianorollVoiceColorEnabled}
+              onVoiceColorMapChange={form.handlePianorollVoiceColorChange}
               extraContentWhenEnabled={
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                   <Button

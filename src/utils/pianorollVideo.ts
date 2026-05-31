@@ -29,6 +29,14 @@ export interface PianorollVideoOptions {
   voiceIconImage?: HTMLImageElement | null;
   /** プレビュー用縮小率。固定マージン値をスケールするために使用。デフォルト 1 */
   layoutScale?: number;
+  /** 左端の鍵盤を表示するか。デフォルト true */
+  showKeyboard?: boolean;
+  /** グリッド背景を表示するか。デフォルト true */
+  showBackground?: boolean;
+  /** voiceColor で色分けするか。デフォルト false */
+  voiceColorEnabled?: boolean;
+  /** voiceColor ごとの色上書き。未指定キーはデフォルト計算色を使用 */
+  voiceColorMap?: Record<string, string>;
 }
 
 export interface PianorollRenderState {
@@ -55,8 +63,178 @@ interface LayoutRect {
   height: number;
 }
 
+type Rgb = { r: number; g: number; b: number };
+type Hsl = { h: number; s: number; l: number };
+
 const clamp = (v: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, v));
+
+const parseHexColor = (hex: string): Rgb => {
+  const clean = hex.replace("#", "");
+  const valid = /^[0-9a-fA-F]{6}$/.test(clean) ? clean : "000000";
+  return {
+    r: parseInt(valid.slice(0, 2), 16),
+    g: parseInt(valid.slice(2, 4), 16),
+    b: parseInt(valid.slice(4, 6), 16),
+  };
+};
+
+const rgbToHex = ({ r, g, b }: Rgb): string => {
+  const toHex = (v: number) =>
+    clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+const rgbToHsl = ({ r, g, b }: Rgb): Hsl => {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const delta = max - min;
+
+  let h = 0;
+  if (delta !== 0) {
+    if (max === rn) h = ((gn - bn) / delta) % 6;
+    else if (max === gn) h = (bn - rn) / delta + 2;
+    else h = (rn - gn) / delta + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  return { h, s: s * 100, l: l * 100 };
+};
+
+const hslToRgb = ({ h, s, l }: Hsl): Rgb => {
+  const hh = ((h % 360) + 360) % 360;
+  const ss = clamp(s, 0, 100) / 100;
+  const ll = clamp(l, 0, 100) / 100;
+  const c = (1 - Math.abs(2 * ll - 1)) * ss;
+  const x = c * (1 - Math.abs(((hh / 60) % 2) - 1));
+  const m = ll - c / 2;
+
+  let rn = 0;
+  let gn = 0;
+  let bn = 0;
+  if (hh < 60) {
+    rn = c;
+    gn = x;
+  } else if (hh < 120) {
+    rn = x;
+    gn = c;
+  } else if (hh < 180) {
+    gn = c;
+    bn = x;
+  } else if (hh < 240) {
+    gn = x;
+    bn = c;
+  } else if (hh < 300) {
+    rn = x;
+    bn = c;
+  } else {
+    rn = c;
+    bn = x;
+  }
+
+  return {
+    r: (rn + m) * 255,
+    g: (gn + m) * 255,
+    b: (bn + m) * 255,
+  };
+};
+
+const relativeLuminance = ({ r, g, b }: Rgb): number => {
+  const toLinear = (v: number): number => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+};
+
+const contrastRatio = (a: Rgb, b: Rgb): number => {
+  const l1 = relativeLuminance(a);
+  const l2 = relativeLuminance(b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
+const hashString = (value: string): number => {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+export const buildPianorollVoiceColorMap = (
+  notes: Note[],
+  paletteNoteHex: string,
+  paletteBackgroundHex: string,
+): Map<string, string> => {
+  const map = new Map<string, string>();
+  const baseHsl = rgbToHsl(parseHexColor(paletteNoteHex));
+  const bgRgb = parseHexColor(paletteBackgroundHex);
+
+  const usedKeys = Array.from(
+    new Set((notes ?? []).map((note) => note.voiceColor ?? "")),
+  ).sort((a, b) => a.localeCompare(b));
+
+  if (usedKeys.length === 0) {
+    map.set("", paletteNoteHex);
+    return map;
+  }
+
+  const defaultIndex = usedKeys.indexOf("");
+  const denominator = Math.max(1, usedKeys.length);
+
+  for (let i = 0; i < usedKeys.length; i++) {
+    const key = usedKeys[i];
+    if (key === "") {
+      map.set(key, paletteNoteHex);
+      continue;
+    }
+
+    const hash = hashString(key);
+    const sequenceIndex = defaultIndex >= 0 && i > defaultIndex ? i - 1 : i;
+    const hueStep = (360 / denominator) * sequenceIndex;
+    const hueJitter = (hash % 23) - 11;
+    const satJitter = ((hash >>> 8) % 17) - 8;
+    const lightJitter = ((hash >>> 16) % 13) - 6;
+
+    const candidateHsl: Hsl = {
+      h: (baseHsl.h + hueStep + hueJitter + 360) % 360,
+      s: clamp(baseHsl.s + satJitter, 38, 92),
+      l: clamp(baseHsl.l + lightJitter, 28, 78),
+    };
+
+    const minimumContrast = 2.4;
+    const direction =
+      relativeLuminance(parseHexColor(paletteNoteHex)) >
+      relativeLuminance(bgRgb)
+        ? 1
+        : -1;
+    let adjustedHsl = { ...candidateHsl };
+    let adjustedRgb = hslToRgb(adjustedHsl);
+
+    for (let n = 0; n < 6; n++) {
+      if (contrastRatio(adjustedRgb, bgRgb) >= minimumContrast) break;
+      adjustedHsl.l = clamp(adjustedHsl.l + direction * 5, 20, 85);
+      adjustedRgb = hslToRgb(adjustedHsl);
+    }
+
+    map.set(key, rgbToHex(adjustedRgb));
+  }
+
+  if (!map.has("")) {
+    map.set("", paletteNoteHex);
+  }
+
+  return map;
+};
 
 const getToneMapWidth = (layoutScale?: number): number => {
   return Math.max(
@@ -417,6 +595,11 @@ const drawNotesAndPitch = (
   const palette =
     COLOR_PALLET[opts.colorTheme]?.[opts.themeMode] ??
     COLOR_PALLET.default.light;
+  const defaultVoiceColorMap =
+    opts.voiceColorEnabled === true
+      ? buildPianorollVoiceColorMap(opts.notes, palette.note, palette.whiteKey)
+      : null;
+  const overrideVoiceColorMap = opts.voiceColorMap ?? {};
   const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * opts.verticalZoom;
   const textScale = opts.layoutScale ?? 1;
   const lyricFontSize = Math.max(
@@ -463,7 +646,15 @@ const drawNotesAndPitch = (
     if (x + width < noteAreaX || x > rect.x + rect.width) return;
     if (y + noteHeight < rect.y || y > rect.y + rect.height) return;
 
-    ctx.fillStyle = note.lyric === "R" ? palette.restNote : palette.note;
+    const noteFill =
+      note.lyric === "R"
+        ? palette.restNote
+        : (overrideVoiceColorMap[note.voiceColor ?? ""] ??
+          overrideVoiceColorMap[""] ??
+          defaultVoiceColorMap?.get(note.voiceColor ?? "") ??
+          defaultVoiceColorMap?.get("") ??
+          palette.note);
+    ctx.fillStyle = noteFill;
     ctx.strokeStyle = palette.noteBorder;
     ctx.lineWidth = PIANOROLL_CONFIG.NOTES_BORDER_WIDTH;
     ctx.fillRect(x, y, width, noteHeight);
@@ -615,7 +806,11 @@ export const drawPianorollVideoFrame = (
     options.layout,
     options.layoutScale ?? 1,
   );
-  const toneMapWidth = getToneMapWidth(options.layoutScale);
+  const keyboardVisible = options.showKeyboard ?? true;
+  const backgroundVisible = options.showBackground ?? true;
+  const toneMapWidth = keyboardVisible
+    ? getToneMapWidth(options.layoutScale)
+    : 0;
   const noteAreaX = rect.x + toneMapWidth;
   const noteAreaWidth = Math.max(1, rect.width - toneMapWidth);
   const notesLeftTicks = getNotesLeftTicks(options.notes);
@@ -669,16 +864,18 @@ export const drawPianorollVideoFrame = (
   ctx.rect(rect.x, rect.y, rect.width, rect.height);
   ctx.clip();
 
-  drawNoteAreaBackground(
-    ctx,
-    rect,
-    noteAreaX,
-    noteAreaWidth,
-    scrollX,
-    smoothYOffset,
-    options,
-    totalTickLength,
-  );
+  if (backgroundVisible) {
+    drawNoteAreaBackground(
+      ctx,
+      rect,
+      noteAreaX,
+      noteAreaWidth,
+      scrollX,
+      smoothYOffset,
+      options,
+      totalTickLength,
+    );
+  }
   drawNotesAndPitch(
     ctx,
     rect,
@@ -688,7 +885,9 @@ export const drawPianorollVideoFrame = (
     options,
     notesLeftTicks,
   );
-  drawKeyboard(ctx, rect, smoothYOffset, options);
+  if (keyboardVisible) {
+    drawKeyboard(ctx, rect, smoothYOffset, options);
+  }
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();
