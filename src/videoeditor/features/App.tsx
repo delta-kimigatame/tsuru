@@ -216,6 +216,8 @@ export const App: React.FC = () => {
           onBack={() => setEditorMode(false)}
           onConfirm={handleVideoExportConfirm}
           synthesisProgress={synthesisProgress}
+          synthesisCount={synthesisCount}
+          videoExportTotal={videoExportTotal}
           progressText={
             videoExportTotal
               ? t("videoEditor.progressFrames", {

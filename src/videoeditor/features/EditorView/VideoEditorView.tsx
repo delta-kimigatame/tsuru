@@ -48,6 +48,8 @@ type Props = {
     waveformOptions: WaveformEffectOptions | null,
   ) => void;
   synthesisProgress: boolean;
+  synthesisCount: number;
+  videoExportTotal?: number;
   progressText?: string;
   portraitBlob?: Blob | null;
   portraitNaturalHeight?: number;
@@ -62,6 +64,8 @@ export const VideoEditorView: React.FC<Props> = ({
   onBack,
   onConfirm,
   synthesisProgress,
+  synthesisCount,
+  videoExportTotal,
   progressText,
   portraitBlob,
   portraitNaturalHeight,
@@ -108,14 +112,6 @@ export const VideoEditorView: React.FC<Props> = ({
         <Typography variant="h6" sx={{ flex: 1 }}>
           {t("editor.videoExport.title")}
         </Typography>
-        {synthesisProgress && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2">
-              {progressText ?? t("videoEditor.exporting")}
-            </Typography>
-          </Box>
-        )}
       </Box>
       <Divider />
 
@@ -456,25 +452,68 @@ export const VideoEditorView: React.FC<Props> = ({
       </Box>
 
       <Divider sx={{ mt: 1 }} />
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, pt: 1 }}>
-        <Button
-          onClick={onBack}
-          disabled={synthesisProgress}
-          variant="contained"
-          color="inherit"
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 1,
+          pt: 1,
+        }}
+      >
+        <Box
+          sx={{
+            minHeight: 44,
+            px: 1.5,
+            py: 0.5,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            visibility: synthesisProgress ? "visible" : "hidden",
+          }}
         >
-          {t("videoEditor.back")}
-        </Button>
-        <Button
-          onClick={form.handleConfirm}
-          variant="contained"
-          color="primary"
-          disabled={
-            synthesisProgress || (form.bgSize === "image" && !form.imageFile)
-          }
-        >
-          {t("editor.videoExport.confirm")}
-        </Button>
+          <CircularProgress
+            size={20}
+            variant={videoExportTotal ? "determinate" : "indeterminate"}
+            value={
+              videoExportTotal
+                ? Math.min((synthesisCount / videoExportTotal) * 100, 100)
+                : undefined
+            }
+          />
+          <Typography variant="body2">
+            {videoExportTotal
+              ? t("videoEditor.progressFrames", {
+                  current: synthesisCount,
+                  total: videoExportTotal,
+                })
+              : (progressText ?? t("videoEditor.exporting"))}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+          <Button
+            onClick={onBack}
+            disabled={synthesisProgress}
+            variant="contained"
+            color="inherit"
+          >
+            {t("videoEditor.back")}
+          </Button>
+          <Button
+            onClick={form.handleConfirm}
+            variant="contained"
+            color="primary"
+            disabled={
+              synthesisProgress || (form.bgSize === "image" && !form.imageFile)
+            }
+          >
+            {t("editor.videoExport.confirm")}
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
