@@ -269,6 +269,13 @@ export const translationEn = {
     errorLoadUst: "Failed to load UST: {{error}}",
     errorLoadWav: "Failed to load WAV: {{error}}",
     errorExport: "Video export failed: {{error}}",
+    fontSelector: "Font",
+    fontSelectorMain: "Title Font",
+    fontSelectorSub: "Credit Font",
+    fontSelectorLyrics: "Lyrics Font",
+    fontDefault: "Default (system)",
+    fontLoading: "Loading font...",
+    fontLoadFailed: "Font load failed (using fallback)",
   },
   loadVBDialog: {
     title: "Read Zip",

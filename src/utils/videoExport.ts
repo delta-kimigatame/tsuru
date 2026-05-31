@@ -133,6 +133,8 @@ export interface TextOptions {
   text: string;
   /** フォントサイズ（px、出力解像度基準） */
   fontSize: number;
+  /** フォントファミリー。省略時は FONT_STACK を使用 */
+  fontFamily?: string;
   fontWeight: FontWeight;
   fontStyle: FontStyle;
   /** テキストカラー "#rrggbb" */
@@ -187,6 +189,8 @@ export interface LyricsOptions {
   segments: LyricsSegment[];
   /** フォントサイズ（px、出力解像度基準）*/
   fontSize: number;
+  /** フォントファミリー。省略時は FONT_STACK を使用 */
+  fontFamily?: string;
   /** テキストカラー "#rrggbb" */
   color: string;
   /** X 位置（キャンバス幅基準 %）。center 固定のため xPercent=50 */
@@ -636,7 +640,7 @@ const drawTextOnCanvas = (
   const x = (cW * opts.xPercent) / 100;
   const y = (cH * opts.yPercent) / 100;
   ctx.save();
-  ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${FONT_STACK}`;
+  ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily ? `"${opts.fontFamily}", ${FONT_STACK}` : FONT_STACK}`;
   ctx.textAlign = opts.textAlign;
   ctx.textBaseline = "middle";
   ctx.globalAlpha = 1;
@@ -746,6 +750,9 @@ export const drawSubtitleOnCanvas = (
   const maxW = (cW * opts.maxWidthPercent) / 100;
   const minFontSize = 12;
   let fontSize = opts.fontSize;
+  const fontStack = opts.fontFamily
+    ? `"${opts.fontFamily}", ${FONT_STACK}`
+    : FONT_STACK;
 
   // --- フレーズ全体のエフェクト値を計算 ---
   let alpha = 1;
@@ -816,12 +823,12 @@ export const drawSubtitleOnCanvas = (
   ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+  ctx.font = `normal normal ${fontSize}px ${fontStack}`;
 
   // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める（scale=1 基準）
   while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
     fontSize -= 2;
-    ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+    ctx.font = `normal normal ${fontSize}px ${fontStack}`;
   }
 
   const cx = (cW * opts.xPercent) / 100;
@@ -970,7 +977,7 @@ export const drawSubtitleOnCanvas = (
     const N = chars.length;
     const S = opts.staggerIntervalMs;
     const charWidths = chars.map((c) => {
-      ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+      ctx.font = `normal normal ${fontSize}px ${fontStack}`;
       return ctx.measureText(c).width;
     });
 

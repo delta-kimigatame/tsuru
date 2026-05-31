@@ -38,6 +38,7 @@ import type {
   WaveformEffectOptions,
 } from "../../../utils/videoExport";
 import { extractLyricsSegments } from "../../../utils/videoExport";
+import { FontSelector } from "../../components/FontSelector";
 
 type Props = {
   onBack: () => void;
@@ -613,6 +614,11 @@ export const VideoEditorView: React.FC<Props> = ({
             />
           )}
 
+          <FontSelector
+            value={form.mainTextFontFamily}
+            onChange={form.setMainTextFontFamily}
+            labelKey="videoEditor.fontSelectorMain"
+          />
           <TextOverlaySection
             sectionTitleKey="editor.videoExport.mainTextSection"
             text={form.mainText}
@@ -648,6 +654,11 @@ export const VideoEditorView: React.FC<Props> = ({
             onBgBarOpacityChange={form.setMainTextBgBarOpacity}
           />
 
+          <FontSelector
+            value={form.subTextFontFamily}
+            onChange={form.setSubTextFontFamily}
+            labelKey="videoEditor.fontSelectorSub"
+          />
           <TextOverlaySection
             sectionTitleKey="editor.videoExport.subTextSection"
             text={form.subText}
@@ -683,6 +694,11 @@ export const VideoEditorView: React.FC<Props> = ({
             onBgBarOpacityChange={form.setSubTextBgBarOpacity}
           />
 
+          <FontSelector
+            value={form.lyricsFontFamily}
+            onChange={form.setLyricsFontFamily}
+            labelKey="videoEditor.fontSelectorLyrics"
+          />
           <LyricsSubtitleSection
             lyricsEnabled={form.lyricsEnabled}
             segments={form.lyricsSegments}

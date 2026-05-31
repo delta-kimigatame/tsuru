@@ -272,6 +272,13 @@ export const translationPt = {
     errorLoadUst: "Falha ao carregar UST: {{error}}",
     errorLoadWav: "Falha ao carregar WAV: {{error}}",
     errorExport: "Falha ao exportar video: {{error}}",
+    fontSelector: "Fonte",
+    fontSelectorMain: "Fonte do Título",
+    fontSelectorSub: "Fonte do Crédito",
+    fontSelectorLyrics: "Fonte da Letra",
+    fontDefault: "Padrão (sistema)",
+    fontLoading: "Carregando fonte...",
+    fontLoadFailed: "Falha ao carregar fonte (usando fallback)",
   },
   loadVBDialog: {
     title: "Leitura de ZIP",

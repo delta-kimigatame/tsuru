@@ -270,6 +270,14 @@ export const translationJa = {
     errorLoadUst: "USTの読み込みに失敗しました: {{error}}",
     errorLoadWav: "WAVの読み込みに失敗しました: {{error}}",
     errorExport: "動画エクスポートに失敗しました: {{error}}",
+    fontSelector: "フォント",
+    fontSelectorMain: "タイトル フォント",
+    fontSelectorSub: "クレジット フォント",
+    fontSelectorLyrics: "歌詞 フォント",
+    fontDefault: "デフォルト（システム）",
+    fontLoading: "フォント読み込み中…",
+    fontLoadFailed:
+      "フォントの読み込みに失敗しました（フォールバックフォントで継続）",
   },
   loadVBDialog: {
     title: "ZIP読込",

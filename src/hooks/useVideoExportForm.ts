@@ -343,6 +343,8 @@ export const useVideoExportForm = (
   );
   const [mainTextBgBarOpacity, setMainTextBgBarOpacity] =
     React.useState<number>(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
+  const [mainTextFontFamily, setMainTextFontFamily] =
+    React.useState<string>("");
 
   // サブテキスト設定
   const [subText, setSubText] = React.useState<string>(() =>
@@ -387,6 +389,7 @@ export const useVideoExportForm = (
   const [subTextBgBarOpacity, setSubTextBgBarOpacity] = React.useState<number>(
     DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
   );
+  const [subTextFontFamily, setSubTextFontFamily] = React.useState<string>("");
 
   // 字幕設定
   const [lyricsEnabled, setLyricsEnabled] = React.useState<boolean>(false);
@@ -396,6 +399,7 @@ export const useVideoExportForm = (
   const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
     DEFAULT_LYRICS_FONT_SIZE,
   );
+  const [lyricsFontFamily, setLyricsFontFamily] = React.useState<string>("");
   const [lyricsColor, setLyricsColor] =
     React.useState<string>(DEFAULT_LYRICS_COLOR);
   const [lyricsYPercent, setLyricsYPercent] = React.useState<number>(
@@ -878,11 +882,13 @@ export const useVideoExportForm = (
     bgBarEnabled: boolean,
     bgBarColor: string,
     bgBarOpacity: number,
+    fontFamily?: string,
   ): TextOptions | null =>
     text.trim()
       ? {
           text,
           fontSize,
+          fontFamily: fontFamily || undefined,
           fontWeight: bold ? "bold" : "normal",
           fontStyle: italic ? "italic" : "normal",
           color,
@@ -932,6 +938,7 @@ export const useVideoExportForm = (
       mainTextBgBarEnabled,
       mainTextBgBarColor,
       mainTextBgBarOpacity,
+      mainTextFontFamily || undefined,
     );
     const subTextOptions = buildTextOptions(
       subText,
@@ -950,6 +957,7 @@ export const useVideoExportForm = (
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      subTextFontFamily || undefined,
     );
 
     const lyricsOptions: LyricsOptions | null =
@@ -957,6 +965,7 @@ export const useVideoExportForm = (
         ? {
             segments: lyricsSegments,
             fontSize: lyricsFontSize,
+            fontFamily: lyricsFontFamily || undefined,
             color: lyricsColor,
             xPercent: 50,
             yPercent: lyricsYPercent,
@@ -1444,13 +1453,17 @@ export const useVideoExportForm = (
         bgBarEnabled: boolean,
         bgBarColor: string,
         bgBarOpacity: number,
+        fontFamily?: string,
       ) => {
         if (!text.trim()) return;
         const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
         const tx = (pw * xPercent) / 100;
         const ty = (ph * yPercent) / 100;
+        const fontStack = fontFamily
+          ? `"${fontFamily}", ${FONT_STACK}`
+          : FONT_STACK;
         ctx.save();
-        ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
+        ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${fontStack}`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
@@ -1505,6 +1518,7 @@ export const useVideoExportForm = (
         mainTextBgBarEnabled,
         mainTextBgBarColor,
         mainTextBgBarOpacity,
+        mainTextFontFamily || undefined,
       );
       drawTextLayer(
         subText,
@@ -1523,6 +1537,7 @@ export const useVideoExportForm = (
         subTextBgBarEnabled,
         subTextBgBarColor,
         subTextBgBarOpacity,
+        subTextFontFamily || undefined,
       );
 
       return { prevScale, pw, ph, pianorollState: nextPianorollState };
@@ -1572,6 +1587,8 @@ export const useVideoExportForm = (
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      mainTextFontFamily,
+      subTextFontFamily,
       waveformOptions,
     ],
   );
@@ -1754,6 +1771,7 @@ export const useVideoExportForm = (
     const lyricsOpts: LyricsOptions = {
       segments: lyricsSegments.length > 0 ? lyricsSegments : [seg],
       fontSize: lyricsFontSize,
+      fontFamily: lyricsFontFamily || undefined,
       color: lyricsColor,
       xPercent: 50,
       yPercent: lyricsYPercent,
@@ -1886,6 +1904,7 @@ export const useVideoExportForm = (
     lyricsBounceInOutDurationMs,
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
+    lyricsFontFamily,
   ]);
 
   /** アニメーションプレビュー停止 */
@@ -2054,6 +2073,7 @@ export const useVideoExportForm = (
       const lyricsOpts: LyricsOptions = {
         segments: lyricsSegments,
         fontSize: lyricsFontSize,
+        fontFamily: lyricsFontFamily || undefined,
         color: lyricsColor,
         xPercent: 50,
         yPercent: lyricsYPercent,
@@ -2222,6 +2242,7 @@ export const useVideoExportForm = (
       lyricsBounceInOutDurationMs,
       lyricsStaggerEnabled,
       lyricsStaggerIntervalMs,
+      lyricsFontFamily,
       lyricsEnabled,
       renderPreviewBase,
       stopAnimPreview,
@@ -2328,6 +2349,8 @@ export const useVideoExportForm = (
     setMainTextBgBarEnabled,
     setMainTextBgBarColor,
     setMainTextBgBarOpacity,
+    mainTextFontFamily,
+    setMainTextFontFamily,
     setSubText,
     setSubTextFontSize,
     setSubTextX,
@@ -2353,6 +2376,8 @@ export const useVideoExportForm = (
     setSubTextBgBarEnabled,
     setSubTextBgBarColor,
     setSubTextBgBarOpacity,
+    subTextFontFamily,
+    setSubTextFontFamily,
     // lyrics
     lyricsEnabled,
     lyricsSegments,
@@ -2362,6 +2387,8 @@ export const useVideoExportForm = (
     lyricsMaxWidthPercent,
     setLyricsEnabled,
     setLyricsFontSize,
+    lyricsFontFamily,
+    setLyricsFontFamily,
     setLyricsColor,
     setLyricsYPercent,
     setLyricsMaxWidthPercent,

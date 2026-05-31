@@ -265,6 +265,13 @@ export const translationZh = {
     errorLoadUst: "UST 读取失败: {{error}}",
     errorLoadWav: "WAV 读取失败: {{error}}",
     errorExport: "视频导出失败: {{error}}",
+    fontSelector: "字体",
+    fontSelectorMain: "标题字体",
+    fontSelectorSub: "字幕字体",
+    fontSelectorLyrics: "歌词字体",
+    fontDefault: "默认（系统）",
+    fontLoading: "字体加载中…",
+    fontLoadFailed: "字体加载失败（使用备用字体）",
   },
   loadVBDialog: {
     title: "读取 ZIP 文件",
