@@ -1,5 +1,4 @@
-import HomeIcon from "@mui/icons-material/Home";
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { HeaderMenu } from "../../features/Header/HeaderMenu";
@@ -20,12 +19,7 @@ export const Header: React.FC = () => {
             {t("videoEditor.headerTitle")}
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Button color="inherit" href="./index.html" startIcon={<HomeIcon />}>
-            {t("videoEditor.headerBackToMain")}
-          </Button>
-          <HeaderMenu />
-        </Box>
+        <HeaderMenu />
       </Toolbar>
     </AppBar>
   );

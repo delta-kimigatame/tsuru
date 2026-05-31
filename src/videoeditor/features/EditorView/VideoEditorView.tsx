@@ -1,13 +1,13 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import ImageIcon from "@mui/icons-material/Image";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import {
   Box,
   Button,
-  Chip,
-  CircularProgress,
   Divider,
+  IconButton,
   Stack,
   TextField,
   Typography,
@@ -57,7 +57,6 @@ type Props = {
   synthesisProgress: boolean;
   synthesisCount: number;
   videoExportTotal?: number;
-  progressText?: string;
   wavBuffer: ArrayBuffer;
   wavOffsetMs: number;
   onWavOffsetMsChange: (value: number) => void;
@@ -82,7 +81,6 @@ export const VideoEditorView: React.FC<Props> = ({
   synthesisProgress,
   synthesisCount,
   videoExportTotal,
-  progressText,
   wavBuffer,
   wavOffsetMs,
   onWavOffsetMsChange,
@@ -105,6 +103,9 @@ export const VideoEditorView: React.FC<Props> = ({
   const iconInputRef = React.useRef<HTMLInputElement>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const previewEndSecRef = React.useRef<number | null>(null);
+  const autoOpenedPreviewRef = React.useRef(false);
+  const [previewVisibleOnMobile, setPreviewVisibleOnMobile] =
+    React.useState(false);
   const [isPreviewPlaying, setIsPreviewPlaying] = React.useState(false);
   const [previewError, setPreviewError] = React.useState<string | undefined>(
     undefined,
@@ -150,6 +151,15 @@ export const VideoEditorView: React.FC<Props> = ({
   const startTimelinePreview = form.startTimelinePreview;
   const stopTimelinePreview = form.stopTimelinePreview;
 
+  const openPreviewForAutoPlay = React.useCallback(() => {
+    if (!previewVisibleOnMobile) {
+      setPreviewVisibleOnMobile(true);
+      autoOpenedPreviewRef.current = true;
+      return;
+    }
+    autoOpenedPreviewRef.current = false;
+  }, [previewVisibleOnMobile]);
+
   const stopPreview = React.useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -157,6 +167,10 @@ export const VideoEditorView: React.FC<Props> = ({
     }
     stopTimelinePreview();
     previewEndSecRef.current = null;
+    if (autoOpenedPreviewRef.current) {
+      setPreviewVisibleOnMobile(false);
+      autoOpenedPreviewRef.current = false;
+    }
     setIsPreviewPlaying(false);
   }, [stopTimelinePreview]);
 
@@ -204,6 +218,7 @@ export const VideoEditorView: React.FC<Props> = ({
       setPreviewError(t("videoEditor.previewNoLyrics"));
       return;
     }
+    openPreviewForAutoPlay();
     setPreviewError(undefined);
     const durationSec = Number.isFinite(audio.duration)
       ? Math.max(0, audio.duration)
@@ -241,7 +256,30 @@ export const VideoEditorView: React.FC<Props> = ({
     t,
     startTimelinePreview,
     wavBuffer,
+    openPreviewForAutoPlay,
   ]);
+
+  const anyPreviewPlaying =
+    isPreviewPlaying ||
+    form.isWaveformSinePreviewPlaying ||
+    form.isAnimPreviewPlaying;
+
+  React.useEffect(() => {
+    if (!anyPreviewPlaying && autoOpenedPreviewRef.current) {
+      setPreviewVisibleOnMobile(false);
+      autoOpenedPreviewRef.current = false;
+    }
+  }, [anyPreviewPlaying]);
+
+  const handleWaveformPreviewStart = React.useCallback(() => {
+    openPreviewForAutoPlay();
+    form.startWaveformSinePreview();
+  }, [openPreviewForAutoPlay, form]);
+
+  const handleAnimPreviewStart = React.useCallback(() => {
+    openPreviewForAutoPlay();
+    form.startAnimPreview();
+  }, [openPreviewForAutoPlay, form]);
 
   React.useEffect(() => {
     if (!notes || !adjustedNotesLeftMs || notes.length === 0) return;
@@ -259,7 +297,8 @@ export const VideoEditorView: React.FC<Props> = ({
     <Box
       sx={{
         p: 2,
-        height: "calc(100vh - 64px)",
+        height: "100dvh",
+        boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
       }}
@@ -287,33 +326,19 @@ export const VideoEditorView: React.FC<Props> = ({
         }}
       />
 
-      <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={onBack}
-          disabled={synthesisProgress}
-        >
-          {t("videoEditor.backToMaterials")}
-        </Button>
-        <Typography variant="h6" sx={{ flex: 1 }}>
-          {t("editor.videoExport.title")}
-        </Typography>
-      </Box>
-      <Divider />
-
       <Box
         sx={{
-          mt: 1,
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           flex: 1,
+          minHeight: 0,
           overflow: "hidden",
         }}
       >
         <Box
           sx={{
             flex: 1,
+            minHeight: 0,
             overflowY: "auto",
             p: 2,
             display: "flex",
@@ -389,16 +414,16 @@ export const VideoEditorView: React.FC<Props> = ({
             </Typography>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <Button
-                variant="outlined"
+                variant="contained"
                 fullWidth
                 startIcon={<ImageIcon />}
                 onClick={() => iconInputRef.current?.click()}
               >
-                {t("videoEditor.loadIconOptional")}
+                {iconFileName ?? t("videoEditor.loadIconOptional")}
               </Button>
               <Button
-                variant="text"
-                color="inherit"
+                variant="contained"
+                color="error"
                 fullWidth
                 startIcon={<RestartAltIcon />}
                 disabled={!voiceIcon}
@@ -407,17 +432,6 @@ export const VideoEditorView: React.FC<Props> = ({
                 {t("videoEditor.clearOptional")}
               </Button>
             </Stack>
-            <Box sx={{ mt: 1 }}>
-              <Chip
-                label={
-                  iconFileName
-                    ? t("videoEditor.iconStatusLoaded", { name: iconFileName })
-                    : t("videoEditor.iconStatusEmpty")
-                }
-                variant={iconFileName ? "filled" : "outlined"}
-                color={iconFileName ? "success" : "default"}
-              />
-            </Box>
           </Box>
 
           <Box
@@ -461,7 +475,7 @@ export const VideoEditorView: React.FC<Props> = ({
               sx={{ mt: 1 }}
             >
               <Button
-                variant="text"
+                variant="contained"
                 color="inherit"
                 fullWidth
                 startIcon={<RestartAltIcon />}
@@ -474,7 +488,7 @@ export const VideoEditorView: React.FC<Props> = ({
               </Button>
               <Button
                 variant="contained"
-                color={isPreviewPlaying ? "warning" : "secondary"}
+                color={isPreviewPlaying ? "error" : "primary"}
                 fullWidth
                 startIcon={<AudiotrackIcon />}
                 onClick={handlePreviewPlayToggle}
@@ -555,7 +569,7 @@ export const VideoEditorView: React.FC<Props> = ({
             onRotationSpeedChange={form.setWaveformRotationSpeed}
             onWindowSizeChange={form.setWaveformWindowSize}
             onStrokeWidthPxChange={form.setWaveformStrokeWidthPx}
-            onStartPreview={form.startWaveformSinePreview}
+            onStartPreview={handleWaveformPreviewStart}
             onStopPreview={form.stopWaveformSinePreview}
           />
 
@@ -572,16 +586,16 @@ export const VideoEditorView: React.FC<Props> = ({
             </Typography>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <Button
-                variant="outlined"
+                variant="contained"
                 fullWidth
                 startIcon={<ImageIcon />}
                 onClick={() => portraitInputRef.current?.click()}
               >
-                {t("videoEditor.loadPortraitOptional")}
+                {portraitFileName ?? t("videoEditor.loadPortraitOptional")}
               </Button>
               <Button
-                variant="text"
-                color="inherit"
+                variant="contained"
+                color="error"
                 fullWidth
                 startIcon={<RestartAltIcon />}
                 disabled={!portraitBlob}
@@ -590,19 +604,6 @@ export const VideoEditorView: React.FC<Props> = ({
                 {t("videoEditor.clearOptional")}
               </Button>
             </Stack>
-            <Box sx={{ mt: 1 }}>
-              <Chip
-                label={
-                  portraitFileName
-                    ? t("videoEditor.portraitStatusLoaded", {
-                        name: portraitFileName,
-                      })
-                    : t("videoEditor.portraitStatusEmpty")
-                }
-                variant={portraitFileName ? "filled" : "outlined"}
-                color={portraitFileName ? "success" : "default"}
-              />
-            </Box>
           </Box>
 
           {portraitBlob && (
@@ -784,19 +785,23 @@ export const VideoEditorView: React.FC<Props> = ({
             onStaggerEnabledChange={form.setLyricsStaggerEnabled}
             onStaggerIntervalMsChange={form.setLyricsStaggerIntervalMs}
             isAnimPreviewPlaying={form.isAnimPreviewPlaying}
-            onStartAnimPreview={form.startAnimPreview}
+            onStartAnimPreview={handleAnimPreviewStart}
             onStopAnimPreview={form.stopAnimPreview}
           />
         </Box>
 
         <Box
           sx={{
+            display: {
+              xs: previewVisibleOnMobile ? "flex" : "none",
+              sm: "flex",
+            },
             width: { xs: "100%", sm: "40%" },
             flexShrink: 0,
-            maxHeight: { xs: "35%", sm: "none" },
-            overflowY: { xs: "hidden", sm: "auto" },
+            maxHeight: { xs: "45%", sm: "none" },
+            minHeight: { xs: 220, sm: 0 },
+            overflowY: "auto",
             p: 2,
-            display: "flex",
             flexDirection: "column",
             gap: 2,
             borderTop: { xs: "1px solid", sm: "none" },
@@ -821,39 +826,17 @@ export const VideoEditorView: React.FC<Props> = ({
           pt: 1,
         }}
       >
-        <Box
-          sx={{
-            minHeight: 44,
-            px: 1.5,
-            py: 0.5,
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            visibility: synthesisProgress ? "visible" : "hidden",
+        <IconButton
+          color="inherit"
+          onClick={() => {
+            autoOpenedPreviewRef.current = false;
+            setPreviewVisibleOnMobile((prev) => !prev);
           }}
+          sx={{ display: { xs: "inline-flex", sm: "none" } }}
+          aria-label={previewVisibleOnMobile ? "hide preview" : "show preview"}
         >
-          <CircularProgress
-            size={20}
-            variant={videoExportTotal ? "determinate" : "indeterminate"}
-            value={
-              videoExportTotal
-                ? Math.min((synthesisCount / videoExportTotal) * 100, 100)
-                : undefined
-            }
-          />
-          <Typography variant="body2">
-            {videoExportTotal
-              ? t("videoEditor.progressFrames", {
-                  current: synthesisCount,
-                  total: videoExportTotal,
-                })
-              : (progressText ?? t("videoEditor.exporting"))}
-          </Typography>
-        </Box>
-
+          {previewVisibleOnMobile ? <VisibilityOffIcon /> : <VisibilityIcon />}
+        </IconButton>
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button
             onClick={onBack}
@@ -871,7 +854,12 @@ export const VideoEditorView: React.FC<Props> = ({
               synthesisProgress || (form.bgSize === "image" && !form.imageFile)
             }
           >
-            {t("editor.videoExport.confirm")}
+            {synthesisProgress
+              ? t("videoEditor.progressFrames", {
+                  current: synthesisCount,
+                  total: videoExportTotal ?? synthesisCount,
+                })
+              : t("editor.videoExport.confirm")}
           </Button>
         </Box>
       </Box>

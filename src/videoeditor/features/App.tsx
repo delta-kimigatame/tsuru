@@ -225,7 +225,7 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Header />
+      {!editorMode && <Header />}
       {editorMode && canOpenEditor && notes && notesLeftMs ? (
         <VideoEditorView
           onBack={() => setEditorMode(false)}
@@ -233,14 +233,6 @@ export const App: React.FC = () => {
           synthesisProgress={synthesisProgress}
           synthesisCount={synthesisCount}
           videoExportTotal={videoExportTotal}
-          progressText={
-            videoExportTotal
-              ? t("videoEditor.progressFrames", {
-                  current: synthesisCount,
-                  total: videoExportTotal,
-                })
-              : undefined
-          }
           portraitBlob={portraitBlob}
           portraitFileName={portraitFileName}
           onPortraitSelected={handlePortraitSelected}

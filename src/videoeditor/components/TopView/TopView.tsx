@@ -1,15 +1,7 @@
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import MovieIcon from "@mui/icons-material/Movie";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Divider,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { BasePaper } from "../../../components/common/BasePaper";
@@ -82,51 +74,26 @@ export const TopView: React.FC<Props> = ({
               startIcon={<MusicNoteIcon />}
               onClick={() => ustInputRef.current?.click()}
             >
-              {t("videoEditor.loadUstRequired")}
+              {ustFileName ?? t("videoEditor.loadUstRequired")}
             </Button>
             <Button
               fullWidth
               variant="contained"
-              color="secondary"
               startIcon={<AudiotrackIcon />}
               disabled={!canLoadWav}
               onClick={() => wavInputRef.current?.click()}
             >
-              {t("videoEditor.loadWavRequired")}
+              {wavFileName ?? t("videoEditor.loadWavRequired")}
             </Button>
             <Button
               fullWidth
               variant="contained"
-              size="large"
               startIcon={<MovieIcon />}
               disabled={!canOpenEditor}
               onClick={onOpenEditor}
             >
               {t("videoEditor.openEditor")}
             </Button>
-          </Stack>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-            <Chip
-              label={
-                ustFileName
-                  ? t("videoEditor.ustStatusLoaded", { name: ustFileName })
-                  : t("videoEditor.ustStatusEmpty")
-              }
-              color={ustFileName ? "success" : "default"}
-              variant={ustFileName ? "filled" : "outlined"}
-            />
-            <Chip
-              label={
-                wavFileName
-                  ? t("videoEditor.wavStatusLoaded", { name: wavFileName })
-                  : t("videoEditor.wavStatusEmpty")
-              }
-              color={wavFileName ? "success" : "default"}
-              variant={wavFileName ? "filled" : "outlined"}
-            />
           </Stack>
         </Box>
       </BasePaper>
