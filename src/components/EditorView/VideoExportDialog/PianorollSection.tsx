@@ -20,7 +20,6 @@ import {
 } from "../../../config/pianoroll";
 import { colors, type ColorTheme } from "../../../types/colorTheme";
 import {
-  VOICE_COLOR_LEGEND_POSITIONS,
   type PianorollVideoLayout,
   type VoiceColorLegendPosition,
 } from "../../../utils/pianorollVideo";
@@ -45,6 +44,8 @@ type Props = {
   voiceColorEnabled: boolean;
   voiceColorLegendEnabled: boolean;
   voiceColorLegendPosition: VoiceColorLegendPosition;
+  voiceColorLegendXPercent: number;
+  voiceColorLegendYPercent: number;
   voiceColorLegendScale: number;
   voiceColors: string[];
   defaultVoiceColorMap: Record<string, string>;
@@ -54,6 +55,8 @@ type Props = {
   onVoiceColorEnabledChange: (v: boolean) => void;
   onVoiceColorLegendEnabledChange: (v: boolean) => void;
   onVoiceColorLegendPositionChange: (v: VoiceColorLegendPosition) => void;
+  onVoiceColorLegendXPercentChange: (v: number) => void;
+  onVoiceColorLegendYPercentChange: (v: number) => void;
   onVoiceColorLegendScaleChange: (v: number) => void;
   onVoiceColorMapChange: (key: string, color: string) => void;
   currentNoteInfoEnabled: boolean;
@@ -65,8 +68,12 @@ type Props = {
   onCurrentNoteInfoShowFlagsChange: (v: boolean) => void;
   onCurrentNoteInfoShowIntensityChange: (v: boolean) => void;
   currentNoteInfoPosition: VoiceColorLegendPosition;
+  currentNoteInfoXPercent: number;
+  currentNoteInfoYPercent: number;
   currentNoteInfoScale: number;
   onCurrentNoteInfoPositionChange: (v: VoiceColorLegendPosition) => void;
+  onCurrentNoteInfoXPercentChange: (v: number) => void;
+  onCurrentNoteInfoYPercentChange: (v: number) => void;
   onCurrentNoteInfoScaleChange: (v: number) => void;
 };
 
@@ -92,6 +99,8 @@ export const PianorollSection: React.FC<Props> = ({
   voiceColorEnabled,
   voiceColorLegendEnabled,
   voiceColorLegendPosition,
+  voiceColorLegendXPercent,
+  voiceColorLegendYPercent,
   voiceColorLegendScale,
   voiceColors,
   defaultVoiceColorMap,
@@ -101,6 +110,8 @@ export const PianorollSection: React.FC<Props> = ({
   onVoiceColorEnabledChange,
   onVoiceColorLegendEnabledChange,
   onVoiceColorLegendPositionChange,
+  onVoiceColorLegendXPercentChange,
+  onVoiceColorLegendYPercentChange,
   onVoiceColorLegendScaleChange,
   onVoiceColorMapChange,
   currentNoteInfoEnabled,
@@ -112,8 +123,12 @@ export const PianorollSection: React.FC<Props> = ({
   onCurrentNoteInfoShowFlagsChange,
   onCurrentNoteInfoShowIntensityChange,
   currentNoteInfoPosition,
+  currentNoteInfoXPercent,
+  currentNoteInfoYPercent,
   currentNoteInfoScale,
   onCurrentNoteInfoPositionChange,
+  onCurrentNoteInfoXPercentChange,
+  onCurrentNoteInfoYPercentChange,
   onCurrentNoteInfoScaleChange,
 }) => {
   const { t } = useTranslation();
@@ -344,29 +359,52 @@ export const PianorollSection: React.FC<Props> = ({
                 <Stack spacing={1.25} sx={{ pl: 2 }}>
                   <Box>
                     <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
-                      {t("editor.videoExport.voiceColorLegendPosition")}
+                      {t("editor.videoExport.voiceColorLegendXPercent")}
                     </InputLabel>
-                    <Select
-                      size="small"
-                      fullWidth
-                      value={voiceColorLegendPosition}
-                      onChange={(e) =>
-                        onVoiceColorLegendPositionChange(
-                          e.target.value as VoiceColorLegendPosition,
-                        )
-                      }
-                      sx={{ bgcolor: "background.paper" }}
-                    >
-                      {VOICE_COLOR_LEGEND_POSITIONS.map((position) => (
-                        <MenuItem key={position} value={position}>
-                          <Typography variant="body2">
-                            {t(
-                              `editor.videoExport.voiceColorLegendPosition_${position}`,
-                            )}
-                          </Typography>
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Slider
+                        value={voiceColorLegendXPercent}
+                        onChange={(_, value) =>
+                          onVoiceColorLegendXPercentChange(
+                            Array.isArray(value) ? value[0] : value,
+                          )
+                        }
+                        min={0}
+                        max={100}
+                        step={1}
+                        size="small"
+                        valueLabelDisplay="auto"
+                        sx={{ flex: 1 }}
+                      />
+                      <Typography variant="caption" sx={{ minWidth: 44 }}>
+                        {voiceColorLegendXPercent.toFixed(0)}%
+                      </Typography>
+                    </Stack>
+                  </Box>
+
+                  <Box>
+                    <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                      {t("editor.videoExport.voiceColorLegendYPercent")}
+                    </InputLabel>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Slider
+                        value={voiceColorLegendYPercent}
+                        onChange={(_, value) =>
+                          onVoiceColorLegendYPercentChange(
+                            Array.isArray(value) ? value[0] : value,
+                          )
+                        }
+                        min={0}
+                        max={100}
+                        step={1}
+                        size="small"
+                        valueLabelDisplay="auto"
+                        sx={{ flex: 1 }}
+                      />
+                      <Typography variant="caption" sx={{ minWidth: 44 }}>
+                        {voiceColorLegendYPercent.toFixed(0)}%
+                      </Typography>
+                    </Stack>
                   </Box>
 
                   <Box>
@@ -381,8 +419,8 @@ export const PianorollSection: React.FC<Props> = ({
                             Array.isArray(value) ? value[0] : value,
                           )
                         }
-                        min={0.6}
-                        max={2}
+                        min={0.2}
+                        max={5}
                         step={0.1}
                         size="small"
                         valueLabelDisplay="auto"
@@ -514,29 +552,52 @@ export const PianorollSection: React.FC<Props> = ({
 
                 <Box>
                   <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
-                    {t("editor.videoExport.currentNoteInfoPosition")}
+                    {t("editor.videoExport.currentNoteInfoXPercent")}
                   </InputLabel>
-                  <Select
-                    size="small"
-                    fullWidth
-                    value={currentNoteInfoPosition}
-                    onChange={(e) =>
-                      onCurrentNoteInfoPositionChange(
-                        e.target.value as VoiceColorLegendPosition,
-                      )
-                    }
-                    sx={{ bgcolor: "background.paper" }}
-                  >
-                    {VOICE_COLOR_LEGEND_POSITIONS.map((position) => (
-                      <MenuItem key={position} value={position}>
-                        <Typography variant="body2">
-                          {t(
-                            `editor.videoExport.voiceColorLegendPosition_${position}`,
-                          )}
-                        </Typography>
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Slider
+                      value={currentNoteInfoXPercent}
+                      onChange={(_, value) =>
+                        onCurrentNoteInfoXPercentChange(
+                          Array.isArray(value) ? value[0] : value,
+                        )
+                      }
+                      min={0}
+                      max={100}
+                      step={1}
+                      size="small"
+                      valueLabelDisplay="auto"
+                      sx={{ flex: 1 }}
+                    />
+                    <Typography variant="caption" sx={{ minWidth: 44 }}>
+                      {currentNoteInfoXPercent.toFixed(0)}%
+                    </Typography>
+                  </Stack>
+                </Box>
+
+                <Box>
+                  <InputLabel shrink sx={{ fontSize: 12, mb: 0.5 }}>
+                    {t("editor.videoExport.currentNoteInfoYPercent")}
+                  </InputLabel>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Slider
+                      value={currentNoteInfoYPercent}
+                      onChange={(_, value) =>
+                        onCurrentNoteInfoYPercentChange(
+                          Array.isArray(value) ? value[0] : value,
+                        )
+                      }
+                      min={0}
+                      max={100}
+                      step={1}
+                      size="small"
+                      valueLabelDisplay="auto"
+                      sx={{ flex: 1 }}
+                    />
+                    <Typography variant="caption" sx={{ minWidth: 44 }}>
+                      {currentNoteInfoYPercent.toFixed(0)}%
+                    </Typography>
+                  </Stack>
                 </Box>
 
                 <Box>
@@ -551,8 +612,8 @@ export const PianorollSection: React.FC<Props> = ({
                           Array.isArray(value) ? value[0] : value,
                         )
                       }
-                      min={0.6}
-                      max={2}
+                      min={0.2}
+                      max={5}
                       step={0.1}
                       size="small"
                       valueLabelDisplay="auto"

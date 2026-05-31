@@ -194,6 +194,12 @@ export const VideoExportDialog: React.FC<Props> = ({
                 voiceColorLegendPosition={
                   form.pianorollVoiceColorLegendPosition
                 }
+                voiceColorLegendXPercent={
+                  form.pianorollVoiceColorLegendXPercent
+                }
+                voiceColorLegendYPercent={
+                  form.pianorollVoiceColorLegendYPercent
+                }
                 voiceColorLegendScale={form.pianorollVoiceColorLegendScale}
                 voiceColors={form.pianorollVoiceColors}
                 defaultVoiceColorMap={form.pianorollDefaultVoiceColorMap}
@@ -206,6 +212,12 @@ export const VideoExportDialog: React.FC<Props> = ({
                 }
                 onVoiceColorLegendPositionChange={
                   form.setPianorollVoiceColorLegendPosition
+                }
+                onVoiceColorLegendXPercentChange={
+                  form.setPianorollVoiceColorLegendXPercent
+                }
+                onVoiceColorLegendYPercentChange={
+                  form.setPianorollVoiceColorLegendYPercent
                 }
                 onVoiceColorLegendScaleChange={
                   form.setPianorollVoiceColorLegendScale
@@ -234,9 +246,17 @@ export const VideoExportDialog: React.FC<Props> = ({
                   form.setPianorollCurrentNoteInfoShowIntensity
                 }
                 currentNoteInfoPosition={form.pianorollCurrentNoteInfoPosition}
+                currentNoteInfoXPercent={form.pianorollCurrentNoteInfoXPercent}
+                currentNoteInfoYPercent={form.pianorollCurrentNoteInfoYPercent}
                 currentNoteInfoScale={form.pianorollCurrentNoteInfoScale}
                 onCurrentNoteInfoPositionChange={
                   form.setPianorollCurrentNoteInfoPosition
+                }
+                onCurrentNoteInfoXPercentChange={
+                  form.setPianorollCurrentNoteInfoXPercent
+                }
+                onCurrentNoteInfoYPercentChange={
+                  form.setPianorollCurrentNoteInfoYPercent
                 }
                 onCurrentNoteInfoScaleChange={
                   form.setPianorollCurrentNoteInfoScale

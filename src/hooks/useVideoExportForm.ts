@@ -615,6 +615,14 @@ export const useVideoExportForm = (
     pianorollVoiceColorLegendPosition,
     setPianorollVoiceColorLegendPosition,
   ] = React.useState<VoiceColorLegendPosition>("topRight");
+  const [
+    pianorollVoiceColorLegendXPercent,
+    setPianorollVoiceColorLegendXPercent,
+  ] = React.useState<number>(98);
+  const [
+    pianorollVoiceColorLegendYPercent,
+    setPianorollVoiceColorLegendYPercent,
+  ] = React.useState<number>(2);
   const [pianorollVoiceColorLegendScale, setPianorollVoiceColorLegendScale] =
     React.useState<number>(1);
   const [pianorollCurrentNoteInfoEnabled, setPianorollCurrentNoteInfoEnabled] =
@@ -635,6 +643,14 @@ export const useVideoExportForm = (
     pianorollCurrentNoteInfoPosition,
     setPianorollCurrentNoteInfoPosition,
   ] = React.useState<VoiceColorLegendPosition>("bottomLeft");
+  const [
+    pianorollCurrentNoteInfoXPercent,
+    setPianorollCurrentNoteInfoXPercent,
+  ] = React.useState<number>(2);
+  const [
+    pianorollCurrentNoteInfoYPercent,
+    setPianorollCurrentNoteInfoYPercent,
+  ] = React.useState<number>(98);
   const [pianorollCurrentNoteInfoScale, setPianorollCurrentNoteInfoScale] =
     React.useState<number>(1);
   const [pianorollVoiceColorMap, setPianorollVoiceColorMap] = React.useState<
@@ -698,12 +714,16 @@ export const useVideoExportForm = (
         voiceColorMap: pianorollVoiceColorMap,
         voiceColorLegendEnabled: pianorollVoiceColorLegendEnabled,
         voiceColorLegendPosition: pianorollVoiceColorLegendPosition,
+        voiceColorLegendXPercent: pianorollVoiceColorLegendXPercent,
+        voiceColorLegendYPercent: pianorollVoiceColorLegendYPercent,
         voiceColorLegendScale: pianorollVoiceColorLegendScale,
         currentNoteInfoEnabled: pianorollCurrentNoteInfoEnabled,
         currentNoteInfoShowVelocity: pianorollCurrentNoteInfoShowVelocity,
         currentNoteInfoShowFlags: pianorollCurrentNoteInfoShowFlags,
         currentNoteInfoShowIntensity: pianorollCurrentNoteInfoShowIntensity,
         currentNoteInfoPosition: pianorollCurrentNoteInfoPosition,
+        currentNoteInfoXPercent: pianorollCurrentNoteInfoXPercent,
+        currentNoteInfoYPercent: pianorollCurrentNoteInfoYPercent,
         currentNoteInfoScale: pianorollCurrentNoteInfoScale,
         currentNoteInfoVelocityLabel: t("editor.noteProperty.velocity"),
         currentNoteInfoFlagsLabel: t("editor.noteProperty.flags"),
@@ -728,12 +748,16 @@ export const useVideoExportForm = (
       pianorollVoiceColorMap,
       pianorollVoiceColorLegendEnabled,
       pianorollVoiceColorLegendPosition,
+      pianorollVoiceColorLegendXPercent,
+      pianorollVoiceColorLegendYPercent,
       pianorollVoiceColorLegendScale,
       pianorollCurrentNoteInfoEnabled,
       pianorollCurrentNoteInfoShowVelocity,
       pianorollCurrentNoteInfoShowFlags,
       pianorollCurrentNoteInfoShowIntensity,
       pianorollCurrentNoteInfoPosition,
+      pianorollCurrentNoteInfoXPercent,
+      pianorollCurrentNoteInfoYPercent,
       pianorollCurrentNoteInfoScale,
       t,
       ustFlags,
@@ -1256,6 +1280,19 @@ export const useVideoExportForm = (
         ),
       );
       setPianorollLayout(null);
+      setPianorollVoiceColorLegendPosition("topRight");
+      setPianorollVoiceColorLegendXPercent(98);
+      setPianorollVoiceColorLegendYPercent(2);
+      setPianorollVoiceColorLegendScale(1);
+      setPianorollCurrentNoteInfoEnabled(false);
+      setPianorollCurrentNoteInfoShowVelocity(true);
+      setPianorollCurrentNoteInfoShowFlags(true);
+      setPianorollCurrentNoteInfoShowIntensity(true);
+      setPianorollCurrentNoteInfoPosition("bottomLeft");
+      setPianorollCurrentNoteInfoXPercent(2);
+      setPianorollCurrentNoteInfoYPercent(98);
+      setPianorollCurrentNoteInfoScale(1);
+      setPianorollVoiceColorMap({});
       setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
       setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
@@ -2612,6 +2649,10 @@ export const useVideoExportForm = (
     setPianorollVoiceColorLegendEnabled,
     pianorollVoiceColorLegendPosition,
     setPianorollVoiceColorLegendPosition,
+    pianorollVoiceColorLegendXPercent,
+    setPianorollVoiceColorLegendXPercent,
+    pianorollVoiceColorLegendYPercent,
+    setPianorollVoiceColorLegendYPercent,
     pianorollVoiceColorLegendScale,
     setPianorollVoiceColorLegendScale,
     pianorollCurrentNoteInfoEnabled,
@@ -2624,6 +2665,10 @@ export const useVideoExportForm = (
     setPianorollCurrentNoteInfoShowIntensity,
     pianorollCurrentNoteInfoPosition,
     setPianorollCurrentNoteInfoPosition,
+    pianorollCurrentNoteInfoXPercent,
+    setPianorollCurrentNoteInfoXPercent,
+    pianorollCurrentNoteInfoYPercent,
+    setPianorollCurrentNoteInfoYPercent,
     pianorollCurrentNoteInfoScale,
     setPianorollCurrentNoteInfoScale,
     pianorollVoiceColors,

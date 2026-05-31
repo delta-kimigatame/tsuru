@@ -49,6 +49,10 @@ export interface PianorollVideoOptions {
   voiceColorLegendEnabled?: boolean;
   /** voiceColor 凡例の表示位置 */
   voiceColorLegendPosition?: VoiceColorLegendPosition;
+  /** voiceColor 凡例の X 位置（%）。0=左端, 100=右端 */
+  voiceColorLegendXPercent?: number;
+  /** voiceColor 凡例の Y 位置（%）。0=上端, 100=下端 */
+  voiceColorLegendYPercent?: number;
   /** voiceColor 凡例のサイズ倍率。デフォルト 1 */
   voiceColorLegendScale?: number;
   /** 現在再生中ノート情報を表示するか。デフォルト false */
@@ -61,6 +65,10 @@ export interface PianorollVideoOptions {
   currentNoteInfoShowIntensity?: boolean;
   /** 現在再生中ノート情報の表示位置 */
   currentNoteInfoPosition?: VoiceColorLegendPosition;
+  /** 現在再生中ノート情報の X 位置（%）。0=左端, 100=右端 */
+  currentNoteInfoXPercent?: number;
+  /** 現在再生中ノート情報の Y 位置（%）。0=上端, 100=下端 */
+  currentNoteInfoYPercent?: number;
   /** 現在再生中ノート情報のサイズ倍率。デフォルト 1 */
   currentNoteInfoScale?: number;
   /** 現在再生中ノート情報の子音速度ラベル（i18n 済み文字列） */
@@ -829,7 +837,7 @@ const drawVoiceColorLegend = (
   if (voiceColors.length === 0) return;
 
   const scale =
-    clamp(opts.voiceColorLegendScale ?? 1, 0.6, 2) * (opts.layoutScale ?? 1);
+    clamp(opts.voiceColorLegendScale ?? 1, 0.2, 5) * (opts.layoutScale ?? 1);
   const fontSize = Math.max(1, Math.round(12 * scale));
   const markerSize = Math.max(1, Math.round(12 * scale));
   const rowGap = Math.max(1, Math.round(4 * scale));
@@ -857,15 +865,43 @@ const drawVoiceColorLegend = (
   const legendW = Math.ceil(contentWidth + padX * 2);
   const legendH = Math.ceil(contentHeight + padY * 2);
 
-  const position = opts.voiceColorLegendPosition ?? "topRight";
-  const x =
-    position === "topLeft" || position === "bottomLeft"
-      ? rect.x + margin
-      : rect.x + rect.width - legendW - margin;
-  const y =
-    position === "topLeft" || position === "topRight"
-      ? rect.y + margin
-      : rect.y + rect.height - legendH - margin;
+  const hasPercentPosition =
+    opts.voiceColorLegendXPercent !== undefined ||
+    opts.voiceColorLegendYPercent !== undefined;
+  const x = hasPercentPosition
+    ? (() => {
+        const xMax = Math.max(rect.x, rect.x + rect.width - legendW);
+        return clamp(
+          rect.x +
+            (rect.width * clamp(opts.voiceColorLegendXPercent ?? 0, 0, 100)) /
+              100,
+          rect.x,
+          xMax,
+        );
+      })()
+    : (() => {
+        const position = opts.voiceColorLegendPosition ?? "topRight";
+        return position === "topLeft" || position === "bottomLeft"
+          ? rect.x + margin
+          : rect.x + rect.width - legendW - margin;
+      })();
+  const y = hasPercentPosition
+    ? (() => {
+        const yMax = Math.max(rect.y, rect.y + rect.height - legendH);
+        return clamp(
+          rect.y +
+            (rect.height * clamp(opts.voiceColorLegendYPercent ?? 0, 0, 100)) /
+              100,
+          rect.y,
+          yMax,
+        );
+      })()
+    : (() => {
+        const position = opts.voiceColorLegendPosition ?? "topRight";
+        return position === "topLeft" || position === "topRight"
+          ? rect.y + margin
+          : rect.y + rect.height - legendH - margin;
+      })();
 
   ctx.fillStyle =
     opts.themeMode === "dark"
@@ -920,7 +956,7 @@ const drawCurrentNoteInfoOverlay = (
 
   // サイズスケール：currentNoteInfoScale を独立して使用、その上で layoutScale を適用
   const scale =
-    clamp(opts.currentNoteInfoScale ?? 1, 0.6, 2) * (opts.layoutScale ?? 1);
+    clamp(opts.currentNoteInfoScale ?? 1, 0.2, 5) * (opts.layoutScale ?? 1);
   const fontSize = Math.max(1, Math.round(12 * scale));
   const rowGap = Math.max(1, Math.round(4 * scale));
   const padX = Math.max(1, Math.round(8 * scale));
@@ -963,16 +999,44 @@ const drawCurrentNoteInfoOverlay = (
   const boxWidth = maxWidth + padX * 2;
   const boxHeight = totalHeight + padY * 2;
 
-  // 位置（凡例と同じ位置オプション）
-  const position = opts.currentNoteInfoPosition ?? "bottomLeft";
-  let x =
-    position === "topLeft" || position === "bottomLeft"
-      ? rect.x + margin
-      : rect.x + rect.width - boxWidth - margin;
-  let y =
-    position === "topLeft" || position === "topRight"
-      ? rect.y + margin
-      : rect.y + rect.height - boxHeight - margin;
+  // 位置（x%/y% 指定があれば優先。未指定時は既存の4位置指定を使用）
+  const hasPercentPosition =
+    opts.currentNoteInfoXPercent !== undefined ||
+    opts.currentNoteInfoYPercent !== undefined;
+  const x = hasPercentPosition
+    ? (() => {
+        const xMax = Math.max(rect.x, rect.x + rect.width - boxWidth);
+        return clamp(
+          rect.x +
+            (rect.width * clamp(opts.currentNoteInfoXPercent ?? 0, 0, 100)) /
+              100,
+          rect.x,
+          xMax,
+        );
+      })()
+    : (() => {
+        const position = opts.currentNoteInfoPosition ?? "bottomLeft";
+        return position === "topLeft" || position === "bottomLeft"
+          ? rect.x + margin
+          : rect.x + rect.width - boxWidth - margin;
+      })();
+  const y = hasPercentPosition
+    ? (() => {
+        const yMax = Math.max(rect.y, rect.y + rect.height - boxHeight);
+        return clamp(
+          rect.y +
+            (rect.height * clamp(opts.currentNoteInfoYPercent ?? 0, 0, 100)) /
+              100,
+          rect.y,
+          yMax,
+        );
+      })()
+    : (() => {
+        const position = opts.currentNoteInfoPosition ?? "bottomLeft";
+        return position === "topLeft" || position === "topRight"
+          ? rect.y + margin
+          : rect.y + rect.height - boxHeight - margin;
+      })();
 
   // ボックスを描画（凡例と同じテーマ依存の色）
   ctx.fillStyle =
