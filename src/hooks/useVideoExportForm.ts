@@ -1324,6 +1324,7 @@ export const useVideoExportForm = (
         waveSamples?: Float32Array | null;
         waveSampleRate?: number;
         waveformFftCache?: WaveformFftCache | null;
+        pianorollState?: PianorollRenderState;
       },
     ) => {
       let outW = 0;
@@ -1370,21 +1371,21 @@ export const useVideoExportForm = (
         );
       }
 
+      let nextPianorollState = timeline?.pianorollState;
       if (pianorollPreviewOptions) {
-        const initialState: PianorollRenderState = { yOffset: 0 };
         const scaledPianorollOpts = {
           ...pianorollPreviewOptions,
           horizontalZoom: pianorollPreviewOptions.horizontalZoom * prevScale,
           verticalZoom: pianorollPreviewOptions.verticalZoom * prevScale,
           layoutScale: prevScale,
         };
-        drawPianorollVideoFrame(
+        nextPianorollState = drawPianorollVideoFrame(
           ctx,
           pw,
           ph,
           timeline?.currentMs ?? 0,
           scaledPianorollOpts,
-          initialState,
+          timeline?.pianorollState,
         );
       }
 
@@ -1524,7 +1525,7 @@ export const useVideoExportForm = (
         subTextBgBarOpacity,
       );
 
-      return { prevScale, pw, ph };
+      return { prevScale, pw, ph, pianorollState: nextPianorollState };
     },
     [
       bgSize,
@@ -2016,6 +2017,7 @@ export const useVideoExportForm = (
       let monoSamples: Float32Array | null = null;
       let sampleRate = 44100;
       let fftCache: WaveformFftCache | null = null;
+      let pianorollState: PianorollRenderState | undefined;
 
       try {
         const audioContext = new AudioContext();
@@ -2116,11 +2118,13 @@ export const useVideoExportForm = (
           waveSamples: monoSamples,
           waveSampleRate: sampleRate,
           waveformFftCache: fftCache,
+          pianorollState,
         });
         if (!metrics) {
           stopTimelinePreview();
           return;
         }
+        pianorollState = metrics.pianorollState;
 
         if (lyricsEnabled && lyricsSegments.length > 0) {
           const activeSegment =
