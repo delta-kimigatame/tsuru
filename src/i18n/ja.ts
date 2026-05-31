@@ -279,6 +279,15 @@ export const translationJa = {
     fontLoadFailed:
       "フォントの読み込みに失敗しました（フォールバックフォントで継続）",
   },
+  font: {
+    "category.gothic": "ゴシック体",
+    "category.serif": "明朝体",
+    "category.display": "ディスプレイ",
+    "category.handwritten": "手書き",
+    "category.elegant": "エレガント",
+    "category.retro": "レトロ",
+    "category.tech": "テック",
+  },
   loadVBDialog: {
     title: "ZIP読込",
     encodeCheck: "文字化け確認",

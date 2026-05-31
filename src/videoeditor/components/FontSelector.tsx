@@ -12,7 +12,7 @@ import {
   loadGoogleFont,
   type FontLoadState,
 } from "../utils/fontLoader";
-import { FONT_CATEGORIES, GOOGLE_FONTS } from "../utils/googleFonts";
+import { FONT_CATEGORY_KEYS, GOOGLE_FONTS } from "../utils/googleFonts";
 
 interface Props {
   /** 現在選択中のフォントファミリー。空文字 = システムフォント（デフォルト） */
@@ -84,10 +84,14 @@ export const FontSelector: React.FC<Props> = ({
           <em>{t("videoEditor.fontDefault")}</em>
         </MenuItem>
 
-        {FONT_CATEGORIES.map((category) => {
-          const fonts = GOOGLE_FONTS.filter((f) => f.category === category);
+        {FONT_CATEGORY_KEYS.map((categoryKey) => {
+          const fonts = GOOGLE_FONTS.filter(
+            (f) => f.categoryKey === categoryKey,
+          );
           return [
-            <ListSubheader key={`cat-${category}`}>{category}</ListSubheader>,
+            <ListSubheader key={`cat-${categoryKey}`}>
+              {t(categoryKey)}
+            </ListSubheader>,
             ...fonts.map((font) => (
               <MenuItem
                 key={font.family}

@@ -280,6 +280,15 @@ export const translationPt = {
     fontLoading: "Carregando fonte...",
     fontLoadFailed: "Falha ao carregar fonte (usando fallback)",
   },
+  font: {
+    "category.gothic": "Sem Serifa",
+    "category.serif": "Com Serifa",
+    "category.display": "Exibição",
+    "category.handwritten": "Manuscrito",
+    "category.elegant": "Elegante",
+    "category.retro": "Retrô",
+    "category.tech": "Tecnologia",
+  },
   loadVBDialog: {
     title: "Leitura de ZIP",
     encodeCheck: "Verificar caracteres corrompidos",

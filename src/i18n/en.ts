@@ -277,6 +277,15 @@ export const translationEn = {
     fontLoading: "Loading font...",
     fontLoadFailed: "Font load failed (using fallback)",
   },
+  font: {
+    "category.gothic": "Sans Serif",
+    "category.serif": "Serif",
+    "category.display": "Display",
+    "category.handwritten": "Handwritten",
+    "category.elegant": "Elegant",
+    "category.retro": "Retro",
+    "category.tech": "Tech",
+  },
   loadVBDialog: {
     title: "Read Zip",
     encodeCheck: "Check the encoding",

@@ -273,6 +273,15 @@ export const translationZh = {
     fontLoading: "字体加载中…",
     fontLoadFailed: "字体加载失败（使用备用字体）",
   },
+  font: {
+    "category.gothic": "无衰线字体",
+    "category.serif": "有衰线字体",
+    "category.display": "展示",
+    "category.handwritten": "手写",
+    "category.elegant": "优雅",
+    "category.retro": "复古",
+    "category.tech": "科技",
+  },
   loadVBDialog: {
     title: "读取 ZIP 文件",
     encodeCheck: "乱码检测",
