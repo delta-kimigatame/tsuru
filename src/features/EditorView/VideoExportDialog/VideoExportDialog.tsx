@@ -18,7 +18,10 @@ import { PortraitSection } from "../../../components/EditorView/VideoExportDialo
 import { ResolutionSection } from "../../../components/EditorView/VideoExportDialog/ResolutionSection";
 import { TextOverlaySection } from "../../../components/EditorView/VideoExportDialog/TextOverlaySection";
 import { WaveformEffectSection } from "../../../components/EditorView/VideoExportDialog/WaveformEffectSection";
-import { useVideoExportForm } from "../../../hooks/useVideoExportForm";
+import {
+  useVideoExportForm,
+  type VideoExportFormContext,
+} from "../../../hooks/useVideoExportForm";
 import type { Note } from "../../../lib/Note";
 import type { PianorollVideoOptions } from "../../../utils/pianorollVideo";
 import type {
@@ -56,6 +59,7 @@ type Props = {
   notes?: Note[];
   notesLeftMs?: number[];
   selectNotesIndex?: number[];
+  formContext: VideoExportFormContext;
 };
 
 export const VideoExportDialog: React.FC<Props> = ({
@@ -69,18 +73,23 @@ export const VideoExportDialog: React.FC<Props> = ({
   notes,
   notesLeftMs,
   selectNotesIndex,
+  formContext,
 }) => {
   const { t } = useTranslation();
-  const form = useVideoExportForm(open, {
-    onClose,
-    onConfirm,
-    portraitBlob,
-    portraitNaturalHeight,
-    voiceIcon,
-    notes,
-    notesLeftMs,
-    selectNotesIndex,
-  });
+  const form = useVideoExportForm(
+    open,
+    {
+      onClose,
+      onConfirm,
+      portraitBlob,
+      portraitNaturalHeight,
+      voiceIcon,
+      notes,
+      notesLeftMs,
+      selectNotesIndex,
+    },
+    formContext,
+  );
 
   return (
     <Dialog open={open} onClose={form.handleClose} fullScreen>

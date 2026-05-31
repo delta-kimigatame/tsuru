@@ -139,8 +139,6 @@ import {
   PREVIEW_MAX_W,
 } from "../config/videoExport";
 import type { Note } from "../lib/Note";
-import { useCookieStore } from "../store/cookieStore";
-import { useMusicProjectStore } from "../store/musicProjectStore";
 import type { ColorTheme } from "../types/colorTheme";
 import {
   drawPianorollVideoFrame,
@@ -177,7 +175,6 @@ import {
   type WaveformFftShape,
   type WaveformType,
 } from "../utils/waveformEffect";
-import { useThemeMode } from "./useThemeMode";
 
 type Options = {
   onClose: () => void;
@@ -202,7 +199,20 @@ type Options = {
   selectNotesIndex?: number[];
 };
 
-export const useVideoExportForm = (open: boolean, options: Options) => {
+export type VideoExportFormContext = {
+  colorTheme: ColorTheme;
+  horizontalZoom: number;
+  verticalZoom: number;
+  tone: number;
+  isMinor: boolean;
+  themeMode: "light" | "dark";
+};
+
+export const useVideoExportForm = (
+  open: boolean,
+  options: Options,
+  context: VideoExportFormContext,
+) => {
   const {
     onClose,
     onConfirm,
@@ -213,10 +223,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     notesLeftMs,
     selectNotesIndex,
   } = options;
+  const { colorTheme, horizontalZoom, verticalZoom, tone, isMinor, themeMode } =
+    context;
   const { t } = useTranslation();
-  const { colorTheme, horizontalZoom, verticalZoom } = useCookieStore();
-  const { tone, isMinor } = useMusicProjectStore();
-  const themeMode = useThemeMode();
 
   // アニメーションプレビュー用 refs / state
   const animPreviewRafRef = React.useRef<number | null>(null);
