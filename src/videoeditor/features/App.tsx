@@ -80,6 +80,8 @@ export const App: React.FC = () => {
   const [iconFileName, setIconFileName] = React.useState<string | undefined>(
     undefined,
   );
+  const [wavOffsetMs, setWavOffsetMs] = React.useState(0);
+  const [ustOffsetMs, setUstOffsetMs] = React.useState(0);
 
   const canLoadWav = notes !== null;
   const canOpenEditor = notes !== null && wavBuffer !== null;
@@ -138,17 +140,30 @@ export const App: React.FC = () => {
     [notes, t],
   );
 
-  const handlePortraitSelected = React.useCallback(async (file: File) => {
-    setPortraitBlob(
-      await file
-        .slice()
-        .arrayBuffer()
-        .then((buf) => new Blob([buf], { type: file.type || "image/png" })),
-    );
-    setPortraitFileName(file.name);
-  }, []);
+  const handlePortraitSelected = React.useCallback(
+    async (file: File | null) => {
+      if (!file) {
+        setPortraitBlob(null);
+        setPortraitFileName(undefined);
+        return;
+      }
+      setPortraitBlob(
+        await file
+          .slice()
+          .arrayBuffer()
+          .then((buf) => new Blob([buf], { type: file.type || "image/png" })),
+      );
+      setPortraitFileName(file.name);
+    },
+    [],
+  );
 
-  const handleIconSelected = React.useCallback(async (file: File) => {
+  const handleIconSelected = React.useCallback(async (file: File | null) => {
+    if (!file) {
+      setVoiceIcon(undefined);
+      setIconFileName(undefined);
+      return;
+    }
     setVoiceIcon(await file.arrayBuffer());
     setIconFileName(file.name);
   }, []);
@@ -227,7 +242,16 @@ export const App: React.FC = () => {
               : undefined
           }
           portraitBlob={portraitBlob}
+          portraitFileName={portraitFileName}
+          onPortraitSelected={handlePortraitSelected}
           voiceIcon={voiceIcon}
+          iconFileName={iconFileName}
+          onIconSelected={handleIconSelected}
+          wavBuffer={wavBuffer}
+          wavOffsetMs={wavOffsetMs}
+          onWavOffsetMsChange={setWavOffsetMs}
+          ustOffsetMs={ustOffsetMs}
+          onUstOffsetMsChange={setUstOffsetMs}
           notes={notes}
           notesLeftMs={notesLeftMs}
           selectNotesIndex={[]}
@@ -240,15 +264,11 @@ export const App: React.FC = () => {
           <TopView
             ustFileName={ustFileName}
             wavFileName={wavFileName}
-            portraitFileName={portraitFileName}
-            iconFileName={iconFileName}
             canLoadWav={canLoadWav}
             canOpenEditor={canOpenEditor}
             errorMessage={errorMessage}
             onUstSelected={handleUstSelected}
             onWavSelected={handleWavSelected}
-            onPortraitSelected={handlePortraitSelected}
-            onIconSelected={handleIconSelected}
             onOpenEditor={() => setEditorMode(true)}
           />
           <Footer />

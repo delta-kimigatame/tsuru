@@ -1,5 +1,4 @@
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
-import ImageIcon from "@mui/icons-material/Image";
 import MovieIcon from "@mui/icons-material/Movie";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import {
@@ -20,37 +19,27 @@ import { LinkPaper } from "./LinkPaper";
 type Props = {
   ustFileName?: string;
   wavFileName?: string;
-  portraitFileName?: string;
-  iconFileName?: string;
   canLoadWav: boolean;
   canOpenEditor: boolean;
   errorMessage?: string;
   onUstSelected: (file: File) => void;
   onWavSelected: (file: File) => void;
-  onPortraitSelected: (file: File) => void;
-  onIconSelected: (file: File) => void;
   onOpenEditor: () => void;
 };
 
 export const TopView: React.FC<Props> = ({
   ustFileName,
   wavFileName,
-  portraitFileName,
-  iconFileName,
   canLoadWav,
   canOpenEditor,
   errorMessage,
   onUstSelected,
   onWavSelected,
-  onPortraitSelected,
-  onIconSelected,
   onOpenEditor,
 }) => {
   const { t } = useTranslation();
   const ustInputRef = React.useRef<HTMLInputElement>(null);
   const wavInputRef = React.useRef<HTMLInputElement>(null);
-  const portraitInputRef = React.useRef<HTMLInputElement>(null);
-  const iconInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -76,29 +65,6 @@ export const TopView: React.FC<Props> = ({
           e.currentTarget.value = "";
         }}
       />
-      <input
-        ref={portraitInputRef}
-        hidden
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onPortraitSelected(file);
-          e.currentTarget.value = "";
-        }}
-      />
-      <input
-        ref={iconInputRef}
-        hidden
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onIconSelected(file);
-          e.currentTarget.value = "";
-        }}
-      />
-
       <BasePaper title={t("videoEditor.topTitle")}>
         <Box sx={{ m: 1, p: 1 }}>
           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -109,8 +75,9 @@ export const TopView: React.FC<Props> = ({
               {errorMessage}
             </Alert>
           )}
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          <Stack direction="column" spacing={1}>
             <Button
+              fullWidth
               variant="contained"
               startIcon={<MusicNoteIcon />}
               onClick={() => ustInputRef.current?.click()}
@@ -118,6 +85,7 @@ export const TopView: React.FC<Props> = ({
               {t("videoEditor.loadUstRequired")}
             </Button>
             <Button
+              fullWidth
               variant="contained"
               color="secondary"
               startIcon={<AudiotrackIcon />}
@@ -127,18 +95,14 @@ export const TopView: React.FC<Props> = ({
               {t("videoEditor.loadWavRequired")}
             </Button>
             <Button
-              variant="outlined"
-              startIcon={<ImageIcon />}
-              onClick={() => portraitInputRef.current?.click()}
+              fullWidth
+              variant="contained"
+              size="large"
+              startIcon={<MovieIcon />}
+              disabled={!canOpenEditor}
+              onClick={onOpenEditor}
             >
-              {t("videoEditor.loadPortraitOptional")}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<ImageIcon />}
-              onClick={() => iconInputRef.current?.click()}
-            >
-              {t("videoEditor.loadIconOptional")}
+              {t("videoEditor.openEditor")}
             </Button>
           </Stack>
 
@@ -163,37 +127,7 @@ export const TopView: React.FC<Props> = ({
               color={wavFileName ? "success" : "default"}
               variant={wavFileName ? "filled" : "outlined"}
             />
-            <Chip
-              label={
-                portraitFileName
-                  ? t("videoEditor.portraitStatusLoaded", {
-                      name: portraitFileName,
-                    })
-                  : t("videoEditor.portraitStatusEmpty")
-              }
-              variant="outlined"
-            />
-            <Chip
-              label={
-                iconFileName
-                  ? t("videoEditor.iconStatusLoaded", { name: iconFileName })
-                  : t("videoEditor.iconStatusEmpty")
-              }
-              variant="outlined"
-            />
           </Stack>
-
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<MovieIcon />}
-              disabled={!canOpenEditor}
-              onClick={onOpenEditor}
-            >
-              {t("videoEditor.openEditor")}
-            </Button>
-          </Box>
         </Box>
       </BasePaper>
 

@@ -169,6 +169,7 @@ import {
   type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformEffectOptions,
+  type WaveformFftCache,
   type WaveformFftGaugeShape,
   type WaveformFftIconShape,
   type WaveformFftIconStrengthMode,
@@ -665,6 +666,10 @@ export const useVideoExportForm = (
   const waveformSinePreviewRafRef = React.useRef<number | null>(null);
   const waveformSinePreviewActiveRef = React.useRef(false);
   const [isWaveformSinePreviewPlaying, setIsWaveformSinePreviewPlaying] =
+    React.useState(false);
+  const timelinePreviewRafRef = React.useRef<number | null>(null);
+  const timelinePreviewActiveRef = React.useRef(false);
+  const [isTimelinePreviewPlaying, setIsTimelinePreviewPlaying] =
     React.useState(false);
 
   const [waveformEnabled, setWaveformEnabled] = React.useState<boolean>(
@@ -1314,6 +1319,12 @@ export const useVideoExportForm = (
       ctx: CanvasRenderingContext2D,
       canvas: HTMLCanvasElement,
       img: HTMLImageElement | null,
+      timeline?: {
+        currentMs?: number;
+        waveSamples?: Float32Array | null;
+        waveSampleRate?: number;
+        waveformFftCache?: WaveformFftCache | null;
+      },
     ) => {
       let outW = 0;
       let outH = 0;
@@ -1371,7 +1382,7 @@ export const useVideoExportForm = (
           ctx,
           pw,
           ph,
-          0,
+          timeline?.currentMs ?? 0,
           scaledPianorollOpts,
           initialState,
         );
@@ -1404,13 +1415,14 @@ export const useVideoExportForm = (
       if (waveformOptions.enabled) {
         drawWaveformEffect(
           ctx,
-          null,
+          timeline?.waveSamples ?? null,
           waveformOptions,
           pw,
           ph,
-          0,
-          44100,
+          (timeline?.currentMs ?? 0) / 1000,
+          timeline?.waveSampleRate ?? 44100,
           prevScale,
+          timeline?.waveformFftCache ?? undefined,
         );
       }
 
@@ -1972,6 +1984,254 @@ export const useVideoExportForm = (
     setIsWaveformSinePreviewPlaying(false);
   }, []);
 
+  const stopTimelinePreview = React.useCallback(() => {
+    if (timelinePreviewRafRef.current !== null) {
+      cancelAnimationFrame(timelinePreviewRafRef.current);
+      timelinePreviewRafRef.current = null;
+    }
+    timelinePreviewActiveRef.current = false;
+    setIsTimelinePreviewPlaying(false);
+  }, []);
+
+  const startTimelinePreview = React.useCallback(
+    async (params: {
+      startMs: number;
+      endMs: number;
+      wavBuffer: ArrayBuffer;
+      getCurrentSec: () => number | null;
+    }) => {
+      const canvas = previewCanvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      if (bgSize === "image" && !imagePreviewUrl) return;
+
+      stopAnimPreview();
+      stopWaveformSinePreview();
+      stopTimelinePreview();
+
+      const startMs = Math.max(0, params.startMs);
+      const endMs = Math.max(startMs, params.endMs);
+
+      let monoSamples: Float32Array | null = null;
+      let sampleRate = 44100;
+      let fftCache: WaveformFftCache | null = null;
+
+      try {
+        const audioContext = new AudioContext();
+        const decoded = await audioContext.decodeAudioData(
+          params.wavBuffer.slice(0),
+        );
+        const channels = decoded.numberOfChannels;
+        sampleRate = decoded.sampleRate;
+        if (channels <= 1) {
+          monoSamples = decoded.getChannelData(0).slice();
+        } else {
+          monoSamples = new Float32Array(decoded.length);
+          for (let c = 0; c < channels; c++) {
+            const ch = decoded.getChannelData(c);
+            for (let i = 0; i < decoded.length; i++) {
+              monoSamples[i] += ch[i] / channels;
+            }
+          }
+        }
+        if (waveformOptions.enabled && monoSamples) {
+          fftCache = buildWaveformFftCache(
+            monoSamples,
+            sampleRate,
+            waveformOptions.fftSize,
+            waveformOptions.fftBinCount,
+          );
+        }
+        await audioContext.close();
+      } catch {
+        monoSamples = null;
+        sampleRate = 44100;
+      }
+
+      const lyricsOpts: LyricsOptions = {
+        segments: lyricsSegments,
+        fontSize: lyricsFontSize,
+        color: lyricsColor,
+        xPercent: 50,
+        yPercent: lyricsYPercent,
+        maxWidthPercent: lyricsMaxWidthPercent,
+        shadowEnabled: lyricsShadowEnabled,
+        shadowColor: lyricsShadowColor,
+        shadowBlur: lyricsShadowBlur,
+        strokeEnabled: lyricsStrokeEnabled,
+        strokeColor: lyricsStrokeColor,
+        strokeWidth: lyricsStrokeWidth,
+        bgBarEnabled: lyricsBgBarEnabled,
+        bgBarColor: lyricsBgBarColor,
+        bgBarOpacity: lyricsBgBarOpacity,
+        fadeEnabled: lyricsFadeEnabled,
+        fadeDurationMs: lyricsFadeDurationMs,
+        scaleEnabled: lyricsScaleEnabled,
+        scaleFrom: lyricsScaleFrom,
+        scaleDurationMs: lyricsScaleDurationMs,
+        slideEnabled: lyricsSlideEnabled,
+        slideAmount: lyricsSlideAmount,
+        slideDurationMs: lyricsSlideDurationMs,
+        slideInEnabled: lyricsSlideInEnabled,
+        slideInDirection: lyricsSlideInDirection,
+        slideOutEnabled: lyricsSlideOutEnabled,
+        slideOutDirection: lyricsSlideOutDirection,
+        slideInOutDurationMs: lyricsSlideInOutDurationMs,
+        blurEnabled: lyricsBlurEnabled,
+        blurAmount: lyricsBlurAmount,
+        blurDurationMs: lyricsBlurDurationMs,
+        wipeInEnabled: lyricsWipeInEnabled,
+        wipeInDirection: lyricsWipeInDirection,
+        wipeOutEnabled: lyricsWipeOutEnabled,
+        wipeOutDirection: lyricsWipeOutDirection,
+        wipeDurationMs: lyricsWipeDurationMs,
+        bounceInEnabled: lyricsBounceInEnabled,
+        bounceInDirection: lyricsBounceInDirection,
+        bounceOutEnabled: lyricsBounceOutEnabled,
+        bounceOutDirection: lyricsBounceOutDirection,
+        bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+        staggerEnabled: lyricsStaggerEnabled,
+        staggerIntervalMs: lyricsStaggerIntervalMs,
+      };
+
+      timelinePreviewActiveRef.current = true;
+      setIsTimelinePreviewPlaying(true);
+
+      const drawLoop = (img: HTMLImageElement | null) => {
+        if (!timelinePreviewActiveRef.current) return;
+        const currentSec = params.getCurrentSec();
+        if (currentSec === null) {
+          stopTimelinePreview();
+          return;
+        }
+        const currentMs = Math.max(startMs, currentSec * 1000);
+        if (currentMs >= endMs) {
+          stopTimelinePreview();
+          return;
+        }
+
+        const metrics = renderPreviewBase(ctx, canvas, img, {
+          currentMs,
+          waveSamples: monoSamples,
+          waveSampleRate: sampleRate,
+          waveformFftCache: fftCache,
+        });
+        if (!metrics) {
+          stopTimelinePreview();
+          return;
+        }
+
+        if (lyricsEnabled && lyricsSegments.length > 0) {
+          const activeSegment =
+            lyricsSegments.find(
+              (seg) => currentMs >= seg.startMs && currentMs <= seg.endMs,
+            ) ?? lyricsSegments[0];
+          const elapsed = Math.max(0, currentMs - activeSegment.startMs);
+          const remaining = Math.max(0, activeSegment.endMs - currentMs);
+          const scaledLyricsOpts: LyricsOptions = {
+            ...lyricsOpts,
+            fontSize: Math.max(1, lyricsOpts.fontSize * metrics.prevScale),
+            shadowBlur: lyricsOpts.shadowBlur * metrics.prevScale,
+            strokeWidth: lyricsOpts.strokeWidth * metrics.prevScale,
+            slideAmount: lyricsOpts.slideAmount * metrics.prevScale,
+            blurAmount: lyricsOpts.blurAmount * metrics.prevScale,
+          };
+          drawSubtitleOnCanvas(
+            ctx,
+            activeSegment.lyric,
+            scaledLyricsOpts,
+            canvas.width,
+            canvas.height,
+            elapsed,
+            remaining,
+          );
+        }
+
+        timelinePreviewRafRef.current = requestAnimationFrame(() =>
+          drawLoop(img),
+        );
+      };
+
+      if (imagePreviewUrl) {
+        const img = new Image();
+        img.onload = () => {
+          if (!timelinePreviewActiveRef.current) return;
+          timelinePreviewRafRef.current = requestAnimationFrame(() =>
+            drawLoop(img),
+          );
+        };
+        img.onerror = () => {
+          stopTimelinePreview();
+        };
+        img.src = imagePreviewUrl;
+      } else {
+        timelinePreviewRafRef.current = requestAnimationFrame(() =>
+          drawLoop(null),
+        );
+      }
+    },
+    [
+      previewCanvasRef,
+      bgSize,
+      imagePreviewUrl,
+      waveformOptions,
+      lyricsSegments,
+      lyricsFontSize,
+      lyricsColor,
+      lyricsYPercent,
+      lyricsMaxWidthPercent,
+      lyricsShadowEnabled,
+      lyricsShadowColor,
+      lyricsShadowBlur,
+      lyricsStrokeEnabled,
+      lyricsStrokeColor,
+      lyricsStrokeWidth,
+      lyricsBgBarEnabled,
+      lyricsBgBarColor,
+      lyricsBgBarOpacity,
+      lyricsFadeEnabled,
+      lyricsFadeDurationMs,
+      lyricsScaleEnabled,
+      lyricsScaleFrom,
+      lyricsScaleDurationMs,
+      lyricsSlideEnabled,
+      lyricsSlideAmount,
+      lyricsSlideDurationMs,
+      lyricsSlideInEnabled,
+      lyricsSlideInDirection,
+      lyricsSlideOutEnabled,
+      lyricsSlideOutDirection,
+      lyricsSlideInOutDurationMs,
+      lyricsBlurEnabled,
+      lyricsBlurAmount,
+      lyricsBlurDurationMs,
+      lyricsWipeInEnabled,
+      lyricsWipeInDirection,
+      lyricsWipeOutEnabled,
+      lyricsWipeOutDirection,
+      lyricsWipeDurationMs,
+      lyricsBounceInEnabled,
+      lyricsBounceInDirection,
+      lyricsBounceOutEnabled,
+      lyricsBounceOutDirection,
+      lyricsBounceInOutDurationMs,
+      lyricsStaggerEnabled,
+      lyricsStaggerIntervalMs,
+      lyricsEnabled,
+      renderPreviewBase,
+      stopAnimPreview,
+      stopWaveformSinePreview,
+      stopTimelinePreview,
+    ],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      stopTimelinePreview();
+    };
+  }, [stopTimelinePreview]);
+
   return {
     // refs
     fileInputRef,
@@ -2259,5 +2519,8 @@ export const useVideoExportForm = (
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,
+    isTimelinePreviewPlaying,
+    startTimelinePreview,
+    stopTimelinePreview,
   };
 };

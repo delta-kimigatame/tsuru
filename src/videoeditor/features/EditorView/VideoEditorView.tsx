@@ -1,9 +1,15 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AudiotrackIcon from "@mui/icons-material/Audiotrack";
+import ImageIcon from "@mui/icons-material/Image";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
   Box,
   Button,
+  Chip,
   CircularProgress,
   Divider,
+  Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -31,6 +37,7 @@ import type {
   VideoResolution,
   WaveformEffectOptions,
 } from "../../../utils/videoExport";
+import { extractLyricsSegments } from "../../../utils/videoExport";
 
 type Props = {
   onBack: () => void;
@@ -51,9 +58,18 @@ type Props = {
   synthesisCount: number;
   videoExportTotal?: number;
   progressText?: string;
+  wavBuffer: ArrayBuffer;
+  wavOffsetMs: number;
+  onWavOffsetMsChange: (value: number) => void;
+  ustOffsetMs: number;
+  onUstOffsetMsChange: (value: number) => void;
   portraitBlob?: Blob | null;
+  portraitFileName?: string;
+  onPortraitSelected: (file: File | null) => void;
   portraitNaturalHeight?: number;
   voiceIcon?: ArrayBuffer;
+  iconFileName?: string;
+  onIconSelected: (file: File | null) => void;
   notes?: Note[];
   notesLeftMs?: number[];
   selectNotesIndex?: number[];
@@ -67,15 +83,55 @@ export const VideoEditorView: React.FC<Props> = ({
   synthesisCount,
   videoExportTotal,
   progressText,
+  wavBuffer,
+  wavOffsetMs,
+  onWavOffsetMsChange,
+  ustOffsetMs,
+  onUstOffsetMsChange,
   portraitBlob,
+  portraitFileName,
+  onPortraitSelected,
   portraitNaturalHeight,
   voiceIcon,
+  iconFileName,
+  onIconSelected,
   notes,
   notesLeftMs,
   selectNotesIndex,
   formContext,
 }) => {
   const { t } = useTranslation();
+  const portraitInputRef = React.useRef<HTMLInputElement>(null);
+  const iconInputRef = React.useRef<HTMLInputElement>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const previewEndSecRef = React.useRef<number | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = React.useState(false);
+  const [previewError, setPreviewError] = React.useState<string | undefined>(
+    undefined,
+  );
+
+  const adjustedNotesLeftMs = React.useMemo(() => {
+    if (!notesLeftMs) return undefined;
+    return notesLeftMs.map((ms) => ms + ustOffsetMs);
+  }, [notesLeftMs, ustOffsetMs]);
+
+  const firstLyricSegment = React.useMemo(() => {
+    if (!notes || !adjustedNotesLeftMs || notes.length === 0) return undefined;
+    const segments = extractLyricsSegments(
+      notes,
+      adjustedNotesLeftMs,
+      selectNotesIndex ?? [],
+    );
+    return segments.length > 0 ? segments[0] : undefined;
+  }, [notes, adjustedNotesLeftMs, selectNotesIndex]);
+
+  const previewStartMs = firstLyricSegment
+    ? Math.max(0, firstLyricSegment.startMs + wavOffsetMs)
+    : undefined;
+  const previewEndMs = firstLyricSegment
+    ? Math.max(0, firstLyricSegment.endMs + wavOffsetMs)
+    : undefined;
+
   const form = useVideoExportForm(
     true,
     {
@@ -85,11 +141,119 @@ export const VideoEditorView: React.FC<Props> = ({
       portraitNaturalHeight,
       voiceIcon,
       notes,
-      notesLeftMs,
+      notesLeftMs: adjustedNotesLeftMs,
       selectNotesIndex,
     },
     formContext,
   );
+
+  const startTimelinePreview = form.startTimelinePreview;
+  const stopTimelinePreview = form.stopTimelinePreview;
+
+  const stopPreview = React.useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+    }
+    stopTimelinePreview();
+    previewEndSecRef.current = null;
+    setIsPreviewPlaying(false);
+  }, [stopTimelinePreview]);
+
+  const handlePreviewTimeUpdate = React.useCallback(() => {
+    const audio = audioRef.current;
+    const endSec = previewEndSecRef.current;
+    if (!audio || endSec === null) return;
+    if (audio.currentTime >= endSec) {
+      stopPreview();
+    }
+  }, [stopPreview]);
+
+  React.useEffect(() => {
+    const url = URL.createObjectURL(
+      new Blob([wavBuffer], { type: "audio/wav" }),
+    );
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    audioRef.current = audio;
+
+    const handleEnded = () => {
+      stopPreview();
+    };
+
+    audio.addEventListener("timeupdate", handlePreviewTimeUpdate);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", handlePreviewTimeUpdate);
+      audio.removeEventListener("ended", handleEnded);
+      audio.pause();
+      audioRef.current = null;
+      URL.revokeObjectURL(url);
+    };
+  }, [wavBuffer, handlePreviewTimeUpdate, stopPreview]);
+
+  const handlePreviewPlayToggle = React.useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPreviewPlaying) {
+      stopPreview();
+      return;
+    }
+    if (previewStartMs === undefined || previewEndMs === undefined) {
+      setPreviewError(t("videoEditor.previewNoLyrics"));
+      return;
+    }
+    setPreviewError(undefined);
+    const durationSec = Number.isFinite(audio.duration)
+      ? Math.max(0, audio.duration)
+      : Number.POSITIVE_INFINITY;
+    const startSec = Math.min(previewStartMs / 1000, durationSec);
+    const endSec = Math.max(
+      startSec,
+      Math.min(previewEndMs / 1000, durationSec),
+    );
+    previewEndSecRef.current = endSec;
+    audio.currentTime = startSec;
+    try {
+      await audio.play();
+      await startTimelinePreview({
+        startMs: previewStartMs,
+        endMs: previewEndMs,
+        wavBuffer,
+        getCurrentSec: () => {
+          const a = audioRef.current;
+          if (!a) return null;
+          if (a.paused) return null;
+          return a.currentTime;
+        },
+      });
+      setIsPreviewPlaying(true);
+    } catch (e) {
+      setPreviewError(t("videoEditor.previewPlayError", { error: String(e) }));
+      stopPreview();
+    }
+  }, [
+    isPreviewPlaying,
+    previewStartMs,
+    previewEndMs,
+    stopPreview,
+    t,
+    startTimelinePreview,
+    wavBuffer,
+  ]);
+
+  React.useEffect(() => {
+    if (!notes || !adjustedNotesLeftMs || notes.length === 0) return;
+    form.setLyricsSegmentsDirectly(
+      extractLyricsSegments(notes, adjustedNotesLeftMs, selectNotesIndex ?? []),
+    );
+  }, [
+    notes,
+    adjustedNotesLeftMs,
+    selectNotesIndex,
+    form.setLyricsSegmentsDirectly,
+  ]);
 
   return (
     <Box
@@ -100,6 +264,29 @@ export const VideoEditorView: React.FC<Props> = ({
         flexDirection: "column",
       }}
     >
+      <input
+        ref={iconInputRef}
+        hidden
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onIconSelected(file);
+          e.currentTarget.value = "";
+        }}
+      />
+      <input
+        ref={portraitInputRef}
+        hidden
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onPortraitSelected(file);
+          e.currentTarget.value = "";
+        }}
+      />
+
       <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
         <Button
           variant="outlined"
@@ -189,6 +376,133 @@ export const VideoEditorView: React.FC<Props> = ({
             />
           )}
 
+          <Box
+            sx={{
+              p: 1.5,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t("videoEditor.iconLoadTitle")}
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<ImageIcon />}
+                onClick={() => iconInputRef.current?.click()}
+              >
+                {t("videoEditor.loadIconOptional")}
+              </Button>
+              <Button
+                variant="text"
+                color="inherit"
+                fullWidth
+                startIcon={<RestartAltIcon />}
+                disabled={!voiceIcon}
+                onClick={() => onIconSelected(null)}
+              >
+                {t("videoEditor.clearOptional")}
+              </Button>
+            </Stack>
+            <Box sx={{ mt: 1 }}>
+              <Chip
+                label={
+                  iconFileName
+                    ? t("videoEditor.iconStatusLoaded", { name: iconFileName })
+                    : t("videoEditor.iconStatusEmpty")
+                }
+                variant={iconFileName ? "filled" : "outlined"}
+                color={iconFileName ? "success" : "default"}
+              />
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              p: 1.5,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t("videoEditor.syncAdjustTitle")}
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <TextField
+                fullWidth
+                size="small"
+                type="number"
+                label={t("videoEditor.wavOffsetMs")}
+                value={wavOffsetMs}
+                onChange={(e) => {
+                  const next = Number.parseInt(e.target.value || "0", 10);
+                  onWavOffsetMsChange(Number.isNaN(next) ? 0 : next);
+                }}
+              />
+              <TextField
+                fullWidth
+                size="small"
+                type="number"
+                label={t("videoEditor.ustOffsetMs")}
+                value={ustOffsetMs}
+                onChange={(e) => {
+                  const next = Number.parseInt(e.target.value || "0", 10);
+                  onUstOffsetMsChange(Number.isNaN(next) ? 0 : next);
+                }}
+              />
+            </Stack>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ mt: 1 }}
+            >
+              <Button
+                variant="text"
+                color="inherit"
+                fullWidth
+                startIcon={<RestartAltIcon />}
+                onClick={() => {
+                  onWavOffsetMsChange(0);
+                  onUstOffsetMsChange(0);
+                }}
+              >
+                {t("videoEditor.resetOffsets")}
+              </Button>
+              <Button
+                variant="contained"
+                color={isPreviewPlaying ? "warning" : "secondary"}
+                fullWidth
+                startIcon={<AudiotrackIcon />}
+                onClick={handlePreviewPlayToggle}
+              >
+                {isPreviewPlaying
+                  ? t("videoEditor.stopPreview")
+                  : t("videoEditor.playFirstLyricSegment")}
+              </Button>
+            </Stack>
+            <Typography variant="caption" sx={{ display: "block", mt: 1 }}>
+              {previewStartMs !== undefined && previewEndMs !== undefined
+                ? t("videoEditor.previewRangeMs", {
+                    start: Math.floor(previewStartMs),
+                    end: Math.floor(previewEndMs),
+                  })
+                : t("videoEditor.previewNoLyrics")}
+            </Typography>
+            {previewError && (
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{ display: "block", mt: 0.5 }}
+              >
+                {previewError}
+              </Typography>
+            )}
+          </Box>
+
           <WaveformEffectSection
             enabled={form.waveformEnabled}
             type={form.waveformType}
@@ -244,6 +558,52 @@ export const VideoEditorView: React.FC<Props> = ({
             onStartPreview={form.startWaveformSinePreview}
             onStopPreview={form.stopWaveformSinePreview}
           />
+
+          <Box
+            sx={{
+              p: 1.5,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t("videoEditor.portraitLoadTitle")}
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<ImageIcon />}
+                onClick={() => portraitInputRef.current?.click()}
+              >
+                {t("videoEditor.loadPortraitOptional")}
+              </Button>
+              <Button
+                variant="text"
+                color="inherit"
+                fullWidth
+                startIcon={<RestartAltIcon />}
+                disabled={!portraitBlob}
+                onClick={() => onPortraitSelected(null)}
+              >
+                {t("videoEditor.clearOptional")}
+              </Button>
+            </Stack>
+            <Box sx={{ mt: 1 }}>
+              <Chip
+                label={
+                  portraitFileName
+                    ? t("videoEditor.portraitStatusLoaded", {
+                        name: portraitFileName,
+                      })
+                    : t("videoEditor.portraitStatusEmpty")
+                }
+                variant={portraitFileName ? "filled" : "outlined"}
+                color={portraitFileName ? "success" : "default"}
+              />
+            </Box>
+          </Box>
 
           {portraitBlob && (
             <PortraitSection
