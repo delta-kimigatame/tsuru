@@ -1,4 +1,5 @@
 import type {
+  BackgroundGradientType,
   BackgroundStyle,
   BgPaddingMode,
   SlideDirection,
@@ -68,6 +69,23 @@ export const DEFAULT_BACKGROUND_PATTERN_ROTATION = 0;
 export const DEFAULT_BACKGROUND_MOVEMENT_ENABLED = false;
 export const DEFAULT_BACKGROUND_MOVE_X_PER_FRAME = 0;
 export const DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME = 0;
+export const BACKGROUND_GRADIENT_TYPES: BackgroundGradientType[] = [
+  "lightness",
+  "saturation",
+  "alpha",
+];
+export const DEFAULT_BACKGROUND_GRADIENT_ENABLED = false;
+export const DEFAULT_BACKGROUND_GRADIENT_TYPE: BackgroundGradientType = "alpha";
+export const DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG = 90;
+export const DEFAULT_BACKGROUND_GRADIENT_START_PERCENT = 0;
+export const DEFAULT_BACKGROUND_GRADIENT_END_PERCENT = 100;
+export const DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT = 50;
+export const BACKGROUND_GRADIENT_ANGLE_MIN = -180;
+export const BACKGROUND_GRADIENT_ANGLE_MAX = 180;
+export const BACKGROUND_GRADIENT_POSITION_MIN = 0;
+export const BACKGROUND_GRADIENT_POSITION_MAX = 100;
+export const BACKGROUND_GRADIENT_STRENGTH_MIN = 0;
+export const BACKGROUND_GRADIENT_STRENGTH_MAX = 100;
 export const BACKGROUND_PATTERN_SIZE_MIN = 2;
 export const BACKGROUND_PATTERN_SIZE_MAX = 200;
 export const BACKGROUND_PATTERN_GAP_MIN = 0;

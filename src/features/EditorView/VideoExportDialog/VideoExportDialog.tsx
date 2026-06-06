@@ -236,6 +236,22 @@ export const VideoExportDialog: React.FC<Props> = ({
             onPatternGapChange={form.setBackgroundPatternGap}
             patternRotation={form.backgroundPatternRotation}
             onPatternRotationChange={form.setBackgroundPatternRotation}
+            gradientEnabled={form.backgroundGradientEnabled}
+            onGradientEnabledChange={form.setBackgroundGradientEnabled}
+            gradientType={form.backgroundGradientType}
+            onGradientTypeChange={form.setBackgroundGradientType}
+            gradientAngleDeg={form.backgroundGradientAngleDeg}
+            onGradientAngleDegChange={form.setBackgroundGradientAngleDeg}
+            gradientStartPercent={form.backgroundGradientStartPercent}
+            onGradientStartPercentChange={
+              form.setBackgroundGradientStartPercent
+            }
+            gradientEndPercent={form.backgroundGradientEndPercent}
+            onGradientEndPercentChange={form.setBackgroundGradientEndPercent}
+            gradientStrengthPercent={form.backgroundGradientStrengthPercent}
+            onGradientStrengthPercentChange={
+              form.setBackgroundGradientStrengthPercent
+            }
             movementEnabled={form.backgroundMovementEnabled}
             onMovementEnabledChange={form.setBackgroundMovementEnabled}
             moveXPerFrame={form.backgroundMoveXPerFrame}

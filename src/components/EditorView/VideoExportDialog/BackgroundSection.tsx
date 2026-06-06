@@ -14,6 +14,13 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  BACKGROUND_GRADIENT_ANGLE_MAX,
+  BACKGROUND_GRADIENT_ANGLE_MIN,
+  BACKGROUND_GRADIENT_POSITION_MAX,
+  BACKGROUND_GRADIENT_POSITION_MIN,
+  BACKGROUND_GRADIENT_STRENGTH_MAX,
+  BACKGROUND_GRADIENT_STRENGTH_MIN,
+  BACKGROUND_GRADIENT_TYPES,
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
@@ -25,6 +32,7 @@ import {
 import {
   BACKGROUND_STYLES,
   BG_PADDING_MODES,
+  type BackgroundGradientType,
   type BackgroundStyle,
   type BgPaddingMode,
   type VideoResolution,
@@ -57,6 +65,18 @@ type Props = {
   onPatternGapChange: (v: number) => void;
   patternRotation: number;
   onPatternRotationChange: (v: number) => void;
+  gradientEnabled: boolean;
+  onGradientEnabledChange: (v: boolean) => void;
+  gradientType: BackgroundGradientType;
+  onGradientTypeChange: (v: BackgroundGradientType) => void;
+  gradientAngleDeg: number;
+  onGradientAngleDegChange: (v: number) => void;
+  gradientStartPercent: number;
+  onGradientStartPercentChange: (v: number) => void;
+  gradientEndPercent: number;
+  onGradientEndPercentChange: (v: number) => void;
+  gradientStrengthPercent: number;
+  onGradientStrengthPercentChange: (v: number) => void;
   movementEnabled: boolean;
   onMovementEnabledChange: (v: boolean) => void;
   moveXPerFrame: number;
@@ -97,6 +117,18 @@ export const BackgroundSection: React.FC<Props> = ({
   onPatternGapChange,
   patternRotation,
   onPatternRotationChange,
+  gradientEnabled,
+  onGradientEnabledChange,
+  gradientType,
+  onGradientTypeChange,
+  gradientAngleDeg,
+  onGradientAngleDegChange,
+  gradientStartPercent,
+  onGradientStartPercentChange,
+  gradientEndPercent,
+  onGradientEndPercentChange,
+  gradientStrengthPercent,
+  onGradientStrengthPercentChange,
   movementEnabled,
   onMovementEnabledChange,
   moveXPerFrame,
@@ -245,6 +277,83 @@ export const BackgroundSection: React.FC<Props> = ({
             max={BACKGROUND_PATTERN_ROTATION_MAX}
             unit="deg"
             valueMinWidth={64}
+          />
+          <Divider sx={{ fontSize: "0.75rem" }}>
+            {t("editor.videoExport.backgroundGradientSection")}
+          </Divider>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="caption">
+              {t("editor.videoExport.backgroundGradientEnable")}
+            </Typography>
+            <Select
+              size="small"
+              value={gradientEnabled ? "on" : "off"}
+              onChange={(e) => onGradientEnabledChange(e.target.value === "on")}
+              sx={{ minWidth: 90, fontSize: "0.8rem" }}
+            >
+              <MenuItem value="off">{t("editor.videoExport.off")}</MenuItem>
+              <MenuItem value="on">{t("editor.videoExport.on")}</MenuItem>
+            </Select>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="caption">
+              {t("editor.videoExport.backgroundGradientType")}
+            </Typography>
+            <Select
+              size="small"
+              value={gradientType}
+              onChange={(e) =>
+                onGradientTypeChange(e.target.value as BackgroundGradientType)
+              }
+              sx={{ minWidth: 140, fontSize: "0.8rem" }}
+              disabled={!gradientEnabled}
+            >
+              {BACKGROUND_GRADIENT_TYPES.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {t(`editor.videoExport.backgroundGradientType_${type}`)}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundGradientAngle")}
+            value={gradientAngleDeg}
+            onChange={onGradientAngleDegChange}
+            min={BACKGROUND_GRADIENT_ANGLE_MIN}
+            max={BACKGROUND_GRADIENT_ANGLE_MAX}
+            unit="deg"
+            valueMinWidth={64}
+            disabled={!gradientEnabled}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundGradientStart")}
+            value={gradientStartPercent}
+            onChange={onGradientStartPercentChange}
+            min={BACKGROUND_GRADIENT_POSITION_MIN}
+            max={BACKGROUND_GRADIENT_POSITION_MAX}
+            unit="%"
+            valueMinWidth={52}
+            disabled={!gradientEnabled}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundGradientEnd")}
+            value={gradientEndPercent}
+            onChange={onGradientEndPercentChange}
+            min={BACKGROUND_GRADIENT_POSITION_MIN}
+            max={BACKGROUND_GRADIENT_POSITION_MAX}
+            unit="%"
+            valueMinWidth={52}
+            disabled={!gradientEnabled}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundGradientStrength")}
+            value={gradientStrengthPercent}
+            onChange={onGradientStrengthPercentChange}
+            min={BACKGROUND_GRADIENT_STRENGTH_MIN}
+            max={BACKGROUND_GRADIENT_STRENGTH_MAX}
+            unit="%"
+            valueMinWidth={52}
+            disabled={!gradientEnabled}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography variant="caption">

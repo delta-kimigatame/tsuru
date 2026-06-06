@@ -9,6 +9,12 @@ import {
   PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../config/pianoroll";
 import {
+  BACKGROUND_GRADIENT_ANGLE_MAX,
+  BACKGROUND_GRADIENT_ANGLE_MIN,
+  BACKGROUND_GRADIENT_POSITION_MAX,
+  BACKGROUND_GRADIENT_POSITION_MIN,
+  BACKGROUND_GRADIENT_STRENGTH_MAX,
+  BACKGROUND_GRADIENT_STRENGTH_MIN,
   BACKGROUND_MOVE_PER_FRAME_MAX,
   BACKGROUND_MOVE_PER_FRAME_MIN,
   BACKGROUND_PATTERN_GAP_MAX,
@@ -19,6 +25,12 @@ import {
   BACKGROUND_PATTERN_SIZE_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
+  DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG,
+  DEFAULT_BACKGROUND_GRADIENT_ENABLED,
+  DEFAULT_BACKGROUND_GRADIENT_END_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_START_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_TYPE,
   DEFAULT_BACKGROUND_MOVEMENT_ENABLED,
   DEFAULT_BACKGROUND_MOVE_X_PER_FRAME,
   DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME,
@@ -160,6 +172,7 @@ import {
   drawSubtitleOnCanvas,
   drawVideoBackground,
   extractLyricsSegments,
+  type BackgroundGradientType,
   type BackgroundOptions,
   type BackgroundStyle,
   type BgPaddingMode,
@@ -280,6 +293,20 @@ export const useVideoExportForm = (
     React.useState<number>(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
   const [backgroundMoveYPerFrame, setBackgroundMoveYPerFrame] =
     React.useState<number>(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
+  const [backgroundGradientEnabled, setBackgroundGradientEnabled] =
+    React.useState<boolean>(DEFAULT_BACKGROUND_GRADIENT_ENABLED);
+  const [backgroundGradientType, setBackgroundGradientType] =
+    React.useState<BackgroundGradientType>(DEFAULT_BACKGROUND_GRADIENT_TYPE);
+  const [backgroundGradientAngleDeg, setBackgroundGradientAngleDeg] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG);
+  const [backgroundGradientStartPercent, setBackgroundGradientStartPercent] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_START_PERCENT);
+  const [backgroundGradientEndPercent, setBackgroundGradientEndPercent] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_END_PERCENT);
+  const [
+    backgroundGradientStrengthPercent,
+    setBackgroundGradientStrengthPercent,
+  ] = React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT);
 
   // 解像度
   const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
@@ -586,6 +613,33 @@ export const useVideoExportForm = (
       primaryColor: bgColor,
       secondaryColor: bgSecondaryColor,
       secondaryOpacity: Math.min(100, Math.max(0, bgSecondaryOpacity)),
+      gradientEnabled: backgroundStyle !== "solid" && backgroundGradientEnabled,
+      gradientType: backgroundGradientType,
+      gradientAngleDeg: Math.min(
+        BACKGROUND_GRADIENT_ANGLE_MAX,
+        Math.max(BACKGROUND_GRADIENT_ANGLE_MIN, backgroundGradientAngleDeg),
+      ),
+      gradientStartPercent: Math.min(
+        BACKGROUND_GRADIENT_POSITION_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_POSITION_MIN,
+          backgroundGradientStartPercent,
+        ),
+      ),
+      gradientEndPercent: Math.min(
+        BACKGROUND_GRADIENT_POSITION_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_POSITION_MIN,
+          backgroundGradientEndPercent,
+        ),
+      ),
+      gradientStrengthPercent: Math.min(
+        BACKGROUND_GRADIENT_STRENGTH_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_STRENGTH_MIN,
+          backgroundGradientStrengthPercent,
+        ),
+      ),
       size: Math.min(
         BACKGROUND_PATTERN_SIZE_MAX,
         Math.max(BACKGROUND_PATTERN_SIZE_MIN, backgroundPatternSize),
@@ -616,6 +670,12 @@ export const useVideoExportForm = (
       backgroundPatternSize,
       backgroundPatternGap,
       backgroundPatternRotation,
+      backgroundGradientEnabled,
+      backgroundGradientType,
+      backgroundGradientAngleDeg,
+      backgroundGradientStartPercent,
+      backgroundGradientEndPercent,
+      backgroundGradientStrengthPercent,
       backgroundMovementEnabled,
       backgroundMoveXPerFrame,
       backgroundMoveYPerFrame,
@@ -1245,6 +1305,16 @@ export const useVideoExportForm = (
       setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
       setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
       setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+      setBackgroundGradientEnabled(DEFAULT_BACKGROUND_GRADIENT_ENABLED);
+      setBackgroundGradientType(DEFAULT_BACKGROUND_GRADIENT_TYPE);
+      setBackgroundGradientAngleDeg(DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG);
+      setBackgroundGradientStartPercent(
+        DEFAULT_BACKGROUND_GRADIENT_START_PERCENT,
+      );
+      setBackgroundGradientEndPercent(DEFAULT_BACKGROUND_GRADIENT_END_PERCENT);
+      setBackgroundGradientStrengthPercent(
+        DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT,
+      );
       setBackgroundMovementEnabled(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
       setBackgroundMoveXPerFrame(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
       setBackgroundMoveYPerFrame(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
@@ -2571,6 +2641,12 @@ export const useVideoExportForm = (
     backgroundPatternSize,
     backgroundPatternGap,
     backgroundPatternRotation,
+    backgroundGradientEnabled,
+    backgroundGradientType,
+    backgroundGradientAngleDeg,
+    backgroundGradientStartPercent,
+    backgroundGradientEndPercent,
+    backgroundGradientStrengthPercent,
     backgroundMovementEnabled,
     backgroundMoveXPerFrame,
     backgroundMoveYPerFrame,
@@ -2618,6 +2694,12 @@ export const useVideoExportForm = (
     setBackgroundPatternSize,
     setBackgroundPatternGap,
     setBackgroundPatternRotation,
+    setBackgroundGradientEnabled,
+    setBackgroundGradientType,
+    setBackgroundGradientAngleDeg,
+    setBackgroundGradientStartPercent,
+    setBackgroundGradientEndPercent,
+    setBackgroundGradientStrengthPercent,
     setBackgroundMovementEnabled,
     setBackgroundMoveXPerFrame,
     setBackgroundMoveYPerFrame,

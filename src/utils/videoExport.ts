@@ -62,6 +62,8 @@ export type BackgroundStyle =
   | "triangles"
   | "waves";
 
+export type BackgroundGradientType = "lightness" | "saturation" | "alpha";
+
 export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "solid",
   "dots",
@@ -85,6 +87,12 @@ export interface BackgroundOptions {
   primaryColor: string;
   secondaryColor: string;
   secondaryOpacity: number;
+  gradientEnabled?: boolean;
+  gradientType?: BackgroundGradientType;
+  gradientAngleDeg?: number;
+  gradientStartPercent?: number;
+  gradientEndPercent?: number;
+  gradientStrengthPercent?: number;
   size: number;
   gap: number;
   rotation: number;
@@ -418,6 +426,79 @@ const drawDiamondPath = (
   ctx.closePath();
 };
 
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+const parseHexColor = (
+  hex: string,
+): { r: number; g: number; b: number } | null => {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 16);
+  return {
+    r: (n >> 16) & 0xff,
+    g: (n >> 8) & 0xff,
+    b: n & 0xff,
+  };
+};
+
+const rgbToHsl = (r: number, g: number, b: number) => {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  let h = 0;
+  const l = (max + min) / 2;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+  }
+  h *= 60;
+  if (h < 0) h += 360;
+  return { h, s: s * 100, l: l * 100 };
+};
+
+const hslToRgb = (h: number, s: number, l: number) => {
+  const sn = s / 100;
+  const ln = l / 100;
+  const c = (1 - Math.abs(2 * ln - 1)) * sn;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = ln - c / 2;
+  let rp = 0;
+  let gp = 0;
+  let bp = 0;
+  if (h < 60) {
+    rp = c;
+    gp = x;
+  } else if (h < 120) {
+    rp = x;
+    gp = c;
+  } else if (h < 180) {
+    gp = c;
+    bp = x;
+  } else if (h < 240) {
+    gp = x;
+    bp = c;
+  } else if (h < 300) {
+    rp = x;
+    bp = c;
+  } else {
+    rp = c;
+    bp = x;
+  }
+  return {
+    r: Math.round((rp + m) * 255),
+    g: Math.round((gp + m) * 255),
+    b: Math.round((bp + m) * 255),
+  };
+};
+
+const rgbaCss = (r: number, g: number, b: number, a: number) =>
+  `rgba(${r}, ${g}, ${b}, ${clamp01(a)})`;
+
 const fillRectTiled = (
   ctx: CanvasRenderingContext2D,
   originX: number,
@@ -497,9 +578,80 @@ export const drawGeneratedBackground = (
   const drawEndX = originX + patternWidth + cycle;
   const drawEndY = originY + patternHeight + cycle;
 
-  ctx.fillStyle = options.secondaryColor;
-  ctx.strokeStyle = options.secondaryColor;
-  ctx.globalAlpha = secondaryAlpha;
+  const gradientEnabled = options.gradientEnabled ?? false;
+  if (gradientEnabled) {
+    const secondaryRgb = parseHexColor(options.secondaryColor) ?? {
+      r: 255,
+      g: 255,
+      b: 255,
+    };
+    const strength = clamp01((options.gradientStrengthPercent ?? 50) / 100);
+    const type = options.gradientType ?? "alpha";
+    const baseA = secondaryAlpha;
+    const angleDeg = options.gradientAngleDeg ?? 90;
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const ux = Math.cos(angleRad);
+    const uy = -Math.sin(angleRad);
+    const cx = width / 2;
+    const cy = height / 2;
+    const halfDiag = Math.sqrt(width * width + height * height) / 2;
+    const x0 = cx - ux * halfDiag;
+    const y0 = cy - uy * halfDiag;
+    const x1 = cx + ux * halfDiag;
+    const y1 = cy + uy * halfDiag;
+
+    const startRaw = clamp01((options.gradientStartPercent ?? 0) / 100);
+    const endRaw = clamp01((options.gradientEndPercent ?? 100) / 100);
+    const start = Math.min(startRaw, endRaw);
+    const end = Math.max(startRaw, endRaw);
+
+    let targetR = secondaryRgb.r;
+    let targetG = secondaryRgb.g;
+    let targetB = secondaryRgb.b;
+    let targetA = baseA;
+    if (type === "alpha") {
+      targetA = baseA * (1 - strength);
+    } else {
+      const hsl = rgbToHsl(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
+      if (type === "lightness") {
+        hsl.l = Math.min(100, hsl.l + (100 - hsl.l) * strength);
+      } else {
+        hsl.s = Math.min(100, hsl.s + (100 - hsl.s) * strength);
+      }
+      const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+      targetR = rgb.r;
+      targetG = rgb.g;
+      targetB = rgb.b;
+    }
+
+    const baseColor = rgbaCss(
+      secondaryRgb.r,
+      secondaryRgb.g,
+      secondaryRgb.b,
+      baseA,
+    );
+    const targetColor = rgbaCss(targetR, targetG, targetB, targetA);
+    const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+    const edge = 0.0001;
+    if (end - start < edge) {
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(Math.max(0, start - edge), baseColor);
+      gradient.addColorStop(Math.min(1, end + edge), targetColor);
+      gradient.addColorStop(1, targetColor);
+    } else {
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(start, baseColor);
+      gradient.addColorStop(end, targetColor);
+      gradient.addColorStop(1, targetColor);
+    }
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = gradient;
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.fillStyle = options.secondaryColor;
+    ctx.strokeStyle = options.secondaryColor;
+    ctx.globalAlpha = secondaryAlpha;
+  }
 
   if (rotationRad !== 0) {
     ctx.translate(width / 2, height / 2);
