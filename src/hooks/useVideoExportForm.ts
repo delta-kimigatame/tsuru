@@ -103,6 +103,7 @@ import {
   DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
+  DEFAULT_TEXT_DISPLAY_MODE,
   DEFAULT_WAVEFORM_COLOR,
   DEFAULT_WAVEFORM_COLOR_MODE,
   DEFAULT_WAVEFORM_DRAW_METHOD,
@@ -161,6 +162,7 @@ import {
   type LyricsSegment,
   type PortraitOptions,
   type SlideDirection,
+  type TextDisplayMode,
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
@@ -347,6 +349,9 @@ export const useVideoExportForm = (
   );
   const [mainTextBgBarOpacity, setMainTextBgBarOpacity] =
     React.useState<number>(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
+  const [textDisplayMode, setTextDisplayMode] = React.useState<TextDisplayMode>(
+    DEFAULT_TEXT_DISPLAY_MODE,
+  );
   const [mainTextFontFamily, setMainTextFontFamily] =
     React.useState<string>("");
 
@@ -400,6 +405,26 @@ export const useVideoExportForm = (
   const [lyricsSegments, setLyricsSegments] = React.useState<LyricsSegment[]>(
     [],
   );
+  const textDisplayTiming = React.useMemo(() => {
+    if (
+      !notes ||
+      !notesLeftMs ||
+      notes.length === 0 ||
+      notesLeftMs.length === 0
+    ) {
+      return null;
+    }
+    const segments = extractLyricsSegments(
+      notes,
+      notesLeftMs,
+      selectNotesIndex ?? [],
+    );
+    if (segments.length === 0) return null;
+    return {
+      introEndMs: segments[0].startMs,
+      outroStartMs: segments[segments.length - 1].endMs,
+    };
+  }, [notes, notesLeftMs, selectNotesIndex]);
   const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
     DEFAULT_LYRICS_FONT_SIZE,
   );
@@ -999,6 +1024,7 @@ export const useVideoExportForm = (
     fontSize: number,
     bold: boolean,
     italic: boolean,
+    displayMode: TextDisplayMode,
     color: string,
     xPercent: number,
     yPercent: number,
@@ -1011,6 +1037,8 @@ export const useVideoExportForm = (
     bgBarEnabled: boolean,
     bgBarColor: string,
     bgBarOpacity: number,
+    introEndMs: number | undefined,
+    outroStartMs: number | undefined,
     fontFamily?: string,
   ): TextOptions | null =>
     text.trim()
@@ -1024,6 +1052,9 @@ export const useVideoExportForm = (
           xPercent,
           yPercent,
           textAlign: "left",
+          displayMode,
+          introEndMs,
+          outroStartMs,
           shadowEnabled,
           shadowColor,
           shadowBlur,
@@ -1055,6 +1086,7 @@ export const useVideoExportForm = (
       mainTextFontSize,
       mainTextBold,
       mainTextItalic,
+      textDisplayMode,
       mainTextColor,
       mainTextX,
       mainTextY,
@@ -1067,6 +1099,8 @@ export const useVideoExportForm = (
       mainTextBgBarEnabled,
       mainTextBgBarColor,
       mainTextBgBarOpacity,
+      textDisplayTiming?.introEndMs,
+      textDisplayTiming?.outroStartMs,
       mainTextFontFamily || undefined,
     );
     const subTextOptions = buildTextOptions(
@@ -1074,6 +1108,7 @@ export const useVideoExportForm = (
       subTextFontSize,
       subTextBold,
       subTextItalic,
+      textDisplayMode,
       subTextColor,
       subTextX,
       subTextY,
@@ -1086,6 +1121,8 @@ export const useVideoExportForm = (
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      textDisplayTiming?.introEndMs,
+      textDisplayTiming?.outroStartMs,
       subTextFontFamily || undefined,
     );
 
@@ -1205,6 +1242,7 @@ export const useVideoExportForm = (
       setMainTextBgBarEnabled(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
       setMainTextBgBarColor(DEFAULT_MAIN_TEXT_BG_BAR_COLOR);
       setMainTextBgBarOpacity(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
+      setTextDisplayMode(DEFAULT_TEXT_DISPLAY_MODE);
       setSubText(t("editor.videoExport.subTextDefault"));
       setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
       setSubTextX(DEFAULT_SUB_TEXT_X);
@@ -1643,44 +1681,54 @@ export const useVideoExportForm = (
         ctx.restore();
       };
 
-      drawTextLayer(
-        mainText,
-        mainTextFontSize,
-        mainTextBold,
-        mainTextItalic,
-        mainTextColor,
-        mainTextX,
-        mainTextY,
-        mainTextShadowEnabled,
-        mainTextShadowColor,
-        mainTextShadowBlur,
-        mainTextStrokeEnabled,
-        mainTextStrokeColor,
-        mainTextStrokeWidth,
-        mainTextBgBarEnabled,
-        mainTextBgBarColor,
-        mainTextBgBarOpacity,
-        mainTextFontFamily || undefined,
-      );
-      drawTextLayer(
-        subText,
-        subTextFontSize,
-        subTextBold,
-        subTextItalic,
-        subTextColor,
-        subTextX,
-        subTextY,
-        subTextShadowEnabled,
-        subTextShadowColor,
-        subTextShadowBlur,
-        subTextStrokeEnabled,
-        subTextStrokeColor,
-        subTextStrokeWidth,
-        subTextBgBarEnabled,
-        subTextBgBarColor,
-        subTextBgBarOpacity,
-        subTextFontFamily || undefined,
-      );
+      const shouldRenderTextAtCurrentTime =
+        timeline?.currentMs == null ||
+        !textDisplayTiming ||
+        ((textDisplayMode !== "intro" ||
+          timeline.currentMs < textDisplayTiming.introEndMs) &&
+          (textDisplayMode !== "outro" ||
+            timeline.currentMs >= textDisplayTiming.outroStartMs));
+
+      if (shouldRenderTextAtCurrentTime) {
+        drawTextLayer(
+          mainText,
+          mainTextFontSize,
+          mainTextBold,
+          mainTextItalic,
+          mainTextColor,
+          mainTextX,
+          mainTextY,
+          mainTextShadowEnabled,
+          mainTextShadowColor,
+          mainTextShadowBlur,
+          mainTextStrokeEnabled,
+          mainTextStrokeColor,
+          mainTextStrokeWidth,
+          mainTextBgBarEnabled,
+          mainTextBgBarColor,
+          mainTextBgBarOpacity,
+          mainTextFontFamily || undefined,
+        );
+        drawTextLayer(
+          subText,
+          subTextFontSize,
+          subTextBold,
+          subTextItalic,
+          subTextColor,
+          subTextX,
+          subTextY,
+          subTextShadowEnabled,
+          subTextShadowColor,
+          subTextShadowBlur,
+          subTextStrokeEnabled,
+          subTextStrokeColor,
+          subTextStrokeWidth,
+          subTextBgBarEnabled,
+          subTextBgBarColor,
+          subTextBgBarOpacity,
+          subTextFontFamily || undefined,
+        );
+      }
 
       return { prevScale, pw, ph, pianorollState: nextPianorollState };
     },
@@ -1701,6 +1749,7 @@ export const useVideoExportForm = (
       mainTextFontSize,
       mainTextBold,
       mainTextItalic,
+      textDisplayMode,
       mainTextColor,
       mainTextX,
       mainTextY,
@@ -1717,6 +1766,7 @@ export const useVideoExportForm = (
       subTextFontSize,
       subTextBold,
       subTextItalic,
+      textDisplayMode,
       subTextColor,
       subTextX,
       subTextY,
@@ -1731,6 +1781,7 @@ export const useVideoExportForm = (
       subTextBgBarOpacity,
       mainTextFontFamily,
       subTextFontFamily,
+      textDisplayTiming,
       waveformOptions,
     ],
   );
@@ -2482,6 +2533,7 @@ export const useVideoExportForm = (
     mainTextBgBarEnabled,
     mainTextBgBarColor,
     mainTextBgBarOpacity,
+    textDisplayMode,
     setMainTextShadowEnabled,
     setMainTextShadowColor,
     setMainTextShadowBlur,
@@ -2491,6 +2543,7 @@ export const useVideoExportForm = (
     setMainTextBgBarEnabled,
     setMainTextBgBarColor,
     setMainTextBgBarOpacity,
+    setTextDisplayMode,
     mainTextFontFamily,
     setMainTextFontFamily,
     setSubText,

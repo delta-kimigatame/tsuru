@@ -127,6 +127,7 @@ export const FONT_STACK =
 export type FontWeight = "normal" | "bold";
 export type FontStyle = "normal" | "italic";
 export type TextAlign = "left" | "center" | "right";
+export type TextDisplayMode = "always" | "intro" | "outro";
 
 /** 動画キャンバスに重ねるテキストオーバーレイの設定 */
 export interface TextOptions {
@@ -144,6 +145,12 @@ export interface TextOptions {
   /** Y 位置（キャンバス高さ基準 %）。テキスト高さの中央が基準点 */
   yPercent: number;
   textAlign: TextAlign;
+  /** 表示タイミング。always: 常時, intro: 最初の歌詞フレーズ開始前, outro: 最後の歌詞フレーズ終了後 */
+  displayMode: TextDisplayMode;
+  /** intro モード時の表示終了時刻（ms）。未指定なら常時表示扱い */
+  introEndMs?: number;
+  /** outro モード時の表示開始時刻（ms）。未指定なら常時表示扱い */
+  outroStartMs?: number;
   shadowEnabled: boolean;
   shadowColor: string;
   shadowBlur: number;
@@ -684,6 +691,17 @@ const drawTextOnCanvas = (
   ctx.fillStyle = opts.color;
   ctx.fillText(opts.text, x, y);
   ctx.restore();
+};
+
+const shouldDrawTextByMode = (
+  opts: TextOptions,
+  currentMs: number,
+): boolean => {
+  if (opts.displayMode === "always") return true;
+  if (opts.displayMode === "intro") {
+    return opts.introEndMs == null ? true : currentMs < opts.introEndMs;
+  }
+  return opts.outroStartMs == null ? true : currentMs >= opts.outroStartMs;
 };
 
 /**
@@ -1443,11 +1461,16 @@ export const generateMp4 = async (
     }
 
     // テキストオーバーレイの描画（立絵より上のレイヤー）
-    if (mainTextOptions) {
-      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
-    }
-    if (subTextOptions) {
-      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+    const sharedTextModeSource = mainTextOptions ?? subTextOptions;
+    const shouldDrawSharedText =
+      !sharedTextModeSource || shouldDrawTextByMode(sharedTextModeSource, tMs);
+    if (shouldDrawSharedText) {
+      if (mainTextOptions) {
+        drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
+      }
+      if (subTextOptions) {
+        drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+      }
     }
 
     if (lyricsOptions && lyricsOptions.segments.length > 0) {

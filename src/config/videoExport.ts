@@ -2,6 +2,7 @@ import type {
   BackgroundStyle,
   BgPaddingMode,
   SlideDirection,
+  TextDisplayMode,
   VideoResolution,
 } from "../utils/videoExport";
 import type {
@@ -261,6 +262,7 @@ export const DEFAULT_SUB_TEXT_STROKE_WIDTH = 3;
 export const DEFAULT_SUB_TEXT_BG_BAR_ENABLED = false;
 export const DEFAULT_SUB_TEXT_BG_BAR_COLOR = "#000000";
 export const DEFAULT_SUB_TEXT_BG_BAR_OPACITY = 60;
+export const DEFAULT_TEXT_DISPLAY_MODE: TextDisplayMode = "always";
 
 // ---------------------------------------------------------------------------
 // 音声波形エフェクトのデフォルト値

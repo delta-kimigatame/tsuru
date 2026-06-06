@@ -14,7 +14,11 @@ import {
   Box,
   Button,
   Divider,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Tab,
   Tabs,
@@ -716,6 +720,31 @@ export const VideoEditorView: React.FC<Props> = ({
       case "text":
         return (
           <>
+            <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+              <InputLabel id="video-editor-text-display-mode-label">
+                {t("editor.videoExport.textDisplayMode")}
+              </InputLabel>
+              <Select
+                labelId="video-editor-text-display-mode-label"
+                label={t("editor.videoExport.textDisplayMode")}
+                value={form.textDisplayMode}
+                onChange={(e) =>
+                  form.setTextDisplayMode(
+                    e.target.value as "always" | "intro" | "outro",
+                  )
+                }
+              >
+                <MenuItem value="always">
+                  {t("editor.videoExport.textDisplayModeAlways")}
+                </MenuItem>
+                <MenuItem value="intro">
+                  {t("editor.videoExport.textDisplayModeIntro")}
+                </MenuItem>
+                <MenuItem value="outro">
+                  {t("editor.videoExport.textDisplayModeOutro")}
+                </MenuItem>
+              </Select>
+            </FormControl>
             <FontSelector
               value={form.mainTextFontFamily}
               onChange={form.setMainTextFontFamily}
