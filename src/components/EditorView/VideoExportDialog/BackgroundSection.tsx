@@ -5,10 +5,12 @@ import StopIcon from "@mui/icons-material/Stop";
 import {
   Box,
   Button,
-  Divider,
+  Checkbox,
+  FormControlLabel,
   IconButton,
   MenuItem,
   Select,
+  Stack,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -149,7 +151,7 @@ export const BackgroundSection: React.FC<Props> = ({
   return (
     <>
       {/* 画像選択 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, my: 1 }}>
         <Button
           fullWidth
           variant="contained"
@@ -189,10 +191,6 @@ export const BackgroundSection: React.FC<Props> = ({
           }}
         />
       )}
-
-      <Divider sx={{ fontSize: "0.75rem" }}>
-        {t("editor.videoExport.backgroundStyleSection")}
-      </Divider>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography variant="caption">
@@ -278,137 +276,169 @@ export const BackgroundSection: React.FC<Props> = ({
             unit="deg"
             valueMinWidth={64}
           />
-          <Divider sx={{ fontSize: "0.75rem" }}>
-            {t("editor.videoExport.backgroundGradientSection")}
-          </Divider>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="caption">
-              {t("editor.videoExport.backgroundGradientEnable")}
-            </Typography>
-            <Select
-              size="small"
-              value={gradientEnabled ? "on" : "off"}
-              onChange={(e) => onGradientEnabledChange(e.target.value === "on")}
-              sx={{ minWidth: 90, fontSize: "0.8rem" }}
+          <Stack spacing={1.25}>
+            <Box
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1.5,
+                p: 1,
+                backgroundColor: "action.hover",
+              }}
             >
-              <MenuItem value="off">{t("editor.videoExport.off")}</MenuItem>
-              <MenuItem value="on">{t("editor.videoExport.on")}</MenuItem>
-            </Select>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="caption">
-              {t("editor.videoExport.backgroundGradientType")}
-            </Typography>
-            <Select
-              size="small"
-              value={gradientType}
-              onChange={(e) =>
-                onGradientTypeChange(e.target.value as BackgroundGradientType)
-              }
-              sx={{ minWidth: 140, fontSize: "0.8rem" }}
-              disabled={!gradientEnabled}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={gradientEnabled}
+                    onChange={(e) => onGradientEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.backgroundGradientEnable")}
+                  </Typography>
+                }
+              />
+
+              {gradientEnabled && (
+                <Stack spacing={1} sx={{ mt: 0.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="caption">
+                      {t("editor.videoExport.backgroundGradientType")}
+                    </Typography>
+                    <Select
+                      size="small"
+                      value={gradientType}
+                      onChange={(e) =>
+                        onGradientTypeChange(
+                          e.target.value as BackgroundGradientType,
+                        )
+                      }
+                      sx={{ minWidth: 140, fontSize: "0.8rem" }}
+                    >
+                      {BACKGROUND_GRADIENT_TYPES.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {t(
+                            `editor.videoExport.backgroundGradientType_${type}`,
+                          )}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Box>
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundGradientAngle")}
+                    value={gradientAngleDeg}
+                    onChange={onGradientAngleDegChange}
+                    min={BACKGROUND_GRADIENT_ANGLE_MIN}
+                    max={BACKGROUND_GRADIENT_ANGLE_MAX}
+                    unit="deg"
+                    valueMinWidth={64}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundGradientStart")}
+                    value={gradientStartPercent}
+                    onChange={onGradientStartPercentChange}
+                    min={BACKGROUND_GRADIENT_POSITION_MIN}
+                    max={BACKGROUND_GRADIENT_POSITION_MAX}
+                    unit="%"
+                    valueMinWidth={52}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundGradientEnd")}
+                    value={gradientEndPercent}
+                    onChange={onGradientEndPercentChange}
+                    min={BACKGROUND_GRADIENT_POSITION_MIN}
+                    max={BACKGROUND_GRADIENT_POSITION_MAX}
+                    unit="%"
+                    valueMinWidth={52}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundGradientStrength")}
+                    value={gradientStrengthPercent}
+                    onChange={onGradientStrengthPercentChange}
+                    min={BACKGROUND_GRADIENT_STRENGTH_MIN}
+                    max={BACKGROUND_GRADIENT_STRENGTH_MAX}
+                    unit="%"
+                    valueMinWidth={52}
+                  />
+                </Stack>
+              )}
+            </Box>
+
+            <Box
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1.5,
+                p: 1,
+                backgroundColor: "action.hover",
+              }}
             >
-              {BACKGROUND_GRADIENT_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {t(`editor.videoExport.backgroundGradientType_${type}`)}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundGradientAngle")}
-            value={gradientAngleDeg}
-            onChange={onGradientAngleDegChange}
-            min={BACKGROUND_GRADIENT_ANGLE_MIN}
-            max={BACKGROUND_GRADIENT_ANGLE_MAX}
-            unit="deg"
-            valueMinWidth={64}
-            disabled={!gradientEnabled}
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundGradientStart")}
-            value={gradientStartPercent}
-            onChange={onGradientStartPercentChange}
-            min={BACKGROUND_GRADIENT_POSITION_MIN}
-            max={BACKGROUND_GRADIENT_POSITION_MAX}
-            unit="%"
-            valueMinWidth={52}
-            disabled={!gradientEnabled}
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundGradientEnd")}
-            value={gradientEndPercent}
-            onChange={onGradientEndPercentChange}
-            min={BACKGROUND_GRADIENT_POSITION_MIN}
-            max={BACKGROUND_GRADIENT_POSITION_MAX}
-            unit="%"
-            valueMinWidth={52}
-            disabled={!gradientEnabled}
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundGradientStrength")}
-            value={gradientStrengthPercent}
-            onChange={onGradientStrengthPercentChange}
-            min={BACKGROUND_GRADIENT_STRENGTH_MIN}
-            max={BACKGROUND_GRADIENT_STRENGTH_MAX}
-            unit="%"
-            valueMinWidth={52}
-            disabled={!gradientEnabled}
-          />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="caption">
-              {t("editor.videoExport.backgroundMove")}
-            </Typography>
-            <Select
-              size="small"
-              value={movementEnabled ? "on" : "off"}
-              onChange={(e) => onMovementEnabledChange(e.target.value === "on")}
-              sx={{ minWidth: 90, fontSize: "0.8rem" }}
-            >
-              <MenuItem value="off">{t("editor.videoExport.off")}</MenuItem>
-              <MenuItem value="on">{t("editor.videoExport.on")}</MenuItem>
-            </Select>
-          </Box>
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundMoveX")}
-            value={moveXPerFrame}
-            onChange={onMoveXPerFrameChange}
-            min={-20}
-            max={20}
-            unit="px/f"
-            disabled={!movementEnabled}
-            valueMinWidth={64}
-          />
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundMoveY")}
-            value={moveYPerFrame}
-            onChange={onMoveYPerFrameChange}
-            min={-20}
-            max={20}
-            unit="px/f"
-            disabled={!movementEnabled}
-            valueMinWidth={64}
-          />
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              size="small"
-              variant={isMovementPreviewPlaying ? "outlined" : "contained"}
-              color="primary"
-              startIcon={
-                isMovementPreviewPlaying ? <StopIcon /> : <PlayArrowIcon />
-              }
-              onClick={
-                isMovementPreviewPlaying
-                  ? onStopMovementPreview
-                  : onStartMovementPreview
-              }
-              disabled={!movementEnabled}
-            >
-              {isMovementPreviewPlaying
-                ? t("editor.videoExport.backgroundMovePreviewStop")
-                : t("editor.videoExport.backgroundMovePreview")}
-            </Button>
-          </Box>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={movementEnabled}
+                    onChange={(e) => onMovementEnabledChange(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {t("editor.videoExport.backgroundMove")}
+                  </Typography>
+                }
+              />
+
+              {movementEnabled && (
+                <Stack spacing={1} sx={{ mt: 0.5 }}>
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundMoveX")}
+                    value={moveXPerFrame}
+                    onChange={onMoveXPerFrameChange}
+                    min={-20}
+                    max={20}
+                    unit="px/f"
+                    valueMinWidth={64}
+                  />
+                  <LabeledSlider
+                    label={t("editor.videoExport.backgroundMoveY")}
+                    value={moveYPerFrame}
+                    onChange={onMoveYPerFrameChange}
+                    min={-20}
+                    max={20}
+                    unit="px/f"
+                    valueMinWidth={64}
+                  />
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <Button
+                      size="small"
+                      variant={
+                        isMovementPreviewPlaying ? "outlined" : "contained"
+                      }
+                      color="primary"
+                      startIcon={
+                        isMovementPreviewPlaying ? (
+                          <StopIcon />
+                        ) : (
+                          <PlayArrowIcon />
+                        )
+                      }
+                      onClick={
+                        isMovementPreviewPlaying
+                          ? onStopMovementPreview
+                          : onStartMovementPreview
+                      }
+                    >
+                      {isMovementPreviewPlaying
+                        ? t("editor.videoExport.backgroundMovePreviewStop")
+                        : t("editor.videoExport.backgroundMovePreview")}
+                    </Button>
+                  </Box>
+                </Stack>
+              )}
+            </Box>
+          </Stack>
         </>
       )}
 
