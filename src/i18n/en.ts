@@ -77,6 +77,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/06/06\r\n[Add] Added the dedicated Video Editor page.\r\n[Add] Added more background pattern variations in the Video Editor.\r\n[Add] Added control over title/credit display timing in the Video Editor.\r\n[Add] Expanded piano-roll related features in the Video Editor.\r\n[Fix] Adjusted the Video Editor layout.",
       "2026/05/27\r\n[Fix] Fixed an issue where notes with $Direct=true were not played back correctly.",
       "2026/05/17\r\n[Fix] Fixed an issue where the piano roll could not be rendered correctly when the effective note length became negative due to negative overlap, etc.\r\n[Fix] Fixed an issue in the note property dialog where pre-utterance and overlap could not be reset.\r\n[Fix] Adjusted playback/download behavior when non-contiguous notes are selected. When a backing track is set or when downloading, notes are always treated as a contiguous range.",
       '2026/05/16\r\n[Fix] Fixed an issue where vibrato was not rendered correctly in some cases on the piano roll.\r\n[Fix] Reviewed the default value of "Apply light vibrato to all notes" in "Automatic Preprocessing".',
@@ -232,7 +233,7 @@ export const translationEn = {
     linkToTop: "Video Editor Top",
     historyTitle: "Video Editor History",
     historyEntries: [
-      "2026/05/31\nAdded the Video Editor page and implemented the UST→WAV→Editor flow.",
+      "2026/06/06\nAdded the Video Editor page and implemented the UST→WAV→Editor flow.",
     ],
     topTitle: "Video Editor",
     topDescription:

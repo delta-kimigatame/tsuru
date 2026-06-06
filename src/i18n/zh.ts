@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/06/06\r\n【新增】新增专用 Video Editor 页面。\r\n【新增】为 Video Editor 新增更多背景图案样式。\r\n【新增】在 Video Editor 中可控制标题/致谢的显示时机。\r\n【新增】扩充了 Video Editor 中与钢琴卷帘相关的功能。\r\n【修复】调整了 Video Editor 的布局。",
       "2026/05/27\r\n【修复】修复了在 $Direct=true 的音符中无法正常播放的问题。",
       "2026/05/17\r\n【修复】修复了在负重叠等情况下导致实际音符长度为负数时，钢琴卷帘无法正确绘制的问题。\r\n【修复】修复了在音符属性对话框中无法重置先行发声与重叠参数的问题。\r\n【修复】调整了选中不连续音符时的播放/下载行为。设置伴奏或进行下载时，始终按连续音符范围处理。",
       '2026/05/16\r\n【修复】修复了在钢琴卷帘上某些情况下颤音无法正确绘制的问题。\r\n【修复】调整了"自动预处理"中"对所有音符施加浅颤音"的默认值。',
@@ -228,7 +229,7 @@ export const translationZh = {
     linkToTop: "视频编辑器首页",
     historyTitle: "视频编辑器更新历史",
     historyEntries: [
-      "2026/05/31\n新增 Video Editor 页面，并实现 UST→WAV→编辑界面的流程。",
+      "2026/06/06\n新增 Video Editor 页面，并实现 UST→WAV→编辑界面的流程。",
     ],
     topTitle: "视频编辑器",
     topDescription:
