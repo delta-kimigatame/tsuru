@@ -23,12 +23,16 @@ import {
   BACKGROUND_GRADIENT_STRENGTH_MAX,
   BACKGROUND_GRADIENT_STRENGTH_MIN,
   BACKGROUND_GRADIENT_TYPES,
+  BACKGROUND_NOISE_INTENSITY_MAX,
+  BACKGROUND_NOISE_INTENSITY_MIN,
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
   BACKGROUND_PATTERN_ROTATION_MIN,
   BACKGROUND_PATTERN_SIZE_MAX,
   BACKGROUND_PATTERN_SIZE_MIN,
+  BACKGROUND_SEED_MAX,
+  BACKGROUND_SEED_MIN,
   PALETTE,
 } from "../../../config/videoExport";
 import {
@@ -67,6 +71,10 @@ type Props = {
   onPatternGapChange: (v: number) => void;
   patternRotation: number;
   onPatternRotationChange: (v: number) => void;
+  noiseIntensity: number;
+  onNoiseIntensityChange: (v: number) => void;
+  seed: number;
+  onSeedChange: (v: number) => void;
   gradientEnabled: boolean;
   onGradientEnabledChange: (v: boolean) => void;
   gradientType: BackgroundGradientType;
@@ -119,6 +127,10 @@ export const BackgroundSection: React.FC<Props> = ({
   onPatternGapChange,
   patternRotation,
   onPatternRotationChange,
+  noiseIntensity,
+  onNoiseIntensityChange,
+  seed,
+  onSeedChange,
   gradientEnabled,
   onGradientEnabledChange,
   gradientType,
@@ -147,6 +159,20 @@ export const BackgroundSection: React.FC<Props> = ({
   onBgImageOpacityChange,
 }) => {
   const { t } = useTranslation();
+  const isNoiseTextureStyle = React.useMemo(
+    () =>
+      [
+        "starfield",
+        "clouds",
+        "woodgrain",
+        "paper",
+        "concrete",
+        "stucco",
+        "fabric",
+        "leather",
+      ].includes(backgroundStyle),
+    [backgroundStyle],
+  );
 
   return (
     <>
@@ -258,15 +284,17 @@ export const BackgroundSection: React.FC<Props> = ({
             unit="px"
             valueMinWidth={52}
           />
-          <LabeledSlider
-            label={t("editor.videoExport.backgroundPatternGap")}
-            value={patternGap}
-            onChange={onPatternGapChange}
-            min={BACKGROUND_PATTERN_GAP_MIN}
-            max={BACKGROUND_PATTERN_GAP_MAX}
-            unit="px"
-            valueMinWidth={52}
-          />
+          {!isNoiseTextureStyle && (
+            <LabeledSlider
+              label={t("editor.videoExport.backgroundPatternGap")}
+              value={patternGap}
+              onChange={onPatternGapChange}
+              min={BACKGROUND_PATTERN_GAP_MIN}
+              max={BACKGROUND_PATTERN_GAP_MAX}
+              unit="px"
+              valueMinWidth={52}
+            />
+          )}
           <LabeledSlider
             label={t("editor.videoExport.backgroundPatternRotation")}
             value={patternRotation}
@@ -276,6 +304,27 @@ export const BackgroundSection: React.FC<Props> = ({
             unit="deg"
             valueMinWidth={64}
           />
+          {isNoiseTextureStyle && (
+            <>
+              <LabeledSlider
+                label={t("editor.videoExport.backgroundNoiseIntensity")}
+                value={noiseIntensity}
+                onChange={onNoiseIntensityChange}
+                min={BACKGROUND_NOISE_INTENSITY_MIN}
+                max={BACKGROUND_NOISE_INTENSITY_MAX}
+                unit="%"
+                valueMinWidth={52}
+              />
+              <LabeledSlider
+                label={t("editor.videoExport.backgroundSeed")}
+                value={seed}
+                onChange={onSeedChange}
+                min={BACKGROUND_SEED_MIN}
+                max={BACKGROUND_SEED_MAX}
+                valueMinWidth={52}
+              />
+            </>
+          )}
           <Stack spacing={1.25}>
             <Box
               sx={{

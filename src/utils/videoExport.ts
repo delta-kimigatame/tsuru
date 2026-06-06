@@ -60,7 +60,15 @@ export type BackgroundStyle =
   | "zigzag"
   | "circles"
   | "triangles"
-  | "waves";
+  | "waves"
+  | "starfield"
+  | "clouds"
+  | "woodgrain"
+  | "paper"
+  | "concrete"
+  | "stucco"
+  | "fabric"
+  | "leather";
 
 export type BackgroundGradientType = "lightness" | "saturation" | "alpha";
 
@@ -80,6 +88,14 @@ export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "circles",
   "triangles",
   "waves",
+  "starfield",
+  "clouds",
+  "woodgrain",
+  "paper",
+  "concrete",
+  "stucco",
+  "fabric",
+  "leather",
 ];
 
 export interface BackgroundOptions {
@@ -96,6 +112,8 @@ export interface BackgroundOptions {
   size: number;
   gap: number;
   rotation: number;
+  noiseIntensity?: number;
+  seed?: number;
   movementEnabled?: boolean;
   moveXPerFrame?: number;
   moveYPerFrame?: number;
@@ -499,6 +517,42 @@ const hslToRgb = (h: number, s: number, l: number) => {
 const rgbaCss = (r: number, g: number, b: number, a: number) =>
   `rgba(${r}, ${g}, ${b}, ${clamp01(a)})`;
 
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+const smoothStep = (t: number) => t * t * (3 - 2 * t);
+
+const hash2d = (x: number, y: number, seed: number) => {
+  let h =
+    (Math.imul(x | 0, 374761393) +
+      Math.imul(y | 0, 668265263) +
+      Math.imul(seed | 0, 1442695041)) >>>
+    0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
+};
+
+const hash2d01 = (x: number, y: number, seed: number) =>
+  hash2d(x, y, seed) / 0xffffffff;
+
+const valueNoise2d = (x: number, y: number, seed: number) => {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const u = smoothStep(xf);
+  const v = smoothStep(yf);
+
+  const n00 = hash2d01(xi, yi, seed);
+  const n10 = hash2d01(xi + 1, yi, seed);
+  const n01 = hash2d01(xi, yi + 1, seed);
+  const n11 = hash2d01(xi + 1, yi + 1, seed);
+
+  const nx0 = lerp(n00, n10, u);
+  const nx1 = lerp(n01, n11, u);
+  return lerp(nx0, nx1, v);
+};
+
 const fillRectTiled = (
   ctx: CanvasRenderingContext2D,
   originX: number,
@@ -543,6 +597,8 @@ export const drawGeneratedBackground = (
     1,
     Math.max(0, options.secondaryOpacity / 100),
   );
+  const noiseStrength = clamp01((options.noiseIntensity ?? 55) / 100);
+  const noiseSeed = Math.trunc(options.seed ?? 0);
   const rotationRad = (options.rotation * Math.PI) / 180;
   const rotatedBounds = Math.sqrt(width * width + height * height);
   const patternWidth = rotationRad === 0 ? width : rotatedBounds;
@@ -652,6 +708,7 @@ export const drawGeneratedBackground = (
     ctx.strokeStyle = options.secondaryColor;
     ctx.globalAlpha = secondaryAlpha;
   }
+  const basePatternAlpha = gradientEnabled ? 1 : secondaryAlpha;
 
   if (rotationRad !== 0) {
     ctx.translate(width / 2, height / 2);
@@ -975,6 +1032,273 @@ export const drawGeneratedBackground = (
         }
         ctx.stroke();
       }
+      break;
+    }
+    case "starfield": {
+      const cell = Math.max(2, motifSize * 0.22);
+      const density = 0.05 + noiseStrength * 0.16;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed);
+          if (r > density) return;
+          const r2 = hash2d01(col + 101, row - 37, noiseSeed);
+          const r3 = hash2d01(col - 211, row + 73, noiseSeed);
+          const px = x + r2 * cell;
+          const py = y + r3 * cell;
+          const size = Math.max(1, motifSize * (0.02 + r3 * 0.06));
+          ctx.globalAlpha =
+            basePatternAlpha * (0.2 + noiseStrength * 0.8) * (0.4 + r2 * 0.6);
+          ctx.fillRect(px, py, size, size);
+          if (r < density * 0.18) {
+            const arm = Math.max(1, size * 2.2);
+            ctx.fillRect(px - arm / 2, py, arm, 1);
+            ctx.fillRect(px, py - arm / 2, 1, arm);
+          }
+        },
+      );
+      break;
+    }
+    case "clouds": {
+      const cell = Math.max(6, motifSize * 0.35);
+      const sx = Math.max(8, motifSize * 1.4);
+      const sy = Math.max(8, motifSize * 1.2);
+      for (let y = drawStartY; y <= drawEndY + cell; y += cell) {
+        for (let x = drawStartX; x <= drawEndX + cell; x += cell) {
+          const n = valueNoise2d(
+            (x + travelX) / sx,
+            (y + travelY) / sy,
+            noiseSeed,
+          );
+          if (n < 0.42) continue;
+          const alpha = ((n - 0.42) / 0.58) * (0.25 + noiseStrength * 0.7);
+          const radius = cell * (0.45 + n * 0.8);
+          ctx.globalAlpha = basePatternAlpha * alpha;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      break;
+    }
+    case "woodgrain": {
+      const yStep = Math.max(2, motifSize * 0.2);
+      const xStep = Math.max(2, motifSize * 0.14);
+      const amp = motifSize * (0.08 + noiseStrength * 0.24);
+      const grainNoiseScaleX = Math.max(8, motifSize * 1.25);
+      const grainNoiseScaleY = Math.max(6, motifSize * 0.38);
+      ctx.lineWidth = Math.max(1, motifSize * 0.08);
+      ctx.globalAlpha = basePatternAlpha * (0.35 + noiseStrength * 0.45);
+      for (let y = drawStartY; y <= drawEndY + yStep; y += yStep) {
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, y);
+        for (let x = drawStartX + xStep; x <= drawEndX + xStep; x += xStep) {
+          const n = valueNoise2d(
+            (x + travelX) / grainNoiseScaleX,
+            (y + travelY) / grainNoiseScaleY,
+            noiseSeed + 17,
+          );
+          const wobble =
+            Math.sin((x / cycle) * Math.PI * 2 + n * Math.PI * 2) * amp;
+          ctx.lineTo(x, y + wobble);
+        }
+        ctx.stroke();
+      }
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        Math.max(12, cycle * 1.6),
+        Math.max(12, cycle * 1.2),
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed + 311);
+          if (r > 0.12 + noiseStrength * 0.18) return;
+          const radius = motifSize * (0.12 + r * 0.28);
+          ctx.globalAlpha = basePatternAlpha * (0.2 + noiseStrength * 0.35);
+          ctx.beginPath();
+          ctx.arc(x + cycle * 0.5, y + cycle * 0.5, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "paper": {
+      const cell = Math.max(2, motifSize * 0.12);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed + 701);
+          if (r > 0.52 + noiseStrength * 0.35) return;
+          const d = 1 + Math.floor(hash2d01(col + 19, row + 23, noiseSeed) * 2);
+          ctx.globalAlpha =
+            basePatternAlpha * (0.06 + noiseStrength * 0.22) * (0.4 + r * 0.6);
+          ctx.fillRect(x, y, d, d);
+        },
+      );
+      break;
+    }
+    case "concrete": {
+      const cell = Math.max(3, motifSize * 0.2);
+      const scaleN = Math.max(8, motifSize * 0.75);
+      for (let y = drawStartY; y <= drawEndY + cell; y += cell) {
+        for (let x = drawStartX; x <= drawEndX + cell; x += cell) {
+          const n = valueNoise2d(
+            (x + travelX) / scaleN,
+            (y + travelY) / scaleN,
+            noiseSeed + 991,
+          );
+          const alpha = (0.08 + noiseStrength * 0.32) * n;
+          ctx.globalAlpha = basePatternAlpha * alpha;
+          ctx.fillRect(x, y, cell, cell);
+          const pit = hash2d01((x / cell) | 0, (y / cell) | 0, noiseSeed + 313);
+          if (pit < 0.08 + noiseStrength * 0.12) {
+            ctx.globalAlpha = basePatternAlpha * (0.14 + noiseStrength * 0.25);
+            ctx.fillRect(
+              x + cell * 0.3,
+              y + cell * 0.3,
+              Math.max(1, cell * 0.35),
+              Math.max(1, cell * 0.35),
+            );
+          }
+        }
+      }
+      break;
+    }
+    case "stucco": {
+      const cell = Math.max(4, motifSize * 0.22);
+      const len = cell * (0.5 + noiseStrength * 0.7);
+      ctx.lineWidth = Math.max(1, motifSize * 0.07);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const n = valueNoise2d(col * 0.35, row * 0.35, noiseSeed + 1499);
+          const angle = (n - 0.5) * Math.PI * (0.35 + noiseStrength * 0.9);
+          const cx = x + cell * 0.5;
+          const cy = y + cell * 0.5;
+          const dx = Math.cos(angle) * len * 0.5;
+          const dy = Math.sin(angle) * len * 0.5;
+          ctx.globalAlpha =
+            basePatternAlpha * (0.12 + n * (0.2 + noiseStrength * 0.3));
+          ctx.beginPath();
+          ctx.moveTo(cx - dx, cy - dy);
+          ctx.lineTo(cx + dx, cy + dy);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "fabric": {
+      const spacing = Math.max(4, motifSize * 0.25);
+      const weaveNoiseScale = Math.max(8, spacing * 1.6);
+      ctx.lineWidth = Math.max(1, motifSize * 0.06);
+      for (let x = drawStartX; x <= drawEndX + spacing; x += spacing) {
+        const jitter =
+          (valueNoise2d(
+            (x + travelX) / weaveNoiseScale,
+            travelY / weaveNoiseScale,
+            noiseSeed + 1703,
+          ) -
+            0.5) *
+          spacing *
+          0.25;
+        ctx.globalAlpha = basePatternAlpha * (0.18 + noiseStrength * 0.35);
+        ctx.beginPath();
+        ctx.moveTo(x + jitter, drawStartY);
+        ctx.lineTo(x + jitter, drawEndY);
+        ctx.stroke();
+      }
+      for (let y = drawStartY; y <= drawEndY + spacing; y += spacing) {
+        const jitter =
+          (valueNoise2d(
+            travelX / weaveNoiseScale,
+            (y + travelY) / weaveNoiseScale,
+            noiseSeed + 1709,
+          ) -
+            0.5) *
+          spacing *
+          0.25;
+        ctx.globalAlpha = basePatternAlpha * (0.16 + noiseStrength * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, y + jitter);
+        ctx.lineTo(drawEndX, y + jitter);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "leather": {
+      const cell = Math.max(8, motifSize * 0.45);
+      ctx.lineWidth = Math.max(1, motifSize * 0.08);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const n = valueNoise2d(col * 0.45, row * 0.45, noiseSeed + 2017);
+          const radius = cell * (0.22 + n * 0.32);
+          const cx = x + cell * 0.5;
+          const cy = y + cell * 0.5;
+          ctx.globalAlpha = basePatternAlpha * (0.12 + noiseStrength * 0.28);
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.stroke();
+          if (n > 0.68) {
+            ctx.globalAlpha = basePatternAlpha * (0.08 + noiseStrength * 0.18);
+            ctx.beginPath();
+            ctx.arc(
+              cx + radius * 0.2,
+              cy - radius * 0.1,
+              radius * 0.45,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fill();
+          }
+        },
+      );
       break;
     }
   }

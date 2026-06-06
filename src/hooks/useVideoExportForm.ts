@@ -17,12 +17,16 @@ import {
   BACKGROUND_GRADIENT_STRENGTH_MIN,
   BACKGROUND_MOVE_PER_FRAME_MAX,
   BACKGROUND_MOVE_PER_FRAME_MIN,
+  BACKGROUND_NOISE_INTENSITY_MAX,
+  BACKGROUND_NOISE_INTENSITY_MIN,
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
   BACKGROUND_PATTERN_ROTATION_MIN,
   BACKGROUND_PATTERN_SIZE_MAX,
   BACKGROUND_PATTERN_SIZE_MIN,
+  BACKGROUND_SEED_MAX,
+  BACKGROUND_SEED_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
   DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG,
@@ -34,9 +38,11 @@ import {
   DEFAULT_BACKGROUND_MOVEMENT_ENABLED,
   DEFAULT_BACKGROUND_MOVE_X_PER_FRAME,
   DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME,
+  DEFAULT_BACKGROUND_NOISE_INTENSITY,
   DEFAULT_BACKGROUND_PATTERN_GAP,
   DEFAULT_BACKGROUND_PATTERN_ROTATION,
   DEFAULT_BACKGROUND_PATTERN_SIZE,
+  DEFAULT_BACKGROUND_SEED,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
@@ -287,6 +293,11 @@ export const useVideoExportForm = (
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_GAP);
   const [backgroundPatternRotation, setBackgroundPatternRotation] =
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+  const [backgroundNoiseIntensity, setBackgroundNoiseIntensity] =
+    React.useState<number>(DEFAULT_BACKGROUND_NOISE_INTENSITY);
+  const [backgroundSeed, setBackgroundSeed] = React.useState<number>(
+    DEFAULT_BACKGROUND_SEED,
+  );
   const [backgroundMovementEnabled, setBackgroundMovementEnabled] =
     React.useState<boolean>(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
   const [backgroundMoveXPerFrame, setBackgroundMoveXPerFrame] =
@@ -652,6 +663,16 @@ export const useVideoExportForm = (
         BACKGROUND_PATTERN_ROTATION_MAX,
         Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
       ),
+      noiseIntensity: Math.min(
+        BACKGROUND_NOISE_INTENSITY_MAX,
+        Math.max(BACKGROUND_NOISE_INTENSITY_MIN, backgroundNoiseIntensity),
+      ),
+      seed: Math.round(
+        Math.min(
+          BACKGROUND_SEED_MAX,
+          Math.max(BACKGROUND_SEED_MIN, backgroundSeed),
+        ),
+      ),
       movementEnabled: backgroundStyle !== "solid" && backgroundMovementEnabled,
       moveXPerFrame: Math.min(
         BACKGROUND_MOVE_PER_FRAME_MAX,
@@ -670,6 +691,8 @@ export const useVideoExportForm = (
       backgroundPatternSize,
       backgroundPatternGap,
       backgroundPatternRotation,
+      backgroundNoiseIntensity,
+      backgroundSeed,
       backgroundGradientEnabled,
       backgroundGradientType,
       backgroundGradientAngleDeg,
@@ -1305,6 +1328,8 @@ export const useVideoExportForm = (
       setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
       setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
       setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+      setBackgroundNoiseIntensity(DEFAULT_BACKGROUND_NOISE_INTENSITY);
+      setBackgroundSeed(DEFAULT_BACKGROUND_SEED);
       setBackgroundGradientEnabled(DEFAULT_BACKGROUND_GRADIENT_ENABLED);
       setBackgroundGradientType(DEFAULT_BACKGROUND_GRADIENT_TYPE);
       setBackgroundGradientAngleDeg(DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG);
@@ -2641,6 +2666,8 @@ export const useVideoExportForm = (
     backgroundPatternSize,
     backgroundPatternGap,
     backgroundPatternRotation,
+    backgroundNoiseIntensity,
+    backgroundSeed,
     backgroundGradientEnabled,
     backgroundGradientType,
     backgroundGradientAngleDeg,
@@ -2694,6 +2721,8 @@ export const useVideoExportForm = (
     setBackgroundPatternSize,
     setBackgroundPatternGap,
     setBackgroundPatternRotation,
+    setBackgroundNoiseIntensity,
+    setBackgroundSeed,
     setBackgroundGradientEnabled,
     setBackgroundGradientType,
     setBackgroundGradientAngleDeg,
