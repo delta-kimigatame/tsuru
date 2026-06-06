@@ -56,6 +56,42 @@ export const GOOGLE_FONTS: GoogleFont[] = [
     categoryKey: "font.category.serif",
     weights: "400;700",
   },
+  {
+    family: "BIZ UDMincho",
+    slug: "BIZ+UDMincho",
+    categoryKey: "font.category.serif",
+    weights: "400;700",
+  },
+  {
+    family: "Hina Mincho",
+    slug: "Hina+Mincho",
+    categoryKey: "font.category.serif",
+    weights: "400",
+  },
+  {
+    family: "Kaisei Tokumin",
+    slug: "Kaisei+Tokumin",
+    categoryKey: "font.category.serif",
+    weights: "400;700",
+  },
+  {
+    family: "Kaisei HarunoUmi",
+    slug: "Kaisei+HarunoUmi",
+    categoryKey: "font.category.serif",
+    weights: "400;700",
+  },
+  {
+    family: "Zen Antique",
+    slug: "Zen+Antique",
+    categoryKey: "font.category.serif",
+    weights: "400",
+  },
+  {
+    family: "Zen Antique Soft",
+    slug: "Zen+Antique+Soft",
+    categoryKey: "font.category.serif",
+    weights: "400",
+  },
   // ディスプレイ
   {
     family: "Rampart One",
@@ -81,6 +117,24 @@ export const GOOGLE_FONTS: GoogleFont[] = [
     categoryKey: "font.category.display",
     weights: "400",
   },
+  {
+    family: "Yuji Boku",
+    slug: "Yuji+Boku",
+    categoryKey: "font.category.display",
+    weights: "400",
+  },
+  {
+    family: "Mochiy Pop P One",
+    slug: "Mochiy+Pop+P+One",
+    categoryKey: "font.category.display",
+    weights: "400",
+  },
+  {
+    family: "Zen Maru Gothic",
+    slug: "Zen+Maru+Gothic",
+    categoryKey: "font.category.display",
+    weights: "400;500;700",
+  },
   // 手書き
   {
     family: "Yomogi",
@@ -103,6 +157,18 @@ export const GOOGLE_FONTS: GoogleFont[] = [
   {
     family: "Zen Kurenaido",
     slug: "Zen+Kurenaido",
+    categoryKey: "font.category.handwritten",
+    weights: "400",
+  },
+  {
+    family: "Yusei Magic",
+    slug: "Yusei+Magic",
+    categoryKey: "font.category.handwritten",
+    weights: "400",
+  },
+  {
+    family: "New Tegomin",
+    slug: "New+Tegomin",
     categoryKey: "font.category.handwritten",
     weights: "400",
   },
@@ -144,6 +210,18 @@ export const GOOGLE_FONTS: GoogleFont[] = [
     categoryKey: "font.category.retro",
     weights: "400",
   },
+  {
+    family: "Kiwi Maru",
+    slug: "Kiwi+Maru",
+    categoryKey: "font.category.retro",
+    weights: "400",
+  },
+  {
+    family: "M PLUS Rounded 1c",
+    slug: "M+PLUS+Rounded+1c",
+    categoryKey: "font.category.retro",
+    weights: "400;700",
+  },
   // テック
   {
     family: "Zen Kaku Gothic New",
@@ -162,6 +240,12 @@ export const GOOGLE_FONTS: GoogleFont[] = [
     slug: "Stick",
     categoryKey: "font.category.tech",
     weights: "400",
+  },
+  {
+    family: "Murecho",
+    slug: "Murecho",
+    categoryKey: "font.category.tech",
+    weights: "400;700",
   },
 ];
 
