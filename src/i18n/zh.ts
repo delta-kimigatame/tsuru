@@ -458,7 +458,6 @@ export const translationZh = {
       isShowPortrait: "显示角色立绘",
     },
     videoExport: {
-      title: "视频导出设置",
       selectImage: "选择背景图片",
       confirm: "导出",
       cancel: "取消",

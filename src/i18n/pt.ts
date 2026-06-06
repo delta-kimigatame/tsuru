@@ -476,7 +476,6 @@ export const translationPt = {
       isShowPortrait: "Exibir retrato do personagem",
     },
     videoExport: {
-      title: "Configurações de exportação de vídeo",
       selectImage: "Selecionar imagem de fundo",
       confirm: "Exportar",
       cancel: "Cancelar",

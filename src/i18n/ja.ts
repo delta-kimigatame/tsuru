@@ -471,7 +471,6 @@ export const translationJa = {
       isShowPortrait: "立ち絵表示",
     },
     videoExport: {
-      title: "動画エクスポート設定",
       selectImage: "背景画像を選択",
       confirm: "エクスポート",
       cancel: "キャンセル",
