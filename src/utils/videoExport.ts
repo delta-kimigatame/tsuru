@@ -432,18 +432,16 @@ const fillRectTiled = (
   phaseY = 0,
   drawTile: (x: number, y: number, row: number, col: number) => void,
 ) => {
-  for (
-    let y = originY - stepY * 2;
-    y <= originY + height + stepY * 2;
-    y += stepY
-  ) {
-    const row = Math.floor((y - referenceY + phaseY) / stepY);
-    for (
-      let x = originX - stepX * 2;
-      x <= originX + width + stepX * 2;
-      x += stepX
-    ) {
-      const col = Math.floor((x - referenceX + phaseX) / stepX);
+  const startX = originX - stepX * 2;
+  const endX = originX + width + stepX * 2;
+  const startY = originY - stepY * 2;
+  const endY = originY + height + stepY * 2;
+  const eps = 1e-7;
+  const startRow = Math.floor((startY - referenceY + phaseY) / stepY + eps);
+  const startCol = Math.floor((startX - referenceX + phaseX) / stepX + eps);
+
+  for (let y = startY, row = startRow; y <= endY + eps; y += stepY, row++) {
+    for (let x = startX, col = startCol; x <= endX + eps; x += stepX, col++) {
       drawTile(x, y, row, col);
     }
   }
@@ -489,6 +487,8 @@ export const drawGeneratedBackground = (
   const normalizeCycleOffset = (v: number) => ((v % cycle) + cycle) % cycle;
   const wrappedX = movementEnabled ? normalizeCycleOffset(travelX) : 0;
   const wrappedY = movementEnabled ? normalizeCycleOffset(travelY) : 0;
+  const wrappedPhaseX = -wrappedX;
+  const wrappedPhaseY = wrappedY;
   // Direction policy: +x moves right, +y moves up.
   const originX = rawOriginX + wrappedX;
   const originY = rawOriginY - wrappedY;
@@ -691,18 +691,23 @@ export const drawGeneratedBackground = (
     }
     case "brickwork": {
       const brickW = cycle * 2;
-      let brickRow = 0;
-      for (let y = drawStartY; y <= drawEndY + cycle; y += cycle) {
-        const xOff = brickRow % 2 === 0 ? 0 : cycle;
-        for (
-          let x = drawStartX - brickW + xOff;
-          x <= drawEndX + brickW;
-          x += brickW
-        ) {
-          ctx.fillRect(x, y, Math.max(1, brickW - gap), motifSize);
-        }
-        brickRow++;
-      }
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        brickW,
+        cycle,
+        rawOriginX,
+        rawOriginY,
+        wrappedPhaseX,
+        wrappedPhaseY,
+        (x, y, row) => {
+          const xOff = row % 2 === 0 ? 0 : cycle;
+          ctx.fillRect(x + xOff, y, Math.max(1, brickW - gap), motifSize);
+        },
+      );
       break;
     }
     case "zigzag": {
@@ -761,27 +766,41 @@ export const drawGeneratedBackground = (
       const h = (s * Math.sqrt(3)) / 2;
       const colStep = cycle;
       const rowStep = (colStep * Math.sqrt(3)) / 2;
-      let triRow = 0;
-      for (
-        let y = originY - rowStep;
-        y <= originY + patternHeight + h;
-        y += rowStep
-      ) {
-        const xOff = triRow % 2 === 0 ? 0 : colStep / 2;
-        for (
-          let x = originX - colStep + xOff;
-          x <= originX + patternWidth + colStep;
-          x += colStep
-        ) {
+      const normalizeOffset = (v: number, period: number) =>
+        ((v % period) + period) % period;
+      const triWrappedX = movementEnabled
+        ? normalizeOffset(travelX, colStep)
+        : 0;
+      const triWrappedY = movementEnabled
+        ? normalizeOffset(travelY, rowStep)
+        : 0;
+      const triOriginX = rawOriginX + triWrappedX;
+      const triOriginY = rawOriginY - triWrappedY;
+      const triPhaseX = travelX;
+      const triPhaseY = travelY;
+      fillRectTiled(
+        ctx,
+        triOriginX,
+        triOriginY,
+        patternWidth,
+        patternHeight,
+        colStep,
+        rowStep,
+        rawOriginX,
+        rawOriginY,
+        triPhaseX,
+        triPhaseY,
+        (x, y, row) => {
+          const xOff = row % 2 === 0 ? 0 : colStep / 2;
+          const tx = x + xOff;
           ctx.beginPath();
-          ctx.moveTo(x + s / 2, y); // 頂点（上）
-          ctx.lineTo(x, y + h); // 左下
-          ctx.lineTo(x + s, y + h); // 右下
+          ctx.moveTo(tx + s / 2, y); // 頂点（上）
+          ctx.lineTo(tx, y + h); // 左下
+          ctx.lineTo(tx + s, y + h); // 右下
           ctx.closePath();
           ctx.fill();
-        }
-        triRow++;
-      }
+        },
+      );
       break;
     }
     case "waves": {
