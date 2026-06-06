@@ -54,7 +54,13 @@ export type BackgroundStyle =
   | "stripes"
   | "diagonalStripes"
   | "checkerboard"
-  | "diamonds";
+  | "diamonds"
+  | "crosses"
+  | "brickwork"
+  | "zigzag"
+  | "circles"
+  | "triangles"
+  | "waves";
 
 export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "solid",
@@ -66,6 +72,12 @@ export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "diagonalStripes",
   "checkerboard",
   "diamonds",
+  "crosses",
+  "brickwork",
+  "zigzag",
+  "circles",
+  "triangles",
+  "waves",
 ];
 
 export interface BackgroundOptions {
@@ -590,6 +602,157 @@ export const drawGeneratedBackground = (
           ctx.fill();
         },
       );
+      break;
+    }
+    case "crosses": {
+      const armHalf = motifSize / 2;
+      const t = Math.max(1, motifSize * 0.25);
+      const halfT = t / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y) => {
+          const cx = x + cycle / 2;
+          const cy = y + cycle / 2;
+          ctx.beginPath();
+          ctx.moveTo(cx - armHalf, cy - halfT);
+          ctx.lineTo(cx - halfT, cy - halfT);
+          ctx.lineTo(cx - halfT, cy - armHalf);
+          ctx.lineTo(cx + halfT, cy - armHalf);
+          ctx.lineTo(cx + halfT, cy - halfT);
+          ctx.lineTo(cx + armHalf, cy - halfT);
+          ctx.lineTo(cx + armHalf, cy + halfT);
+          ctx.lineTo(cx + halfT, cy + halfT);
+          ctx.lineTo(cx + halfT, cy + armHalf);
+          ctx.lineTo(cx - halfT, cy + armHalf);
+          ctx.lineTo(cx - halfT, cy + halfT);
+          ctx.lineTo(cx - armHalf, cy + halfT);
+          ctx.closePath();
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "brickwork": {
+      const brickW = cycle * 2;
+      let brickRow = 0;
+      for (let y = originY; y <= originY + patternHeight + cycle; y += cycle) {
+        const xOff = brickRow % 2 === 0 ? 0 : cycle;
+        for (
+          let x = originX - brickW + xOff;
+          x <= originX + patternWidth + brickW;
+          x += brickW
+        ) {
+          ctx.fillRect(x, y, Math.max(1, brickW - gap), motifSize);
+        }
+        brickRow++;
+      }
+      break;
+    }
+    case "zigzag": {
+      const amp = motifSize / 2;
+      const halfCycle = Math.max(1, cycle / 2);
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      for (
+        let zigRow = 0;
+        originY + zigRow * cycle <= originY + patternHeight + amp + cycle;
+        zigRow++
+      ) {
+        const baseY = originY + zigRow * cycle;
+        ctx.beginPath();
+        ctx.moveTo(originX, baseY);
+        let toggle = 0;
+        for (
+          let x = originX + halfCycle;
+          x <= originX + patternWidth + halfCycle;
+          x += halfCycle
+        ) {
+          ctx.lineTo(x, baseY + (toggle % 2 === 0 ? amp : -amp));
+          toggle++;
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+    case "circles": {
+      const radius = motifSize / 2;
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          ctx.beginPath();
+          ctx.arc(x + offsetX + radius, y + radius, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "triangles": {
+      // 正三角形の高さ = 辺長 × √3/2。列ステップは cycle、行ステップは cycle×√3/2。
+      // 奇数行を cycle/2 ずらすことで gap=0 時に完全なテッセレーションを実現する。
+      const s = motifSize;
+      const h = (s * Math.sqrt(3)) / 2;
+      const colStep = cycle;
+      const rowStep = (colStep * Math.sqrt(3)) / 2;
+      let triRow = 0;
+      for (
+        let y = originY - rowStep;
+        y <= originY + patternHeight + h;
+        y += rowStep
+      ) {
+        const xOff = triRow % 2 === 0 ? 0 : colStep / 2;
+        for (
+          let x = originX - colStep + xOff;
+          x <= originX + patternWidth + colStep;
+          x += colStep
+        ) {
+          ctx.beginPath();
+          ctx.moveTo(x + s / 2, y); // 頂点（上）
+          ctx.lineTo(x, y + h); // 左下
+          ctx.lineTo(x + s, y + h); // 右下
+          ctx.closePath();
+          ctx.fill();
+        }
+        triRow++;
+      }
+      break;
+    }
+    case "waves": {
+      const amp = motifSize / 2;
+      const step = Math.max(1, cycle / 40);
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      for (
+        let waveRow = 0;
+        originY + waveRow * cycle - amp <= originY + patternHeight + cycle;
+        waveRow++
+      ) {
+        const baseY = originY + waveRow * cycle;
+        ctx.beginPath();
+        ctx.moveTo(originX, baseY);
+        for (
+          let x = originX + step;
+          x <= originX + patternWidth + cycle;
+          x += step
+        ) {
+          ctx.lineTo(
+            x,
+            baseY + Math.sin(((x - originX) / cycle) * Math.PI * 2) * amp,
+          );
+        }
+        ctx.stroke();
+      }
       break;
     }
   }
