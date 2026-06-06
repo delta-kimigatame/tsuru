@@ -9,6 +9,7 @@ import { getDesignTokens } from "../../config/theme";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import { type VideoExportFormContext } from "../../hooks/useVideoExportForm";
 import i18n from "../../i18n/configs";
+import { LOG } from "../../lib/Logging";
 import type { Note } from "../../lib/Note";
 import { Ust } from "../../lib/Ust";
 import { useCookieStore } from "../../store/cookieStore";
@@ -210,6 +211,18 @@ export const App: React.FC = () => {
         const dataUrl = URL.createObjectURL(
           new File([mp4Buf], "output.mp4", { type: "video/mp4" }),
         );
+        LOG.gtag("movieDownload", {
+          downloadName: ustFileName ?? "videoEditor",
+          format: "mp4",
+          resolution,
+          bgPaddingMode,
+          hasPianoroll: Boolean(pianorollOptions?.enabled),
+          hasPortrait: Boolean(portraitOptions),
+          hasMainText: Boolean(mainTextOptions),
+          hasSubText: Boolean(subTextOptions),
+          hasLyrics: Boolean(lyricsOptions),
+          editorType: "videoEditor",
+        });
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "output.mp4";
@@ -221,7 +234,7 @@ export const App: React.FC = () => {
         setVideoExportTotal(undefined);
       }
     },
-    [wavBuffer, t],
+    [wavBuffer, t, ustFileName],
   );
 
   return (
