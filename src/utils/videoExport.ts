@@ -88,6 +88,9 @@ export interface BackgroundOptions {
   size: number;
   gap: number;
   rotation: number;
+  movementEnabled?: boolean;
+  moveXPerFrame?: number;
+  moveYPerFrame?: number;
 }
 
 /** スライドイン/アウトの移動方向 */
@@ -423,16 +426,18 @@ const fillRectTiled = (
   height: number,
   stepX: number,
   stepY: number,
+  referenceX: number,
+  referenceY: number,
+  phaseX = 0,
+  phaseY = 0,
   drawTile: (x: number, y: number, row: number, col: number) => void,
 ) => {
-  let row = 0;
-  for (let y = originY; y <= originY + height + stepY; y += stepY) {
-    let col = 0;
-    for (let x = originX; x <= originX + width + stepX; x += stepX) {
+  for (let y = originY - stepY * 2; y <= originY + height + stepY * 2; y += stepY) {
+    const row = Math.floor((y - referenceY + phaseY) / stepY);
+    for (let x = originX - stepX * 2; x <= originX + width + stepX * 2; x += stepX) {
+      const col = Math.floor((x - referenceX + phaseX) / stepX);
       drawTile(x, y, row, col);
-      col += 1;
     }
-    row += 1;
   }
 };
 
@@ -442,6 +447,7 @@ export const drawGeneratedBackground = (
   height: number,
   options: BackgroundOptions,
   scale = 1,
+  frameIndex = 0,
 ): void => {
   const motifSize = Math.max(2, options.size * scale);
   const gap = Math.max(0, options.gap * scale);
@@ -454,8 +460,8 @@ export const drawGeneratedBackground = (
   const rotatedBounds = Math.sqrt(width * width + height * height);
   const patternWidth = rotationRad === 0 ? width : rotatedBounds;
   const patternHeight = rotationRad === 0 ? height : rotatedBounds;
-  const originX = rotationRad === 0 ? 0 : -patternWidth / 2;
-  const originY = rotationRad === 0 ? 0 : -patternHeight / 2;
+  const rawOriginX = rotationRad === 0 ? 0 : -patternWidth / 2;
+  const rawOriginY = rotationRad === 0 ? 0 : -patternHeight / 2;
 
   ctx.save();
   ctx.fillStyle = options.primaryColor;
@@ -465,6 +471,22 @@ export const drawGeneratedBackground = (
     ctx.restore();
     return;
   }
+
+  const movementEnabled = options.movementEnabled ?? false;
+  const moveXPerFrame = options.moveXPerFrame ?? 0;
+  const moveYPerFrame = options.moveYPerFrame ?? 0;
+  const travelX = movementEnabled ? moveXPerFrame * frameIndex : 0;
+  const travelY = movementEnabled ? moveYPerFrame * frameIndex : 0;
+  const normalizeCycleOffset = (v: number) => ((v % cycle) + cycle) % cycle;
+  const wrappedX = movementEnabled ? normalizeCycleOffset(travelX) : 0;
+  const wrappedY = movementEnabled ? normalizeCycleOffset(travelY) : 0;
+  // Direction policy: +x moves right, +y moves up.
+  const originX = rawOriginX + wrappedX;
+  const originY = rawOriginY - wrappedY;
+  const drawStartX = originX - cycle;
+  const drawStartY = originY - cycle;
+  const drawEndX = originX + patternWidth + cycle;
+  const drawEndY = originY + patternHeight + cycle;
 
   ctx.fillStyle = options.secondaryColor;
   ctx.strokeStyle = options.secondaryColor;
@@ -486,6 +508,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           ctx.beginPath();
@@ -506,6 +532,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           drawStarPath(
@@ -524,11 +554,11 @@ export const drawGeneratedBackground = (
       const stripe = motifSize;
       ctx.save();
       ctx.globalAlpha = secondaryAlpha * 0.6;
-      for (let x = originX; x < originX + patternWidth + stripe; x += cycle) {
+      for (let x = drawStartX; x < drawEndX + stripe; x += cycle) {
         ctx.fillRect(x, originY, stripe, patternHeight);
       }
-      for (let y = originY; y < originY + patternHeight + stripe; y += cycle) {
-        ctx.fillRect(originX, y, patternWidth, stripe);
+      for (let y = drawStartY; y < drawEndY + stripe; y += cycle) {
+        ctx.fillRect(drawStartX, y, patternWidth + cycle * 2, stripe);
       }
       ctx.restore();
       break;
@@ -536,35 +566,31 @@ export const drawGeneratedBackground = (
     case "grid": {
       const lineWidth = Math.max(1, motifSize * 0.14);
       ctx.lineWidth = lineWidth;
-      for (let x = originX; x <= originX + patternWidth; x += cycle) {
+      for (let x = drawStartX; x <= drawEndX; x += cycle) {
         ctx.beginPath();
-        ctx.moveTo(x, originY);
-        ctx.lineTo(x, originY + patternHeight);
+        ctx.moveTo(x, drawStartY);
+        ctx.lineTo(x, drawEndY);
         ctx.stroke();
       }
-      for (let y = originY; y <= originY + patternHeight; y += cycle) {
+      for (let y = drawStartY; y <= drawEndY; y += cycle) {
         ctx.beginPath();
-        ctx.moveTo(originX, y);
-        ctx.lineTo(originX + patternWidth, y);
+        ctx.moveTo(drawStartX, y);
+        ctx.lineTo(drawEndX, y);
         ctx.stroke();
       }
       break;
     }
     case "stripes": {
-      for (
-        let y = originY;
-        y < originY + patternHeight + motifSize;
-        y += cycle
-      ) {
-        ctx.fillRect(originX, y, patternWidth, motifSize);
+      for (let y = drawStartY; y < drawEndY + motifSize; y += cycle) {
+        ctx.fillRect(drawStartX, y, patternWidth + cycle * 2, motifSize);
       }
       break;
     }
     case "diagonalStripes": {
       ctx.save();
       ctx.rotate(-Math.PI / 4);
-      for (let y = -patternHeight; y < patternHeight; y += cycle) {
-        ctx.fillRect(-patternWidth, y, patternWidth * 2, motifSize);
+      for (let y = drawStartY - patternHeight; y < drawEndY + patternHeight; y += cycle) {
+        ctx.fillRect(drawStartX - patternWidth, y, patternWidth * 3, motifSize);
       }
       ctx.restore();
       break;
@@ -578,6 +604,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row, col) => {
           if ((row + col) % 2 === 0) {
             ctx.fillRect(x, y, motifSize, motifSize);
@@ -596,6 +626,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           drawDiamondPath(ctx, x + offsetX + radius, y + radius, radius);
@@ -616,6 +650,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y) => {
           const cx = x + cycle / 2;
           const cy = y + cycle / 2;
@@ -641,11 +679,11 @@ export const drawGeneratedBackground = (
     case "brickwork": {
       const brickW = cycle * 2;
       let brickRow = 0;
-      for (let y = originY; y <= originY + patternHeight + cycle; y += cycle) {
+      for (let y = drawStartY; y <= drawEndY + cycle; y += cycle) {
         const xOff = brickRow % 2 === 0 ? 0 : cycle;
         for (
-          let x = originX - brickW + xOff;
-          x <= originX + patternWidth + brickW;
+          let x = drawStartX - brickW + xOff;
+          x <= drawEndX + brickW;
           x += brickW
         ) {
           ctx.fillRect(x, y, Math.max(1, brickW - gap), motifSize);
@@ -660,16 +698,16 @@ export const drawGeneratedBackground = (
       ctx.lineWidth = Math.max(1, motifSize * 0.12);
       for (
         let zigRow = 0;
-        originY + zigRow * cycle <= originY + patternHeight + amp + cycle;
+        drawStartY + zigRow * cycle <= drawEndY + amp + cycle;
         zigRow++
       ) {
-        const baseY = originY + zigRow * cycle;
+        const baseY = drawStartY + zigRow * cycle;
         ctx.beginPath();
-        ctx.moveTo(originX, baseY);
+        ctx.moveTo(drawStartX, baseY);
         let toggle = 0;
         for (
-          let x = originX + halfCycle;
-          x <= originX + patternWidth + halfCycle;
+          let x = drawStartX + halfCycle;
+          x <= drawEndX + halfCycle;
           x += halfCycle
         ) {
           ctx.lineTo(x, baseY + (toggle % 2 === 0 ? amp : -amp));
@@ -690,6 +728,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           ctx.beginPath();
@@ -735,20 +777,20 @@ export const drawGeneratedBackground = (
       ctx.lineWidth = Math.max(1, motifSize * 0.12);
       for (
         let waveRow = 0;
-        originY + waveRow * cycle - amp <= originY + patternHeight + cycle;
+        drawStartY + waveRow * cycle - amp <= drawEndY + cycle;
         waveRow++
       ) {
-        const baseY = originY + waveRow * cycle;
+        const baseY = drawStartY + waveRow * cycle;
         ctx.beginPath();
-        ctx.moveTo(originX, baseY);
+        ctx.moveTo(drawStartX, baseY);
         for (
           let x = originX + step;
-          x <= originX + patternWidth + cycle;
+          x <= drawEndX + cycle;
           x += step
         ) {
           ctx.lineTo(
             x,
-            baseY + Math.sin(((x - originX) / cycle) * Math.PI * 2) * amp,
+            baseY + Math.sin(((x - drawStartX) / cycle) * Math.PI * 2) * amp,
           );
         }
         ctx.stroke();
@@ -770,8 +812,16 @@ export const drawVideoBackground = (
   bgImageOpacity: number,
   blurPx = 20,
   backgroundScale = 1,
+  frameIndex = 0,
 ): void => {
-  drawGeneratedBackground(ctx, width, height, background, backgroundScale);
+  drawGeneratedBackground(
+    ctx,
+    width,
+    height,
+    background,
+    backgroundScale,
+    frameIndex,
+  );
 
   if (!image) {
     return;
@@ -1528,7 +1578,7 @@ export const generateMp4 = async (
    * 字幕フレームのたびに呼び出して canvas を上書きするため、副作用なしで完結させる。
    * 描画順序: 背景色1 → 背景色2模様 → 背景画像(拡大) → 背景画像(通常)
    */
-  const drawBase = () => {
+  const drawBase = (frameIndex = 0) => {
     ctx.clearRect(0, 0, cW, cH);
 
     if (resolution === "image" && img) {
@@ -1543,6 +1593,9 @@ export const generateMp4 = async (
         img,
         bgPaddingMode,
         bgImageOpacity,
+        20,
+        1,
+        frameIndex,
       );
     }
   };
@@ -1577,7 +1630,7 @@ export const generateMp4 = async (
     const tMs = tSec * 1000;
     const dur = Math.min(frameDuration, durationSec - tSec);
 
-    drawBase();
+    drawBase(f);
 
     if (effectivePianorollOptions?.enabled) {
       pianorollState = drawPianorollVideoFrame(

@@ -15,10 +15,15 @@ import {
   BACKGROUND_PATTERN_ROTATION_MIN,
   BACKGROUND_PATTERN_SIZE_MAX,
   BACKGROUND_PATTERN_SIZE_MIN,
+  BACKGROUND_MOVE_PER_FRAME_MAX,
+  BACKGROUND_MOVE_PER_FRAME_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
   DEFAULT_BACKGROUND_PATTERN_GAP,
   DEFAULT_BACKGROUND_PATTERN_ROTATION,
+  DEFAULT_BACKGROUND_MOVEMENT_ENABLED,
+  DEFAULT_BACKGROUND_MOVE_X_PER_FRAME,
+  DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME,
   DEFAULT_BACKGROUND_PATTERN_SIZE,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
@@ -269,6 +274,12 @@ export const useVideoExportForm = (
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_GAP);
   const [backgroundPatternRotation, setBackgroundPatternRotation] =
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+  const [backgroundMovementEnabled, setBackgroundMovementEnabled] =
+    React.useState<boolean>(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
+  const [backgroundMoveXPerFrame, setBackgroundMoveXPerFrame] =
+    React.useState<number>(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
+  const [backgroundMoveYPerFrame, setBackgroundMoveYPerFrame] =
+    React.useState<number>(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
 
   // 解像度
   const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
@@ -587,6 +598,16 @@ export const useVideoExportForm = (
         BACKGROUND_PATTERN_ROTATION_MAX,
         Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
       ),
+      movementEnabled:
+        backgroundStyle !== "solid" && backgroundMovementEnabled,
+      moveXPerFrame: Math.min(
+        BACKGROUND_MOVE_PER_FRAME_MAX,
+        Math.max(BACKGROUND_MOVE_PER_FRAME_MIN, backgroundMoveXPerFrame),
+      ),
+      moveYPerFrame: Math.min(
+        BACKGROUND_MOVE_PER_FRAME_MAX,
+        Math.max(BACKGROUND_MOVE_PER_FRAME_MIN, backgroundMoveYPerFrame),
+      ),
     }),
     [
       backgroundStyle,
@@ -596,6 +617,9 @@ export const useVideoExportForm = (
       backgroundPatternSize,
       backgroundPatternGap,
       backgroundPatternRotation,
+      backgroundMovementEnabled,
+      backgroundMoveXPerFrame,
+      backgroundMoveYPerFrame,
     ],
   );
 
@@ -1218,6 +1242,9 @@ export const useVideoExportForm = (
       setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
       setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
       setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+      setBackgroundMovementEnabled(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
+      setBackgroundMoveXPerFrame(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
+      setBackgroundMoveYPerFrame(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
       setBgImageOpacity(DEFAULT_BG_IMAGE_OPACITY);
@@ -1547,6 +1574,10 @@ export const useVideoExportForm = (
       if (bgSize === "image") {
         ctx.drawImage(img, 0, 0, pw, ph);
       } else {
+        const frameIndex = Math.max(
+          0,
+          Math.floor((timeline?.currentMs ?? 0) / (1000 / 30)),
+        );
         drawVideoBackground(
           ctx,
           pw,
@@ -1557,6 +1588,7 @@ export const useVideoExportForm = (
           bgImageOpacity,
           Math.max(1, Math.round(20 * prevScale)),
           prevScale,
+          frameIndex,
         );
       }
 
@@ -2466,6 +2498,9 @@ export const useVideoExportForm = (
     backgroundPatternSize,
     backgroundPatternGap,
     backgroundPatternRotation,
+    backgroundMovementEnabled,
+    backgroundMoveXPerFrame,
+    backgroundMoveYPerFrame,
     bgSize,
     bgPaddingMode,
     bgImageOpacity,
@@ -2510,6 +2545,9 @@ export const useVideoExportForm = (
     setBackgroundPatternSize,
     setBackgroundPatternGap,
     setBackgroundPatternRotation,
+    setBackgroundMovementEnabled,
+    setBackgroundMoveXPerFrame,
+    setBackgroundMoveYPerFrame,
     setBgSecondaryOpacity,
     setBgSize,
     setBgPaddingMode,

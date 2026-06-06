@@ -55,6 +55,12 @@ type Props = {
   onPatternGapChange: (v: number) => void;
   patternRotation: number;
   onPatternRotationChange: (v: number) => void;
+  movementEnabled: boolean;
+  onMovementEnabledChange: (v: boolean) => void;
+  moveXPerFrame: number;
+  onMoveXPerFrameChange: (v: number) => void;
+  moveYPerFrame: number;
+  onMoveYPerFrameChange: (v: number) => void;
   bgSize: VideoResolution;
   bgPaddingMode: BgPaddingMode;
   onBgPaddingModeChange: (m: BgPaddingMode) => void;
@@ -86,6 +92,12 @@ export const BackgroundSection: React.FC<Props> = ({
   onPatternGapChange,
   patternRotation,
   onPatternRotationChange,
+  movementEnabled,
+  onMovementEnabledChange,
+  moveXPerFrame,
+  onMoveXPerFrameChange,
+  moveYPerFrame,
+  onMoveYPerFrameChange,
   bgSize,
   bgPaddingMode,
   onBgPaddingModeChange,
@@ -224,6 +236,40 @@ export const BackgroundSection: React.FC<Props> = ({
             min={BACKGROUND_PATTERN_ROTATION_MIN}
             max={BACKGROUND_PATTERN_ROTATION_MAX}
             unit="deg"
+            valueMinWidth={64}
+          />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="caption">
+              {t("editor.videoExport.backgroundMove")}
+            </Typography>
+            <Select
+              size="small"
+              value={movementEnabled ? "on" : "off"}
+              onChange={(e) => onMovementEnabledChange(e.target.value === "on")}
+              sx={{ minWidth: 90, fontSize: "0.8rem" }}
+            >
+              <MenuItem value="off">{t("editor.videoExport.off")}</MenuItem>
+              <MenuItem value="on">{t("editor.videoExport.on")}</MenuItem>
+            </Select>
+          </Box>
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundMoveX")}
+            value={moveXPerFrame}
+            onChange={onMoveXPerFrameChange}
+            min={-20}
+            max={20}
+            unit="px/f"
+            disabled={!movementEnabled}
+            valueMinWidth={64}
+          />
+          <LabeledSlider
+            label={t("editor.videoExport.backgroundMoveY")}
+            value={moveYPerFrame}
+            onChange={onMoveYPerFrameChange}
+            min={-20}
+            max={20}
+            unit="px/f"
+            disabled={!movementEnabled}
             valueMinWidth={64}
           />
         </>

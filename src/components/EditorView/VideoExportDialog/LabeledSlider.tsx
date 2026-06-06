@@ -9,6 +9,7 @@ type Props = {
   max: number;
   step?: number;
   unit?: string;
+  disabled?: boolean;
   /** 値表示部分の最小幅（monospace テキスト用） */
   valueMinWidth?: number;
 };
@@ -21,6 +22,7 @@ export const LabeledSlider: React.FC<Props> = ({
   max,
   step = 1,
   unit = "%",
+  disabled = false,
   valueMinWidth = 36,
 }) => (
   <Box>
@@ -52,6 +54,7 @@ export const LabeledSlider: React.FC<Props> = ({
       min={min}
       max={max}
       step={step}
+      disabled={disabled}
       sx={{ mx: 1, width: "calc(100% - 16px)" }}
     />
   </Box>
