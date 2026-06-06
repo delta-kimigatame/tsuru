@@ -9,21 +9,21 @@ import {
   PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../config/pianoroll";
 import {
+  BACKGROUND_MOVE_PER_FRAME_MAX,
+  BACKGROUND_MOVE_PER_FRAME_MIN,
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
   BACKGROUND_PATTERN_ROTATION_MIN,
   BACKGROUND_PATTERN_SIZE_MAX,
   BACKGROUND_PATTERN_SIZE_MIN,
-  BACKGROUND_MOVE_PER_FRAME_MAX,
-  BACKGROUND_MOVE_PER_FRAME_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
-  DEFAULT_BACKGROUND_PATTERN_GAP,
-  DEFAULT_BACKGROUND_PATTERN_ROTATION,
   DEFAULT_BACKGROUND_MOVEMENT_ENABLED,
   DEFAULT_BACKGROUND_MOVE_X_PER_FRAME,
   DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME,
+  DEFAULT_BACKGROUND_PATTERN_GAP,
+  DEFAULT_BACKGROUND_PATTERN_ROTATION,
   DEFAULT_BACKGROUND_PATTERN_SIZE,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
@@ -598,8 +598,7 @@ export const useVideoExportForm = (
         BACKGROUND_PATTERN_ROTATION_MAX,
         Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
       ),
-      movementEnabled:
-        backgroundStyle !== "solid" && backgroundMovementEnabled,
+      movementEnabled: backgroundStyle !== "solid" && backgroundMovementEnabled,
       moveXPerFrame: Math.min(
         BACKGROUND_MOVE_PER_FRAME_MAX,
         Math.max(BACKGROUND_MOVE_PER_FRAME_MIN, backgroundMoveXPerFrame),
@@ -848,6 +847,10 @@ export const useVideoExportForm = (
   const waveformSinePreviewRafRef = React.useRef<number | null>(null);
   const waveformSinePreviewActiveRef = React.useRef(false);
   const [isWaveformSinePreviewPlaying, setIsWaveformSinePreviewPlaying] =
+    React.useState(false);
+  const backgroundMovePreviewRafRef = React.useRef<number | null>(null);
+  const backgroundMovePreviewActiveRef = React.useRef(false);
+  const [isBackgroundMovePreviewPlaying, setIsBackgroundMovePreviewPlaying] =
     React.useState(false);
   const timelinePreviewRafRef = React.useRef<number | null>(null);
   const timelinePreviewActiveRef = React.useRef(false);
@@ -1821,7 +1824,11 @@ export const useVideoExportForm = (
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
     // アニメーションプレビュー中はスキップ
-    if (animPreviewActiveRef.current || waveformSinePreviewActiveRef.current)
+    if (
+      animPreviewActiveRef.current ||
+      waveformSinePreviewActiveRef.current ||
+      backgroundMovePreviewActiveRef.current
+    )
       return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
@@ -1955,6 +1962,7 @@ export const useVideoExportForm = (
     lyricsStaggerIntervalMs,
     isAnimPreviewPlaying,
     isWaveformSinePreviewPlaying,
+    isBackgroundMovePreviewPlaying,
     pianorollPreviewOptions,
     waveformOptions,
   ]);
@@ -2238,6 +2246,70 @@ export const useVideoExportForm = (
     setIsTimelinePreviewPlaying(false);
   }, []);
 
+  /** 背景移動プレビュー開始 — 背景移動のみ 1.5 秒ループで確認 */
+  const startBackgroundMovePreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
+
+    const PREVIEW_DURATION_SEC = 1.5;
+
+    stopAnimPreview();
+    stopWaveformSinePreview();
+    stopTimelinePreview();
+
+    backgroundMovePreviewActiveRef.current = true;
+    const startTime = performance.now();
+    setIsBackgroundMovePreviewPlaying(true);
+
+    const loop = (img: HTMLImageElement | null) => {
+      if (!backgroundMovePreviewActiveRef.current) return;
+      const elapsedSec =
+        ((performance.now() - startTime) / 1000) % PREVIEW_DURATION_SEC;
+      const currentMs = elapsedSec * 1000;
+      const metrics = renderPreviewBase(ctx, canvas, img, { currentMs });
+      if (!metrics) return;
+      backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(img),
+      );
+    };
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!backgroundMovePreviewActiveRef.current) return;
+        backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+          loop(el),
+        );
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(null),
+      );
+    }
+  }, [
+    previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
+    renderPreviewBase,
+    stopAnimPreview,
+    stopWaveformSinePreview,
+    stopTimelinePreview,
+  ]);
+
+  /** 背景移動プレビュー停止 */
+  const stopBackgroundMovePreview = React.useCallback(() => {
+    if (backgroundMovePreviewRafRef.current !== null) {
+      cancelAnimationFrame(backgroundMovePreviewRafRef.current);
+      backgroundMovePreviewRafRef.current = null;
+    }
+    backgroundMovePreviewActiveRef.current = false;
+    setIsBackgroundMovePreviewPlaying(false);
+  }, []);
+
   const startTimelinePreview = React.useCallback(
     async (params: {
       startMs: number;
@@ -2479,8 +2551,9 @@ export const useVideoExportForm = (
   React.useEffect(() => {
     return () => {
       stopTimelinePreview();
+      stopBackgroundMovePreview();
     };
-  }, [stopTimelinePreview]);
+  }, [stopTimelinePreview, stopBackgroundMovePreview]);
 
   return {
     // refs
@@ -2716,6 +2789,9 @@ export const useVideoExportForm = (
     isAnimPreviewPlaying,
     startAnimPreview,
     stopAnimPreview,
+    isBackgroundMovePreviewPlaying,
+    startBackgroundMovePreview,
+    stopBackgroundMovePreview,
     // pianoroll
     pianorollEnabled,
     setPianorollEnabled,

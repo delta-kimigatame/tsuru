@@ -493,6 +493,8 @@ export const translationPt = {
       backgroundMove: "Mover",
       backgroundMoveX: "Mover X",
       backgroundMoveY: "Mover Y",
+      backgroundMovePreview: "Prévia de movimento",
+      backgroundMovePreviewStop: "Parar prévia de movimento",
       on: "ON",
       off: "OFF",
       backgroundStyle_solid: "Sólido",

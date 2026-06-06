@@ -475,6 +475,8 @@ export const translationZh = {
       backgroundMove: "移动",
       backgroundMoveX: "X移动",
       backgroundMoveY: "Y移动",
+      backgroundMovePreview: "移动预览",
+      backgroundMovePreviewStop: "停止移动预览",
       on: "ON",
       off: "OFF",
       backgroundStyle_solid: "纯色",

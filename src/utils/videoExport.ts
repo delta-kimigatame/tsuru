@@ -432,9 +432,17 @@ const fillRectTiled = (
   phaseY = 0,
   drawTile: (x: number, y: number, row: number, col: number) => void,
 ) => {
-  for (let y = originY - stepY * 2; y <= originY + height + stepY * 2; y += stepY) {
+  for (
+    let y = originY - stepY * 2;
+    y <= originY + height + stepY * 2;
+    y += stepY
+  ) {
     const row = Math.floor((y - referenceY + phaseY) / stepY);
-    for (let x = originX - stepX * 2; x <= originX + width + stepX * 2; x += stepX) {
+    for (
+      let x = originX - stepX * 2;
+      x <= originX + width + stepX * 2;
+      x += stepX
+    ) {
       const col = Math.floor((x - referenceX + phaseX) / stepX);
       drawTile(x, y, row, col);
     }
@@ -475,8 +483,9 @@ export const drawGeneratedBackground = (
   const movementEnabled = options.movementEnabled ?? false;
   const moveXPerFrame = options.moveXPerFrame ?? 0;
   const moveYPerFrame = options.moveYPerFrame ?? 0;
-  const travelX = movementEnabled ? moveXPerFrame * frameIndex : 0;
-  const travelY = movementEnabled ? moveYPerFrame * frameIndex : 0;
+  const moveScale = Math.max(0, scale);
+  const travelX = movementEnabled ? moveXPerFrame * moveScale * frameIndex : 0;
+  const travelY = movementEnabled ? moveYPerFrame * moveScale * frameIndex : 0;
   const normalizeCycleOffset = (v: number) => ((v % cycle) + cycle) % cycle;
   const wrappedX = movementEnabled ? normalizeCycleOffset(travelX) : 0;
   const wrappedY = movementEnabled ? normalizeCycleOffset(travelY) : 0;
@@ -589,7 +598,11 @@ export const drawGeneratedBackground = (
     case "diagonalStripes": {
       ctx.save();
       ctx.rotate(-Math.PI / 4);
-      for (let y = drawStartY - patternHeight; y < drawEndY + patternHeight; y += cycle) {
+      for (
+        let y = drawStartY - patternHeight;
+        y < drawEndY + patternHeight;
+        y += cycle
+      ) {
         ctx.fillRect(drawStartX - patternWidth, y, patternWidth * 3, motifSize);
       }
       ctx.restore();
@@ -783,11 +796,7 @@ export const drawGeneratedBackground = (
         const baseY = drawStartY + waveRow * cycle;
         ctx.beginPath();
         ctx.moveTo(drawStartX, baseY);
-        for (
-          let x = originX + step;
-          x <= drawEndX + cycle;
-          x += step
-        ) {
+        for (let x = originX + step; x <= drawEndX + cycle; x += step) {
           ctx.lineTo(
             x,
             baseY + Math.sin(((x - drawStartX) / cycle) * Math.PI * 2) * amp,

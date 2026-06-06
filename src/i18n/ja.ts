@@ -488,6 +488,8 @@ export const translationJa = {
       backgroundMove: "移動",
       backgroundMoveX: "X移動",
       backgroundMoveY: "Y移動",
+      backgroundMovePreview: "移動プレビュー",
+      backgroundMovePreviewStop: "移動停止",
       on: "ON",
       off: "OFF",
       backgroundStyle_solid: "無地",

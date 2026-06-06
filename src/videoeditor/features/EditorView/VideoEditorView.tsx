@@ -289,7 +289,8 @@ export const VideoEditorView: React.FC<Props> = ({
   const anyPreviewPlaying =
     isPreviewPlaying ||
     form.isWaveformSinePreviewPlaying ||
-    form.isAnimPreviewPlaying;
+    form.isAnimPreviewPlaying ||
+    form.isBackgroundMovePreviewPlaying;
 
   React.useEffect(() => {
     if (!anyPreviewPlaying && autoOpenedPreviewRef.current) {
@@ -405,6 +406,9 @@ export const VideoEditorView: React.FC<Props> = ({
             onMoveXPerFrameChange={form.setBackgroundMoveXPerFrame}
             moveYPerFrame={form.backgroundMoveYPerFrame}
             onMoveYPerFrameChange={form.setBackgroundMoveYPerFrame}
+            isMovementPreviewPlaying={form.isBackgroundMovePreviewPlaying}
+            onStartMovementPreview={form.startBackgroundMovePreview}
+            onStopMovementPreview={form.stopBackgroundMovePreview}
             bgSize={form.bgSize}
             bgPaddingMode={form.bgPaddingMode}
             onBgPaddingModeChange={form.setBgPaddingMode}

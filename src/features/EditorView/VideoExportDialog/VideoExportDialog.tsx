@@ -181,7 +181,9 @@ export const VideoExportDialog: React.FC<Props> = ({
   }, [previewVisibleOnMobile]);
 
   const anyPreviewPlaying =
-    form.isWaveformSinePreviewPlaying || form.isAnimPreviewPlaying;
+    form.isWaveformSinePreviewPlaying ||
+    form.isAnimPreviewPlaying ||
+    form.isBackgroundMovePreviewPlaying;
 
   React.useEffect(() => {
     if (!anyPreviewPlaying && autoOpenedPreviewRef.current) {
@@ -240,6 +242,9 @@ export const VideoExportDialog: React.FC<Props> = ({
             onMoveXPerFrameChange={form.setBackgroundMoveXPerFrame}
             moveYPerFrame={form.backgroundMoveYPerFrame}
             onMoveYPerFrameChange={form.setBackgroundMoveYPerFrame}
+            isMovementPreviewPlaying={form.isBackgroundMovePreviewPlaying}
+            onStartMovementPreview={form.startBackgroundMovePreview}
+            onStopMovementPreview={form.stopBackgroundMovePreview}
             bgSize={form.bgSize}
             bgPaddingMode={form.bgPaddingMode}
             onBgPaddingModeChange={form.setBgPaddingMode}

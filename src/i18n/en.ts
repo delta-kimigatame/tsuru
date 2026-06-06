@@ -485,6 +485,8 @@ export const translationEn = {
       backgroundMove: "Move",
       backgroundMoveX: "X move",
       backgroundMoveY: "Y move",
+      backgroundMovePreview: "Move preview",
+      backgroundMovePreviewStop: "Stop move preview",
       on: "ON",
       off: "OFF",
       backgroundStyle_solid: "Solid",

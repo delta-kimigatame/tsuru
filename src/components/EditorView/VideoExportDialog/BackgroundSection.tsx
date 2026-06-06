@@ -1,5 +1,7 @@
 import ClearIcon from "@mui/icons-material/Clear";
 import ImageIcon from "@mui/icons-material/Image";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
 import {
   Box,
   Button,
@@ -61,6 +63,9 @@ type Props = {
   onMoveXPerFrameChange: (v: number) => void;
   moveYPerFrame: number;
   onMoveYPerFrameChange: (v: number) => void;
+  isMovementPreviewPlaying: boolean;
+  onStartMovementPreview: () => void;
+  onStopMovementPreview: () => void;
   bgSize: VideoResolution;
   bgPaddingMode: BgPaddingMode;
   onBgPaddingModeChange: (m: BgPaddingMode) => void;
@@ -98,6 +103,9 @@ export const BackgroundSection: React.FC<Props> = ({
   onMoveXPerFrameChange,
   moveYPerFrame,
   onMoveYPerFrameChange,
+  isMovementPreviewPlaying,
+  onStartMovementPreview,
+  onStopMovementPreview,
   bgSize,
   bgPaddingMode,
   onBgPaddingModeChange,
@@ -272,6 +280,26 @@ export const BackgroundSection: React.FC<Props> = ({
             disabled={!movementEnabled}
             valueMinWidth={64}
           />
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              size="small"
+              variant={isMovementPreviewPlaying ? "outlined" : "contained"}
+              color="primary"
+              startIcon={
+                isMovementPreviewPlaying ? <StopIcon /> : <PlayArrowIcon />
+              }
+              onClick={
+                isMovementPreviewPlaying
+                  ? onStopMovementPreview
+                  : onStartMovementPreview
+              }
+              disabled={!movementEnabled}
+            >
+              {isMovementPreviewPlaying
+                ? t("editor.videoExport.backgroundMovePreviewStop")
+                : t("editor.videoExport.backgroundMovePreview")}
+            </Button>
+          </Box>
         </>
       )}
 
