@@ -53,9 +53,9 @@ export interface PianorollVideoOptions {
   voiceColorLegendEnabled?: boolean;
   /** voiceColor 凡例の表示位置 */
   voiceColorLegendPosition?: VoiceColorLegendPosition;
-  /** voiceColor 凡例の X 位置（%）。0=左端, 100=右端 */
+  /** voiceColor 凡例の X 位置（動画基準%）。0=動画左端, 100=動画右端 */
   voiceColorLegendXPercent?: number;
-  /** voiceColor 凡例の Y 位置（%）。0=上端, 100=下端 */
+  /** voiceColor 凡例の Y 位置（動画基準%）。0=動画上端, 100=動画下端 */
   voiceColorLegendYPercent?: number;
   /** voiceColor 凡例のサイズ倍率。デフォルト 1 */
   voiceColorLegendScale?: number;
@@ -71,9 +71,9 @@ export interface PianorollVideoOptions {
   currentNoteInfoShowIntensity?: boolean;
   /** 現在再生中ノート情報の表示位置 */
   currentNoteInfoPosition?: VoiceColorLegendPosition;
-  /** 現在再生中ノート情報の X 位置（%）。0=左端, 100=右端 */
+  /** 現在再生中ノート情報の X 位置（動画基準%）。0=動画左端, 100=動画右端 */
   currentNoteInfoXPercent?: number;
-  /** 現在再生中ノート情報の Y 位置（%）。0=上端, 100=下端 */
+  /** 現在再生中ノート情報の Y 位置（動画基準%）。0=動画上端, 100=動画下端 */
   currentNoteInfoYPercent?: number;
   /** 現在再生中ノート情報のサイズ倍率。デフォルト 1 */
   currentNoteInfoScale?: number;
@@ -918,7 +918,7 @@ const drawNotesAndPitch = (
 
 const drawVoiceColorLegend = (
   ctx: CanvasRenderingContext2D,
-  rect: LayoutRect,
+  videoRect: LayoutRect,
   opts: PianorollVideoOptions,
   voiceColorMap: Map<string, string> | null,
 ): void => {
@@ -965,37 +965,45 @@ const drawVoiceColorLegend = (
     opts.voiceColorLegendYPercent !== undefined;
   const x = hasPercentPosition
     ? (() => {
-        const xMax = Math.max(rect.x, rect.x + rect.width - legendW);
+        const xMax = Math.max(
+          videoRect.x,
+          videoRect.x + videoRect.width - legendW,
+        );
         return clamp(
-          rect.x +
-            (rect.width * clamp(opts.voiceColorLegendXPercent ?? 0, 0, 100)) /
+          videoRect.x +
+            (videoRect.width *
+              clamp(opts.voiceColorLegendXPercent ?? 0, 0, 100)) /
               100,
-          rect.x,
+          videoRect.x,
           xMax,
         );
       })()
     : (() => {
         const position = opts.voiceColorLegendPosition ?? "topRight";
         return position === "topLeft" || position === "bottomLeft"
-          ? rect.x + margin
-          : rect.x + rect.width - legendW - margin;
+          ? videoRect.x + margin
+          : videoRect.x + videoRect.width - legendW - margin;
       })();
   const y = hasPercentPosition
     ? (() => {
-        const yMax = Math.max(rect.y, rect.y + rect.height - legendH);
+        const yMax = Math.max(
+          videoRect.y,
+          videoRect.y + videoRect.height - legendH,
+        );
         return clamp(
-          rect.y +
-            (rect.height * clamp(opts.voiceColorLegendYPercent ?? 0, 0, 100)) /
+          videoRect.y +
+            (videoRect.height *
+              clamp(opts.voiceColorLegendYPercent ?? 0, 0, 100)) /
               100,
-          rect.y,
+          videoRect.y,
           yMax,
         );
       })()
     : (() => {
         const position = opts.voiceColorLegendPosition ?? "topRight";
         return position === "topLeft" || position === "topRight"
-          ? rect.y + margin
-          : rect.y + rect.height - legendH - margin;
+          ? videoRect.y + margin
+          : videoRect.y + videoRect.height - legendH - margin;
       })();
 
   ctx.fillStyle =
@@ -1038,7 +1046,7 @@ const drawVoiceColorLegend = (
 
 const drawCurrentNoteInfoOverlay = (
   ctx: CanvasRenderingContext2D,
-  rect: LayoutRect,
+  videoRect: LayoutRect,
   opts: PianorollVideoOptions,
   currentNoteIndex: number,
   palette: ThemeColors,
@@ -1104,37 +1112,45 @@ const drawCurrentNoteInfoOverlay = (
     opts.currentNoteInfoYPercent !== undefined;
   const x = hasPercentPosition
     ? (() => {
-        const xMax = Math.max(rect.x, rect.x + rect.width - boxWidth);
+        const xMax = Math.max(
+          videoRect.x,
+          videoRect.x + videoRect.width - boxWidth,
+        );
         return clamp(
-          rect.x +
-            (rect.width * clamp(opts.currentNoteInfoXPercent ?? 0, 0, 100)) /
+          videoRect.x +
+            (videoRect.width *
+              clamp(opts.currentNoteInfoXPercent ?? 0, 0, 100)) /
               100,
-          rect.x,
+          videoRect.x,
           xMax,
         );
       })()
     : (() => {
         const position = opts.currentNoteInfoPosition ?? "bottomLeft";
         return position === "topLeft" || position === "bottomLeft"
-          ? rect.x + margin
-          : rect.x + rect.width - boxWidth - margin;
+          ? videoRect.x + margin
+          : videoRect.x + videoRect.width - boxWidth - margin;
       })();
   const y = hasPercentPosition
     ? (() => {
-        const yMax = Math.max(rect.y, rect.y + rect.height - boxHeight);
+        const yMax = Math.max(
+          videoRect.y,
+          videoRect.y + videoRect.height - boxHeight,
+        );
         return clamp(
-          rect.y +
-            (rect.height * clamp(opts.currentNoteInfoYPercent ?? 0, 0, 100)) /
+          videoRect.y +
+            (videoRect.height *
+              clamp(opts.currentNoteInfoYPercent ?? 0, 0, 100)) /
               100,
-          rect.y,
+          videoRect.y,
           yMax,
         );
       })()
     : (() => {
         const position = opts.currentNoteInfoPosition ?? "bottomLeft";
         return position === "topLeft" || position === "topRight"
-          ? rect.y + margin
-          : rect.y + rect.height - boxHeight - margin;
+          ? videoRect.y + margin
+          : videoRect.y + videoRect.height - boxHeight - margin;
       })();
 
   // ボックスを描画（凡例と同じテーマ依存の色）
@@ -1171,12 +1187,12 @@ export const drawPianorollCurrentNoteInfo = (
   if (options.renderCurrentNoteInfo === false) return;
   if (options.currentNoteInfoEnabled !== true) return;
 
-  const rect = resolveLayoutRect(
-    canvasWidth,
-    canvasHeight,
-    options.layout,
-    options.layoutScale ?? 1,
-  );
+  const videoRect: LayoutRect = {
+    x: 0,
+    y: 0,
+    width: canvasWidth,
+    height: canvasHeight,
+  };
   const palette =
     COLOR_PALLET[options.colorTheme]?.[options.themeMode] ??
     COLOR_PALLET.default.light;
@@ -1185,7 +1201,13 @@ export const drawPianorollCurrentNoteInfo = (
     options.notes,
     options.notesLeftMs,
   );
-  drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
+  drawCurrentNoteInfoOverlay(
+    ctx,
+    videoRect,
+    options,
+    currentNoteIndex,
+    palette,
+  );
 };
 
 const drawSeekbarAndIcon = (
@@ -1250,6 +1272,12 @@ export const drawPianorollVideoFrame = (
     options.layout,
     options.layoutScale ?? 1,
   );
+  const videoRect: LayoutRect = {
+    x: 0,
+    y: 0,
+    width: canvasWidth,
+    height: canvasHeight,
+  };
   const keyboardVisible = options.showKeyboard ?? true;
   const backgroundVisible = options.showBackground ?? true;
   const toneMapWidth = keyboardVisible
@@ -1340,17 +1368,25 @@ export const drawPianorollVideoFrame = (
   if (keyboardVisible) {
     drawKeyboard(ctx, rect, smoothYOffset, options);
   }
-  drawVoiceColorLegend(ctx, rect, options, voiceColorMap);
   const currentNoteIndex = getCurrentNoteIndexByMs(
     currentMs,
     options.notes,
     options.notesLeftMs,
   );
-  if (options.renderCurrentNoteInfo !== false) {
-    drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
-  }
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();
+
+  drawVoiceColorLegend(ctx, videoRect, options, voiceColorMap);
+  if (options.renderCurrentNoteInfo !== false) {
+    drawCurrentNoteInfoOverlay(
+      ctx,
+      videoRect,
+      options,
+      currentNoteIndex,
+      palette,
+    );
+  }
+
   return { yOffset: smoothYOffset };
 };
