@@ -561,6 +561,93 @@ const getTargetYOffset = (
   return proposedYOffset;
 };
 
+/**
+ * 初期 yOffset を決定する。
+ * 必須: 最初のノートが画面内に収まる。
+ * 望ましい: 表示中の x 範囲内ノートを左側優先で可能な限り画面内に収める。
+ */
+const getInitialYOffset = (
+  layoutHeight: number,
+  noteAreaWidth: number,
+  scrollX: number,
+  notes: Note[],
+  notesLeftTicks: number[],
+  horizontalZoom: number,
+  verticalZoom: number,
+): number => {
+  const totalHeight = PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom;
+  const maxOffset = Math.max(0, totalHeight - layoutHeight);
+  const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom;
+
+  if (notes.length === 0) {
+    return clamp(totalHeight / 2 - layoutHeight / 2, 0, maxOffset);
+  }
+
+  const firstCenterY = notenumToPoint(notes[0].notenum, verticalZoom);
+  const preferredOffset = clamp(firstCenterY - layoutHeight / 2, 0, maxOffset);
+
+  let feasibleMin = 0;
+  let feasibleMax = maxOffset;
+  let firstRejectedRange: { lower: number; upper: number } | null = null;
+
+  const applyConstraint = (noteIndex: number): boolean => {
+    const centerY = notenumToPoint(notes[noteIndex].notenum, verticalZoom);
+    const noteTop = centerY - noteHeight / 2;
+    const noteBottom = centerY + noteHeight / 2;
+    const lower = noteBottom - layoutHeight;
+    const upper = noteTop;
+
+    const nextMin = Math.max(feasibleMin, lower);
+    const nextMax = Math.min(feasibleMax, upper);
+    if (nextMin > nextMax) return false;
+
+    feasibleMin = nextMin;
+    feasibleMax = nextMax;
+    return true;
+  };
+
+  // 必須条件: 最初のノートを収める。
+  if (!applyConstraint(0)) {
+    return preferredOffset;
+  }
+
+  // 望ましい条件: 表示 x 範囲内ノートを左側優先で可能な限り収める。
+  const visibleLeft = scrollX;
+  const visibleRight = scrollX + noteAreaWidth;
+  for (let i = 0; i < notes.length; i++) {
+    if (i === 0) continue;
+    const noteX =
+      notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+    const noteWidth =
+      notes[i].length * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+    const noteRight = noteX + noteWidth;
+    if (noteRight < visibleLeft || noteX > visibleRight) continue;
+    if (!applyConstraint(i)) {
+      const centerY = notenumToPoint(notes[i].notenum, verticalZoom);
+      const noteTop = centerY - noteHeight / 2;
+      const noteBottom = centerY + noteHeight / 2;
+      firstRejectedRange = {
+        lower: noteBottom - layoutHeight,
+        upper: noteTop,
+      };
+      break;
+    }
+  }
+
+  // 優先ノート群を崩さない範囲で、最初に破綻したノート側へ可能な限り寄せる。
+  // これにより「まだスクロール余地があるのに見切れ量が大きい」状態を避ける。
+  if (firstRejectedRange) {
+    if (feasibleMin > firstRejectedRange.upper) {
+      return feasibleMin;
+    }
+    if (feasibleMax < firstRejectedRange.lower) {
+      return feasibleMax;
+    }
+  }
+
+  return clamp(preferredOffset, feasibleMin, feasibleMax);
+};
+
 /** ノートエリアのグリッド背景（鍵盤カラー・水平・垂直セパレータ）を描画。鍵盤テキストは含まない。 */
 const drawNoteAreaBackground = (
   ctx: CanvasRenderingContext2D,
@@ -1187,16 +1274,14 @@ export const drawPianorollVideoFrame = (
   const prevYOffset =
     previousState?.yOffset ??
     (() => {
-      // 初期値: 最初のノートを中心に
-      const totalH = PIANOROLL_CONFIG.TOTAL_HEIGHT * options.verticalZoom;
-      const firstY =
-        options.notes.length > 0
-          ? notenumToPoint(options.notes[0].notenum, options.verticalZoom)
-          : totalH / 2;
-      return clamp(
-        firstY - rect.height / 2,
-        0,
-        Math.max(0, totalH - rect.height),
+      return getInitialYOffset(
+        rect.height,
+        noteAreaWidth,
+        scrollX,
+        options.notes,
+        notesLeftTicks,
+        options.horizontalZoom,
+        options.verticalZoom,
       );
     })();
 
