@@ -862,6 +862,7 @@ export const useVideoExportForm = (
         currentNoteInfoXPercent: pianorollCurrentNoteInfoXPercent,
         currentNoteInfoYPercent: pianorollCurrentNoteInfoYPercent,
         currentNoteInfoScale: pianorollCurrentNoteInfoScale,
+        currentNoteInfoLyricLabel: t("editor.noteProperty.lyric"),
         currentNoteInfoVelocityLabel: t("editor.noteProperty.velocity"),
         currentNoteInfoFlagsLabel: t("editor.noteProperty.flags"),
         currentNoteInfoIntensityLabel: t("editor.noteProperty.intensity"),

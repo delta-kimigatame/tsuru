@@ -77,6 +77,8 @@ export interface PianorollVideoOptions {
   currentNoteInfoScale?: number;
   /** 現在再生中ノート情報の子音速度ラベル（i18n 済み文字列） */
   currentNoteInfoVelocityLabel?: string;
+  /** 現在再生中ノート情報の歌詞ラベル（i18n 済み文字列） */
+  currentNoteInfoLyricLabel?: string;
   /** 現在再生中ノート情報のフラグラベル（i18n 済み文字列） */
   currentNoteInfoFlagsLabel?: string;
   /** 現在再生中ノート情報の音量ラベル（i18n 済み文字列） */
@@ -969,9 +971,11 @@ const drawCurrentNoteInfoOverlay = (
 
   // 表示する情報行を構築
   const infoLines: string[] = [];
+  const lyricLabel = opts.currentNoteInfoLyricLabel ?? "Lyric";
   const velocityLabel = opts.currentNoteInfoVelocityLabel ?? "Velocity";
   const flagsLabel = opts.currentNoteInfoFlagsLabel ?? "Flags";
   const intensityLabel = opts.currentNoteInfoIntensityLabel ?? "Intensity";
+  infoLines.push(`${lyricLabel}: ${note.lyric}`);
   if (opts.currentNoteInfoShowVelocity !== false) {
     const velocity = note.velocity ?? 100;
     infoLines.push(`${velocityLabel}: ${velocity}`);
