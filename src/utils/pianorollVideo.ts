@@ -476,9 +476,9 @@ const getCurrentHeadX = (
 };
 
 /**
- * 画面右半分に登場するノートが画面外に出る場合のみスクロール目標を返す。
+ * シークバーより右側に登場するノートが画面外に出る場合のみスクロール目標を返す。
  * シークバーより左のノートは見切れ許容。
- * スクロールによって右半分のいずれかのノートが見切れる場合はスクロールしない。
+ * スクロールによってシークバー右側のいずれかのノートが見切れる場合はスクロールしない。
  */
 const getTargetYOffset = (
   currentYOffset: number,
@@ -491,48 +491,76 @@ const getTargetYOffset = (
   horizontalZoom: number,
   verticalZoom: number,
 ): number => {
-  void seekbarLocalX;
   const totalHeight = PIANOROLL_CONFIG.TOTAL_HEIGHT * verticalZoom;
   const maxOffset = Math.max(0, totalHeight - layoutHeight);
+  const noteHeight = PIANOROLL_CONFIG.KEY_HEIGHT * verticalZoom;
 
   if (notes.length === 0) {
     return clamp(totalHeight / 2 - layoutHeight / 2, 0, maxOffset);
   }
 
   const margin = layoutHeight * PIANOROLL_VIDEO_SCROLL_CONFIG.marginRatio;
-  // 画面中央から右端までを「右半分」として扱う
-  const rightHalfLeft =
-    scrollX + noteAreaWidth * PIANOROLL_VIDEO_SCROLL_CONFIG.rightHalfStartRatio;
-  const rightHalfRight = scrollX + noteAreaWidth;
+  // 判定境界は画面中央ではなく、常にシークバー位置を使用する。
+  // シークバーが中央到達前はより広い範囲を監視し、到達後は従来に近い範囲になる。
+  const rightRegionLeft = scrollX + seekbarLocalX;
+  const rightRegionRight = scrollX + noteAreaWidth;
 
-  // 右半分ノートをすべて画面内に収める yOffset の許容区間 [minAllowed, maxAllowed] を求める。
-  // noteY が [yOffset + margin, yOffset + layoutHeight - margin] に入る必要があるため、
-  // yOffset は [noteY - (layoutHeight - margin), noteY - margin] を満たす。
+  // シークバー右側ノートをすべて画面内に収める yOffset の許容区間 [minAllowed, maxAllowed] を求める。
+  // noteTop >= yOffset + margin かつ noteBottom <= yOffset + layoutHeight - margin
+  // を満たす必要があるため、
+  // yOffset は [noteBottom - (layoutHeight - margin), noteTop - margin] を満たす。
   let minAllowed = -Infinity;
   let maxAllowed = Infinity;
   let anyOffscreen = false;
-  let anyRightHalfNote = false;
+
+  const rightRegionNotes: Array<{
+    x: number;
+    top: number;
+    bottom: number;
+  }> = [];
 
   for (let i = 0; i < notes.length; i++) {
     const noteX =
       notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
-    if (noteX < rightHalfLeft || noteX > rightHalfRight) continue;
-    anyRightHalfNote = true;
+    const noteWidth =
+      notes[i].length * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
+    const noteRight = noteX + noteWidth;
+    if (noteRight < rightRegionLeft || noteX > rightRegionRight) continue;
     const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
+    const noteTop = noteY - noteHeight / 2;
+    const noteBottom = noteY + noteHeight / 2;
+    rightRegionNotes.push({ x: noteX, top: noteTop, bottom: noteBottom });
+  }
+
+  if (rightRegionNotes.length === 0) return currentYOffset;
+
+  // シークバーに近いノートを優先するため、右側範囲の左から順に制約を適用する。
+  rightRegionNotes.sort((a, b) => a.x - b.x);
+
+  let appliedCount = 0;
+  for (const note of rightRegionNotes) {
+    const lower = note.bottom - (layoutHeight - margin);
+    const upper = note.top - margin;
+    const nextMin = Math.max(minAllowed, lower);
+    const nextMax = Math.min(maxAllowed, upper);
+    // すべて同時に収められない場合は、シークバーに近い側を優先して打ち切る。
+    if (nextMin > nextMax) {
+      break;
+    }
+
+    minAllowed = nextMin;
+    maxAllowed = nextMax;
+    appliedCount++;
+
     if (
-      noteY < currentYOffset + margin ||
-      noteY > currentYOffset + layoutHeight - margin
+      note.top < currentYOffset + margin ||
+      note.bottom > currentYOffset + layoutHeight - margin
     ) {
       anyOffscreen = true;
     }
-
-    const lower = noteY - (layoutHeight - margin);
-    const upper = noteY - margin;
-    if (lower > minAllowed) minAllowed = lower;
-    if (upper < maxAllowed) maxAllowed = upper;
   }
 
-  if (!anyRightHalfNote) return currentYOffset;
+  if (appliedCount === 0) return currentYOffset;
   if (!anyOffscreen) return currentYOffset;
 
   const feasibleMin = clamp(minAllowed, 0, maxOffset);
@@ -543,15 +571,12 @@ const getTargetYOffset = (
   // 最小スクロール量: 現在 yOffset に最も近い端へ寄せる。
   const proposedYOffset = clamp(currentYOffset, feasibleMin, feasibleMax);
 
-  // スクロール後に右半分のノートがすべて画面内に収まるかチェック
-  for (let i = 0; i < notes.length; i++) {
-    const noteX =
-      notesLeftTicks[i] * PIANOROLL_CONFIG.NOTES_WIDTH_RATE * horizontalZoom;
-    if (noteX < rightHalfLeft || noteX > rightHalfRight) continue;
-    const noteY = notenumToPoint(notes[i].notenum, verticalZoom);
+  // スクロール後に優先対象ノートが画面内に収まるかチェック
+  for (let i = 0; i < appliedCount; i++) {
+    const note = rightRegionNotes[i];
     if (
-      noteY < proposedYOffset + margin ||
-      noteY > proposedYOffset + layoutHeight - margin
+      note.top < proposedYOffset + margin ||
+      note.bottom > proposedYOffset + layoutHeight - margin
     ) {
       // スクロール後も見切れるノートがある場合はスクロールしない
       return currentYOffset;
