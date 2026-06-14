@@ -25,6 +25,10 @@ export type VoiceColorLegendPosition =
 
 export interface PianorollVideoOptions {
   enabled: boolean;
+  /** ピアノロール描画の更新FPS（30/15/10/5）。動画自体のFPSとは独立。 */
+  pianorollFps?: number;
+  /** 現在再生ノート情報オーバーレイを描画するか。デフォルト true */
+  renderCurrentNoteInfo?: boolean;
   layout: PianorollVideoLayout;
   notes: Note[];
   notesLeftMs: number[];
@@ -1061,6 +1065,34 @@ const drawCurrentNoteInfoOverlay = (
   ctx.restore();
 };
 
+export const drawPianorollCurrentNoteInfo = (
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  currentMs: number,
+  options: PianorollVideoOptions,
+): void => {
+  if (!options.enabled) return;
+  if (options.renderCurrentNoteInfo === false) return;
+  if (options.currentNoteInfoEnabled !== true) return;
+
+  const rect = resolveLayoutRect(
+    canvasWidth,
+    canvasHeight,
+    options.layout,
+    options.layoutScale ?? 1,
+  );
+  const palette =
+    COLOR_PALLET[options.colorTheme]?.[options.themeMode] ??
+    COLOR_PALLET.default.light;
+  const currentNoteIndex = getCurrentNoteIndexByMs(
+    currentMs,
+    options.notes,
+    options.notesLeftMs,
+  );
+  drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
+};
+
 const drawSeekbarAndIcon = (
   ctx: CanvasRenderingContext2D,
   rect: LayoutRect,
@@ -1221,7 +1253,9 @@ export const drawPianorollVideoFrame = (
     options.notes,
     options.notesLeftMs,
   );
-  drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
+  if (options.renderCurrentNoteInfo !== false) {
+    drawCurrentNoteInfoOverlay(ctx, rect, options, currentNoteIndex, palette);
+  }
   drawSeekbarAndIcon(ctx, rect, noteAreaX, noteAreaWidth, seekbarX, options);
 
   ctx.restore();

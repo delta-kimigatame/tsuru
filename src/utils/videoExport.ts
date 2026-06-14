@@ -11,9 +11,13 @@ import {
   type AudioCodec,
   type VideoCodec,
 } from "mediabunny";
-import { PIANOROLL_VIDEO_ICON_CONFIG } from "../config/pianoroll";
+import {
+  DEFAULT_PIANOROLL_VIDEO_FPS,
+  PIANOROLL_VIDEO_ICON_CONFIG,
+} from "../config/pianoroll";
 import type { Note } from "../lib/Note";
 import {
+  drawPianorollCurrentNoteInfo,
   drawPianorollVideoFrame,
   type PianorollRenderState,
   type PianorollVideoOptions,
@@ -2119,15 +2123,47 @@ export const generateMp4 = async (
     bitrate: 128e3,
   });
 
-  output.addVideoTrack(videoSource, { frameRate: 30 });
+  const VIDEO_FRAME_RATE = 30;
+  output.addVideoTrack(videoSource, { frameRate: VIDEO_FRAME_RATE });
   output.addAudioTrack(audioSource);
 
   await output.start();
 
   // 映像フレームの生成（30fps 固定）
-  const FRAME_RATE = 30;
+  const FRAME_RATE = VIDEO_FRAME_RATE;
   const frameDuration = 1 / FRAME_RATE;
   const totalFrames = Math.ceil(durationSec * FRAME_RATE);
+
+  const normalizePianorollFps = (
+    value?: number,
+  ): 30 | 15 | 10 | 5 | 3 | 2 | 1 => {
+    if (
+      value === 30 ||
+      value === 15 ||
+      value === 10 ||
+      value === 5 ||
+      value === 3 ||
+      value === 2 ||
+      value === 1
+    ) {
+      return value;
+    }
+    return DEFAULT_PIANOROLL_VIDEO_FPS;
+  };
+
+  const pianorollRenderFps = normalizePianorollFps(
+    effectivePianorollOptions?.pianorollFps,
+  );
+  const pianorollBucketDurationMs = 1000 / pianorollRenderFps;
+  let lastPianorollBucket: number | null = null;
+  let pianorollLayerCanvas: HTMLCanvasElement | null = null;
+  let pianorollLayerCtx: CanvasRenderingContext2D | null = null;
+  if (effectivePianorollOptions?.enabled) {
+    pianorollLayerCanvas = canvas.ownerDocument.createElement("canvas");
+    pianorollLayerCanvas.width = cW;
+    pianorollLayerCanvas.height = cH;
+    pianorollLayerCtx = pianorollLayerCanvas.getContext("2d");
+  }
 
   for (let f = 0; f < totalFrames; f++) {
     const tSec = f * frameDuration;
@@ -2136,15 +2172,30 @@ export const generateMp4 = async (
 
     drawBase(f);
 
-    if (effectivePianorollOptions?.enabled) {
-      pianorollState = drawPianorollVideoFrame(
-        ctx,
-        cW,
-        cH,
-        tMs,
-        effectivePianorollOptions,
-        pianorollState,
-      );
+    if (effectivePianorollOptions?.enabled && pianorollLayerCanvas) {
+      const bucket = Math.floor(tMs / pianorollBucketDurationMs);
+      if (bucket !== lastPianorollBucket && pianorollLayerCtx) {
+        pianorollLayerCtx.clearRect(0, 0, cW, cH);
+        pianorollState = drawPianorollVideoFrame(
+          pianorollLayerCtx,
+          cW,
+          cH,
+          tMs,
+          {
+            ...effectivePianorollOptions,
+            renderCurrentNoteInfo: false,
+          },
+          pianorollState,
+        );
+        lastPianorollBucket = bucket;
+      }
+      ctx.drawImage(pianorollLayerCanvas, 0, 0, cW, cH);
+
+      // ノート情報オーバーレイだけは動画30fpsに合わせて毎フレーム更新する。
+      drawPianorollCurrentNoteInfo(ctx, cW, cH, tMs, {
+        ...effectivePianorollOptions,
+        renderCurrentNoteInfo: true,
+      });
     }
 
     // 立絵の描画（ピアノロールより前面・文字より後面）

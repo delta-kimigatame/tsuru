@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { COLOR_PALLET } from "../config/pallet";
 import {
   DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  DEFAULT_PIANOROLL_VIDEO_FPS,
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
   PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
   PIANOROLL_VIDEO_ICON_CONFIG,
@@ -166,6 +167,7 @@ import type { Note } from "../lib/Note";
 import type { ColorTheme } from "../types/colorTheme";
 import {
   buildPianorollVoiceColorMap,
+  drawPianorollCurrentNoteInfo,
   drawPianorollVideoFrame,
   getOneStepSmallerZoom,
   type PianorollRenderState,
@@ -727,6 +729,9 @@ export const useVideoExportForm = (
     React.useState<number>(() =>
       getOneStepSmallerZoom(verticalZoom, PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS),
     );
+  const [pianorollFps, setPianorollFps] = React.useState<number>(
+    DEFAULT_PIANOROLL_VIDEO_FPS,
+  );
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
@@ -836,6 +841,7 @@ export const useVideoExportForm = (
         themeMode: pianorollThemeMode,
         horizontalZoom: pianorollHorizontalZoom,
         verticalZoom: pianorollVerticalZoom,
+        pianorollFps,
         tone,
         isMinor,
         voiceIconImage,
@@ -870,6 +876,7 @@ export const useVideoExportForm = (
       pianorollThemeMode,
       pianorollHorizontalZoom,
       pianorollVerticalZoom,
+      pianorollFps,
       tone,
       isMinor,
       voiceIconImage,
@@ -1442,6 +1449,7 @@ export const useVideoExportForm = (
           PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
         ),
       );
+      setPianorollFps(DEFAULT_PIANOROLL_VIDEO_FPS);
       setPianorollLayout(null);
       setPianorollVoiceColorLegendPosition("topRight");
       setPianorollVoiceColorLegendXPercent(98);
@@ -1628,6 +1636,33 @@ export const useVideoExportForm = (
     setPortraitYOffset((prev) => Math.max(prev, portraitYOffsetMin));
   }, [portraitYOffsetMin]);
 
+  const normalizePianorollFps = React.useCallback((value?: number) => {
+    if (
+      value === 30 ||
+      value === 15 ||
+      value === 10 ||
+      value === 5 ||
+      value === 3 ||
+      value === 2 ||
+      value === 1
+    ) {
+      return value;
+    }
+    return DEFAULT_PIANOROLL_VIDEO_FPS;
+  }, []);
+
+  const previewPianorollLayerCanvasRef = React.useRef<HTMLCanvasElement | null>(
+    null,
+  );
+  const previewPianorollLastBucketRef = React.useRef<number | null>(null);
+  const previewPianorollLastVersionRef = React.useRef<number>(0);
+  const previewPianorollVersionRef = React.useRef<number>(1);
+
+  React.useEffect(() => {
+    previewPianorollVersionRef.current += 1;
+    previewPianorollLastBucketRef.current = null;
+  }, [pianorollPreviewOptions]);
+
   const renderPreviewBase = React.useCallback(
     (
       ctx: CanvasRenderingContext2D,
@@ -1692,20 +1727,63 @@ export const useVideoExportForm = (
 
       let nextPianorollState = timeline?.pianorollState;
       if (pianorollPreviewOptions) {
+        const pianorollFps = normalizePianorollFps(
+          pianorollPreviewOptions.pianorollFps,
+        );
+        const bucketDurationMs = 1000 / pianorollFps;
+        const currentMs = timeline?.currentMs ?? 0;
+        const currentBucket = Math.floor(currentMs / bucketDurationMs);
         const scaledPianorollOpts = {
           ...pianorollPreviewOptions,
           horizontalZoom: pianorollPreviewOptions.horizontalZoom * prevScale,
           verticalZoom: pianorollPreviewOptions.verticalZoom * prevScale,
           layoutScale: prevScale,
+          renderCurrentNoteInfo: false,
         };
-        nextPianorollState = drawPianorollVideoFrame(
-          ctx,
-          pw,
-          ph,
-          timeline?.currentMs ?? 0,
-          scaledPianorollOpts,
-          timeline?.pianorollState,
-        );
+
+        const ownerDocument = canvas.ownerDocument;
+        if (!previewPianorollLayerCanvasRef.current) {
+          previewPianorollLayerCanvasRef.current =
+            ownerDocument.createElement("canvas");
+          previewPianorollLastBucketRef.current = null;
+        }
+        const layerCanvas = previewPianorollLayerCanvasRef.current;
+        if (layerCanvas.width !== pw || layerCanvas.height !== ph) {
+          layerCanvas.width = pw;
+          layerCanvas.height = ph;
+          previewPianorollLastBucketRef.current = null;
+        }
+
+        const shouldRedrawPianoroll =
+          previewPianorollLastBucketRef.current !== currentBucket ||
+          previewPianorollLastVersionRef.current !==
+            previewPianorollVersionRef.current;
+
+        if (shouldRedrawPianoroll) {
+          const layerCtx = layerCanvas.getContext("2d");
+          if (layerCtx) {
+            layerCtx.clearRect(0, 0, pw, ph);
+            nextPianorollState = drawPianorollVideoFrame(
+              layerCtx,
+              pw,
+              ph,
+              currentMs,
+              scaledPianorollOpts,
+              timeline?.pianorollState,
+            );
+            previewPianorollLastBucketRef.current = currentBucket;
+            previewPianorollLastVersionRef.current =
+              previewPianorollVersionRef.current;
+          }
+        }
+
+        ctx.drawImage(layerCanvas, 0, 0, pw, ph);
+
+        // ノート情報オーバーレイは常に30fps相当（毎フレーム）で更新する。
+        drawPianorollCurrentNoteInfo(ctx, pw, ph, currentMs, {
+          ...scaledPianorollOpts,
+          renderCurrentNoteInfo: true,
+        });
       }
 
       if (showPortrait && portraitImage) {
@@ -1913,6 +1991,7 @@ export const useVideoExportForm = (
       subTextFontFamily,
       textDisplayTiming,
       waveformOptions,
+      normalizePianorollFps,
     ],
   );
 
@@ -2914,6 +2993,8 @@ export const useVideoExportForm = (
     setPianorollHorizontalZoom,
     pianorollVerticalZoom,
     setPianorollVerticalZoom,
+    pianorollFps,
+    setPianorollFps,
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,

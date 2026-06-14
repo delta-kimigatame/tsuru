@@ -14,6 +14,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  PIANOROLL_VIDEO_FPS_OPTIONS,
   PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
   PIANOROLL_VIDEO_LAYOUTS,
   PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
@@ -31,6 +32,7 @@ type Props = {
   themeMode: "light" | "dark";
   horizontalZoom: number;
   verticalZoom: number;
+  fps: number;
   extraContentWhenEnabled?: React.ReactNode;
   onEnabledChange: (v: boolean) => void;
   onLayoutChange: (v: PianorollVideoLayout) => void;
@@ -38,6 +40,7 @@ type Props = {
   onThemeModeChange: (v: "light" | "dark") => void;
   onHorizontalZoomChange: (v: number) => void;
   onVerticalZoomChange: (v: number) => void;
+  onFpsChange: (v: number) => void;
   onApplyThemeToOutside: () => void;
   showKeyboard: boolean;
   showBackground: boolean;
@@ -86,6 +89,7 @@ export const PianorollSection: React.FC<Props> = ({
   themeMode,
   horizontalZoom,
   verticalZoom,
+  fps,
   extraContentWhenEnabled,
   onEnabledChange,
   onLayoutChange,
@@ -93,6 +97,7 @@ export const PianorollSection: React.FC<Props> = ({
   onThemeModeChange,
   onHorizontalZoomChange,
   onVerticalZoomChange,
+  onFpsChange,
   onApplyThemeToOutside,
   showKeyboard,
   showBackground,
@@ -238,6 +243,29 @@ export const PianorollSection: React.FC<Props> = ({
             {PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS.map((zoom) => (
               <MenuItem key={zoom} value={zoom}>
                 <Typography variant="body2">{`${zoom}x`}</Typography>
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1.25, mb: 0.5, display: "block" }}
+          >
+            {t("editor.videoExport.pianorollFps")}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={fps}
+            onChange={(e) => onFpsChange(Number(e.target.value))}
+            sx={{ bgcolor: "background.paper" }}
+          >
+            {PIANOROLL_VIDEO_FPS_OPTIONS.map((value) => (
+              <MenuItem key={value} value={value}>
+                <Typography variant="body2">
+                  {t(`editor.videoExport.pianorollFps_${value}`)}
+                </Typography>
               </MenuItem>
             ))}
           </Select>
