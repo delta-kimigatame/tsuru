@@ -88,7 +88,7 @@ export const PIANOROLL_VIDEO_LAYOUT_CONFIG = {
 export const PIANOROLL_VIDEO_SCROLL_CONFIG = {
   rightHalfStartRatio: 0.5,
   marginRatio: 0.1,
-  yOffsetLerpFactor: 0.03,
+  yOffsetLerpFactor: 0.1,
 };
 
 /** 動画エクスポート用テキスト描画パラメータ */
