@@ -670,6 +670,7 @@ export const translationPt = {
       voiceColorLegendYPercent: "Y da legenda (%)",
       voiceColorLegendScale: "Tamanho da legenda",
       currentNoteInfoEnabled: "Informações da nota atual",
+      currentNoteInfoShowLyric: "Mostrar letra",
       currentNoteInfoShowVelocity: "Mostrar velocidade",
       currentNoteInfoShowFlags: "Mostrar sinalizadores",
       currentNoteInfoShowIntensity: "Mostrar intensidade",

@@ -650,6 +650,7 @@ export const translationZh = {
       voiceColorLegendYPercent: "图例 Y位置(%)",
       voiceColorLegendScale: "图例大小",
       currentNoteInfoEnabled: "当前音符信息",
+      currentNoteInfoShowLyric: "显示歌词",
       currentNoteInfoShowVelocity: "显示子音速度",
       currentNoteInfoShowFlags: "显示标志",
       currentNoteInfoShowIntensity: "显示强度",

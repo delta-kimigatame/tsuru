@@ -63,10 +63,12 @@ type Props = {
   onVoiceColorLegendScaleChange: (v: number) => void;
   onVoiceColorMapChange: (key: string, color: string) => void;
   currentNoteInfoEnabled: boolean;
+  currentNoteInfoShowLyric: boolean;
   currentNoteInfoShowVelocity: boolean;
   currentNoteInfoShowFlags: boolean;
   currentNoteInfoShowIntensity: boolean;
   onCurrentNoteInfoEnabledChange: (v: boolean) => void;
+  onCurrentNoteInfoShowLyricChange: (v: boolean) => void;
   onCurrentNoteInfoShowVelocityChange: (v: boolean) => void;
   onCurrentNoteInfoShowFlagsChange: (v: boolean) => void;
   onCurrentNoteInfoShowIntensityChange: (v: boolean) => void;
@@ -120,10 +122,12 @@ export const PianorollSection: React.FC<Props> = ({
   onVoiceColorLegendScaleChange,
   onVoiceColorMapChange,
   currentNoteInfoEnabled,
+  currentNoteInfoShowLyric,
   currentNoteInfoShowVelocity,
   currentNoteInfoShowFlags,
   currentNoteInfoShowIntensity,
   onCurrentNoteInfoEnabledChange,
+  onCurrentNoteInfoShowLyricChange,
   onCurrentNoteInfoShowVelocityChange,
   onCurrentNoteInfoShowFlagsChange,
   onCurrentNoteInfoShowIntensityChange,
@@ -529,6 +533,22 @@ export const PianorollSection: React.FC<Props> = ({
 
             {currentNoteInfoEnabled && (
               <Stack spacing={0.75} sx={{ pl: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={currentNoteInfoShowLyric}
+                      onChange={(e) =>
+                        onCurrentNoteInfoShowLyricChange(e.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">
+                      {t("editor.videoExport.currentNoteInfoShowLyric")}
+                    </Typography>
+                  }
+                />
                 <FormControlLabel
                   control={
                     <Checkbox

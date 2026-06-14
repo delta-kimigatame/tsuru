@@ -578,6 +578,7 @@ export const VideoEditorView: React.FC<Props> = ({
             }
             onVoiceColorMapChange={form.handlePianorollVoiceColorChange}
             currentNoteInfoEnabled={form.pianorollCurrentNoteInfoEnabled}
+            currentNoteInfoShowLyric={form.pianorollCurrentNoteInfoShowLyric}
             currentNoteInfoShowVelocity={
               form.pianorollCurrentNoteInfoShowVelocity
             }
@@ -587,6 +588,9 @@ export const VideoEditorView: React.FC<Props> = ({
             }
             onCurrentNoteInfoEnabledChange={
               form.setPianorollCurrentNoteInfoEnabled
+            }
+            onCurrentNoteInfoShowLyricChange={
+              form.setPianorollCurrentNoteInfoShowLyric
             }
             onCurrentNoteInfoShowVelocityChange={
               form.setPianorollCurrentNoteInfoShowVelocity

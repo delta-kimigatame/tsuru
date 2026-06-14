@@ -663,6 +663,7 @@ export const translationJa = {
       voiceColorLegendYPercent: "凡例 Y位置(%)",
       voiceColorLegendScale: "凡例サイズ",
       currentNoteInfoEnabled: "現在再生ノート情報",
+      currentNoteInfoShowLyric: "歌詞を表示",
       currentNoteInfoShowVelocity: "子音速度を表示",
       currentNoteInfoShowFlags: "フラグを表示",
       currentNoteInfoShowIntensity: "音量を表示",

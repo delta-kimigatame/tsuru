@@ -660,6 +660,7 @@ export const translationEn = {
       voiceColorLegendYPercent: "Legend Y (%)",
       voiceColorLegendScale: "Legend size",
       currentNoteInfoEnabled: "Current note info",
+      currentNoteInfoShowLyric: "Show lyric",
       currentNoteInfoShowVelocity: "Show velocity",
       currentNoteInfoShowFlags: "Show flags",
       currentNoteInfoShowIntensity: "Show intensity",

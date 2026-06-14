@@ -764,6 +764,10 @@ export const useVideoExportForm = (
   const [pianorollCurrentNoteInfoEnabled, setPianorollCurrentNoteInfoEnabled] =
     React.useState(false);
   const [
+    pianorollCurrentNoteInfoShowLyric,
+    setPianorollCurrentNoteInfoShowLyric,
+  ] = React.useState(true);
+  const [
     pianorollCurrentNoteInfoShowVelocity,
     setPianorollCurrentNoteInfoShowVelocity,
   ] = React.useState(true);
@@ -855,6 +859,7 @@ export const useVideoExportForm = (
         voiceColorLegendYPercent: pianorollVoiceColorLegendYPercent,
         voiceColorLegendScale: pianorollVoiceColorLegendScale,
         currentNoteInfoEnabled: pianorollCurrentNoteInfoEnabled,
+        currentNoteInfoShowLyric: pianorollCurrentNoteInfoShowLyric,
         currentNoteInfoShowVelocity: pianorollCurrentNoteInfoShowVelocity,
         currentNoteInfoShowFlags: pianorollCurrentNoteInfoShowFlags,
         currentNoteInfoShowIntensity: pianorollCurrentNoteInfoShowIntensity,
@@ -891,6 +896,7 @@ export const useVideoExportForm = (
       pianorollVoiceColorLegendYPercent,
       pianorollVoiceColorLegendScale,
       pianorollCurrentNoteInfoEnabled,
+      pianorollCurrentNoteInfoShowLyric,
       pianorollCurrentNoteInfoShowVelocity,
       pianorollCurrentNoteInfoShowFlags,
       pianorollCurrentNoteInfoShowIntensity,
@@ -1457,6 +1463,7 @@ export const useVideoExportForm = (
       setPianorollVoiceColorLegendYPercent(2);
       setPianorollVoiceColorLegendScale(1);
       setPianorollCurrentNoteInfoEnabled(false);
+      setPianorollCurrentNoteInfoShowLyric(true);
       setPianorollCurrentNoteInfoShowVelocity(true);
       setPianorollCurrentNoteInfoShowFlags(true);
       setPianorollCurrentNoteInfoShowIntensity(true);
@@ -3017,6 +3024,8 @@ export const useVideoExportForm = (
     setPianorollVoiceColorLegendScale,
     pianorollCurrentNoteInfoEnabled,
     setPianorollCurrentNoteInfoEnabled,
+    pianorollCurrentNoteInfoShowLyric,
+    setPianorollCurrentNoteInfoShowLyric,
     pianorollCurrentNoteInfoShowVelocity,
     setPianorollCurrentNoteInfoShowVelocity,
     pianorollCurrentNoteInfoShowFlags,
