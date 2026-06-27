@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/06/27\r\n当 oto.ini 中存在空参数时，现在将其读取为 0。",
       "2026/06/14\r\n【新增】扩充了 Video Editor 的背景功能。\r\n【新增】在 Video Editor 的音符信息显示中新增歌词显示。\r\n【修复】支持在 Video Editor 中控制钢琴卷帘 FPS，并将默认值调整为更便于阅读歌词的速度。",
       "2026/06/06\r\n【新增】新增专用 Video Editor 页面。\r\n【新增】为 Video Editor 新增更多背景图案样式。\r\n【新增】在 Video Editor 中可控制标题/致谢的显示时机。\r\n【新增】扩充了 Video Editor 中与钢琴卷帘相关的功能。\r\n【修复】调整了 Video Editor 的布局。",
       "2026/05/27\r\n【修复】修复了在 $Direct=true 的音符中无法正常播放的问题。",
