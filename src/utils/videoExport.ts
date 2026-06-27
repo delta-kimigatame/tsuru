@@ -11,9 +11,13 @@ import {
   type AudioCodec,
   type VideoCodec,
 } from "mediabunny";
-import { PIANOROLL_VIDEO_ICON_CONFIG } from "../config/pianoroll";
+import {
+  DEFAULT_PIANOROLL_VIDEO_FPS,
+  PIANOROLL_VIDEO_ICON_CONFIG,
+} from "../config/pianoroll";
 import type { Note } from "../lib/Note";
 import {
+  drawPianorollCurrentNoteInfo,
   drawPianorollVideoFrame,
   type PianorollRenderState,
   type PianorollVideoOptions,
@@ -54,7 +58,23 @@ export type BackgroundStyle =
   | "stripes"
   | "diagonalStripes"
   | "checkerboard"
-  | "diamonds";
+  | "diamonds"
+  | "crosses"
+  | "brickwork"
+  | "zigzag"
+  | "circles"
+  | "triangles"
+  | "waves"
+  | "starfield"
+  | "clouds"
+  | "woodgrain"
+  | "paper"
+  | "concrete"
+  | "stucco"
+  | "fabric"
+  | "leather";
+
+export type BackgroundGradientType = "lightness" | "saturation" | "alpha";
 
 export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "solid",
@@ -66,6 +86,20 @@ export const BACKGROUND_STYLES: BackgroundStyle[] = [
   "diagonalStripes",
   "checkerboard",
   "diamonds",
+  "crosses",
+  "brickwork",
+  "zigzag",
+  "circles",
+  "triangles",
+  "waves",
+  "starfield",
+  "clouds",
+  "woodgrain",
+  "paper",
+  "concrete",
+  "stucco",
+  "fabric",
+  "leather",
 ];
 
 export interface BackgroundOptions {
@@ -73,9 +107,20 @@ export interface BackgroundOptions {
   primaryColor: string;
   secondaryColor: string;
   secondaryOpacity: number;
+  gradientEnabled?: boolean;
+  gradientType?: BackgroundGradientType;
+  gradientAngleDeg?: number;
+  gradientStartPercent?: number;
+  gradientEndPercent?: number;
+  gradientStrengthPercent?: number;
   size: number;
   gap: number;
   rotation: number;
+  noiseIntensity?: number;
+  seed?: number;
+  movementEnabled?: boolean;
+  moveXPerFrame?: number;
+  moveYPerFrame?: number;
 }
 
 /** スライドイン/アウトの移動方向 */
@@ -127,12 +172,15 @@ export const FONT_STACK =
 export type FontWeight = "normal" | "bold";
 export type FontStyle = "normal" | "italic";
 export type TextAlign = "left" | "center" | "right";
+export type TextDisplayMode = "always" | "intro" | "outro";
 
 /** 動画キャンバスに重ねるテキストオーバーレイの設定 */
 export interface TextOptions {
   text: string;
   /** フォントサイズ（px、出力解像度基準） */
   fontSize: number;
+  /** フォントファミリー。省略時は FONT_STACK を使用 */
+  fontFamily?: string;
   fontWeight: FontWeight;
   fontStyle: FontStyle;
   /** テキストカラー "#rrggbb" */
@@ -142,6 +190,12 @@ export interface TextOptions {
   /** Y 位置（キャンバス高さ基準 %）。テキスト高さの中央が基準点 */
   yPercent: number;
   textAlign: TextAlign;
+  /** 表示タイミング。always: 常時, intro: 最初の歌詞フレーズ開始前, outro: 最後の歌詞フレーズ終了後 */
+  displayMode: TextDisplayMode;
+  /** intro モード時の表示終了時刻（ms）。未指定なら常時表示扱い */
+  introEndMs?: number;
+  /** outro モード時の表示開始時刻（ms）。未指定なら常時表示扱い */
+  outroStartMs?: number;
   shadowEnabled: boolean;
   shadowColor: string;
   shadowBlur: number;
@@ -187,6 +241,8 @@ export interface LyricsOptions {
   segments: LyricsSegment[];
   /** フォントサイズ（px、出力解像度基準）*/
   fontSize: number;
+  /** フォントファミリー。省略時は FONT_STACK を使用 */
+  fontFamily?: string;
   /** テキストカラー "#rrggbb" */
   color: string;
   /** X 位置（キャンバス幅基準 %）。center 固定のため xPercent=50 */
@@ -392,6 +448,115 @@ const drawDiamondPath = (
   ctx.closePath();
 };
 
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+const parseHexColor = (
+  hex: string,
+): { r: number; g: number; b: number } | null => {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 16);
+  return {
+    r: (n >> 16) & 0xff,
+    g: (n >> 8) & 0xff,
+    b: n & 0xff,
+  };
+};
+
+const rgbToHsl = (r: number, g: number, b: number) => {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  let h = 0;
+  const l = (max + min) / 2;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+  }
+  h *= 60;
+  if (h < 0) h += 360;
+  return { h, s: s * 100, l: l * 100 };
+};
+
+const hslToRgb = (h: number, s: number, l: number) => {
+  const sn = s / 100;
+  const ln = l / 100;
+  const c = (1 - Math.abs(2 * ln - 1)) * sn;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = ln - c / 2;
+  let rp = 0;
+  let gp = 0;
+  let bp = 0;
+  if (h < 60) {
+    rp = c;
+    gp = x;
+  } else if (h < 120) {
+    rp = x;
+    gp = c;
+  } else if (h < 180) {
+    gp = c;
+    bp = x;
+  } else if (h < 240) {
+    gp = x;
+    bp = c;
+  } else if (h < 300) {
+    rp = x;
+    bp = c;
+  } else {
+    rp = c;
+    bp = x;
+  }
+  return {
+    r: Math.round((rp + m) * 255),
+    g: Math.round((gp + m) * 255),
+    b: Math.round((bp + m) * 255),
+  };
+};
+
+const rgbaCss = (r: number, g: number, b: number, a: number) =>
+  `rgba(${r}, ${g}, ${b}, ${clamp01(a)})`;
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+const smoothStep = (t: number) => t * t * (3 - 2 * t);
+
+const hash2d = (x: number, y: number, seed: number) => {
+  let h =
+    (Math.imul(x | 0, 374761393) +
+      Math.imul(y | 0, 668265263) +
+      Math.imul(seed | 0, 1442695041)) >>>
+    0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
+};
+
+const hash2d01 = (x: number, y: number, seed: number) =>
+  hash2d(x, y, seed) / 0xffffffff;
+
+const valueNoise2d = (x: number, y: number, seed: number) => {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const u = smoothStep(xf);
+  const v = smoothStep(yf);
+
+  const n00 = hash2d01(xi, yi, seed);
+  const n10 = hash2d01(xi + 1, yi, seed);
+  const n01 = hash2d01(xi, yi + 1, seed);
+  const n11 = hash2d01(xi + 1, yi + 1, seed);
+
+  const nx0 = lerp(n00, n10, u);
+  const nx1 = lerp(n01, n11, u);
+  return lerp(nx0, nx1, v);
+};
+
 const fillRectTiled = (
   ctx: CanvasRenderingContext2D,
   originX: number,
@@ -400,16 +565,24 @@ const fillRectTiled = (
   height: number,
   stepX: number,
   stepY: number,
+  referenceX: number,
+  referenceY: number,
+  phaseX = 0,
+  phaseY = 0,
   drawTile: (x: number, y: number, row: number, col: number) => void,
 ) => {
-  let row = 0;
-  for (let y = originY; y <= originY + height + stepY; y += stepY) {
-    let col = 0;
-    for (let x = originX; x <= originX + width + stepX; x += stepX) {
+  const startX = originX - stepX * 2;
+  const endX = originX + width + stepX * 2;
+  const startY = originY - stepY * 2;
+  const endY = originY + height + stepY * 2;
+  const eps = 1e-7;
+  const startRow = Math.floor((startY - referenceY + phaseY) / stepY + eps);
+  const startCol = Math.floor((startX - referenceX + phaseX) / stepX + eps);
+
+  for (let y = startY, row = startRow; y <= endY + eps; y += stepY, row++) {
+    for (let x = startX, col = startCol; x <= endX + eps; x += stepX, col++) {
       drawTile(x, y, row, col);
-      col += 1;
     }
-    row += 1;
   }
 };
 
@@ -419,6 +592,7 @@ export const drawGeneratedBackground = (
   height: number,
   options: BackgroundOptions,
   scale = 1,
+  frameIndex = 0,
 ): void => {
   const motifSize = Math.max(2, options.size * scale);
   const gap = Math.max(0, options.gap * scale);
@@ -427,12 +601,14 @@ export const drawGeneratedBackground = (
     1,
     Math.max(0, options.secondaryOpacity / 100),
   );
+  const noiseStrength = clamp01((options.noiseIntensity ?? 55) / 100);
+  const noiseSeed = Math.trunc(options.seed ?? 0);
   const rotationRad = (options.rotation * Math.PI) / 180;
   const rotatedBounds = Math.sqrt(width * width + height * height);
   const patternWidth = rotationRad === 0 ? width : rotatedBounds;
   const patternHeight = rotationRad === 0 ? height : rotatedBounds;
-  const originX = rotationRad === 0 ? 0 : -patternWidth / 2;
-  const originY = rotationRad === 0 ? 0 : -patternHeight / 2;
+  const rawOriginX = rotationRad === 0 ? 0 : -patternWidth / 2;
+  const rawOriginY = rotationRad === 0 ? 0 : -patternHeight / 2;
 
   ctx.save();
   ctx.fillStyle = options.primaryColor;
@@ -443,9 +619,100 @@ export const drawGeneratedBackground = (
     return;
   }
 
-  ctx.fillStyle = options.secondaryColor;
-  ctx.strokeStyle = options.secondaryColor;
-  ctx.globalAlpha = secondaryAlpha;
+  const movementEnabled = options.movementEnabled ?? false;
+  const moveXPerFrame = options.moveXPerFrame ?? 0;
+  const moveYPerFrame = options.moveYPerFrame ?? 0;
+  const moveScale = Math.max(0, scale);
+  const travelX = movementEnabled ? moveXPerFrame * moveScale * frameIndex : 0;
+  const travelY = movementEnabled ? moveYPerFrame * moveScale * frameIndex : 0;
+  const normalizeCycleOffset = (v: number) => ((v % cycle) + cycle) % cycle;
+  const wrappedX = movementEnabled ? normalizeCycleOffset(travelX) : 0;
+  const wrappedY = movementEnabled ? normalizeCycleOffset(travelY) : 0;
+  const wrappedPhaseX = -wrappedX;
+  const wrappedPhaseY = wrappedY;
+  // Direction policy: +x moves right, +y moves up.
+  const originX = rawOriginX + wrappedX;
+  const originY = rawOriginY - wrappedY;
+  const drawStartX = originX - cycle;
+  const drawStartY = originY - cycle;
+  const drawEndX = originX + patternWidth + cycle;
+  const drawEndY = originY + patternHeight + cycle;
+
+  const gradientEnabled = options.gradientEnabled ?? false;
+  if (gradientEnabled) {
+    const secondaryRgb = parseHexColor(options.secondaryColor) ?? {
+      r: 255,
+      g: 255,
+      b: 255,
+    };
+    const strength = clamp01((options.gradientStrengthPercent ?? 50) / 100);
+    const type = options.gradientType ?? "alpha";
+    const baseA = secondaryAlpha;
+    const angleDeg = options.gradientAngleDeg ?? 90;
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const ux = Math.cos(angleRad);
+    const uy = -Math.sin(angleRad);
+    const cx = width / 2;
+    const cy = height / 2;
+    const halfDiag = Math.sqrt(width * width + height * height) / 2;
+    const x0 = cx - ux * halfDiag;
+    const y0 = cy - uy * halfDiag;
+    const x1 = cx + ux * halfDiag;
+    const y1 = cy + uy * halfDiag;
+
+    const startRaw = clamp01((options.gradientStartPercent ?? 0) / 100);
+    const endRaw = clamp01((options.gradientEndPercent ?? 100) / 100);
+    const start = Math.min(startRaw, endRaw);
+    const end = Math.max(startRaw, endRaw);
+
+    let targetR = secondaryRgb.r;
+    let targetG = secondaryRgb.g;
+    let targetB = secondaryRgb.b;
+    let targetA = baseA;
+    if (type === "alpha") {
+      targetA = baseA * (1 - strength);
+    } else {
+      const hsl = rgbToHsl(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
+      if (type === "lightness") {
+        hsl.l = Math.min(100, hsl.l + (100 - hsl.l) * strength);
+      } else {
+        hsl.s = Math.min(100, hsl.s + (100 - hsl.s) * strength);
+      }
+      const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+      targetR = rgb.r;
+      targetG = rgb.g;
+      targetB = rgb.b;
+    }
+
+    const baseColor = rgbaCss(
+      secondaryRgb.r,
+      secondaryRgb.g,
+      secondaryRgb.b,
+      baseA,
+    );
+    const targetColor = rgbaCss(targetR, targetG, targetB, targetA);
+    const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+    const edge = 0.0001;
+    if (end - start < edge) {
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(Math.max(0, start - edge), baseColor);
+      gradient.addColorStop(Math.min(1, end + edge), targetColor);
+      gradient.addColorStop(1, targetColor);
+    } else {
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(start, baseColor);
+      gradient.addColorStop(end, targetColor);
+      gradient.addColorStop(1, targetColor);
+    }
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = gradient;
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.fillStyle = options.secondaryColor;
+    ctx.strokeStyle = options.secondaryColor;
+    ctx.globalAlpha = secondaryAlpha;
+  }
+  const basePatternAlpha = gradientEnabled ? 1 : secondaryAlpha;
 
   if (rotationRad !== 0) {
     ctx.translate(width / 2, height / 2);
@@ -463,6 +730,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           ctx.beginPath();
@@ -483,6 +754,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           drawStarPath(
@@ -501,11 +776,11 @@ export const drawGeneratedBackground = (
       const stripe = motifSize;
       ctx.save();
       ctx.globalAlpha = secondaryAlpha * 0.6;
-      for (let x = originX; x < originX + patternWidth + stripe; x += cycle) {
+      for (let x = drawStartX; x < drawEndX + stripe; x += cycle) {
         ctx.fillRect(x, originY, stripe, patternHeight);
       }
-      for (let y = originY; y < originY + patternHeight + stripe; y += cycle) {
-        ctx.fillRect(originX, y, patternWidth, stripe);
+      for (let y = drawStartY; y < drawEndY + stripe; y += cycle) {
+        ctx.fillRect(drawStartX, y, patternWidth + cycle * 2, stripe);
       }
       ctx.restore();
       break;
@@ -513,35 +788,35 @@ export const drawGeneratedBackground = (
     case "grid": {
       const lineWidth = Math.max(1, motifSize * 0.14);
       ctx.lineWidth = lineWidth;
-      for (let x = originX; x <= originX + patternWidth; x += cycle) {
+      for (let x = drawStartX; x <= drawEndX; x += cycle) {
         ctx.beginPath();
-        ctx.moveTo(x, originY);
-        ctx.lineTo(x, originY + patternHeight);
+        ctx.moveTo(x, drawStartY);
+        ctx.lineTo(x, drawEndY);
         ctx.stroke();
       }
-      for (let y = originY; y <= originY + patternHeight; y += cycle) {
+      for (let y = drawStartY; y <= drawEndY; y += cycle) {
         ctx.beginPath();
-        ctx.moveTo(originX, y);
-        ctx.lineTo(originX + patternWidth, y);
+        ctx.moveTo(drawStartX, y);
+        ctx.lineTo(drawEndX, y);
         ctx.stroke();
       }
       break;
     }
     case "stripes": {
-      for (
-        let y = originY;
-        y < originY + patternHeight + motifSize;
-        y += cycle
-      ) {
-        ctx.fillRect(originX, y, patternWidth, motifSize);
+      for (let y = drawStartY; y < drawEndY + motifSize; y += cycle) {
+        ctx.fillRect(drawStartX, y, patternWidth + cycle * 2, motifSize);
       }
       break;
     }
     case "diagonalStripes": {
       ctx.save();
       ctx.rotate(-Math.PI / 4);
-      for (let y = -patternHeight; y < patternHeight; y += cycle) {
-        ctx.fillRect(-patternWidth, y, patternWidth * 2, motifSize);
+      for (
+        let y = drawStartY - patternHeight;
+        y < drawEndY + patternHeight;
+        y += cycle
+      ) {
+        ctx.fillRect(drawStartX - patternWidth, y, patternWidth * 3, motifSize);
       }
       ctx.restore();
       break;
@@ -555,6 +830,10 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row, col) => {
           if ((row + col) % 2 === 0) {
             ctx.fillRect(x, y, motifSize, motifSize);
@@ -573,10 +852,455 @@ export const drawGeneratedBackground = (
         patternHeight,
         cycle,
         cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
         (x, y, row) => {
           const offsetX = row % 2 === 0 ? 0 : cycle / 2;
           drawDiamondPath(ctx, x + offsetX + radius, y + radius, radius);
           ctx.fill();
+        },
+      );
+      break;
+    }
+    case "crosses": {
+      const armHalf = motifSize / 2;
+      const t = Math.max(1, motifSize * 0.25);
+      const halfT = t / 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y) => {
+          const cx = x + cycle / 2;
+          const cy = y + cycle / 2;
+          ctx.beginPath();
+          ctx.moveTo(cx - armHalf, cy - halfT);
+          ctx.lineTo(cx - halfT, cy - halfT);
+          ctx.lineTo(cx - halfT, cy - armHalf);
+          ctx.lineTo(cx + halfT, cy - armHalf);
+          ctx.lineTo(cx + halfT, cy - halfT);
+          ctx.lineTo(cx + armHalf, cy - halfT);
+          ctx.lineTo(cx + armHalf, cy + halfT);
+          ctx.lineTo(cx + halfT, cy + halfT);
+          ctx.lineTo(cx + halfT, cy + armHalf);
+          ctx.lineTo(cx - halfT, cy + armHalf);
+          ctx.lineTo(cx - halfT, cy + halfT);
+          ctx.lineTo(cx - armHalf, cy + halfT);
+          ctx.closePath();
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "brickwork": {
+      const brickW = cycle * 2;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        brickW,
+        cycle,
+        rawOriginX,
+        rawOriginY,
+        wrappedPhaseX,
+        wrappedPhaseY,
+        (x, y, row) => {
+          const xOff = row % 2 === 0 ? 0 : cycle;
+          ctx.fillRect(x + xOff, y, Math.max(1, brickW - gap), motifSize);
+        },
+      );
+      break;
+    }
+    case "zigzag": {
+      const amp = motifSize / 2;
+      const halfCycle = Math.max(1, cycle / 2);
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      for (
+        let zigRow = 0;
+        drawStartY + zigRow * cycle <= drawEndY + amp + cycle;
+        zigRow++
+      ) {
+        const baseY = drawStartY + zigRow * cycle;
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, baseY);
+        let toggle = 0;
+        for (
+          let x = drawStartX + halfCycle;
+          x <= drawEndX + halfCycle;
+          x += halfCycle
+        ) {
+          ctx.lineTo(x, baseY + (toggle % 2 === 0 ? amp : -amp));
+          toggle++;
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+    case "circles": {
+      const radius = motifSize / 2;
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cycle,
+        cycle,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row) => {
+          const offsetX = row % 2 === 0 ? 0 : cycle / 2;
+          ctx.beginPath();
+          ctx.arc(x + offsetX + radius, y + radius, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "triangles": {
+      // 正三角形の高さ = 辺長 × √3/2。列ステップは cycle、行ステップは cycle×√3/2。
+      // 奇数行を cycle/2 ずらすことで gap=0 時に完全なテッセレーションを実現する。
+      const s = motifSize;
+      const h = (s * Math.sqrt(3)) / 2;
+      const colStep = cycle;
+      const rowStep = (colStep * Math.sqrt(3)) / 2;
+      const normalizeOffset = (v: number, period: number) =>
+        ((v % period) + period) % period;
+      const triWrappedX = movementEnabled
+        ? normalizeOffset(travelX, colStep)
+        : 0;
+      const triWrappedY = movementEnabled
+        ? normalizeOffset(travelY, rowStep)
+        : 0;
+      const triOriginX = rawOriginX + triWrappedX;
+      const triOriginY = rawOriginY - triWrappedY;
+      const triPhaseX = travelX;
+      const triPhaseY = travelY;
+      fillRectTiled(
+        ctx,
+        triOriginX,
+        triOriginY,
+        patternWidth,
+        patternHeight,
+        colStep,
+        rowStep,
+        rawOriginX,
+        rawOriginY,
+        triPhaseX,
+        triPhaseY,
+        (x, y, row) => {
+          const xOff = row % 2 === 0 ? 0 : colStep / 2;
+          const tx = x + xOff;
+          ctx.beginPath();
+          ctx.moveTo(tx + s / 2, y); // 頂点（上）
+          ctx.lineTo(tx, y + h); // 左下
+          ctx.lineTo(tx + s, y + h); // 右下
+          ctx.closePath();
+          ctx.fill();
+        },
+      );
+      break;
+    }
+    case "waves": {
+      const amp = motifSize / 2;
+      const step = Math.max(1, cycle / 40);
+      ctx.lineWidth = Math.max(1, motifSize * 0.12);
+      for (
+        let waveRow = 0;
+        drawStartY + waveRow * cycle - amp <= drawEndY + cycle;
+        waveRow++
+      ) {
+        const baseY = drawStartY + waveRow * cycle;
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, baseY);
+        for (let x = originX + step; x <= drawEndX + cycle; x += step) {
+          ctx.lineTo(
+            x,
+            baseY + Math.sin(((x - drawStartX) / cycle) * Math.PI * 2) * amp,
+          );
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+    case "starfield": {
+      const cell = Math.max(2, motifSize * 0.22);
+      const density = 0.05 + noiseStrength * 0.16;
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed);
+          if (r > density) return;
+          const r2 = hash2d01(col + 101, row - 37, noiseSeed);
+          const r3 = hash2d01(col - 211, row + 73, noiseSeed);
+          const px = x + r2 * cell;
+          const py = y + r3 * cell;
+          const size = Math.max(1, motifSize * (0.02 + r3 * 0.06));
+          ctx.globalAlpha =
+            basePatternAlpha * (0.2 + noiseStrength * 0.8) * (0.4 + r2 * 0.6);
+          ctx.fillRect(px, py, size, size);
+          if (r < density * 0.18) {
+            const arm = Math.max(1, size * 2.2);
+            ctx.fillRect(px - arm / 2, py, arm, 1);
+            ctx.fillRect(px, py - arm / 2, 1, arm);
+          }
+        },
+      );
+      break;
+    }
+    case "clouds": {
+      const cell = Math.max(6, motifSize * 0.35);
+      const sx = Math.max(8, motifSize * 1.4);
+      const sy = Math.max(8, motifSize * 1.2);
+      for (let y = drawStartY; y <= drawEndY + cell; y += cell) {
+        for (let x = drawStartX; x <= drawEndX + cell; x += cell) {
+          const n = valueNoise2d(
+            (x + travelX) / sx,
+            (y + travelY) / sy,
+            noiseSeed,
+          );
+          if (n < 0.42) continue;
+          const alpha = ((n - 0.42) / 0.58) * (0.25 + noiseStrength * 0.7);
+          const radius = cell * (0.45 + n * 0.8);
+          ctx.globalAlpha = basePatternAlpha * alpha;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      break;
+    }
+    case "woodgrain": {
+      const yStep = Math.max(2, motifSize * 0.2);
+      const xStep = Math.max(2, motifSize * 0.14);
+      const amp = motifSize * (0.08 + noiseStrength * 0.24);
+      const grainNoiseScaleX = Math.max(8, motifSize * 1.25);
+      const grainNoiseScaleY = Math.max(6, motifSize * 0.38);
+      ctx.lineWidth = Math.max(1, motifSize * 0.08);
+      ctx.globalAlpha = basePatternAlpha * (0.35 + noiseStrength * 0.45);
+      for (let y = drawStartY; y <= drawEndY + yStep; y += yStep) {
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, y);
+        for (let x = drawStartX + xStep; x <= drawEndX + xStep; x += xStep) {
+          const n = valueNoise2d(
+            (x + travelX) / grainNoiseScaleX,
+            (y + travelY) / grainNoiseScaleY,
+            noiseSeed + 17,
+          );
+          const wobble =
+            Math.sin((x / cycle) * Math.PI * 2 + n * Math.PI * 2) * amp;
+          ctx.lineTo(x, y + wobble);
+        }
+        ctx.stroke();
+      }
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        Math.max(12, cycle * 1.6),
+        Math.max(12, cycle * 1.2),
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed + 311);
+          if (r > 0.12 + noiseStrength * 0.18) return;
+          const radius = motifSize * (0.12 + r * 0.28);
+          ctx.globalAlpha = basePatternAlpha * (0.2 + noiseStrength * 0.35);
+          ctx.beginPath();
+          ctx.arc(x + cycle * 0.5, y + cycle * 0.5, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "paper": {
+      const cell = Math.max(2, motifSize * 0.12);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const r = hash2d01(col, row, noiseSeed + 701);
+          if (r > 0.52 + noiseStrength * 0.35) return;
+          const d = 1 + Math.floor(hash2d01(col + 19, row + 23, noiseSeed) * 2);
+          ctx.globalAlpha =
+            basePatternAlpha * (0.06 + noiseStrength * 0.22) * (0.4 + r * 0.6);
+          ctx.fillRect(x, y, d, d);
+        },
+      );
+      break;
+    }
+    case "concrete": {
+      const cell = Math.max(3, motifSize * 0.2);
+      const scaleN = Math.max(8, motifSize * 0.75);
+      for (let y = drawStartY; y <= drawEndY + cell; y += cell) {
+        for (let x = drawStartX; x <= drawEndX + cell; x += cell) {
+          const n = valueNoise2d(
+            (x + travelX) / scaleN,
+            (y + travelY) / scaleN,
+            noiseSeed + 991,
+          );
+          const alpha = (0.08 + noiseStrength * 0.32) * n;
+          ctx.globalAlpha = basePatternAlpha * alpha;
+          ctx.fillRect(x, y, cell, cell);
+          const pit = hash2d01((x / cell) | 0, (y / cell) | 0, noiseSeed + 313);
+          if (pit < 0.08 + noiseStrength * 0.12) {
+            ctx.globalAlpha = basePatternAlpha * (0.14 + noiseStrength * 0.25);
+            ctx.fillRect(
+              x + cell * 0.3,
+              y + cell * 0.3,
+              Math.max(1, cell * 0.35),
+              Math.max(1, cell * 0.35),
+            );
+          }
+        }
+      }
+      break;
+    }
+    case "stucco": {
+      const cell = Math.max(4, motifSize * 0.22);
+      const len = cell * (0.5 + noiseStrength * 0.7);
+      ctx.lineWidth = Math.max(1, motifSize * 0.07);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const n = valueNoise2d(col * 0.35, row * 0.35, noiseSeed + 1499);
+          const angle = (n - 0.5) * Math.PI * (0.35 + noiseStrength * 0.9);
+          const cx = x + cell * 0.5;
+          const cy = y + cell * 0.5;
+          const dx = Math.cos(angle) * len * 0.5;
+          const dy = Math.sin(angle) * len * 0.5;
+          ctx.globalAlpha =
+            basePatternAlpha * (0.12 + n * (0.2 + noiseStrength * 0.3));
+          ctx.beginPath();
+          ctx.moveTo(cx - dx, cy - dy);
+          ctx.lineTo(cx + dx, cy + dy);
+          ctx.stroke();
+        },
+      );
+      break;
+    }
+    case "fabric": {
+      const spacing = Math.max(4, motifSize * 0.25);
+      const weaveNoiseScale = Math.max(8, spacing * 1.6);
+      ctx.lineWidth = Math.max(1, motifSize * 0.06);
+      for (let x = drawStartX; x <= drawEndX + spacing; x += spacing) {
+        const jitter =
+          (valueNoise2d(
+            (x + travelX) / weaveNoiseScale,
+            travelY / weaveNoiseScale,
+            noiseSeed + 1703,
+          ) -
+            0.5) *
+          spacing *
+          0.25;
+        ctx.globalAlpha = basePatternAlpha * (0.18 + noiseStrength * 0.35);
+        ctx.beginPath();
+        ctx.moveTo(x + jitter, drawStartY);
+        ctx.lineTo(x + jitter, drawEndY);
+        ctx.stroke();
+      }
+      for (let y = drawStartY; y <= drawEndY + spacing; y += spacing) {
+        const jitter =
+          (valueNoise2d(
+            travelX / weaveNoiseScale,
+            (y + travelY) / weaveNoiseScale,
+            noiseSeed + 1709,
+          ) -
+            0.5) *
+          spacing *
+          0.25;
+        ctx.globalAlpha = basePatternAlpha * (0.16 + noiseStrength * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(drawStartX, y + jitter);
+        ctx.lineTo(drawEndX, y + jitter);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "leather": {
+      const cell = Math.max(8, motifSize * 0.45);
+      ctx.lineWidth = Math.max(1, motifSize * 0.08);
+      fillRectTiled(
+        ctx,
+        originX,
+        originY,
+        patternWidth,
+        patternHeight,
+        cell,
+        cell,
+        rawOriginX,
+        rawOriginY,
+        travelX,
+        travelY,
+        (x, y, row, col) => {
+          const n = valueNoise2d(col * 0.45, row * 0.45, noiseSeed + 2017);
+          const radius = cell * (0.22 + n * 0.32);
+          const cx = x + cell * 0.5;
+          const cy = y + cell * 0.5;
+          ctx.globalAlpha = basePatternAlpha * (0.12 + noiseStrength * 0.28);
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.stroke();
+          if (n > 0.68) {
+            ctx.globalAlpha = basePatternAlpha * (0.08 + noiseStrength * 0.18);
+            ctx.beginPath();
+            ctx.arc(
+              cx + radius * 0.2,
+              cy - radius * 0.1,
+              radius * 0.45,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fill();
+          }
         },
       );
       break;
@@ -596,8 +1320,16 @@ export const drawVideoBackground = (
   bgImageOpacity: number,
   blurPx = 20,
   backgroundScale = 1,
+  frameIndex = 0,
 ): void => {
-  drawGeneratedBackground(ctx, width, height, background, backgroundScale);
+  drawGeneratedBackground(
+    ctx,
+    width,
+    height,
+    background,
+    backgroundScale,
+    frameIndex,
+  );
 
   if (!image) {
     return;
@@ -636,7 +1368,7 @@ const drawTextOnCanvas = (
   const x = (cW * opts.xPercent) / 100;
   const y = (cH * opts.yPercent) / 100;
   ctx.save();
-  ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${FONT_STACK}`;
+  ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily ? `"${opts.fontFamily}", ${FONT_STACK}` : FONT_STACK}`;
   ctx.textAlign = opts.textAlign;
   ctx.textBaseline = "middle";
   ctx.globalAlpha = 1;
@@ -680,6 +1412,17 @@ const drawTextOnCanvas = (
   ctx.fillStyle = opts.color;
   ctx.fillText(opts.text, x, y);
   ctx.restore();
+};
+
+const shouldDrawTextByMode = (
+  opts: TextOptions,
+  currentMs: number,
+): boolean => {
+  if (opts.displayMode === "always") return true;
+  if (opts.displayMode === "intro") {
+    return opts.introEndMs == null ? true : currentMs < opts.introEndMs;
+  }
+  return opts.outroStartMs == null ? true : currentMs >= opts.outroStartMs;
 };
 
 /**
@@ -746,6 +1489,9 @@ export const drawSubtitleOnCanvas = (
   const maxW = (cW * opts.maxWidthPercent) / 100;
   const minFontSize = 12;
   let fontSize = opts.fontSize;
+  const fontStack = opts.fontFamily
+    ? `"${opts.fontFamily}", ${FONT_STACK}`
+    : FONT_STACK;
 
   // --- フレーズ全体のエフェクト値を計算 ---
   let alpha = 1;
@@ -816,12 +1562,12 @@ export const drawSubtitleOnCanvas = (
   ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+  ctx.font = `normal normal ${fontSize}px ${fontStack}`;
 
   // Step 1: フォントサイズを 2px ずつ縮小して最大幅に収める（scale=1 基準）
   while (fontSize > minFontSize && ctx.measureText(lyric).width > maxW) {
     fontSize -= 2;
-    ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+    ctx.font = `normal normal ${fontSize}px ${fontStack}`;
   }
 
   const cx = (cW * opts.xPercent) / 100;
@@ -970,7 +1716,7 @@ export const drawSubtitleOnCanvas = (
     const N = chars.length;
     const S = opts.staggerIntervalMs;
     const charWidths = chars.map((c) => {
-      ctx.font = `normal normal ${fontSize}px ${FONT_STACK}`;
+      ctx.font = `normal normal ${fontSize}px ${fontStack}`;
       return ctx.measureText(c).width;
     });
 
@@ -1340,7 +2086,7 @@ export const generateMp4 = async (
    * 字幕フレームのたびに呼び出して canvas を上書きするため、副作用なしで完結させる。
    * 描画順序: 背景色1 → 背景色2模様 → 背景画像(拡大) → 背景画像(通常)
    */
-  const drawBase = () => {
+  const drawBase = (frameIndex = 0) => {
     ctx.clearRect(0, 0, cW, cH);
 
     if (resolution === "image" && img) {
@@ -1355,6 +2101,9 @@ export const generateMp4 = async (
         img,
         bgPaddingMode,
         bgImageOpacity,
+        20,
+        1,
+        frameIndex,
       );
     }
   };
@@ -1374,32 +2123,79 @@ export const generateMp4 = async (
     bitrate: 128e3,
   });
 
-  output.addVideoTrack(videoSource, { frameRate: 30 });
+  const VIDEO_FRAME_RATE = 30;
+  output.addVideoTrack(videoSource, { frameRate: VIDEO_FRAME_RATE });
   output.addAudioTrack(audioSource);
 
   await output.start();
 
   // 映像フレームの生成（30fps 固定）
-  const FRAME_RATE = 30;
+  const FRAME_RATE = VIDEO_FRAME_RATE;
   const frameDuration = 1 / FRAME_RATE;
   const totalFrames = Math.ceil(durationSec * FRAME_RATE);
+
+  const normalizePianorollFps = (
+    value?: number,
+  ): 30 | 15 | 10 | 5 | 3 | 2 | 1 => {
+    if (
+      value === 30 ||
+      value === 15 ||
+      value === 10 ||
+      value === 5 ||
+      value === 3 ||
+      value === 2 ||
+      value === 1
+    ) {
+      return value;
+    }
+    return DEFAULT_PIANOROLL_VIDEO_FPS;
+  };
+
+  const pianorollRenderFps = normalizePianorollFps(
+    effectivePianorollOptions?.pianorollFps,
+  );
+  const pianorollBucketDurationMs = 1000 / pianorollRenderFps;
+  let lastPianorollBucket: number | null = null;
+  let pianorollLayerCanvas: HTMLCanvasElement | null = null;
+  let pianorollLayerCtx: CanvasRenderingContext2D | null = null;
+  if (effectivePianorollOptions?.enabled) {
+    pianorollLayerCanvas = canvas.ownerDocument.createElement("canvas");
+    pianorollLayerCanvas.width = cW;
+    pianorollLayerCanvas.height = cH;
+    pianorollLayerCtx = pianorollLayerCanvas.getContext("2d");
+  }
 
   for (let f = 0; f < totalFrames; f++) {
     const tSec = f * frameDuration;
     const tMs = tSec * 1000;
     const dur = Math.min(frameDuration, durationSec - tSec);
 
-    drawBase();
+    drawBase(f);
 
-    if (effectivePianorollOptions?.enabled) {
-      pianorollState = drawPianorollVideoFrame(
-        ctx,
-        cW,
-        cH,
-        tMs,
-        effectivePianorollOptions,
-        pianorollState,
-      );
+    if (effectivePianorollOptions?.enabled && pianorollLayerCanvas) {
+      const bucket = Math.floor(tMs / pianorollBucketDurationMs);
+      if (bucket !== lastPianorollBucket && pianorollLayerCtx) {
+        pianorollLayerCtx.clearRect(0, 0, cW, cH);
+        pianorollState = drawPianorollVideoFrame(
+          pianorollLayerCtx,
+          cW,
+          cH,
+          tMs,
+          {
+            ...effectivePianorollOptions,
+            renderCurrentNoteInfo: false,
+          },
+          pianorollState,
+        );
+        lastPianorollBucket = bucket;
+      }
+      ctx.drawImage(pianorollLayerCanvas, 0, 0, cW, cH);
+
+      // ノート情報オーバーレイだけは動画30fpsに合わせて毎フレーム更新する。
+      drawPianorollCurrentNoteInfo(ctx, cW, cH, tMs, {
+        ...effectivePianorollOptions,
+        renderCurrentNoteInfo: true,
+      });
     }
 
     // 立絵の描画（ピアノロールより前面・文字より後面）
@@ -1436,11 +2232,16 @@ export const generateMp4 = async (
     }
 
     // テキストオーバーレイの描画（立絵より上のレイヤー）
-    if (mainTextOptions) {
-      drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
-    }
-    if (subTextOptions) {
-      drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+    const sharedTextModeSource = mainTextOptions ?? subTextOptions;
+    const shouldDrawSharedText =
+      !sharedTextModeSource || shouldDrawTextByMode(sharedTextModeSource, tMs);
+    if (shouldDrawSharedText) {
+      if (mainTextOptions) {
+        drawTextOnCanvas(ctx, mainTextOptions, cW, cH);
+      }
+      if (subTextOptions) {
+        drawTextOnCanvas(ctx, subTextOptions, cW, cH);
+      }
     }
 
     if (lyricsOptions && lyricsOptions.segments.length > 0) {

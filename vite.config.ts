@@ -69,7 +69,7 @@ export default defineConfig(() => {
                     urlPattern: ({ url }) => {
                       return (
                         /.*\.(js|css|html|png|jpg|jpeg|svg)$/.test(
-                          url.pathname
+                          url.pathname,
                         ) && !url.pathname.startsWith("/utalet/storybook")
                       );
                     },
@@ -108,11 +108,15 @@ export default defineConfig(() => {
       port: 8080,
     },
     worker: {
-      format: "es", // 必要に応じて設定
+      format: "es" as const, // 必要に応じて設定
     },
     build: {
       target: "esnext",
       rollupOptions: {
+        input: {
+          main: "index.html",
+          videoeditor: "videoeditor.html",
+        },
         output: {
           entryFileNames: `assets/[name].js`,
           chunkFileNames: `assets/[name].js`,

@@ -1,7 +1,9 @@
 import type {
+  BackgroundGradientType,
   BackgroundStyle,
   BgPaddingMode,
   SlideDirection,
+  TextDisplayMode,
   VideoResolution,
 } from "../utils/videoExport";
 import type {
@@ -64,12 +66,40 @@ export const DEFAULT_BACKGROUND_STYLE: BackgroundStyle = "solid";
 export const DEFAULT_BACKGROUND_PATTERN_SIZE = 48;
 export const DEFAULT_BACKGROUND_PATTERN_GAP = 24;
 export const DEFAULT_BACKGROUND_PATTERN_ROTATION = 0;
+export const DEFAULT_BACKGROUND_NOISE_INTENSITY = 55;
+export const DEFAULT_BACKGROUND_SEED = 0;
+export const DEFAULT_BACKGROUND_MOVEMENT_ENABLED = false;
+export const DEFAULT_BACKGROUND_MOVE_X_PER_FRAME = 0;
+export const DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME = 0;
+export const BACKGROUND_GRADIENT_TYPES: BackgroundGradientType[] = [
+  "lightness",
+  "saturation",
+  "alpha",
+];
+export const DEFAULT_BACKGROUND_GRADIENT_ENABLED = false;
+export const DEFAULT_BACKGROUND_GRADIENT_TYPE: BackgroundGradientType = "alpha";
+export const DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG = 90;
+export const DEFAULT_BACKGROUND_GRADIENT_START_PERCENT = 0;
+export const DEFAULT_BACKGROUND_GRADIENT_END_PERCENT = 100;
+export const DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT = 50;
+export const BACKGROUND_GRADIENT_ANGLE_MIN = -180;
+export const BACKGROUND_GRADIENT_ANGLE_MAX = 180;
+export const BACKGROUND_GRADIENT_POSITION_MIN = 0;
+export const BACKGROUND_GRADIENT_POSITION_MAX = 100;
+export const BACKGROUND_GRADIENT_STRENGTH_MIN = 0;
+export const BACKGROUND_GRADIENT_STRENGTH_MAX = 100;
 export const BACKGROUND_PATTERN_SIZE_MIN = 2;
 export const BACKGROUND_PATTERN_SIZE_MAX = 200;
 export const BACKGROUND_PATTERN_GAP_MIN = 0;
 export const BACKGROUND_PATTERN_GAP_MAX = 200;
 export const BACKGROUND_PATTERN_ROTATION_MIN = 0;
 export const BACKGROUND_PATTERN_ROTATION_MAX = 360;
+export const BACKGROUND_NOISE_INTENSITY_MIN = 0;
+export const BACKGROUND_NOISE_INTENSITY_MAX = 100;
+export const BACKGROUND_SEED_MIN = 0;
+export const BACKGROUND_SEED_MAX = 9999;
+export const BACKGROUND_MOVE_PER_FRAME_MIN = -20;
+export const BACKGROUND_MOVE_PER_FRAME_MAX = 20;
 export const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 // ---------------------------------------------------------------------------
@@ -261,6 +291,7 @@ export const DEFAULT_SUB_TEXT_STROKE_WIDTH = 3;
 export const DEFAULT_SUB_TEXT_BG_BAR_ENABLED = false;
 export const DEFAULT_SUB_TEXT_BG_BAR_COLOR = "#000000";
 export const DEFAULT_SUB_TEXT_BG_BAR_OPACITY = 60;
+export const DEFAULT_TEXT_DISPLAY_MODE: TextDisplayMode = "always";
 
 // ---------------------------------------------------------------------------
 // 音声波形エフェクトのデフォルト値

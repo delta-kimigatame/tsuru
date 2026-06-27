@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
 import { EDITOR_CONFIG } from "../../config/editor";
 import { useThemeMode } from "../../hooks/useThemeMode";
+import type { VideoExportFormContext } from "../../hooks/useVideoExportForm";
 import { LOG } from "../../lib/Logging";
 import { resampCache } from "../../lib/ResampCache";
 import { SimpleMixMasterService } from "../../services/simpleMixMaster";
@@ -56,6 +57,17 @@ export const EditorView: React.FC<{
     verticalZoom,
   } = useCookieStore();
   const themeMode = useThemeMode();
+  const videoExportFormContext = React.useMemo<VideoExportFormContext>(
+    () => ({
+      colorTheme,
+      horizontalZoom,
+      verticalZoom,
+      tone,
+      isMinor,
+      themeMode,
+    }),
+    [colorTheme, horizontalZoom, verticalZoom, tone, isMinor, themeMode],
+  );
   const synthesisWorker = React.useMemo(() => new SynthesisWorker(), []);
   const mixMasterService = React.useMemo(
     () => new SimpleMixMasterService(),
@@ -950,6 +962,8 @@ export const EditorView: React.FC<{
         notes={notes}
         notesLeftMs={notesLeftMs}
         selectNotesIndex={selectNotesIndex}
+        ustFlags={ustFlags}
+        formContext={videoExportFormContext}
       />
     </>
   );

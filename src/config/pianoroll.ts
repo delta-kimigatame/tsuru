@@ -69,6 +69,8 @@ export const PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS: number[] = [
 export const PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS: number[] = [
   0.01, 0.1, 0.25, 0.5, 1, 2, 4,
 ];
+export const PIANOROLL_VIDEO_FPS_OPTIONS: number[] = [30, 15, 10, 5, 3, 2, 1];
+export const DEFAULT_PIANOROLL_VIDEO_FPS = 3;
 
 /** 動画エクスポート用レイアウトパラメータ */
 export const PIANOROLL_VIDEO_LAYOUT_CONFIG = {
@@ -86,7 +88,7 @@ export const PIANOROLL_VIDEO_LAYOUT_CONFIG = {
 export const PIANOROLL_VIDEO_SCROLL_CONFIG = {
   rightHalfStartRatio: 0.5,
   marginRatio: 0.1,
-  yOffsetLerpFactor: 0.03,
+  yOffsetLerpFactor: 0.1,
 };
 
 /** 動画エクスポート用テキスト描画パラメータ */

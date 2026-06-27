@@ -3,23 +3,47 @@ import { useTranslation } from "react-i18next";
 import { COLOR_PALLET } from "../config/pallet";
 import {
   DEFAULT_PIANOROLL_VIDEO_ENABLED,
+  DEFAULT_PIANOROLL_VIDEO_FPS,
   DEFAULT_PIANOROLL_VIDEO_LAYOUT,
   PIANOROLL_VIDEO_HORIZONTAL_ZOOM_STEPS,
   PIANOROLL_VIDEO_ICON_CONFIG,
   PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
 } from "../config/pianoroll";
 import {
+  BACKGROUND_GRADIENT_ANGLE_MAX,
+  BACKGROUND_GRADIENT_ANGLE_MIN,
+  BACKGROUND_GRADIENT_POSITION_MAX,
+  BACKGROUND_GRADIENT_POSITION_MIN,
+  BACKGROUND_GRADIENT_STRENGTH_MAX,
+  BACKGROUND_GRADIENT_STRENGTH_MIN,
+  BACKGROUND_MOVE_PER_FRAME_MAX,
+  BACKGROUND_MOVE_PER_FRAME_MIN,
+  BACKGROUND_NOISE_INTENSITY_MAX,
+  BACKGROUND_NOISE_INTENSITY_MIN,
   BACKGROUND_PATTERN_GAP_MAX,
   BACKGROUND_PATTERN_GAP_MIN,
   BACKGROUND_PATTERN_ROTATION_MAX,
   BACKGROUND_PATTERN_ROTATION_MIN,
   BACKGROUND_PATTERN_SIZE_MAX,
   BACKGROUND_PATTERN_SIZE_MIN,
+  BACKGROUND_SEED_MAX,
+  BACKGROUND_SEED_MIN,
   BG_MAX_HEIGHT,
   BG_MAX_WIDTH,
+  DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG,
+  DEFAULT_BACKGROUND_GRADIENT_ENABLED,
+  DEFAULT_BACKGROUND_GRADIENT_END_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_START_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT,
+  DEFAULT_BACKGROUND_GRADIENT_TYPE,
+  DEFAULT_BACKGROUND_MOVEMENT_ENABLED,
+  DEFAULT_BACKGROUND_MOVE_X_PER_FRAME,
+  DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME,
+  DEFAULT_BACKGROUND_NOISE_INTENSITY,
   DEFAULT_BACKGROUND_PATTERN_GAP,
   DEFAULT_BACKGROUND_PATTERN_ROTATION,
   DEFAULT_BACKGROUND_PATTERN_SIZE,
+  DEFAULT_BACKGROUND_SEED,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_BG_COLOR,
   DEFAULT_BG_IMAGE_OPACITY,
@@ -103,6 +127,7 @@ import {
   DEFAULT_SUB_TEXT_STROKE_WIDTH,
   DEFAULT_SUB_TEXT_X,
   DEFAULT_SUB_TEXT_Y,
+  DEFAULT_TEXT_DISPLAY_MODE,
   DEFAULT_WAVEFORM_COLOR,
   DEFAULT_WAVEFORM_COLOR_MODE,
   DEFAULT_WAVEFORM_DRAW_METHOD,
@@ -139,21 +164,23 @@ import {
   PREVIEW_MAX_W,
 } from "../config/videoExport";
 import type { Note } from "../lib/Note";
-import { useCookieStore } from "../store/cookieStore";
-import { useMusicProjectStore } from "../store/musicProjectStore";
 import type { ColorTheme } from "../types/colorTheme";
 import {
+  buildPianorollVoiceColorMap,
+  drawPianorollCurrentNoteInfo,
   drawPianorollVideoFrame,
   getOneStepSmallerZoom,
   type PianorollRenderState,
   type PianorollVideoLayout,
   type PianorollVideoOptions,
+  type VoiceColorLegendPosition,
 } from "../utils/pianorollVideo";
 import {
   FONT_STACK,
   drawSubtitleOnCanvas,
   drawVideoBackground,
   extractLyricsSegments,
+  type BackgroundGradientType,
   type BackgroundOptions,
   type BackgroundStyle,
   type BgPaddingMode,
@@ -161,6 +188,7 @@ import {
   type LyricsSegment,
   type PortraitOptions,
   type SlideDirection,
+  type TextDisplayMode,
   type TextOptions,
   type VideoResolution,
 } from "../utils/videoExport";
@@ -171,13 +199,13 @@ import {
   type WaveformColorMode,
   type WaveformDrawMethod,
   type WaveformEffectOptions,
+  type WaveformFftCache,
   type WaveformFftGaugeShape,
   type WaveformFftIconShape,
   type WaveformFftIconStrengthMode,
   type WaveformFftShape,
   type WaveformType,
 } from "../utils/waveformEffect";
-import { useThemeMode } from "./useThemeMode";
 
 type Options = {
   onClose: () => void;
@@ -199,10 +227,24 @@ type Options = {
   voiceIcon?: ArrayBuffer;
   notes?: Note[];
   notesLeftMs?: number[];
+  ustFlags?: string;
   selectNotesIndex?: number[];
 };
 
-export const useVideoExportForm = (open: boolean, options: Options) => {
+export type VideoExportFormContext = {
+  colorTheme: ColorTheme;
+  horizontalZoom: number;
+  verticalZoom: number;
+  tone: number;
+  isMinor: boolean;
+  themeMode: "light" | "dark";
+};
+
+export const useVideoExportForm = (
+  open: boolean,
+  options: Options,
+  context: VideoExportFormContext,
+) => {
   const {
     onClose,
     onConfirm,
@@ -212,11 +254,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     notes,
     notesLeftMs,
     selectNotesIndex,
+    ustFlags,
   } = options;
+  const { colorTheme, horizontalZoom, verticalZoom, tone, isMinor, themeMode } =
+    context;
   const { t } = useTranslation();
-  const { colorTheme, horizontalZoom, verticalZoom } = useCookieStore();
-  const { tone, isMinor } = useMusicProjectStore();
-  const themeMode = useThemeMode();
 
   // アニメーションプレビュー用 refs / state
   const animPreviewRafRef = React.useRef<number | null>(null);
@@ -253,6 +295,31 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_GAP);
   const [backgroundPatternRotation, setBackgroundPatternRotation] =
     React.useState<number>(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+  const [backgroundNoiseIntensity, setBackgroundNoiseIntensity] =
+    React.useState<number>(DEFAULT_BACKGROUND_NOISE_INTENSITY);
+  const [backgroundSeed, setBackgroundSeed] = React.useState<number>(
+    DEFAULT_BACKGROUND_SEED,
+  );
+  const [backgroundMovementEnabled, setBackgroundMovementEnabled] =
+    React.useState<boolean>(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
+  const [backgroundMoveXPerFrame, setBackgroundMoveXPerFrame] =
+    React.useState<number>(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
+  const [backgroundMoveYPerFrame, setBackgroundMoveYPerFrame] =
+    React.useState<number>(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
+  const [backgroundGradientEnabled, setBackgroundGradientEnabled] =
+    React.useState<boolean>(DEFAULT_BACKGROUND_GRADIENT_ENABLED);
+  const [backgroundGradientType, setBackgroundGradientType] =
+    React.useState<BackgroundGradientType>(DEFAULT_BACKGROUND_GRADIENT_TYPE);
+  const [backgroundGradientAngleDeg, setBackgroundGradientAngleDeg] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG);
+  const [backgroundGradientStartPercent, setBackgroundGradientStartPercent] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_START_PERCENT);
+  const [backgroundGradientEndPercent, setBackgroundGradientEndPercent] =
+    React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_END_PERCENT);
+  const [
+    backgroundGradientStrengthPercent,
+    setBackgroundGradientStrengthPercent,
+  ] = React.useState<number>(DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT);
 
   // 解像度
   const [bgSize, setBgSize] = React.useState<VideoResolution>(DEFAULT_BG_SIZE);
@@ -333,6 +400,11 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   );
   const [mainTextBgBarOpacity, setMainTextBgBarOpacity] =
     React.useState<number>(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
+  const [textDisplayMode, setTextDisplayMode] = React.useState<TextDisplayMode>(
+    DEFAULT_TEXT_DISPLAY_MODE,
+  );
+  const [mainTextFontFamily, setMainTextFontFamily] =
+    React.useState<string>("");
 
   // サブテキスト設定
   const [subText, setSubText] = React.useState<string>(() =>
@@ -377,15 +449,37 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const [subTextBgBarOpacity, setSubTextBgBarOpacity] = React.useState<number>(
     DEFAULT_SUB_TEXT_BG_BAR_OPACITY,
   );
+  const [subTextFontFamily, setSubTextFontFamily] = React.useState<string>("");
 
   // 字幕設定
   const [lyricsEnabled, setLyricsEnabled] = React.useState<boolean>(false);
   const [lyricsSegments, setLyricsSegments] = React.useState<LyricsSegment[]>(
     [],
   );
+  const textDisplayTiming = React.useMemo(() => {
+    if (
+      !notes ||
+      !notesLeftMs ||
+      notes.length === 0 ||
+      notesLeftMs.length === 0
+    ) {
+      return null;
+    }
+    const segments = extractLyricsSegments(
+      notes,
+      notesLeftMs,
+      selectNotesIndex ?? [],
+    );
+    if (segments.length === 0) return null;
+    return {
+      introEndMs: segments[0].startMs,
+      outroStartMs: segments[segments.length - 1].endMs,
+    };
+  }, [notes, notesLeftMs, selectNotesIndex]);
   const [lyricsFontSize, setLyricsFontSize] = React.useState<number>(
     DEFAULT_LYRICS_FONT_SIZE,
   );
+  const [lyricsFontFamily, setLyricsFontFamily] = React.useState<string>("");
   const [lyricsColor, setLyricsColor] =
     React.useState<string>(DEFAULT_LYRICS_COLOR);
   const [lyricsYPercent, setLyricsYPercent] = React.useState<number>(
@@ -532,6 +626,33 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       primaryColor: bgColor,
       secondaryColor: bgSecondaryColor,
       secondaryOpacity: Math.min(100, Math.max(0, bgSecondaryOpacity)),
+      gradientEnabled: backgroundStyle !== "solid" && backgroundGradientEnabled,
+      gradientType: backgroundGradientType,
+      gradientAngleDeg: Math.min(
+        BACKGROUND_GRADIENT_ANGLE_MAX,
+        Math.max(BACKGROUND_GRADIENT_ANGLE_MIN, backgroundGradientAngleDeg),
+      ),
+      gradientStartPercent: Math.min(
+        BACKGROUND_GRADIENT_POSITION_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_POSITION_MIN,
+          backgroundGradientStartPercent,
+        ),
+      ),
+      gradientEndPercent: Math.min(
+        BACKGROUND_GRADIENT_POSITION_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_POSITION_MIN,
+          backgroundGradientEndPercent,
+        ),
+      ),
+      gradientStrengthPercent: Math.min(
+        BACKGROUND_GRADIENT_STRENGTH_MAX,
+        Math.max(
+          BACKGROUND_GRADIENT_STRENGTH_MIN,
+          backgroundGradientStrengthPercent,
+        ),
+      ),
       size: Math.min(
         BACKGROUND_PATTERN_SIZE_MAX,
         Math.max(BACKGROUND_PATTERN_SIZE_MIN, backgroundPatternSize),
@@ -544,6 +665,25 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         BACKGROUND_PATTERN_ROTATION_MAX,
         Math.max(BACKGROUND_PATTERN_ROTATION_MIN, backgroundPatternRotation),
       ),
+      noiseIntensity: Math.min(
+        BACKGROUND_NOISE_INTENSITY_MAX,
+        Math.max(BACKGROUND_NOISE_INTENSITY_MIN, backgroundNoiseIntensity),
+      ),
+      seed: Math.round(
+        Math.min(
+          BACKGROUND_SEED_MAX,
+          Math.max(BACKGROUND_SEED_MIN, backgroundSeed),
+        ),
+      ),
+      movementEnabled: backgroundStyle !== "solid" && backgroundMovementEnabled,
+      moveXPerFrame: Math.min(
+        BACKGROUND_MOVE_PER_FRAME_MAX,
+        Math.max(BACKGROUND_MOVE_PER_FRAME_MIN, backgroundMoveXPerFrame),
+      ),
+      moveYPerFrame: Math.min(
+        BACKGROUND_MOVE_PER_FRAME_MAX,
+        Math.max(BACKGROUND_MOVE_PER_FRAME_MIN, backgroundMoveYPerFrame),
+      ),
     }),
     [
       backgroundStyle,
@@ -553,6 +693,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       backgroundPatternSize,
       backgroundPatternGap,
       backgroundPatternRotation,
+      backgroundNoiseIntensity,
+      backgroundSeed,
+      backgroundGradientEnabled,
+      backgroundGradientType,
+      backgroundGradientAngleDeg,
+      backgroundGradientStartPercent,
+      backgroundGradientEndPercent,
+      backgroundGradientStrengthPercent,
+      backgroundMovementEnabled,
+      backgroundMoveXPerFrame,
+      backgroundMoveYPerFrame,
     ],
   );
 
@@ -578,10 +729,102 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     React.useState<number>(() =>
       getOneStepSmallerZoom(verticalZoom, PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS),
     );
+  const [pianorollFps, setPianorollFps] = React.useState<number>(
+    DEFAULT_PIANOROLL_VIDEO_FPS,
+  );
   const [pianorollLayout, setPianorollLayout] =
     React.useState<PianorollVideoLayout | null>(null);
   // pianorollLayout が null の場合は bgSize 変化に追従するデフォルト値を使う
   const effectivePianorollLayout = pianorollLayout ?? defaultPianorollLayout;
+
+  const [pianorollShowKeyboard, setPianorollShowKeyboard] =
+    React.useState(true);
+  const [pianorollShowBackground, setPianorollShowBackground] =
+    React.useState(true);
+  const [pianorollVoiceColorEnabled, setPianorollVoiceColorEnabled] =
+    React.useState(false);
+  const [
+    pianorollVoiceColorLegendEnabled,
+    setPianorollVoiceColorLegendEnabled,
+  ] = React.useState(false);
+  const [
+    pianorollVoiceColorLegendPosition,
+    setPianorollVoiceColorLegendPosition,
+  ] = React.useState<VoiceColorLegendPosition>("topRight");
+  const [
+    pianorollVoiceColorLegendXPercent,
+    setPianorollVoiceColorLegendXPercent,
+  ] = React.useState<number>(98);
+  const [
+    pianorollVoiceColorLegendYPercent,
+    setPianorollVoiceColorLegendYPercent,
+  ] = React.useState<number>(2);
+  const [pianorollVoiceColorLegendScale, setPianorollVoiceColorLegendScale] =
+    React.useState<number>(1);
+  const [pianorollCurrentNoteInfoEnabled, setPianorollCurrentNoteInfoEnabled] =
+    React.useState(false);
+  const [
+    pianorollCurrentNoteInfoShowLyric,
+    setPianorollCurrentNoteInfoShowLyric,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoShowVelocity,
+    setPianorollCurrentNoteInfoShowVelocity,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoShowFlags,
+    setPianorollCurrentNoteInfoShowFlags,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoShowIntensity,
+    setPianorollCurrentNoteInfoShowIntensity,
+  ] = React.useState(true);
+  const [
+    pianorollCurrentNoteInfoPosition,
+    setPianorollCurrentNoteInfoPosition,
+  ] = React.useState<VoiceColorLegendPosition>("bottomLeft");
+  const [
+    pianorollCurrentNoteInfoXPercent,
+    setPianorollCurrentNoteInfoXPercent,
+  ] = React.useState<number>(2);
+  const [
+    pianorollCurrentNoteInfoYPercent,
+    setPianorollCurrentNoteInfoYPercent,
+  ] = React.useState<number>(98);
+  const [pianorollCurrentNoteInfoScale, setPianorollCurrentNoteInfoScale] =
+    React.useState<number>(1);
+  const [pianorollVoiceColorMap, setPianorollVoiceColorMap] = React.useState<
+    Record<string, string>
+  >({});
+
+  const pianorollVoiceColors = React.useMemo<string[]>(() => {
+    if (!notes || notes.length === 0) return [];
+    return Array.from(new Set(notes.map((note) => note.voiceColor ?? ""))).sort(
+      (a, b) => a.localeCompare(b),
+    );
+  }, [notes]);
+
+  const pianorollDefaultVoiceColorMap = React.useMemo<
+    Record<string, string>
+  >(() => {
+    const pallet =
+      COLOR_PALLET[pianorollColorTheme]?.[pianorollThemeMode] ??
+      COLOR_PALLET.default.light;
+    const calculated = buildPianorollVoiceColorMap(
+      notes ?? [],
+      pallet.note,
+      pallet.whiteKey,
+    );
+    return Object.fromEntries(calculated.entries());
+  }, [notes, pianorollColorTheme, pianorollThemeMode]);
+
+  const handlePianorollVoiceColorChange = React.useCallback(
+    (key: string, color: string) => {
+      if (!HEX_RE.test(color)) return;
+      setPianorollVoiceColorMap((prev) => ({ ...prev, [key]: color }));
+    },
+    [],
+  );
 
   const pianorollPreviewOptions =
     React.useMemo<PianorollVideoOptions | null>(() => {
@@ -602,9 +845,33 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         themeMode: pianorollThemeMode,
         horizontalZoom: pianorollHorizontalZoom,
         verticalZoom: pianorollVerticalZoom,
+        pianorollFps,
         tone,
         isMinor,
         voiceIconImage,
+        showKeyboard: pianorollShowKeyboard,
+        showBackground: pianorollShowBackground,
+        voiceColorEnabled: pianorollVoiceColorEnabled,
+        voiceColorMap: pianorollVoiceColorMap,
+        voiceColorLegendEnabled: pianorollVoiceColorLegendEnabled,
+        voiceColorLegendPosition: pianorollVoiceColorLegendPosition,
+        voiceColorLegendXPercent: pianorollVoiceColorLegendXPercent,
+        voiceColorLegendYPercent: pianorollVoiceColorLegendYPercent,
+        voiceColorLegendScale: pianorollVoiceColorLegendScale,
+        currentNoteInfoEnabled: pianorollCurrentNoteInfoEnabled,
+        currentNoteInfoShowLyric: pianorollCurrentNoteInfoShowLyric,
+        currentNoteInfoShowVelocity: pianorollCurrentNoteInfoShowVelocity,
+        currentNoteInfoShowFlags: pianorollCurrentNoteInfoShowFlags,
+        currentNoteInfoShowIntensity: pianorollCurrentNoteInfoShowIntensity,
+        currentNoteInfoPosition: pianorollCurrentNoteInfoPosition,
+        currentNoteInfoXPercent: pianorollCurrentNoteInfoXPercent,
+        currentNoteInfoYPercent: pianorollCurrentNoteInfoYPercent,
+        currentNoteInfoScale: pianorollCurrentNoteInfoScale,
+        currentNoteInfoLyricLabel: t("editor.noteProperty.lyric"),
+        currentNoteInfoVelocityLabel: t("editor.noteProperty.velocity"),
+        currentNoteInfoFlagsLabel: t("editor.noteProperty.flags"),
+        currentNoteInfoIntensityLabel: t("editor.noteProperty.intensity"),
+        ustFlags,
       };
     }, [
       notes,
@@ -615,9 +882,30 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       pianorollThemeMode,
       pianorollHorizontalZoom,
       pianorollVerticalZoom,
+      pianorollFps,
       tone,
       isMinor,
       voiceIconImage,
+      pianorollShowKeyboard,
+      pianorollShowBackground,
+      pianorollVoiceColorEnabled,
+      pianorollVoiceColorMap,
+      pianorollVoiceColorLegendEnabled,
+      pianorollVoiceColorLegendPosition,
+      pianorollVoiceColorLegendXPercent,
+      pianorollVoiceColorLegendYPercent,
+      pianorollVoiceColorLegendScale,
+      pianorollCurrentNoteInfoEnabled,
+      pianorollCurrentNoteInfoShowLyric,
+      pianorollCurrentNoteInfoShowVelocity,
+      pianorollCurrentNoteInfoShowFlags,
+      pianorollCurrentNoteInfoShowIntensity,
+      pianorollCurrentNoteInfoPosition,
+      pianorollCurrentNoteInfoXPercent,
+      pianorollCurrentNoteInfoYPercent,
+      pianorollCurrentNoteInfoScale,
+      t,
+      ustFlags,
     ]);
 
   const applyPianorollThemeToOutside = React.useCallback(() => {
@@ -656,6 +944,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
   const waveformSinePreviewRafRef = React.useRef<number | null>(null);
   const waveformSinePreviewActiveRef = React.useRef(false);
   const [isWaveformSinePreviewPlaying, setIsWaveformSinePreviewPlaying] =
+    React.useState(false);
+  const backgroundMovePreviewRafRef = React.useRef<number | null>(null);
+  const backgroundMovePreviewActiveRef = React.useRef(false);
+  const [isBackgroundMovePreviewPlaying, setIsBackgroundMovePreviewPlaying] =
+    React.useState(false);
+  const timelinePreviewRafRef = React.useRef<number | null>(null);
+  const timelinePreviewActiveRef = React.useRef(false);
+  const [isTimelinePreviewPlaying, setIsTimelinePreviewPlaying] =
     React.useState(false);
 
   const [waveformEnabled, setWaveformEnabled] = React.useState<boolean>(
@@ -852,6 +1148,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     fontSize: number,
     bold: boolean,
     italic: boolean,
+    displayMode: TextDisplayMode,
     color: string,
     xPercent: number,
     yPercent: number,
@@ -864,17 +1161,24 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     bgBarEnabled: boolean,
     bgBarColor: string,
     bgBarOpacity: number,
+    introEndMs: number | undefined,
+    outroStartMs: number | undefined,
+    fontFamily?: string,
   ): TextOptions | null =>
     text.trim()
       ? {
           text,
           fontSize,
+          fontFamily: fontFamily || undefined,
           fontWeight: bold ? "bold" : "normal",
           fontStyle: italic ? "italic" : "normal",
           color,
           xPercent,
           yPercent,
           textAlign: "left",
+          displayMode,
+          introEndMs,
+          outroStartMs,
           shadowEnabled,
           shadowColor,
           shadowBlur,
@@ -906,6 +1210,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextFontSize,
       mainTextBold,
       mainTextItalic,
+      textDisplayMode,
       mainTextColor,
       mainTextX,
       mainTextY,
@@ -918,12 +1223,16 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextBgBarEnabled,
       mainTextBgBarColor,
       mainTextBgBarOpacity,
+      textDisplayTiming?.introEndMs,
+      textDisplayTiming?.outroStartMs,
+      mainTextFontFamily || undefined,
     );
     const subTextOptions = buildTextOptions(
       subText,
       subTextFontSize,
       subTextBold,
       subTextItalic,
+      textDisplayMode,
       subTextColor,
       subTextX,
       subTextY,
@@ -936,6 +1245,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      textDisplayTiming?.introEndMs,
+      textDisplayTiming?.outroStartMs,
+      subTextFontFamily || undefined,
     );
 
     const lyricsOptions: LyricsOptions | null =
@@ -943,6 +1255,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ? {
             segments: lyricsSegments,
             fontSize: lyricsFontSize,
+            fontFamily: lyricsFontFamily || undefined,
             color: lyricsColor,
             xPercent: 50,
             yPercent: lyricsYPercent,
@@ -1029,6 +1342,21 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setBackgroundPatternSize(DEFAULT_BACKGROUND_PATTERN_SIZE);
       setBackgroundPatternGap(DEFAULT_BACKGROUND_PATTERN_GAP);
       setBackgroundPatternRotation(DEFAULT_BACKGROUND_PATTERN_ROTATION);
+      setBackgroundNoiseIntensity(DEFAULT_BACKGROUND_NOISE_INTENSITY);
+      setBackgroundSeed(DEFAULT_BACKGROUND_SEED);
+      setBackgroundGradientEnabled(DEFAULT_BACKGROUND_GRADIENT_ENABLED);
+      setBackgroundGradientType(DEFAULT_BACKGROUND_GRADIENT_TYPE);
+      setBackgroundGradientAngleDeg(DEFAULT_BACKGROUND_GRADIENT_ANGLE_DEG);
+      setBackgroundGradientStartPercent(
+        DEFAULT_BACKGROUND_GRADIENT_START_PERCENT,
+      );
+      setBackgroundGradientEndPercent(DEFAULT_BACKGROUND_GRADIENT_END_PERCENT);
+      setBackgroundGradientStrengthPercent(
+        DEFAULT_BACKGROUND_GRADIENT_STRENGTH_PERCENT,
+      );
+      setBackgroundMovementEnabled(DEFAULT_BACKGROUND_MOVEMENT_ENABLED);
+      setBackgroundMoveXPerFrame(DEFAULT_BACKGROUND_MOVE_X_PER_FRAME);
+      setBackgroundMoveYPerFrame(DEFAULT_BACKGROUND_MOVE_Y_PER_FRAME);
       setBgSize(DEFAULT_BG_SIZE);
       setBgPaddingMode(DEFAULT_PADDING_MODE);
       setBgImageOpacity(DEFAULT_BG_IMAGE_OPACITY);
@@ -1053,6 +1381,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       setMainTextBgBarEnabled(DEFAULT_MAIN_TEXT_BG_BAR_ENABLED);
       setMainTextBgBarColor(DEFAULT_MAIN_TEXT_BG_BAR_COLOR);
       setMainTextBgBarOpacity(DEFAULT_MAIN_TEXT_BG_BAR_OPACITY);
+      setTextDisplayMode(DEFAULT_TEXT_DISPLAY_MODE);
       setSubText(t("editor.videoExport.subTextDefault"));
       setSubTextFontSize(DEFAULT_SUB_TEXT_FONT_SIZE);
       setSubTextX(DEFAULT_SUB_TEXT_X);
@@ -1127,7 +1456,22 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           PIANOROLL_VIDEO_VERTICAL_ZOOM_STEPS,
         ),
       );
+      setPianorollFps(DEFAULT_PIANOROLL_VIDEO_FPS);
       setPianorollLayout(null);
+      setPianorollVoiceColorLegendPosition("topRight");
+      setPianorollVoiceColorLegendXPercent(98);
+      setPianorollVoiceColorLegendYPercent(2);
+      setPianorollVoiceColorLegendScale(1);
+      setPianorollCurrentNoteInfoEnabled(false);
+      setPianorollCurrentNoteInfoShowLyric(true);
+      setPianorollCurrentNoteInfoShowVelocity(true);
+      setPianorollCurrentNoteInfoShowFlags(true);
+      setPianorollCurrentNoteInfoShowIntensity(true);
+      setPianorollCurrentNoteInfoPosition("bottomLeft");
+      setPianorollCurrentNoteInfoXPercent(2);
+      setPianorollCurrentNoteInfoYPercent(98);
+      setPianorollCurrentNoteInfoScale(1);
+      setPianorollVoiceColorMap({});
       setWaveformEnabled(DEFAULT_WAVEFORM_ENABLED);
       setWaveformType(DEFAULT_WAVEFORM_TYPE);
       setWaveformDrawMethod(DEFAULT_WAVEFORM_DRAW_METHOD);
@@ -1300,11 +1644,45 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPortraitYOffset((prev) => Math.max(prev, portraitYOffsetMin));
   }, [portraitYOffsetMin]);
 
+  const normalizePianorollFps = React.useCallback((value?: number) => {
+    if (
+      value === 30 ||
+      value === 15 ||
+      value === 10 ||
+      value === 5 ||
+      value === 3 ||
+      value === 2 ||
+      value === 1
+    ) {
+      return value;
+    }
+    return DEFAULT_PIANOROLL_VIDEO_FPS;
+  }, []);
+
+  const previewPianorollLayerCanvasRef = React.useRef<HTMLCanvasElement | null>(
+    null,
+  );
+  const previewPianorollLastBucketRef = React.useRef<number | null>(null);
+  const previewPianorollLastVersionRef = React.useRef<number>(0);
+  const previewPianorollVersionRef = React.useRef<number>(1);
+
+  React.useEffect(() => {
+    previewPianorollVersionRef.current += 1;
+    previewPianorollLastBucketRef.current = null;
+  }, [pianorollPreviewOptions]);
+
   const renderPreviewBase = React.useCallback(
     (
       ctx: CanvasRenderingContext2D,
       canvas: HTMLCanvasElement,
       img: HTMLImageElement | null,
+      timeline?: {
+        currentMs?: number;
+        waveSamples?: Float32Array | null;
+        waveSampleRate?: number;
+        waveformFftCache?: WaveformFftCache | null;
+        pianorollState?: PianorollRenderState;
+      },
     ) => {
       let outW = 0;
       let outH = 0;
@@ -1337,6 +1715,10 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       if (bgSize === "image") {
         ctx.drawImage(img, 0, 0, pw, ph);
       } else {
+        const frameIndex = Math.max(
+          0,
+          Math.floor((timeline?.currentMs ?? 0) / (1000 / 30)),
+        );
         drawVideoBackground(
           ctx,
           pw,
@@ -1347,25 +1729,69 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
           bgImageOpacity,
           Math.max(1, Math.round(20 * prevScale)),
           prevScale,
+          frameIndex,
         );
       }
 
+      let nextPianorollState = timeline?.pianorollState;
       if (pianorollPreviewOptions) {
-        const initialState: PianorollRenderState = { yOffset: 0 };
+        const pianorollFps = normalizePianorollFps(
+          pianorollPreviewOptions.pianorollFps,
+        );
+        const bucketDurationMs = 1000 / pianorollFps;
+        const currentMs = timeline?.currentMs ?? 0;
+        const currentBucket = Math.floor(currentMs / bucketDurationMs);
         const scaledPianorollOpts = {
           ...pianorollPreviewOptions,
           horizontalZoom: pianorollPreviewOptions.horizontalZoom * prevScale,
           verticalZoom: pianorollPreviewOptions.verticalZoom * prevScale,
           layoutScale: prevScale,
+          renderCurrentNoteInfo: false,
         };
-        drawPianorollVideoFrame(
-          ctx,
-          pw,
-          ph,
-          0,
-          scaledPianorollOpts,
-          initialState,
-        );
+
+        const ownerDocument = canvas.ownerDocument;
+        if (!previewPianorollLayerCanvasRef.current) {
+          previewPianorollLayerCanvasRef.current =
+            ownerDocument.createElement("canvas");
+          previewPianorollLastBucketRef.current = null;
+        }
+        const layerCanvas = previewPianorollLayerCanvasRef.current;
+        if (layerCanvas.width !== pw || layerCanvas.height !== ph) {
+          layerCanvas.width = pw;
+          layerCanvas.height = ph;
+          previewPianorollLastBucketRef.current = null;
+        }
+
+        const shouldRedrawPianoroll =
+          previewPianorollLastBucketRef.current !== currentBucket ||
+          previewPianorollLastVersionRef.current !==
+            previewPianorollVersionRef.current;
+
+        if (shouldRedrawPianoroll) {
+          const layerCtx = layerCanvas.getContext("2d");
+          if (layerCtx) {
+            layerCtx.clearRect(0, 0, pw, ph);
+            nextPianorollState = drawPianorollVideoFrame(
+              layerCtx,
+              pw,
+              ph,
+              currentMs,
+              scaledPianorollOpts,
+              timeline?.pianorollState,
+            );
+            previewPianorollLastBucketRef.current = currentBucket;
+            previewPianorollLastVersionRef.current =
+              previewPianorollVersionRef.current;
+          }
+        }
+
+        ctx.drawImage(layerCanvas, 0, 0, pw, ph);
+
+        // ノート情報オーバーレイは常に30fps相当（毎フレーム）で更新する。
+        drawPianorollCurrentNoteInfo(ctx, pw, ph, currentMs, {
+          ...scaledPianorollOpts,
+          renderCurrentNoteInfo: true,
+        });
       }
 
       if (showPortrait && portraitImage) {
@@ -1395,13 +1821,14 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       if (waveformOptions.enabled) {
         drawWaveformEffect(
           ctx,
-          null,
+          timeline?.waveSamples ?? null,
           waveformOptions,
           pw,
           ph,
-          0,
-          44100,
+          (timeline?.currentMs ?? 0) / 1000,
+          timeline?.waveSampleRate ?? 44100,
           prevScale,
+          timeline?.waveformFftCache ?? undefined,
         );
       }
 
@@ -1422,13 +1849,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         bgBarEnabled: boolean,
         bgBarColor: string,
         bgBarOpacity: number,
+        fontFamily?: string,
       ) => {
         if (!text.trim()) return;
         const scaledSize = Math.max(1, Math.round(fontSize * prevScale));
         const tx = (pw * xPercent) / 100;
         const ty = (ph * yPercent) / 100;
+        const fontStack = fontFamily
+          ? `"${fontFamily}", ${FONT_STACK}`
+          : FONT_STACK;
         ctx.save();
-        ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${FONT_STACK}`;
+        ctx.font = `${italic ? "italic" : "normal"} ${bold ? "bold" : "normal"} ${scaledSize}px ${fontStack}`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.globalAlpha = 1;
@@ -1466,44 +1897,56 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
         ctx.restore();
       };
 
-      drawTextLayer(
-        mainText,
-        mainTextFontSize,
-        mainTextBold,
-        mainTextItalic,
-        mainTextColor,
-        mainTextX,
-        mainTextY,
-        mainTextShadowEnabled,
-        mainTextShadowColor,
-        mainTextShadowBlur,
-        mainTextStrokeEnabled,
-        mainTextStrokeColor,
-        mainTextStrokeWidth,
-        mainTextBgBarEnabled,
-        mainTextBgBarColor,
-        mainTextBgBarOpacity,
-      );
-      drawTextLayer(
-        subText,
-        subTextFontSize,
-        subTextBold,
-        subTextItalic,
-        subTextColor,
-        subTextX,
-        subTextY,
-        subTextShadowEnabled,
-        subTextShadowColor,
-        subTextShadowBlur,
-        subTextStrokeEnabled,
-        subTextStrokeColor,
-        subTextStrokeWidth,
-        subTextBgBarEnabled,
-        subTextBgBarColor,
-        subTextBgBarOpacity,
-      );
+      const shouldRenderTextAtCurrentTime =
+        timeline?.currentMs == null ||
+        !textDisplayTiming ||
+        ((textDisplayMode !== "intro" ||
+          timeline.currentMs < textDisplayTiming.introEndMs) &&
+          (textDisplayMode !== "outro" ||
+            timeline.currentMs >= textDisplayTiming.outroStartMs));
 
-      return { prevScale, pw, ph };
+      if (shouldRenderTextAtCurrentTime) {
+        drawTextLayer(
+          mainText,
+          mainTextFontSize,
+          mainTextBold,
+          mainTextItalic,
+          mainTextColor,
+          mainTextX,
+          mainTextY,
+          mainTextShadowEnabled,
+          mainTextShadowColor,
+          mainTextShadowBlur,
+          mainTextStrokeEnabled,
+          mainTextStrokeColor,
+          mainTextStrokeWidth,
+          mainTextBgBarEnabled,
+          mainTextBgBarColor,
+          mainTextBgBarOpacity,
+          mainTextFontFamily || undefined,
+        );
+        drawTextLayer(
+          subText,
+          subTextFontSize,
+          subTextBold,
+          subTextItalic,
+          subTextColor,
+          subTextX,
+          subTextY,
+          subTextShadowEnabled,
+          subTextShadowColor,
+          subTextShadowBlur,
+          subTextStrokeEnabled,
+          subTextStrokeColor,
+          subTextStrokeWidth,
+          subTextBgBarEnabled,
+          subTextBgBarColor,
+          subTextBgBarOpacity,
+          subTextFontFamily || undefined,
+        );
+      }
+
+      return { prevScale, pw, ph, pianorollState: nextPianorollState };
     },
     [
       bgSize,
@@ -1522,6 +1965,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       mainTextFontSize,
       mainTextBold,
       mainTextItalic,
+      textDisplayMode,
       mainTextColor,
       mainTextX,
       mainTextY,
@@ -1538,6 +1982,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextFontSize,
       subTextBold,
       subTextItalic,
+      textDisplayMode,
       subTextColor,
       subTextX,
       subTextY,
@@ -1550,14 +1995,22 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
       subTextBgBarEnabled,
       subTextBgBarColor,
       subTextBgBarOpacity,
+      mainTextFontFamily,
+      subTextFontFamily,
+      textDisplayTiming,
       waveformOptions,
+      normalizePianorollFps,
     ],
   );
 
   // エクスポートプレビューをキャンバスにレンダリング
   React.useEffect(() => {
     // アニメーションプレビュー中はスキップ
-    if (animPreviewActiveRef.current || waveformSinePreviewActiveRef.current)
+    if (
+      animPreviewActiveRef.current ||
+      waveformSinePreviewActiveRef.current ||
+      backgroundMovePreviewActiveRef.current
+    )
       return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
@@ -1691,6 +2144,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsStaggerIntervalMs,
     isAnimPreviewPlaying,
     isWaveformSinePreviewPlaying,
+    isBackgroundMovePreviewPlaying,
     pianorollPreviewOptions,
     waveformOptions,
   ]);
@@ -1732,6 +2186,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     const lyricsOpts: LyricsOptions = {
       segments: lyricsSegments.length > 0 ? lyricsSegments : [seg],
       fontSize: lyricsFontSize,
+      fontFamily: lyricsFontFamily || undefined,
       color: lyricsColor,
       xPercent: 50,
       yPercent: lyricsYPercent,
@@ -1864,6 +2319,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsBounceInOutDurationMs,
     lyricsStaggerEnabled,
     lyricsStaggerIntervalMs,
+    lyricsFontFamily,
   ]);
 
   /** アニメーションプレビュー停止 */
@@ -1963,6 +2419,324 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setIsWaveformSinePreviewPlaying(false);
   }, []);
 
+  const stopTimelinePreview = React.useCallback(() => {
+    if (timelinePreviewRafRef.current !== null) {
+      cancelAnimationFrame(timelinePreviewRafRef.current);
+      timelinePreviewRafRef.current = null;
+    }
+    timelinePreviewActiveRef.current = false;
+    setIsTimelinePreviewPlaying(false);
+  }, []);
+
+  /** 背景移動プレビュー開始 — 背景移動のみ 1.5 秒ループで確認 */
+  const startBackgroundMovePreview = React.useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (bgSize === "image" && !imagePreviewUrl) return;
+
+    const PREVIEW_DURATION_SEC = 1.5;
+
+    stopAnimPreview();
+    stopWaveformSinePreview();
+    stopTimelinePreview();
+
+    backgroundMovePreviewActiveRef.current = true;
+    const startTime = performance.now();
+    setIsBackgroundMovePreviewPlaying(true);
+
+    const loop = (img: HTMLImageElement | null) => {
+      if (!backgroundMovePreviewActiveRef.current) return;
+      const elapsedSec =
+        ((performance.now() - startTime) / 1000) % PREVIEW_DURATION_SEC;
+      const currentMs = elapsedSec * 1000;
+      const metrics = renderPreviewBase(ctx, canvas, img, { currentMs });
+      if (!metrics) return;
+      backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(img),
+      );
+    };
+
+    if (imagePreviewUrl) {
+      const el = new Image();
+      el.onload = () => {
+        if (!backgroundMovePreviewActiveRef.current) return;
+        backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+          loop(el),
+        );
+      };
+      el.src = imagePreviewUrl;
+    } else {
+      backgroundMovePreviewRafRef.current = requestAnimationFrame(() =>
+        loop(null),
+      );
+    }
+  }, [
+    previewCanvasRef,
+    bgSize,
+    imagePreviewUrl,
+    renderPreviewBase,
+    stopAnimPreview,
+    stopWaveformSinePreview,
+    stopTimelinePreview,
+  ]);
+
+  /** 背景移動プレビュー停止 */
+  const stopBackgroundMovePreview = React.useCallback(() => {
+    if (backgroundMovePreviewRafRef.current !== null) {
+      cancelAnimationFrame(backgroundMovePreviewRafRef.current);
+      backgroundMovePreviewRafRef.current = null;
+    }
+    backgroundMovePreviewActiveRef.current = false;
+    setIsBackgroundMovePreviewPlaying(false);
+  }, []);
+
+  const startTimelinePreview = React.useCallback(
+    async (params: {
+      startMs: number;
+      endMs: number;
+      wavBuffer: ArrayBuffer;
+      getCurrentSec: () => number | null;
+    }) => {
+      const canvas = previewCanvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      if (bgSize === "image" && !imagePreviewUrl) return;
+
+      stopAnimPreview();
+      stopWaveformSinePreview();
+      stopTimelinePreview();
+
+      const startMs = Math.max(0, params.startMs);
+      const endMs = Math.max(startMs, params.endMs);
+
+      let monoSamples: Float32Array | null = null;
+      let sampleRate = 44100;
+      let fftCache: WaveformFftCache | null = null;
+      let pianorollState: PianorollRenderState | undefined;
+
+      try {
+        const audioContext = new AudioContext();
+        const decoded = await audioContext.decodeAudioData(
+          params.wavBuffer.slice(0),
+        );
+        const channels = decoded.numberOfChannels;
+        sampleRate = decoded.sampleRate;
+        if (channels <= 1) {
+          monoSamples = decoded.getChannelData(0).slice();
+        } else {
+          monoSamples = new Float32Array(decoded.length);
+          for (let c = 0; c < channels; c++) {
+            const ch = decoded.getChannelData(c);
+            for (let i = 0; i < decoded.length; i++) {
+              monoSamples[i] += ch[i] / channels;
+            }
+          }
+        }
+        if (waveformOptions.enabled && monoSamples) {
+          fftCache = buildWaveformFftCache(
+            monoSamples,
+            sampleRate,
+            waveformOptions.fftSize,
+            waveformOptions.fftBinCount,
+          );
+        }
+        await audioContext.close();
+      } catch {
+        monoSamples = null;
+        sampleRate = 44100;
+      }
+
+      const lyricsOpts: LyricsOptions = {
+        segments: lyricsSegments,
+        fontSize: lyricsFontSize,
+        fontFamily: lyricsFontFamily || undefined,
+        color: lyricsColor,
+        xPercent: 50,
+        yPercent: lyricsYPercent,
+        maxWidthPercent: lyricsMaxWidthPercent,
+        shadowEnabled: lyricsShadowEnabled,
+        shadowColor: lyricsShadowColor,
+        shadowBlur: lyricsShadowBlur,
+        strokeEnabled: lyricsStrokeEnabled,
+        strokeColor: lyricsStrokeColor,
+        strokeWidth: lyricsStrokeWidth,
+        bgBarEnabled: lyricsBgBarEnabled,
+        bgBarColor: lyricsBgBarColor,
+        bgBarOpacity: lyricsBgBarOpacity,
+        fadeEnabled: lyricsFadeEnabled,
+        fadeDurationMs: lyricsFadeDurationMs,
+        scaleEnabled: lyricsScaleEnabled,
+        scaleFrom: lyricsScaleFrom,
+        scaleDurationMs: lyricsScaleDurationMs,
+        slideEnabled: lyricsSlideEnabled,
+        slideAmount: lyricsSlideAmount,
+        slideDurationMs: lyricsSlideDurationMs,
+        slideInEnabled: lyricsSlideInEnabled,
+        slideInDirection: lyricsSlideInDirection,
+        slideOutEnabled: lyricsSlideOutEnabled,
+        slideOutDirection: lyricsSlideOutDirection,
+        slideInOutDurationMs: lyricsSlideInOutDurationMs,
+        blurEnabled: lyricsBlurEnabled,
+        blurAmount: lyricsBlurAmount,
+        blurDurationMs: lyricsBlurDurationMs,
+        wipeInEnabled: lyricsWipeInEnabled,
+        wipeInDirection: lyricsWipeInDirection,
+        wipeOutEnabled: lyricsWipeOutEnabled,
+        wipeOutDirection: lyricsWipeOutDirection,
+        wipeDurationMs: lyricsWipeDurationMs,
+        bounceInEnabled: lyricsBounceInEnabled,
+        bounceInDirection: lyricsBounceInDirection,
+        bounceOutEnabled: lyricsBounceOutEnabled,
+        bounceOutDirection: lyricsBounceOutDirection,
+        bounceInOutDurationMs: lyricsBounceInOutDurationMs,
+        staggerEnabled: lyricsStaggerEnabled,
+        staggerIntervalMs: lyricsStaggerIntervalMs,
+      };
+
+      timelinePreviewActiveRef.current = true;
+      setIsTimelinePreviewPlaying(true);
+
+      const drawLoop = (img: HTMLImageElement | null) => {
+        if (!timelinePreviewActiveRef.current) return;
+        const currentSec = params.getCurrentSec();
+        if (currentSec === null) {
+          stopTimelinePreview();
+          return;
+        }
+        const currentMs = Math.max(startMs, currentSec * 1000);
+        if (currentMs >= endMs) {
+          stopTimelinePreview();
+          return;
+        }
+
+        const metrics = renderPreviewBase(ctx, canvas, img, {
+          currentMs,
+          waveSamples: monoSamples,
+          waveSampleRate: sampleRate,
+          waveformFftCache: fftCache,
+          pianorollState,
+        });
+        if (!metrics) {
+          stopTimelinePreview();
+          return;
+        }
+        pianorollState = metrics.pianorollState;
+
+        if (lyricsEnabled && lyricsSegments.length > 0) {
+          const activeSegment =
+            lyricsSegments.find(
+              (seg) => currentMs >= seg.startMs && currentMs <= seg.endMs,
+            ) ?? lyricsSegments[0];
+          const elapsed = Math.max(0, currentMs - activeSegment.startMs);
+          const remaining = Math.max(0, activeSegment.endMs - currentMs);
+          const scaledLyricsOpts: LyricsOptions = {
+            ...lyricsOpts,
+            fontSize: Math.max(1, lyricsOpts.fontSize * metrics.prevScale),
+            shadowBlur: lyricsOpts.shadowBlur * metrics.prevScale,
+            strokeWidth: lyricsOpts.strokeWidth * metrics.prevScale,
+            slideAmount: lyricsOpts.slideAmount * metrics.prevScale,
+            blurAmount: lyricsOpts.blurAmount * metrics.prevScale,
+          };
+          drawSubtitleOnCanvas(
+            ctx,
+            activeSegment.lyric,
+            scaledLyricsOpts,
+            canvas.width,
+            canvas.height,
+            elapsed,
+            remaining,
+          );
+        }
+
+        timelinePreviewRafRef.current = requestAnimationFrame(() =>
+          drawLoop(img),
+        );
+      };
+
+      if (imagePreviewUrl) {
+        const img = new Image();
+        img.onload = () => {
+          if (!timelinePreviewActiveRef.current) return;
+          timelinePreviewRafRef.current = requestAnimationFrame(() =>
+            drawLoop(img),
+          );
+        };
+        img.onerror = () => {
+          stopTimelinePreview();
+        };
+        img.src = imagePreviewUrl;
+      } else {
+        timelinePreviewRafRef.current = requestAnimationFrame(() =>
+          drawLoop(null),
+        );
+      }
+    },
+    [
+      previewCanvasRef,
+      bgSize,
+      imagePreviewUrl,
+      waveformOptions,
+      lyricsSegments,
+      lyricsFontSize,
+      lyricsColor,
+      lyricsYPercent,
+      lyricsMaxWidthPercent,
+      lyricsShadowEnabled,
+      lyricsShadowColor,
+      lyricsShadowBlur,
+      lyricsStrokeEnabled,
+      lyricsStrokeColor,
+      lyricsStrokeWidth,
+      lyricsBgBarEnabled,
+      lyricsBgBarColor,
+      lyricsBgBarOpacity,
+      lyricsFadeEnabled,
+      lyricsFadeDurationMs,
+      lyricsScaleEnabled,
+      lyricsScaleFrom,
+      lyricsScaleDurationMs,
+      lyricsSlideEnabled,
+      lyricsSlideAmount,
+      lyricsSlideDurationMs,
+      lyricsSlideInEnabled,
+      lyricsSlideInDirection,
+      lyricsSlideOutEnabled,
+      lyricsSlideOutDirection,
+      lyricsSlideInOutDurationMs,
+      lyricsBlurEnabled,
+      lyricsBlurAmount,
+      lyricsBlurDurationMs,
+      lyricsWipeInEnabled,
+      lyricsWipeInDirection,
+      lyricsWipeOutEnabled,
+      lyricsWipeOutDirection,
+      lyricsWipeDurationMs,
+      lyricsBounceInEnabled,
+      lyricsBounceInDirection,
+      lyricsBounceOutEnabled,
+      lyricsBounceOutDirection,
+      lyricsBounceInOutDurationMs,
+      lyricsStaggerEnabled,
+      lyricsStaggerIntervalMs,
+      lyricsFontFamily,
+      lyricsEnabled,
+      renderPreviewBase,
+      stopAnimPreview,
+      stopWaveformSinePreview,
+      stopTimelinePreview,
+    ],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      stopTimelinePreview();
+      stopBackgroundMovePreview();
+    };
+  }, [stopTimelinePreview, stopBackgroundMovePreview]);
+
   return {
     // refs
     fileInputRef,
@@ -1979,6 +2753,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     backgroundPatternSize,
     backgroundPatternGap,
     backgroundPatternRotation,
+    backgroundNoiseIntensity,
+    backgroundSeed,
+    backgroundGradientEnabled,
+    backgroundGradientType,
+    backgroundGradientAngleDeg,
+    backgroundGradientStartPercent,
+    backgroundGradientEndPercent,
+    backgroundGradientStrengthPercent,
+    backgroundMovementEnabled,
+    backgroundMoveXPerFrame,
+    backgroundMoveYPerFrame,
     bgSize,
     bgPaddingMode,
     bgImageOpacity,
@@ -2023,6 +2808,17 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setBackgroundPatternSize,
     setBackgroundPatternGap,
     setBackgroundPatternRotation,
+    setBackgroundNoiseIntensity,
+    setBackgroundSeed,
+    setBackgroundGradientEnabled,
+    setBackgroundGradientType,
+    setBackgroundGradientAngleDeg,
+    setBackgroundGradientStartPercent,
+    setBackgroundGradientEndPercent,
+    setBackgroundGradientStrengthPercent,
+    setBackgroundMovementEnabled,
+    setBackgroundMoveXPerFrame,
+    setBackgroundMoveYPerFrame,
     setBgSecondaryOpacity,
     setBgSize,
     setBgPaddingMode,
@@ -2046,6 +2842,7 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     mainTextBgBarEnabled,
     mainTextBgBarColor,
     mainTextBgBarOpacity,
+    textDisplayMode,
     setMainTextShadowEnabled,
     setMainTextShadowColor,
     setMainTextShadowBlur,
@@ -2055,6 +2852,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setMainTextBgBarEnabled,
     setMainTextBgBarColor,
     setMainTextBgBarOpacity,
+    setTextDisplayMode,
+    mainTextFontFamily,
+    setMainTextFontFamily,
     setSubText,
     setSubTextFontSize,
     setSubTextX,
@@ -2080,6 +2880,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setSubTextBgBarEnabled,
     setSubTextBgBarColor,
     setSubTextBgBarOpacity,
+    subTextFontFamily,
+    setSubTextFontFamily,
     // lyrics
     lyricsEnabled,
     lyricsSegments,
@@ -2089,6 +2891,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     lyricsMaxWidthPercent,
     setLyricsEnabled,
     setLyricsFontSize,
+    lyricsFontFamily,
+    setLyricsFontFamily,
     setLyricsColor,
     setLyricsYPercent,
     setLyricsMaxWidthPercent,
@@ -2183,6 +2987,9 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     isAnimPreviewPlaying,
     startAnimPreview,
     stopAnimPreview,
+    isBackgroundMovePreviewPlaying,
+    startBackgroundMovePreview,
+    stopBackgroundMovePreview,
     // pianoroll
     pianorollEnabled,
     setPianorollEnabled,
@@ -2194,9 +3001,50 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     setPianorollHorizontalZoom,
     pianorollVerticalZoom,
     setPianorollVerticalZoom,
+    pianorollFps,
+    setPianorollFps,
     applyPianorollThemeToOutside,
     pianorollLayout: effectivePianorollLayout,
     setPianorollLayout,
+    pianorollShowKeyboard,
+    setPianorollShowKeyboard,
+    pianorollShowBackground,
+    setPianorollShowBackground,
+    pianorollVoiceColorEnabled,
+    setPianorollVoiceColorEnabled,
+    pianorollVoiceColorLegendEnabled,
+    setPianorollVoiceColorLegendEnabled,
+    pianorollVoiceColorLegendPosition,
+    setPianorollVoiceColorLegendPosition,
+    pianorollVoiceColorLegendXPercent,
+    setPianorollVoiceColorLegendXPercent,
+    pianorollVoiceColorLegendYPercent,
+    setPianorollVoiceColorLegendYPercent,
+    pianorollVoiceColorLegendScale,
+    setPianorollVoiceColorLegendScale,
+    pianorollCurrentNoteInfoEnabled,
+    setPianorollCurrentNoteInfoEnabled,
+    pianorollCurrentNoteInfoShowLyric,
+    setPianorollCurrentNoteInfoShowLyric,
+    pianorollCurrentNoteInfoShowVelocity,
+    setPianorollCurrentNoteInfoShowVelocity,
+    pianorollCurrentNoteInfoShowFlags,
+    setPianorollCurrentNoteInfoShowFlags,
+    pianorollCurrentNoteInfoShowIntensity,
+    setPianorollCurrentNoteInfoShowIntensity,
+    pianorollCurrentNoteInfoPosition,
+    setPianorollCurrentNoteInfoPosition,
+    pianorollCurrentNoteInfoXPercent,
+    setPianorollCurrentNoteInfoXPercent,
+    pianorollCurrentNoteInfoYPercent,
+    setPianorollCurrentNoteInfoYPercent,
+    pianorollCurrentNoteInfoScale,
+    setPianorollCurrentNoteInfoScale,
+    pianorollVoiceColors,
+    pianorollDefaultVoiceColorMap,
+    pianorollVoiceColorMap,
+    setPianorollVoiceColorMap,
+    handlePianorollVoiceColorChange,
     waveformEnabled,
     setWaveformEnabled,
     waveformType,
@@ -2250,5 +3098,8 @@ export const useVideoExportForm = (open: boolean, options: Options) => {
     isWaveformSinePreviewPlaying,
     startWaveformSinePreview,
     stopWaveformSinePreview,
+    isTimelinePreviewPlaying,
+    startTimelinePreview,
+    stopTimelinePreview,
   };
 };
