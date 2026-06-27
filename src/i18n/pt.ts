@@ -79,6 +79,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/06/14\r\n[Adição] Expansão dos recursos de fundo no Video Editor.\r\n[Adição] Agora é possível exibir letras nas informações de nota no Video Editor.\r\n[Correção] Agora é possível controlar o FPS do piano-roll no Video Editor, com valor padrão ajustado para uma velocidade mais legível para as letras.",
       "2026/06/06\r\n[Adição] Adicionada a página dedicada do Video Editor.\r\n[Adição] Adicionadas mais variações de padrões de fundo no Video Editor.\r\n[Adição] Adicionado controle do tempo de exibição de título/créditos no Video Editor.\r\n[Adição] Expansão de recursos relacionados ao piano-roll no Video Editor.\r\n[Correção] Ajustes de layout no Video Editor.",
       "2026/05/27\r\n[Correção] Corrigido um problema em que notas com $Direct=true não eram reproduzidas corretamente.",
       "2026/05/17\r\n[Correção] Corrigido um problema em que o piano roll não era renderizado corretamente quando o comprimento efetivo da nota ficava negativo devido a sobreposição negativa, etc.\r\n[Correção] Corrigido um problema no diálogo de propriedades da nota em que não era possível redefinir preutter e overlap.\r\n[Correção] Ajustado o comportamento de reprodução/download ao selecionar notas não contíguas. Quando há acompanhamento definido ou ao baixar, as notas passam a ser tratadas sempre como um intervalo contínuo.",

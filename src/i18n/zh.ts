@@ -74,6 +74,7 @@ export const translationZh = {
     privacyWorker: "本网站使用的 Worker 不会收集任何涉及隐私的数据。",
     history: "更新日志",
     changelog: [
+      "2026/06/14\r\n【新增】扩充了 Video Editor 的背景功能。\r\n【新增】在 Video Editor 的音符信息显示中新增歌词显示。\r\n【修复】支持在 Video Editor 中控制钢琴卷帘 FPS，并将默认值调整为更便于阅读歌词的速度。",
       "2026/06/06\r\n【新增】新增专用 Video Editor 页面。\r\n【新增】为 Video Editor 新增更多背景图案样式。\r\n【新增】在 Video Editor 中可控制标题/致谢的显示时机。\r\n【新增】扩充了 Video Editor 中与钢琴卷帘相关的功能。\r\n【修复】调整了 Video Editor 的布局。",
       "2026/05/27\r\n【修复】修复了在 $Direct=true 的音符中无法正常播放的问题。",
       "2026/05/17\r\n【修复】修复了在负重叠等情况下导致实际音符长度为负数时，钢琴卷帘无法正确绘制的问题。\r\n【修复】修复了在音符属性对话框中无法重置先行发声与重叠参数的问题。\r\n【修复】调整了选中不连续音符时的播放/下载行为。设置伴奏或进行下载时，始终按连续音符范围处理。",
