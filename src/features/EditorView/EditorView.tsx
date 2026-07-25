@@ -764,6 +764,15 @@ export const EditorView: React.FC<{
     };
   }, []);
 
+  /** 伴奏WAVの差し替え・削除・アンマウント時にBlob URLを解放する。 */
+  React.useEffect(() => {
+    return () => {
+      if (backgroundWavUrl) {
+        URL.revokeObjectURL(backgroundWavUrl);
+      }
+    };
+  }, [backgroundWavUrl]);
+
   /** 現在選択中のノート部分に対して、伴奏のみを再生する処理 */
   const playBackgroundAudio = () => {
     LOG.info("伴奏のみ再生処理開始", "EditorView");

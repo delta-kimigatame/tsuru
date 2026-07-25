@@ -22,11 +22,11 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Wave } from "utauwav";
-import { renderingConfig } from "../../../config/rendering";
 import { LOG } from "../../../lib/Logging";
 import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { estimateBeatOffset } from "../../../utils/estimateBeatOffset";
 import { estimateBpm } from "../../../utils/estimateBpm";
+import { loadBackgroundAudio } from "../../../utils/loadBackgroundAudio";
 
 export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
   props,
@@ -65,39 +65,29 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
   }, [calculateOneBarMs]);
   /**
    * inputのファイルを変更した際の動作
-   * nullやファイル数が0の場合何もせず終了する。
-   * ファイルが含まれている場合、1つ目のファイルをreadFileにセットする。
-   * 実際のファイルの読込はloadVBDialogで行う。
+   * nullやファイル数が0の場合は何もせず終了する。
+   * ファイルが含まれている場合、1つ目のファイルをWAVへ正規化して読み込む。
    * @param e
    */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
-      LOG.warn("wavの読込がキャンセルされたか失敗しました", "FooterMenu");
+      LOG.warn("伴奏音声の読込がキャンセルされたか失敗しました", "FooterMenu");
       return;
     }
 
     const file = e.target.files[0];
-    LOG.info(`wavの選択: ${file.name}`, "FooterMenu");
+    LOG.info(`伴奏音声の選択: ${file.name}`, "FooterMenu");
 
     try {
-      // arrayBufferを取得（onLoadなし）
-      const arrayBuffer = await file.arrayBuffer();
-      const w = new Wave(arrayBuffer);
-      w.sampleRate = renderingConfig.frameRate;
-      w.bitDepth = 16;
-      w.VolumeNormalize();
-      // Blobから再作成してObject URLを生成
-      const wBuf = await w.Output();
-      const blob = new Blob([wBuf], { type: file.type });
-      const objectUrl = URL.createObjectURL(blob);
+      const { wav, objectUrl } = await loadBackgroundAudio(file);
 
       props.setBackgroundWavUrl(objectUrl);
-      props.setBackgroundAudioWav(w);
+      props.setBackgroundAudioWav(wav);
       props.setBackgroundOffsetMs(0);
       setTextInputValue("0");
-      LOG.info(`wav読込完了: ${file.name}`, "FooterMenu");
+      LOG.info(`伴奏音声の読込完了: ${file.name}`, "FooterMenu");
     } catch (error) {
-      LOG.error(`wav読込失敗: ${error}`, "FooterMenu");
+      LOG.error(`伴奏音声の読込失敗: ${error}`, "FooterMenu");
       /** 読込失敗時初期化 */
       props.setBackgroundWavUrl("");
       props.setBackgroundAudioWav(null);
@@ -238,7 +228,7 @@ export const FooterAudioTrackMenu: React.FC<FooterAudioTrackMenuProps> = (
         onChange={handleFileChange}
         hidden
         ref={inputRef}
-        accept=".wav"
+        accept=".wav,.mp3,.m4a,audio/wav,audio/mpeg,audio/mp4,audio/x-m4a"
         data-testid="ust-audio-input"
       ></input>
       <Menu

@@ -1,10 +1,15 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FooterAudioTrackMenu } from "../../../../src/features/EditorView/FooterMenu/FooterAudioTrackMenu";
 import { LOG } from "../../../../src/lib/Logging";
 import { useMusicProjectStore } from "../../../../src/store/musicProjectStore";
 import * as estimateBeatOffsetModule from "../../../../src/utils/estimateBeatOffset";
 import * as estimateBpmModule from "../../../../src/utils/estimateBpm";
+import { loadBackgroundAudio } from "../../../../src/utils/loadBackgroundAudio";
+
+vi.mock("../../../../src/utils/loadBackgroundAudio", () => ({
+  loadBackgroundAudio: vi.fn(),
+}));
 
 // Waveクラスをモック
 vi.mock("utauwav", () => {
@@ -64,8 +69,64 @@ describe("FooterAudioTrackMenu", () => {
     render(<FooterAudioTrackMenu {...defaultProps} />);
 
     expect(
-      screen.getByText("editor.footer.loadAudioTrack")
+      screen.getByText("editor.footer.loadAudioTrack"),
     ).toBeInTheDocument();
+  });
+
+  it("WAV、MP3、M4Aのファイル選択を許可する", () => {
+    render(<FooterAudioTrackMenu {...defaultProps} />);
+
+    expect(screen.getByTestId("ust-audio-input")).toHaveAttribute(
+      "accept",
+      expect.stringContaining(".wav"),
+    );
+    expect(screen.getByTestId("ust-audio-input")).toHaveAttribute(
+      "accept",
+      expect.stringContaining(".mp3"),
+    );
+    expect(screen.getByTestId("ust-audio-input")).toHaveAttribute(
+      "accept",
+      expect.stringContaining(".m4a"),
+    );
+  });
+
+  it("MP3の読込結果を既存の背景音声コールバックへ渡す", async () => {
+    const mockWave = { sampleRate: 44100, bitDepth: 16 };
+    vi.mocked(loadBackgroundAudio).mockResolvedValue({
+      wav: mockWave as any,
+      wavBuffer: new ArrayBuffer(8),
+      objectUrl: "blob:background-wav",
+    });
+    render(<FooterAudioTrackMenu {...defaultProps} />);
+
+    fireEvent.change(screen.getByTestId("ust-audio-input"), {
+      target: {
+        files: [new File(["audio"], "background.mp3", { type: "audio/mpeg" })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(loadBackgroundAudio).toHaveBeenCalledOnce();
+      expect(mockSetBackgroundWavUrl).toHaveBeenCalledWith(
+        "blob:background-wav",
+      );
+      expect(mockSetBackgroundAudioWav).toHaveBeenCalledWith(mockWave);
+      expect(mockSetBackgroundOffsetMs).toHaveBeenCalledWith(0);
+    });
+  });
+
+  it("変換失敗時は既存の背景音声をクリアする", async () => {
+    vi.mocked(loadBackgroundAudio).mockRejectedValue(new Error("変換失敗"));
+    render(<FooterAudioTrackMenu {...defaultProps} />);
+
+    fireEvent.change(screen.getByTestId("ust-audio-input"), {
+      target: { files: [new File(["audio"], "broken.m4a")] },
+    });
+
+    await waitFor(() => {
+      expect(mockSetBackgroundWavUrl).toHaveBeenCalledWith("");
+      expect(mockSetBackgroundAudioWav).toHaveBeenCalledWith(null);
+    });
   });
 
   it("伴奏音声の読込をクリックするとログが出力される", () => {
@@ -136,7 +197,7 @@ describe("FooterAudioTrackMenu", () => {
     const resetButtons = screen.getAllByRole("menuitem");
     // リセットボタンは"backgroundOffsetReset"というテキストを持つ
     const resetButton = resetButtons.find((btn) =>
-      btn.textContent?.includes("backgroundOffsetReset")
+      btn.textContent?.includes("backgroundOffsetReset"),
     );
 
     if (resetButton) {
@@ -152,7 +213,7 @@ describe("FooterAudioTrackMenu", () => {
     const muteButtons = screen.getAllByRole("menuitem");
     // ミュートボタンは"mute"というテキストを持つ
     const muteButton = muteButtons.find((btn) =>
-      btn.textContent?.includes("mute")
+      btn.textContent?.includes("mute"),
     );
 
     if (muteButton) {
@@ -168,7 +229,7 @@ describe("FooterAudioTrackMenu", () => {
     const clearButtons = screen.getAllByRole("menuitem");
     // クリアボタンは"backgroundClear"というテキストを持つ
     const clearButton = clearButtons.find((btn) =>
-      btn.textContent?.includes("backgroundClear")
+      btn.textContent?.includes("backgroundClear"),
     );
 
     if (clearButton) {
@@ -194,7 +255,7 @@ describe("FooterAudioTrackMenu", () => {
 
     const mockEstimateBeatOffset = vi.spyOn(
       estimateBeatOffsetModule,
-      "estimateBeatOffset"
+      "estimateBeatOffset",
     );
     mockEstimateBeatOffset.mockReturnValue(50);
 
@@ -202,13 +263,13 @@ describe("FooterAudioTrackMenu", () => {
       <FooterAudioTrackMenu
         {...defaultProps}
         backgroundAudioWav={mockWave as any}
-      />
+      />,
     );
 
     const bpmButtons = screen.getAllByRole("menuitem");
     // BPM推定ボタンは"backgroundEstimateBpm"というテキストを持つ
     const bpmButton = bpmButtons.find((btn) =>
-      btn.textContent?.includes("backgroundEstimateBpm")
+      btn.textContent?.includes("backgroundEstimateBpm"),
     );
 
     if (bpmButton) {
@@ -225,12 +286,12 @@ describe("FooterAudioTrackMenu", () => {
     const mockEstimateBpm = vi.spyOn(estimateBpmModule, "estimateBpm");
 
     render(
-      <FooterAudioTrackMenu {...defaultProps} backgroundAudioWav={null} />
+      <FooterAudioTrackMenu {...defaultProps} backgroundAudioWav={null} />,
     );
 
     const bpmButtons = screen.getAllByRole("menuitem");
     const bpmButton = bpmButtons.find((btn) =>
-      btn.textContent?.includes("backgroundEstimateBpm")
+      btn.textContent?.includes("backgroundEstimateBpm"),
     );
 
     if (bpmButton) {
@@ -239,8 +300,8 @@ describe("FooterAudioTrackMenu", () => {
       expect(mockEstimateBpm).not.toHaveBeenCalled();
       expect(
         LOG.datas.some((s) =>
-          s.includes("伴奏音声が存在しないためBPM推定を中止")
-        )
+          s.includes("伴奏音声が存在しないためBPM推定を中止"),
+        ),
       ).toBeTruthy();
     }
   });
