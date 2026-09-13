@@ -81,6 +81,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/09/13\r\n[Added] Added low-memory loading for UTAU voice bank ZIP files. Memory usage is reduced by about 90%, but synthesis is about 33% slower. Recommended for low-spec devices where the app would otherwise crash.",
       "2026/06/27\r\nWhen oto.ini has empty parameters, they are now read as 0.",
       "2026/06/14\r\n[Add] Expanded background features in the Video Editor.\r\n[Add] Added lyric display support in the note info panel of the Video Editor.\r\n[Fix] Added controllable piano-roll FPS in the Video Editor, and set the default to a speed that keeps lyrics readable.",
       "2026/06/06\r\n[Add] Added the dedicated Video Editor page.\r\n[Add] Added more background pattern variations in the Video Editor.\r\n[Add] Added control over title/credit display timing in the Video Editor.\r\n[Add] Expanded piano-roll related features in the Video Editor.\r\n[Fix] Adjusted the Video Editor layout.",
