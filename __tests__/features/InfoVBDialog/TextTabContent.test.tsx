@@ -1,29 +1,20 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import JSZip from "jszip";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import {
   TextTabContent,
   TextTabContentProps,
 } from "../../../src/features/InfoVBDialog/TextTabContent";
-import { EncodingOption } from "../../../src/utils/EncodingMapping";
-
-// モック対象のサービス
-import * as extractService from "../../../src/services/extractFileFromZip";
+import type { BaseVoiceBank } from "../../../src/lib/VoiceBanks/BaseVoiceBank";
 import * as readService from "../../../src/services/readTextFile";
+import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
 // モック対象の snackbarStore
 import { useSnackBarStore } from "../../../src/store/snackBarStore";
 
-// ダミーのテキストファイル用JSZipオブジェクトを作成するヘルパー
-const createDummyTextFile = (content: string): JSZip.JSZipObject => {
-  const zip = new JSZip();
-  // ダミーの File オブジェクトを作成
-  const file = new File([content], "test.txt", {
-    type: "text/plain",
-  });
-  zip.file("test.txt", file);
-  return zip.files["test.txt"];
-};
+const createDummyVoiceBank = (): BaseVoiceBank =>
+  ({
+    loadRootFile: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+  }) as unknown as BaseVoiceBank;
 
 describe("TextTabContent", () => {
   let props: TextTabContentProps;
@@ -43,14 +34,12 @@ describe("TextTabContent", () => {
     vi.spyOn(snackStore, "setSeverity");
 
     // デフォルトは正常なテキストを返すように設定
-    vi.spyOn(extractService, "extractFileFromZip").mockResolvedValue(
-      new ArrayBuffer(8)
-    );
     vi.spyOn(readService, "readTextFile").mockResolvedValue("あいう\r\nえお");
 
     // props の初期値（Shift-JIS の場合）
     props = {
-      textFile: createDummyTextFile("dummy"),
+      filename: "test.txt",
+      vb: createDummyVoiceBank(),
       encoding: EncodingOption.SHIFT_JIS,
     };
   });
@@ -59,7 +48,7 @@ describe("TextTabContent", () => {
     // 読み込み処理を遅延させるため、readTextFile を遅延するモックに変更
     vi.spyOn(readService, "readTextFile").mockImplementation(async () => {
       return new Promise((resolve) =>
-        setTimeout(() => resolve("あいう\r\nえお"), 1000)
+        setTimeout(() => resolve("あいう\r\nえお"), 1000),
       );
     });
 
@@ -83,17 +72,14 @@ describe("TextTabContent", () => {
   });
 
   it("非同期処理でエラーが発生した場合はsnackbarのsetterが呼ばれ空配列がレンダリングされる", async () => {
-    // extractFileFromZip でエラーを発生させるモック
-    vi.spyOn(extractService, "extractFileFromZip").mockRejectedValue(
-      new Error("fail")
-    );
+    (props.vb!.loadRootFile as Mock).mockRejectedValue(new Error("fail"));
 
     render(<TextTabContent {...props} />);
     await waitFor(() => {
       // エラー発生後、snackbarStore の各 setter が呼ばれることを確認
       expect(snackStore.setSeverity).toHaveBeenCalledWith("error");
       expect(snackStore.setValue).toHaveBeenCalledWith(
-        "infoVBDialog.TextTabContent.error"
+        "infoVBDialog.TextTabContent.error",
       );
       expect(snackStore.setOpen).toHaveBeenCalledWith(true);
     });
@@ -108,22 +94,27 @@ describe("TextTabContent", () => {
     await waitFor(() => expect(screen.getByText(/あいう/)).toBeInTheDocument());
 
     // 新たなテキストファイル（UTF-8 用）を用意
-    const newTextFile = createDummyTextFile("かきく\r\nけこ");
+    const newVb = createDummyVoiceBank();
     // readTextFile のモックも新しいテキストを返すように変更
     vi.spyOn(readService, "readTextFile").mockResolvedValue("かきく\r\nけこ");
 
-    // props.textFile と encoding を変更して再レンダリング
+    // props.filename と encoding を変更して再レンダリング
     rerender(
-      <TextTabContent textFile={newTextFile} encoding={EncodingOption.UTF8} />
+      <TextTabContent
+        filename="new.txt"
+        vb={newVb}
+        encoding={EncodingOption.UTF8}
+      />,
     );
     // 新しい内容がレンダリングされるのを待つ
     await waitFor(() => expect(screen.getByText(/かきく/)).toBeInTheDocument());
     expect(screen.getByText(/けこ/)).toBeInTheDocument();
   });
 
-  it("textFileがnullの場合は空配列が設定される", async () => {
+  it("音源がnullの場合は空配列が設定される", async () => {
     const nullProps: TextTabContentProps = {
-      textFile: null,
+      filename: "test.txt",
+      vb: null,
       encoding: EncodingOption.SHIFT_JIS,
     };
     render(<TextTabContent {...nullProps} />);

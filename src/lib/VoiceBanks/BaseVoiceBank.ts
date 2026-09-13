@@ -212,6 +212,18 @@ export abstract class BaseVoiceBank {
   get root(): string {
     return this._root;
   }
+
+  /**
+   * 音源ルート相対のファイル名一覧を返す。
+   */
+  abstract getRootFileNames(): string[];
+
+  /**
+   * 音源ルート相対のパスで指定したファイルを読み込む。
+   * @param filename 音源ルートからの相対パス
+   */
+  abstract loadRootFile(filename: string): Promise<ArrayBuffer>;
+
   /**
    * zipデータ
    */

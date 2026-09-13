@@ -2,7 +2,6 @@ import { TabContext, TabPanel } from "@mui/lab";
 import { Box } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import JSZip from "jszip";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LOG } from "../../lib/Logging";
@@ -27,40 +26,27 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
   const [value, setValue] = React.useState<number>(0);
 
   /**
-   * zipファイルが渡されたとき、txtファイルのリストを返す。
+   * 音源ルート内のtxtファイルのリストを返す。
    */
   const textFileList = React.useMemo(() => {
-    LOG.debug("zipファイルの更新検知", "TextTabs");
-    if (!props.zipFiles && !props.files) {
-      LOG.debug("zipファイルはnull", "TextTabs");
+    LOG.debug("音源ファイル一覧の更新検知", "TextTabs");
+    if (props.vb === null) {
+      LOG.debug("音源はnull", "TextTabs");
       return undefined;
-    } else if (props.zipFiles) {
-      const fileList = Object.keys(props.zipFiles);
-      /** character.txt,install.txt,readme.txt以外のtxtファイルの相対パス */
-      const filterFileList = fileList.filter((f) => filterRule(f));
-      /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
-      if (fileList.includes("readme.txt")) {
-        filterFileList.unshift("readme.txt");
-      }
-      LOG.info(
-        `zip内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
-        "TextTabs"
-      );
-      return filterFileList;
-    } else if (props.files) {
-      const fileList = Object.keys(props.files);
-      const filterFileList = fileList.filter((f) => filterRule(f));
-      /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
-      if (fileList.includes("readme.txt")) {
-        filterFileList.unshift("readme.txt");
-      }
-      LOG.info(
-        `フォルダ内、音源ルート以下のテキストファイル一覧:${filterFileList}`,
-        "TextTabs"
-      );
-      return filterFileList;
     }
-  }, [props.zipFiles, props.files]);
+    const fileList = props.vb.getRootFileNames();
+    /** character.txt,install.txt,readme.txt以外のtxtファイルの相対パス */
+    const filterFileList = fileList.filter((f) => filterRule(f));
+    /** readme.txtが存在する場合、必ず最初の要素として追加する。 */
+    if (fileList.includes("readme.txt")) {
+      filterFileList.unshift("readme.txt");
+    }
+    LOG.info(
+      `音源ルート以下のテキストファイル一覧:${filterFileList}`,
+      "TextTabs",
+    );
+    return filterFileList;
+  }, [props.vb]);
 
   /** タブを変更する操作 */
   const handleChange = (e: React.SyntheticEvent, newValue: number) => {
@@ -76,7 +62,7 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
 
   return (
     <>
-      {textFileList === undefined && !props.vb ? (
+      {textFileList === undefined ? (
         <Box sx={{ m: 1 }}>{t("infoVBDialog.TextTabs.notFound")}</Box>
       ) : (
         <>
@@ -116,11 +102,8 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
               textFileList.map((f, i) => (
                 <TabPanel key={f} value={i} sx={{ p: 1 }}>
                   <TextTabContent
-                    textFile={
-                      props.zipFiles !== null
-                        ? props.zipFiles[f]
-                        : props.files[f]
-                    }
+                    filename={f}
+                    vb={props.vb}
                     encoding={props.encoding}
                   />
                 </TabPanel>
@@ -151,15 +134,6 @@ export const TextTabs: React.FC<TextTabsProps> = (props) => {
 };
 
 export interface TextTabsProps {
-  /**
-   * 音声ライブラリを構成するzip
-   * root以下に含まれるファイル情報のみにフィルタリングされており、
-   * かつkeyはroot空の相対パスとなっている。
-   *
-   * なお、VoiceBank関数はcharacter.txtがあるパスをrootと判定する。
-   *  */
-  zipFiles: { [key: string]: JSZip.JSZipObject };
-  files: { [key: string]: File };
   /** テキストファイルを読み込むための文字コード */
   encoding: EncodingOption;
   /** VoiceBankインスタンス（エイリアス一覧表示用） */

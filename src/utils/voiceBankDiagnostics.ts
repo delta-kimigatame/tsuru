@@ -67,7 +67,7 @@ export const DIAGNOSTIC_TYPE_METADATA: Record<
  * @returns 診断結果
  */
 export async function diagnoseVoiceBank(
-  vb: BaseVoiceBank
+  vb: BaseVoiceBank,
 ): Promise<DiagnosticResult> {
   LOG.debug("音源診断を開始", "VoiceBankDiagnostics");
 
@@ -100,7 +100,7 @@ export async function diagnoseVoiceBank(
 
     LOG.debug(
       `音源診断完了: Error ${errors.length}件, Warning ${warnings.length}件`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   } catch (error) {
     LOG.debug(`音源診断中にエラー: ${error}`, "VoiceBankDiagnostics");
@@ -113,7 +113,7 @@ export async function diagnoseVoiceBank(
  * wavファイルに対応するoto.iniレコードがないかチェック
  */
 async function checkWavWithoutOto(
-  vb: BaseVoiceBank
+  vb: BaseVoiceBank,
 ): Promise<DiagnosticItem[]> {
   LOG.debug("wavファイルに対応するoto.iniチェック開始", "VoiceBankDiagnostics");
   const warnings: DiagnosticItem[] = [];
@@ -122,8 +122,8 @@ async function checkWavWithoutOto(
     const allRecords = getAllOtoRecords(vb.oto);
     const otoWavFiles = new Set(
       allRecords.map((r) =>
-        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename
-      )
+        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename,
+      ),
     );
 
     // zip/filesからwavファイル一覧を取得
@@ -141,7 +141,7 @@ async function checkWavWithoutOto(
 
     LOG.debug(
       `wavファイル without oto: ${warnings.length}件`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   } catch (error) {
     LOG.debug(`checkWavWithoutOtoでエラー: ${error}`, "VoiceBankDiagnostics");
@@ -163,8 +163,8 @@ async function checkMissingFrq(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
     // 重複を除外
     const uniqueWavs = new Set(
       allRecords.map((r) =>
-        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename
-      )
+        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename,
+      ),
     );
 
     for (const wavFile of uniqueWavs) {
@@ -206,8 +206,8 @@ async function checkWavFormat(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
     const allRecords = getAllOtoRecords(vb.oto);
     const uniqueWavs = new Set(
       allRecords.map((r) =>
-        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename
-      )
+        r.dirpath ? `${r.dirpath}/${r.filename}` : r.filename,
+      ),
     );
 
     for (const wavFile of uniqueWavs) {
@@ -232,7 +232,7 @@ async function checkWavFormat(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
 
     LOG.debug(
       `wavフォーマット不正: ${errors.length}件`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   } catch (error) {
     LOG.debug(`checkWavFormatでエラー: ${error}`, "VoiceBankDiagnostics");
@@ -245,7 +245,7 @@ async function checkWavFormat(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
  * otoが指し示すwavファイルが存在するかチェック
  */
 async function checkOtoWithoutWav(
-  vb: BaseVoiceBank
+  vb: BaseVoiceBank,
 ): Promise<DiagnosticItem[]> {
   LOG.debug("oto → wav存在チェック開始", "VoiceBankDiagnostics");
   const errors: DiagnosticItem[] = [];
@@ -316,14 +316,14 @@ async function checkStretchRange(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
             type: DiagnosticType.NO_STRETCH_RANGE,
             message: "no_stretch_range",
             details: `${record.alias} (vel: ${velPos.toFixed(
-              2
+              2,
             )}ms, blank: ${blankPos.toFixed(2)}ms)`,
           });
         }
       } catch (error) {
         LOG.debug(
           `伸縮範囲チェックエラー: ${record.alias}`,
-          "VoiceBankDiagnostics"
+          "VoiceBankDiagnostics",
         );
       }
     }
@@ -340,11 +340,11 @@ async function checkStretchRange(vb: BaseVoiceBank): Promise<DiagnosticItem[]> {
  * 音源ルートフォルダ外のoto.iniファイルをチェック
  */
 async function checkOtoOutsideRoot(
-  vb: BaseVoiceBank
+  vb: BaseVoiceBank,
 ): Promise<DiagnosticItem[]> {
   LOG.debug(
     "音源ルートフォルダ外のoto.iniチェック開始",
-    "VoiceBankDiagnostics"
+    "VoiceBankDiagnostics",
   );
   const warnings: DiagnosticItem[] = [];
 
@@ -363,7 +363,7 @@ async function checkOtoOutsideRoot(
 
     LOG.debug(
       `音源ルート外のoto.ini: ${warnings.length}件`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   } catch (error) {
     LOG.debug(`checkOtoOutsideRootでエラー: ${error}`, "VoiceBankDiagnostics");
@@ -376,7 +376,7 @@ async function checkOtoOutsideRoot(
  * 設定ファイルが正しい位置に配置されているかチェック
  */
 async function checkConfigFileMisplaced(
-  vb: BaseVoiceBank
+  vb: BaseVoiceBank,
 ): Promise<DiagnosticItem[]> {
   LOG.debug("設定ファイル配置チェック開始", "VoiceBankDiagnostics");
   const warnings: DiagnosticItem[] = [];
@@ -401,12 +401,12 @@ async function checkConfigFileMisplaced(
 
     LOG.debug(
       `配置ミスの設定ファイル: ${warnings.length}件`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   } catch (error) {
     LOG.debug(
       `checkConfigFileMisplacedでエラー: ${error}`,
-      "VoiceBankDiagnostics"
+      "VoiceBankDiagnostics",
     );
   }
 
@@ -420,13 +420,9 @@ function getWavFiles(vb: BaseVoiceBank): string[] {
   const wavFiles: string[] = [];
 
   try {
-    // zipまたはfilesからwavファイルを抽出
-    const files = vb.zip || vb.files;
-    if (files) {
-      for (const filename of Object.keys(files)) {
-        if (filename.toLowerCase().endsWith(".wav")) {
-          wavFiles.push(filename);
-        }
+    for (const filename of vb.getRootFileNames()) {
+      if (filename.toLowerCase().endsWith(".wav")) {
+        wavFiles.push(filename);
       }
     }
   } catch (error) {

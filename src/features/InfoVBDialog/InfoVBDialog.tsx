@@ -24,14 +24,14 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
   const { t } = useTranslation();
   /** UTAU音源内のテキストファイルを解釈するための文字コード */
   const [encoding, setEncoding] = React.useState<EncodingOption>(
-    EncodingOption.SHIFT_JIS
+    EncodingOption.SHIFT_JIS,
   );
   /** 利用規約に同意済みか */
   const [agreed, setAgreed] = React.useState<boolean>(false);
   /** 音源の読込処理中か */
   const [progress, setProgress] = React.useState<boolean>(false);
   const prevEncodingRef = React.useRef<EncodingOption>(
-    EncodingOption.SHIFT_JIS
+    EncodingOption.SHIFT_JIS,
   );
   /** UTAU音源 */
   const { vb, setVb } = useMusicProjectStore();
@@ -48,7 +48,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
     }
     LOG.info(
       "新しいvbに変更されたため、利用規約への同意状況を初期化しダイアログを開きます。",
-      "InfoVBDialog"
+      "InfoVBDialog",
     );
     setAgreed(false);
     props.setOpen(true);
@@ -145,12 +145,7 @@ export const InfoVBDialog: React.FC<InfoVBDialogProps> = (props) => {
         <DialogContent>
           {vb !== null &&
             (!progress ? (
-              <TextTabs
-                zipFiles={vb.zip}
-                files={vb.files}
-                encoding={encoding}
-                vb={vb}
-              />
+              <TextTabs encoding={encoding} vb={vb} />
             ) : (
               <CircularProgress />
             ))}

@@ -1,9 +1,8 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
-import JSZip from "jszip";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { LOG } from "../../lib/Logging";
-import { extractFileFromZip } from "../../services/extractFileFromZip";
+import type { BaseVoiceBank } from "../../lib/VoiceBanks/BaseVoiceBank";
 import { readTextFile } from "../../services/readTextFile";
 import { useSnackBarStore } from "../../store/snackBarStore";
 import {
@@ -31,8 +30,8 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
   React.useEffect(() => {
     LOG.debug("ファイル内容もしくはエンコードの変更検知", "TextTabContent");
     let isCancelled = false;
-    if (!props.textFile) {
-      LOG.debug("ファイルはnull", "TextTabContent");
+    if (props.vb === null) {
+      LOG.debug("音源はnull", "TextTabContent");
       setLines([]);
       return;
     }
@@ -40,29 +39,26 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
      * テキストファイルを読み込むための非同期処理
      */
     const fetchLines = async () => {
-      LOG.info(`テキストファイル読み込み。${props.textFile}`, "TextTabContent");
+      LOG.info(`テキストファイル読み込み。${props.filename}`, "TextTabContent");
       try {
-        const buf =
-          props.textFile instanceof File
-            ? await (props.textFile as File).arrayBuffer()
-            : await extractFileFromZip(props.textFile as JSZip.JSZipObject);
+        const buf = await props.vb.loadRootFile(props.filename);
         const text = await readTextFile(
           buf,
-          getFileReaderEncoding(props.encoding)
+          getFileReaderEncoding(props.encoding),
         );
         const newLines = text.replace(/\r\n/g, "\n").split("\n");
         if (!isCancelled) {
           LOG.info(
-            `テキストファイル読み込み完了。${props.textFile}`,
-            "TextTabContent"
+            `テキストファイル読み込み完了。${props.filename}`,
+            "TextTabContent",
           );
           setLines(newLines);
         }
       } catch {
         if (!isCancelled) {
           LOG.warn(
-            `テキストファイル読み込み失敗。${props.textFile}`,
-            "TextTabContent"
+            `テキストファイル読み込み失敗。${props.filename}`,
+            "TextTabContent",
           );
           setLines([]);
           snackBarStore.setSeverity("error");
@@ -79,7 +75,7 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
       LOG.debug("unmount", "TextTabContent");
       isCancelled = true;
     };
-  }, [props.textFile, props.encoding]);
+  }, [props.filename, props.vb, props.encoding]);
 
   return (
     <Box sx={{ m: 1 }}>
@@ -100,8 +96,10 @@ export const TextTabContent: React.FC<TextTabContentProps> = (props) => {
 };
 
 export interface TextTabContentProps {
-  /** このコンポーネントで表示するzip内のtextファイル */
-  textFile: JSZip.JSZipObject | File;
+  /** このコンポーネントで表示する音源ルート相対のtextファイル名 */
+  filename: string;
+  /** テキストファイルを提供する音源 */
+  vb: BaseVoiceBank | null;
   /** テキストファイルを読み込むための文字コード */
   encoding: EncodingOption;
 }

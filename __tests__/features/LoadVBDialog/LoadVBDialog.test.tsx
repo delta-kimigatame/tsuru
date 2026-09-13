@@ -9,6 +9,8 @@ import {
 } from "../../../src/features/LoadVBDialog/LoadVBDialog";
 import i18n from "../../../src/i18n/configs";
 import * as VoiceBankModule from "../../../src/lib/VoiceBanks/VoiceBank";
+import * as VoiceBankLowMemoryModule from "../../../src/lib/VoiceBanks/VoiceBankLowMemory";
+import * as ZipReaderModule from "../../../src/services/zipReader";
 
 i18n.changeLanguage("ja");
 const lightTheme = createTheme(getDesignTokens("light"));
@@ -18,7 +20,16 @@ vi.mock("jszip");
 vi.mock("../../../src/lib/VoiceBanks/VoiceBank", () => ({
   VoiceBank: vi.fn(),
 }));
+vi.mock("../../../src/lib/VoiceBanks/VoiceBankLowMemory", () => ({
+  VoiceBankLowMemory: vi.fn(),
+}));
+vi.mock("../../../src/services/zipReader", () => ({
+  zipReader: vi.fn(),
+}));
 const VoiceBankMock = VoiceBankModule.VoiceBank as unknown as Mock;
+const VoiceBankLowMemoryMock =
+  VoiceBankLowMemoryModule.VoiceBankLowMemory as unknown as Mock;
+const ZipReaderMock = ZipReaderModule.zipReader as unknown as Mock;
 // useMusicProjectStore のモック
 const mockSetVb = vi.fn();
 vi.mock("../../../src/store/musicProjectStore", () => ({
@@ -106,7 +117,7 @@ describe("LoadVBDialog", () => {
 
     // EncodingSelectの値を変更（MUI Selectはhidden inputを使用）
     const hiddenInput = document.querySelector(
-      'input[type="hidden"]'
+      'input[type="hidden"]',
     ) as HTMLInputElement;
     if (hiddenInput) {
       fireEvent.change(hiddenInput, { target: { value: "utf-8" } });
@@ -141,7 +152,7 @@ describe("LoadVBDialog", () => {
     render(<LoadVBDialog {...props} />);
     // ※ここでは、内部状態zipFilesの読込が完了するのを待つ
     await waitFor(() =>
-      expect(screen.getByText("file1.txt")).toBeInTheDocument()
+      expect(screen.getByText("file1.txt")).toBeInTheDocument(),
     );
     // ボタンを取得してクリック
     const button = screen.getByRole("button", { name: /OK/i });
@@ -171,7 +182,7 @@ describe("LoadVBDialog", () => {
     render(<LoadVBDialog {...props} />);
     // ※ここでは、内部状態zipFilesの読込が完了するのを待つ
     await waitFor(() =>
-      expect(screen.getByText("file1.txt")).toBeInTheDocument()
+      expect(screen.getByText("file1.txt")).toBeInTheDocument(),
     );
     // ボタンを取得してクリック
     const button = screen.getByRole("button", { name: /OK/i });
@@ -185,10 +196,37 @@ describe("LoadVBDialog", () => {
     await waitFor(() => expect(mockSetOpen).toHaveBeenCalledWith(true));
     await waitFor(() =>
       expect(mockSetValue).toHaveBeenCalledWith(
-        "読込失敗しました。このファイルはUTAU音源ではありません。"
-      )
+        "読込失敗しました。このファイルはUTAU音源ではありません。",
+      ),
     );
     await waitFor(() => expect(mockSetSeverity).toHaveBeenCalledWith("error"));
+  });
+
+  it("省メモリー経路ではzipReaderとVoiceBankLowMemoryを使用する", async () => {
+    const reader = {
+      Initialize: vi.fn().mockResolvedValue(undefined),
+      LoadFileLists: vi.fn().mockResolvedValue(undefined),
+      GetFileList: vi.fn().mockReturnValue(["character.txt"]),
+    };
+    ZipReaderMock.mockImplementation(() => reader);
+    const lowMemoryVoiceBank = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+    };
+    VoiceBankLowMemoryMock.mockImplementation(() => lowMemoryVoiceBank);
+    props.loadMode = "lowMemory";
+
+    render(<LoadVBDialog {...props} />);
+    await waitFor(() => {
+      expect(reader.Initialize).toHaveBeenCalled();
+      expect(screen.getByText("character.txt")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /OK/i }));
+    await waitFor(() => {
+      expect(VoiceBankLowMemoryMock).toHaveBeenCalledWith(reader);
+      expect(lowMemoryVoiceBank.initialize).toHaveBeenCalledWith("SJIS");
+      expect(mockSetVb).toHaveBeenCalledWith(lowMemoryVoiceBank);
+    });
   });
 
   it("zipFilesが空の場合はOKボタンが無効化される", async () => {
@@ -223,7 +261,7 @@ describe("LoadVBDialog", () => {
 
     const fakeVoiceBank = {
       initialize: vi.fn().mockImplementation(
-        () => new Promise(() => {}) // Never resolves
+        () => new Promise(() => {}), // Never resolves
       ),
     };
 
@@ -231,7 +269,7 @@ describe("LoadVBDialog", () => {
 
     render(<LoadVBDialog {...props} />);
     await waitFor(() =>
-      expect(screen.getByText("file1.txt")).toBeInTheDocument()
+      expect(screen.getByText("file1.txt")).toBeInTheDocument(),
     );
 
     const button = screen.getByRole("button", { name: /OK/i });

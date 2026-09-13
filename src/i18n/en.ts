@@ -59,6 +59,10 @@ export const translationEn = {
     selectZipButtonText: "Agree and Proceed",
     selectZipButtonDescription:
       "By clicking 'Agree and Proceed', you accept the Terms of Use and select the UTAU VoiceBank ZIP file.",
+    selectLowMemoryZipButtonText:
+      "(Beta) Select UTAU VoiceBank ZIP with low memory",
+    selectLowMemoryZipButtonDescription:
+      "Low-memory loading is a beta feature. If a ZIP file is unsupported, try the standard loader.",
     selectDirButtonText: "(Beta)Select UTAU VoiceBank Folder",
     selectDirButtonDescription:
       "By clicking '(Beta)Select UTAU VoiceBank Folder', you are deemed to have agreed to the Terms of Use.",

@@ -2,6 +2,7 @@ import * as React from "react";
 import { LoadVBDialog } from "../LoadVBDialog/LoadVBDialog";
 import { SelectVBButton } from "./SelectVbButton";
 import { SelectVBDirButton } from "./SelectVBDirButton";
+import { SelectVBLowMemoryButton } from "./SelectVBLowMemoryButton";
 
 /**
  * 音源を選択し読み込む一連の処理をまとめたコンポーネント。
@@ -14,6 +15,10 @@ export const LoadVBUnit: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState<boolean>(false);
   /** 読み込んだファイル */
   const [readFile, setReadFile] = React.useState<File | null>(null);
+  /** ZIPの読込方式 */
+  const [loadMode, setLoadMode] = React.useState<"standard" | "lowMemory">(
+    "standard",
+  );
   return (
     <>
       <SelectVBButton
@@ -21,6 +26,14 @@ export const LoadVBUnit: React.FC = () => {
         setProcessing={setProcessing}
         setDialogOpen={setDialogOpen}
         setReadFile={setReadFile}
+        setLoadMode={setLoadMode}
+      />
+      <SelectVBLowMemoryButton
+        processing={processing}
+        setProcessing={setProcessing}
+        setDialogOpen={setDialogOpen}
+        setReadFile={setReadFile}
+        setLoadMode={setLoadMode}
       />
       <SelectVBDirButton
         processing={processing}
@@ -34,6 +47,7 @@ export const LoadVBUnit: React.FC = () => {
           setProcessing={setProcessing}
           setDialogOpen={setDialogOpen}
           setReadFile={setReadFile}
+          loadMode={loadMode}
         />
       )}
     </>

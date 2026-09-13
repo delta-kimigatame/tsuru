@@ -29,6 +29,7 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
     /** 実行状況の初期化 */
     props.setProcessing(false);
     props.setReadFile(null);
+    props.setLoadMode?.("standard");
     /** ファイル読み込みの発火 */
     LOG.info("音源zipファイルの選択", "SelectVBButton");
     inputRef.current.click();
@@ -45,7 +46,7 @@ export const SelectVBButton: React.FC<SelectVBButtonProps> = (props) => {
     if (!e.target.files || e.target.files.length === 0) {
       LOG.warn(
         "音源zipの選択がキャンセルされたか失敗しました",
-        "SelectVBButton"
+        "SelectVBButton",
       );
       return;
     }
@@ -136,4 +137,6 @@ export interface SelectVBButtonProps {
   setReadFile: React.Dispatch<React.SetStateAction<File | null>>;
   /** ダイアログの表示状況を更新するためのコールバック */
   setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  /** ZIPの読込方式を更新するためのコールバック */
+  setLoadMode?: React.Dispatch<React.SetStateAction<"standard" | "lowMemory">>;
 }

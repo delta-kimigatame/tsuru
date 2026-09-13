@@ -29,7 +29,7 @@ describe("LoadVBUnit", () => {
     render(
       <ThemeProvider theme={lightTheme}>
         <LoadVBUnit />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
   };
 
@@ -45,6 +45,14 @@ describe("LoadVBUnit", () => {
     renderComponent();
     const button = screen.getByRole("button", {
       name: i18n.t("top.selectDirButtonText"),
+    });
+    expect(button).toBeInTheDocument();
+  });
+
+  it("SelectVBLowMemoryButtonが表示される", () => {
+    renderComponent();
+    const button = screen.getByRole("button", {
+      name: i18n.t("top.selectLowMemoryZipButtonText"),
     });
     expect(button).toBeInTheDocument();
   });
@@ -65,7 +73,7 @@ describe("LoadVBUnit", () => {
       "test.zip",
       {
         type: "application/zip",
-      }
+      },
     );
 
     await user.upload(fileInput, file);

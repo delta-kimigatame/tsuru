@@ -58,6 +58,9 @@ export const translationJa = {
     selectZipButtonText: "UTAU音源のzipファイルを選択",
     selectZipButtonDescription:
       "「UTAU音源のzipファイルを選択」をクリックすると、利用規約に同意したとみなします。",
+    selectLowMemoryZipButtonText: "(β)省メモリーでUTAU音源のzipファイルを選択",
+    selectLowMemoryZipButtonDescription:
+      "省メモリー読込はβ機能です。対応していないzipファイルがある場合は通常の読込をお試しください。",
     selectDirButtonText: "(β)UTAU音源のフォルダを選択",
     selectDirButtonDescription:
       "「(β)UTAU音源のフォルダを選択」をクリックすると、利用規約に同意したとみなします。",

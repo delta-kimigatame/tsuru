@@ -59,6 +59,10 @@ export const translationPt = {
     selectZipButtonText: "Selecionar arquivo zip da fonte UTAU",
     selectZipButtonDescription:
       "Clicar em 'Selecionar arquivo zip da fonte UTAU' significa que você concorda com os termos de uso.",
+    selectLowMemoryZipButtonText:
+      "(β)Selecionar ZIP da fonte UTAU com pouca memória",
+    selectLowMemoryZipButtonDescription:
+      "O carregamento com pouca memória é uma função beta. Se o ZIP não for compatível, use o carregamento padrão.",
     selectDirButtonText: "(β)Selecionar pasta da fonte UTAU",
     selectDirButtonDescription:
       "Clicar em '(β)Selecionar pasta da fonte UTAU' significa que você concorda com os termos de uso.",

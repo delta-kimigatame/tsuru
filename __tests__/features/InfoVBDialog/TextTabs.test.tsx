@@ -1,23 +1,21 @@
 import { fireEvent, render, waitFor } from "@testing-library/react";
-import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import {
   TextTabs,
   TextTabsProps,
   filterRule,
 } from "../../../src/features/InfoVBDialog/TextTabs";
+import type { BaseVoiceBank } from "../../../src/lib/VoiceBanks/BaseVoiceBank";
 import { EncodingOption } from "../../../src/utils/EncodingMapping";
 
-// ヘルパー関数: ダミーの JSZip オブジェクトを作成する
-const createDummyZipFiles = (files: {
+const createDummyVoiceBank = (files: {
   [key: string]: string;
-}): { [key: string]: JSZip.JSZipObject } => {
-  const zip = new JSZip();
-  Object.entries(files).forEach(([filename, content]) => {
-    // 中身は minimal な文字列ファイルとして作成
-    zip.file(filename, new File([content], filename, { type: "text/plain" }));
-  });
-  return zip.files;
+}): BaseVoiceBank => {
+  return {
+    getRootFileNames: () => Object.keys(files),
+    loadRootFile: async (filename: string) =>
+      new TextEncoder().encode(files[filename]).buffer,
+  } as unknown as BaseVoiceBank;
 };
 
 describe("TextTabs", () => {
@@ -35,10 +33,10 @@ describe("TextTabs", () => {
   });
 
   // 2. useMemo による textFileList の算出の検証
-  it("props.zipFilesを与えた場合はtextFileListが正しく算出される", () => {
+  it("音源を与えた場合はtextFileListが正しく算出される", () => {
     // 以下のファイルが zipFiles に含まれるとする:
     // "readme.txt", "a.txt", "b.txt", "character.txt", "install.txt"
-    const dummyFiles = createDummyZipFiles({
+    const vb = createDummyVoiceBank({
       "readme.txt": "R",
       "a.txt": "A",
       "b.txt": "B",
@@ -49,58 +47,62 @@ describe("TextTabs", () => {
     // ただし readme.txt が存在すれば先頭に unshift されるので、期待される一覧は:
     // ["readme.txt", "a.txt", "b.txt"]
     const props: TextTabsProps = {
-      zipFiles: dummyFiles,
+      vb,
       encoding: EncodingOption.SHIFT_JIS,
     };
     const { container } = render(<TextTabs {...props} />);
     // タブのラベルが正しく表示されているか検証
     // findAllByRole で取得する場合、タブが配列で返るので、それをソートして比較
     const tabs = container.querySelectorAll('[role="tab"]');
-    const tabLabels = Array.from(tabs).map((tab) => tab.textContent?.trim());
+    const tabLabels = Array.from(tabs)
+      .map((tab) => tab.textContent?.trim())
+      .filter((label) => label?.endsWith(".txt"));
     expect(tabLabels.sort()).toEqual(["readme.txt", "a.txt", "b.txt"].sort());
   });
 
   // 3. props.zipFiles の変更により、textFileList が再計算されるかの検証
-  it("zipFilesの内容が変わった場合はtextFileListが再計算される", async () => {
+  it("音源が変わった場合はtextFileListが再計算される", async () => {
     // 初期値: normalZipFiles = {"readme.txt", "a.txt"}
-    const normalZipFiles = createDummyZipFiles({
+    const normalVb = createDummyVoiceBank({
       "readme.txt": "R",
       "a.txt": "A",
     });
     const props: TextTabsProps = {
-      zipFiles: normalZipFiles,
+      vb: normalVb,
       encoding: EncodingOption.SHIFT_JIS,
     };
     const { rerender, container } = render(<TextTabs {...props} />);
     let tabs = container.querySelectorAll('[role="tab"]');
-    let tabLabels = Array.from(tabs).map((tab) => tab.textContent?.trim());
+    let tabLabels = Array.from(tabs)
+      .map((tab) => tab.textContent?.trim())
+      .filter((label) => label?.endsWith(".txt"));
     expect(tabLabels.sort()).toEqual(["readme.txt", "a.txt"].sort());
 
     // 新たな zipFiles: {"readme.txt", "a.txt", "b.txt"}
-    const newZipFiles = createDummyZipFiles({
+    const newVb = createDummyVoiceBank({
       "readme.txt": "R",
       "a.txt": "A",
       "b.txt": "B",
     });
-    rerender(
-      <TextTabs zipFiles={newZipFiles} encoding={EncodingOption.SHIFT_JIS} />
-    );
+    rerender(<TextTabs vb={newVb} encoding={EncodingOption.SHIFT_JIS} />);
     await waitFor(() => {
       tabs = container.querySelectorAll('[role="tab"]');
-      tabLabels = Array.from(tabs).map((tab) => tab.textContent?.trim());
+      tabLabels = Array.from(tabs)
+        .map((tab) => tab.textContent?.trim())
+        .filter((label) => label?.endsWith(".txt"));
       expect(tabLabels.sort()).toEqual(["readme.txt", "a.txt", "b.txt"].sort());
     });
   });
 
   // 4. handleChange が呼ばれた際、value の state が更新されるか（タブ切替のロジック）
   it("タブを切り替えた場合は内部stateが更新される", async () => {
-    const dummyFiles = createDummyZipFiles({
+    const vb = createDummyVoiceBank({
       "readme.txt": "R",
       "a.txt": "A",
       "b.txt": "B",
     });
     const props: TextTabsProps = {
-      zipFiles: dummyFiles,
+      vb,
       encoding: EncodingOption.SHIFT_JIS,
     };
     const { container } = render(<TextTabs {...props} />);
@@ -121,13 +123,13 @@ describe("TextTabs", () => {
   // 5. 各タブの key と、TextTabContent に渡される props の確認
   it("各タブに渡されるTextTabContentのpropsが期待通りである", async () => {
     // テスト用に各テキストファイルの内容として、一文字の識別子を入れる
-    const zipFiles = createDummyZipFiles({
+    const vb = createDummyVoiceBank({
       "readme.txt": "R",
       "a.txt": "A",
       "b.txt": "B",
     });
     const props: TextTabsProps = {
-      zipFiles,
+      vb,
       encoding: EncodingOption.SHIFT_JIS,
     };
     const { container } = render(<TextTabs {...props} />);
@@ -146,10 +148,9 @@ describe("TextTabs", () => {
   });
 
   // 6. textFileListがundefinedの場合のテスト
-  it("zipFilesとfilesが両方nullの場合はテキストファイルが見つかりませんと表示される", () => {
+  it("音源がnullの場合はテキストファイルが見つかりませんと表示される", () => {
     const props: TextTabsProps = {
-      zipFiles: null,
-      files: null,
+      vb: null,
       encoding: EncodingOption.SHIFT_JIS,
     };
     const { getByText } = render(<TextTabs {...props} />);

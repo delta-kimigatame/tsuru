@@ -57,6 +57,9 @@ export const translationZh = {
     selectZipButtonText: "选择 UTAU 音源的 zip 文件",
     selectZipButtonDescription:
       "点击“选择 UTAU 音源的 zip 文件”即表示您同意使用条款。",
+    selectLowMemoryZipButtonText: "(β)以低内存方式选择 UTAU 音源 zip 文件",
+    selectLowMemoryZipButtonDescription:
+      "低内存读取为 β 功能。如 ZIP 文件不受支持，请尝试标准读取方式。",
     selectDirButtonText: "(β)选择 UTAU 音源文件夹",
     selectDirButtonDescription:
       "点击“(β)选择 UTAU 音源文件夹”即表示您同意使用条款。",

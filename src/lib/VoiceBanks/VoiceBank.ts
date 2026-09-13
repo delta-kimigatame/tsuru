@@ -64,6 +64,18 @@ export class VoiceBank extends BaseVoiceBank {
     }
   }
 
+  override getRootFileNames(): string[] {
+    return Object.keys(this.zip);
+  }
+
+  async loadRootFile(filename: string): Promise<ArrayBuffer> {
+    const file = this.zip[filename];
+    if (file === undefined) {
+      throw new Error(`${filename} not found.`);
+    }
+    return extractFileFromZip(file);
+  }
+
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名

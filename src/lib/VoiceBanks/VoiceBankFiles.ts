@@ -40,6 +40,18 @@ export class VoiceBankFiles extends BaseVoiceBank {
     );
   }
 
+  override getRootFileNames(): string[] {
+    return Object.keys(this.files);
+  }
+
+  async loadRootFile(filename: string): Promise<ArrayBuffer> {
+    const file = this.files[filename];
+    if (file === undefined) {
+      throw new Error(`${filename} not found.`);
+    }
+    return file.arrayBuffer();
+  }
+
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名

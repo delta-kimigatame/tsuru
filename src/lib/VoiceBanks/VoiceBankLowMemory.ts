@@ -44,6 +44,18 @@ export class VoiceBankLowMemory extends BaseVoiceBank {
     return this._zip;
   }
 
+  override getRootFileNames(): string[] {
+    const root =
+      this._root !== undefined && this._root !== "" ? this._root + "/" : "";
+    return this._filenames
+      .filter((filename) => filename.startsWith(root))
+      .map((filename) => filename.slice(root.length));
+  }
+
+  async loadRootFile(filename: string): Promise<ArrayBuffer> {
+    return this._zip.LoadFile(this.getFullPath(filename));
+  }
+
   /**
    * ファイル名からwavのデータを返す
    * @param filename ファイル名
