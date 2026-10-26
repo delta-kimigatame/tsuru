@@ -363,9 +363,11 @@ export class Note {
     const v = value.replace(",", ";");
     if (v.includes(";")) {
       const [time, height] = value.replace(",", ";").split(";");
+      const parsedTime = parseFloat(time);
+      const parsedHeight = parseFloat(height);
       this._pbs = {
-        time: Number.isNaN(time) ? 0 : parseFloat(time),
-        height: Math.min(Math.max(parseFloat(height), -200), 200),
+        time: Number.isNaN(parsedTime) ? 0 : parsedTime,
+        height: Math.min(Math.max(parsedHeight, -200), 200),
       };
     } else {
       this._pbs = {

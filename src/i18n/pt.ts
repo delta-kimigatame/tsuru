@@ -83,6 +83,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/10/26\r\n[Correção] Corrigido um problema em que todo o aplicativo travava quando um UST continha parâmetros inválidos.",
       "2026/09/13\r\n[Adição] Adicionado o carregamento de arquivos ZIP de fontes UTAU com pouca memória. O uso de memória é reduzido em cerca de 90%, mas a síntese fica cerca de 33% mais lenta. Recomendado para dispositivos de baixo desempenho nos quais o aplicativo poderia travar.",
       "2026/06/27\r\nQuando o oto.ini possui parâmetros vazios, agora eles são lidos como 0.",
       "2026/06/14\r\n[Adição] Expansão dos recursos de fundo no Video Editor.\r\n[Adição] Agora é possível exibir letras nas informações de nota no Video Editor.\r\n[Correção] Agora é possível controlar o FPS do piano-roll no Video Editor, com valor padrão ajustado para uma velocidade mais legível para as letras.",

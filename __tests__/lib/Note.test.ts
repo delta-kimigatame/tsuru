@@ -400,6 +400,8 @@ describe("Note", () => {
     expect(n.pbs).toEqual({ time: -50.5, height: 200 });
     n.pbs = "-50.5;-201";
     expect(n.pbs).toEqual({ time: -50.5, height: -200 });
+    n.pbs = "NaN;30.0";
+    expect(n.pbs).toEqual({ time: 0, height: 30 });
     const n2 = new Note();
     n2.pbsTime = 50;
     expect(n2.pbs).toEqual({ time: 50, height: 0 });
@@ -725,17 +727,17 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     const o_output = new File(
       [
         iconv.encode(
           "_あ.wav=あ,1,2,3,300,100\r\n_い.wav=い,5,10,15,200,50\r\n",
-          "Windows-31j"
+          "Windows-31j",
         ),
       ],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     z.file("root/character.txt", c_output);
     z.file("root/oto.ini", o_output);
@@ -776,12 +778,12 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     const o_output = new File(
       [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     z.file("root/character.txt", c_output);
     z.file("root/oto.ini", o_output);
@@ -853,12 +855,12 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     const o_output = new File(
       [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     z.file("root/character.txt", c_output);
     z.file("root/oto.ini", o_output);
@@ -907,19 +909,19 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     const o_output = new File(
       [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     const o_output2 = new File(
       [iconv.encode("_う.wav=う,1,2,3,450,150\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
     z.file("root/character.txt", c_output);
     z.file("root/oto.ini", o_output);
@@ -959,13 +961,13 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     const o_output = new File(
       [iconv.encode("_あ.wav=あ,1,2,3,300,100\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     z.file("root/character.txt", c_output);
@@ -1002,13 +1004,13 @@ describe("Note", () => {
     const c_output = new File(
       [iconv.encode(new CharacterTxt(c).outputTxt(), "Windows-31j")],
       "character.txt",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     const o_output = new File(
       [iconv.encode("_あ.wav=あ,1,2,3,450,150\r\n", "Windows-31j")],
       "oto.ini",
-      { type: "text/plane;charset=shift-jis" }
+      { type: "text/plane;charset=shift-jis" },
     );
 
     z.file("root/character.txt", c_output);
@@ -1810,19 +1812,19 @@ describe("getRequestParam", () => {
 
   it("dumpEnvelopeでEnvelope型が正しく文字列化される", () => {
     expect(dumpEnvelope({ point: [0, 100], value: [0, 100, 100] })).toBe(
-      "0.00,100.00"
+      "0.00,100.00",
     );
     expect(dumpEnvelope({ point: [0, 5, 35], value: [0, 80, 90] })).toBe(
-      "0.00,5.00,35.00,0,80,90"
+      "0.00,5.00,35.00,0,80,90",
     );
     expect(dumpEnvelope({ point: [0, 5, 35], value: [0, 80, 90, 5] })).toBe(
-      "0.00,5.00,35.00,0,80,90,5"
+      "0.00,5.00,35.00,0,80,90,5",
     );
     expect(dumpEnvelope({ point: [0, 5, 35, 20], value: [0, 80, 90, 5] })).toBe(
-      "0.00,5.00,35.00,0,80,90,5,%,20.00"
+      "0.00,5.00,35.00,0,80,90,5,%,20.00",
     );
     expect(
-      dumpEnvelope({ point: [0, 5, 35, 20, 10], value: [0, 80, 90, 5, 75] })
+      dumpEnvelope({ point: [0, 5, 35, 20, 10], value: [0, 80, 90, 5, 75] }),
     ).toBe("0.00,5.00,35.00,0,80,90,5,%,20.00,10.00,75");
   });
   it("最小限のプロパティでdumpが正しく出力される", () => {
