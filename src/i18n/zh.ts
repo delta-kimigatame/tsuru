@@ -212,6 +212,7 @@ export const translationZh = {
           "请遵守各音源库的使用条款。",
         ],
       },
+      {},
     ],
     linkTitle: "链接",
     linkSynthesis: "主程序",

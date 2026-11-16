@@ -216,6 +216,29 @@ export const translationJa = {
           "音源ライブラリ毎の利用規約を守ること",
         ],
       },
+      {
+        title: "UTAって創る君の声2026",
+        about:
+          "2026/12/20(日)東京たま未来メッセで開催されるUTAUオンリー同人即売会で、きみがためtoolsの公式ガイドブックを頒布します",
+        startDatetime: "2026/12/20 13：00",
+        endDatetime: "2026/12/20 16：00",
+        regulations: [
+          "頒布サークルはD01,02「きみがため」です。",
+          "頒布価格は2,000円(JPY)を予定しています。",
+          "通販は未定です。",
+          "UTAって創る君の声は別途参加料が必要です。詳しくは公式サイトをご確認ください。",
+        ],
+        links: [
+          {
+            label: "公式サイト",
+            href: "https://inspiring-terunoinfo.wordpress.com/",
+          },
+          {
+            label: "お知らせ投稿",
+            href: "https://x.com/10_77uta/status/2122259199094886770",
+          },
+        ],
+      },
     ],
     linkTitle: "リンク",
     linkSynthesis: "本体ソフトウェア",

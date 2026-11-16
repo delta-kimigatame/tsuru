@@ -219,6 +219,7 @@ export const translationPt = {
           "Respeite os termos de uso de cada banco de voz.",
         ],
       },
+      {},
     ],
     linkTitle: "Links",
     linkSynthesis: "Software principal",

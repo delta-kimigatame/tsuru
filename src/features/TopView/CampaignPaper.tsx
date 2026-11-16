@@ -3,33 +3,60 @@ import { useTranslation } from "react-i18next";
 
 import Box from "@mui/material/Box";
 
-import { Collapse, Divider, Typography } from "@mui/material";
+import { Collapse, Divider, Link, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BasePaper } from "../../components/common/BasePaper";
 import { LOG } from "../../lib/Logging";
 
 /** 表示するキャンペーンのインデックス */
-const campaignIndex = 1;
+const campaignIndex = 2;
+
+type CampaignLink = {
+  label: string;
+  href: string;
+};
+
+type Campaign = {
+  title?: string;
+  about?: string;
+  startDatetime?: string;
+  endDatetime?: string;
+  eventTag?: string;
+  regulations?: string[];
+  links?: CampaignLink[];
+};
 
 export const CampaignPaper: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isOpen, setIsOpen] = React.useState(false);
-  const regulations = t(`top.campaigns.${campaignIndex}.regulations`, {
+  const campaign = t(`top.campaigns.${campaignIndex}`, {
     returnObjects: true,
-  }) as string[] | string;
-  const regulationList = Array.isArray(regulations) ? regulations : [];
-  const eventTag = t(`top.campaigns.${campaignIndex}.eventTag`);
-  const tagLabel = eventTag.startsWith("#") ? eventTag : `#${eventTag}`;
+  }) as Campaign;
+  const regulationList = Array.isArray(campaign.regulations)
+    ? campaign.regulations
+    : [];
+  const links = Array.isArray(campaign.links) ? campaign.links : [];
+  const eventTag = campaign.eventTag ?? "";
+  const tagLabel = eventTag
+    ? eventTag.startsWith("#")
+      ? eventTag
+      : `#${eventTag}`
+    : "";
 
   React.useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !eventTag) {
       return;
     }
     LOG.gtag("campaign", {
       tag: eventTag,
     });
   }, [isOpen, eventTag]);
+
+  if (!campaign.title) {
+    return null;
+  }
+
   return (
     <>
       <Box
@@ -70,32 +97,55 @@ export const CampaignPaper: React.FC = () => {
         }}
       >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {t(`top.campaigns.${campaignIndex}.title`)}
+          {campaign.title}
         </Typography>
         <Typography variant="caption" sx={{ opacity: 0.9 }}>
-          {t(`top.campaigns.${campaignIndex}.startDatetime`)} -{" "}
-          {t(`top.campaigns.${campaignIndex}.endDatetime`)}
+          {campaign.startDatetime} - {campaign.endDatetime}
         </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-          {tagLabel}
-        </Typography>
+        {eventTag && (
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {tagLabel}
+          </Typography>
+        )}
       </Box>
       <Collapse in={isOpen} timeout="auto" unmountOnExit>
-        <BasePaper title={t(`top.campaigns.${campaignIndex}.title`)}>
+        <BasePaper title={campaign.title}>
           <Box sx={{ m: 1, p: 1 }}>
-            <Typography variant="body2">
-              {t(`top.campaigns.${campaignIndex}.about`)}
-            </Typography>
+            <Typography variant="body2">{campaign.about}</Typography>
             <Divider sx={{ my: 1 }} />
             <Typography variant="h6">{t(`top.campaign.datetime`)}</Typography>
             <Typography variant="body2">
-              {t(`top.campaigns.${campaignIndex}.startDatetime`)} -{" "}
-              {t(`top.campaigns.${campaignIndex}.endDatetime`)}
+              {campaign.startDatetime} - {campaign.endDatetime}
             </Typography>
             <Divider sx={{ my: 1 }} />
-            <Typography variant="h6">{t(`top.campaign.eventTag`)}</Typography>
-            <Typography variant="body2">{tagLabel}</Typography>
-            <Divider sx={{ my: 1 }} />
+            {eventTag && (
+              <>
+                <Typography variant="h6">
+                  {t(`top.campaign.eventTag`)}
+                </Typography>
+                <Typography variant="body2">{tagLabel}</Typography>
+                <Divider sx={{ my: 1 }} />
+              </>
+            )}
+            {links.length > 0 && (
+              <>
+                <Box component="ul" sx={{ mt: 0.5, mb: 1, pl: 2 }}>
+                  {links.map((link) => (
+                    <Box component="li" key={link.href}>
+                      <Link
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        variant="body2"
+                      >
+                        {link.label}
+                      </Link>
+                    </Box>
+                  ))}
+                </Box>
+                <Divider sx={{ my: 1 }} />
+              </>
+            )}
             <Typography variant="h6">{t(`top.campaign.regulation`)}</Typography>
             <Box component="ul" sx={{ mt: 0.5, mb: 0, pl: 2 }}>
               {regulationList.map((regulation, index) => (

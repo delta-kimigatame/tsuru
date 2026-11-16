@@ -216,6 +216,7 @@ export const translationEn = {
           "Follow each voicebank library's terms of use.",
         ],
       },
+      {},
     ],
     linkTitle: "Links",
     linkSynthesis: "Core synthesis software",
