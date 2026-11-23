@@ -222,6 +222,50 @@ export class Fave extends ResampBase {
     return Math.max(0.02, Math.min(1, attenuation));
   }
 
+  /**
+   * gフラグからフォルマント包絡のワープ比率を求める
+   * g<0で高域側へ(女性化)、g>0で低域側へ(男性化)
+   */
+  CalcGenderWarpRatio(gFlag: number): number {
+    const safeG = Number.isFinite(gFlag)
+      ? Math.min(100, Math.max(-100, gFlag))
+      : 0;
+    // g=+-100でおよそ+-0.5octのワープ
+    const ratio = Math.pow(2, (-safeG / 100) * 0.5);
+    return Number.isFinite(ratio) && ratio > 0 ? ratio : 1;
+  }
+
+  /**
+   * スペクトル包絡を周波数軸方向にワープする
+   * warped[i] = envelope[i / ratio] を線形補間で算定する
+   */
+  WarpEnvelopeByRatio(envelope: Array<number>, ratio: number): Array<number> {
+    if (envelope.length === 0) {
+      return [];
+    }
+    const safeRatio =
+      Number.isFinite(ratio) && ratio > 0
+        ? Math.max(0.25, Math.min(4, ratio))
+        : 1;
+    if (Math.abs(safeRatio - 1) < 1e-8) {
+      return envelope.slice();
+    }
+
+    const warped = new Array<number>(envelope.length);
+    const maxIndex = envelope.length - 1;
+    for (let i = 0; i < envelope.length; i++) {
+      const src = i / safeRatio;
+      const clampedSrc = Math.max(0, Math.min(maxIndex, src));
+      const left = Math.floor(clampedSrc);
+      const right = Math.min(maxIndex, left + 1);
+      const t = clampedSrc - left;
+      const leftValue = Number.isFinite(envelope[left]) ? envelope[left] : 0;
+      const rightValue = Number.isFinite(envelope[right]) ? envelope[right] : 0;
+      warped[i] = leftValue * (1 - t) + rightValue * t;
+    }
+    return warped;
+  }
+
   /** 決定的な0..1の疑似乱数を返す */
   HashUnit(seed: number): number {
     const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
@@ -613,8 +657,8 @@ export class Fave extends ResampBase {
    * @param outputFixedFrames 固定範囲の出力長さ(フレーム数)
    * @param velocityRate 固定範囲の伸縮率。2^(100-velocity)/100で計算される。
    * @param stretchRate 伸縮範囲の伸縮率
-   * @param BFlag Breathフラグ。Breathの強さを0～100で指定する。未実装
-   * @param gFlag genderフラグ。スペクトル包絡全体をワープする強さを-100～100で指定する。未実装
+   * @param BFlag Breathフラグ。Breathの強さを0～100で指定する。
+   * @param gFlag genderフラグ。スペクトル包絡全体をワープする強さを-100～100で指定する。
    * @param sFlag エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
    * @returns フォルマントフィルタ適用後のwavデータ
    */
@@ -640,6 +684,7 @@ export class Fave extends ResampBase {
     const wa = new WaveAnalyse();
     /** hanning窓 */
     const window = wa.MakeWindow("hanning", FFT_SIZE);
+    const genderWarpRatio = this.CalcGenderWarpRatio(gFlag);
     let frameIndex = 0;
     for (
       let olaedStartFrame = -FFT_STRIDE;
@@ -693,6 +738,10 @@ export class Fave extends ResampBase {
         inputF0Value,
         sFlag,
       );
+      const warpedInputEnvelope = this.WarpEnvelopeByRatio(
+        inputEnvelope,
+        genderWarpRatio,
+      );
       /** 出力データを切り出す。最初や最後など値が足りない部分は0埋め */
       const olaedValues = Array.from(
         { length: FFT_SIZE },
@@ -725,14 +774,17 @@ export class Fave extends ResampBase {
         Math.floor(olaedSpec.length / 2),
       );
       for (let i = 0; i < envelopeLength; i++) {
-        const inputAmp = Number.isFinite(inputEnvelope[i])
+        const warpedInputAmp = Number.isFinite(warpedInputEnvelope[i])
+          ? warpedInputEnvelope[i]
+          : 0;
+        const rawInputAmp = Number.isFinite(inputEnvelope[i])
           ? inputEnvelope[i]
           : 0;
         const outputAmp =
           Number.isFinite(olaedEnvelope[i]) && olaedEnvelope[i] > 0
             ? olaedEnvelope[i]
             : 0;
-        const gain = outputAmp > 0 ? inputAmp / outputAmp : 1;
+        const gain = outputAmp > 0 ? warpedInputAmp / outputAmp : 1;
         const breathGain = this.CalcBreathGain(i, FFT_SIZE, BFlag);
         const toneAttenuation = this.CalcBreathToneAttenuation(
           i,
@@ -748,7 +800,8 @@ export class Fave extends ResampBase {
 
         const isEndpointBin = i === 0 || i === FFT_SIZE / 2;
         if (breathNoiseRatio > 0 && !isEndpointBin) {
-          const baseMag = Math.max(inputAmp, outputAmp, 1e-9);
+          // Bノイズ量はgワープ後包絡を参照しないようにし、フラグ独立性を保つ
+          const baseMag = Math.max(rawInputAmp, outputAmp, 1e-9);
           const noiseMag = baseMag * breathNoiseRatio;
           const phase =
             2 * Math.PI * this.HashUnit((frameIndex + 1) * 4099 + i * 131);

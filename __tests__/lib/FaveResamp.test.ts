@@ -46,7 +46,7 @@ describe("FaveResamp", () => {
       inputWav: "denoise/01_あかきくけこ.wav",
       targetTone: "A3",
       velocity: 100,
-      flags: "",
+      flags: "B51",
       offsetMs: 1538.32,
       targetMs: 600,
       fixedMs: 20,
@@ -85,5 +85,57 @@ describe("FaveResamp", () => {
       "./__tests__/test_result/outputFaveWorkerApi.wav",
       new DataView(buf),
     );
+  }, 30000);
+
+  it("gフラグでスペクトル包絡が変化する", async () => {
+    const iWav = await resamp.getWaveData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      -200,
+    );
+    const frq = await resamp.getFrqData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      (iWav.length / 44100) * 1000,
+    );
+
+    const baseRequest = {
+      withFrq: true,
+      inputWav: "denoise/01_あかきくけこ.wav",
+      targetTone: "A3",
+      velocity: 100,
+      offsetMs: 1538.32,
+      targetMs: 600,
+      fixedMs: 20,
+      cutoffMs: -200,
+      intensity: 100,
+      modulation: 0,
+      tempo: "!120",
+      pitches: "AA#97#",
+      inputWavData: Float64Array.from(iWav),
+      frqData: Float64Array.from(frq.frq),
+      ampData: Float64Array.from(frq.amp),
+      frqAverage: frq.frqAverage,
+    };
+
+    const gMinus = fave.resampWorker({
+      ...baseRequest,
+      flags: "B50g-30",
+    });
+    const gPlus = fave.resampWorker({
+      ...baseRequest,
+      flags: "B50g30",
+    });
+
+    expect(gMinus.length).toBe(gPlus.length);
+
+    let diffSum = 0;
+    for (let i = 0; i < gMinus.length; i++) {
+      const a = Number.isFinite(gMinus[i]) ? gMinus[i] : 0;
+      const b = Number.isFinite(gPlus[i]) ? gPlus[i] : 0;
+      diffSum += Math.abs(a - b);
+    }
+    const meanDiff = diffSum / Math.max(1, gMinus.length);
+    expect(meanDiff).toBeGreaterThan(1e-5);
   }, 30000);
 });
