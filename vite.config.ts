@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
 
 export default defineConfig(() => {
   // STORYBOOK環境かどうか判定
@@ -14,6 +15,7 @@ export default defineConfig(() => {
     },
     base: "./",
     plugins: [
+      wasm(),
       react(),
       // STORYBOOKビルド時はPWAプラグインを含めない
       ...(!isStorybook
@@ -109,6 +111,7 @@ export default defineConfig(() => {
     },
     worker: {
       format: "es" as const, // 必要に応じて設定
+      plugins: () => [wasm()],
     },
     build: {
       target: "esnext",
