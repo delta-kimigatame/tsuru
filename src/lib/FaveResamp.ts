@@ -97,6 +97,11 @@ export class Fave extends ResampBase {
         targetFrames,
         outputFixedFrames,
       );
+    /**
+     * 伸縮範囲の出力が入力より短い場合(stretchRate<1)は圧縮せず等倍(1)とし、
+     * 出力長を超える入力は捨てる。OLA・フォルマント・振幅補正のすべてで同じ値を用いる。
+     */
+    const effectiveStretchRate = stretchRate < 1 ? 1 : stretchRate;
     /** 出力ピッチ列 */
     const outputF0 = this.CalcTargetPitch(
       request.targetTone,
@@ -117,7 +122,7 @@ export class Fave extends ResampBase {
       inputFixedFrames,
       outputFixedFrames,
       velocityRate,
-      stretchRate,
+      effectiveStretchRate,
       request.modulation,
     );
     const formantFilteredData = flags["N"]
@@ -132,7 +137,7 @@ export class Fave extends ResampBase {
           inputFixedFrames,
           outputFixedFrames,
           velocityRate,
-          stretchRate,
+          effectiveStretchRate,
           flags["B"] ?? 50,
           flags["O"] ?? 0,
           flags["T"] ?? 0,
@@ -147,7 +152,7 @@ export class Fave extends ResampBase {
       inputFixedFrames,
       outputFixedFrames,
       velocityRate,
-      stretchRate,
+      effectiveStretchRate,
     );
     const normalizedData = this.ApplyPeakCompressor(
       correctedData,
@@ -569,6 +574,10 @@ export class Fave extends ResampBase {
       /** 出力データにおけるこの区間の最初のフレーム。固定範囲の後に連結して書き込む */
       const startFrame =
         outputFixedFrames + Math.ceil(spanStartInputFrame * stretchRate);
+      if (startFrame >= targetFrames) {
+        // 出力長を超える区間以降の入力は不要なので捨てる
+        break;
+      }
       /** 出力データにおけるこの区間の最後のフレーム */
       const lastFrame = Math.min(
         targetFrames,
