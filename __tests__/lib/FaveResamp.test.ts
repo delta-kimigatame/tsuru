@@ -138,4 +138,63 @@ describe("FaveResamp", () => {
     const meanDiff = diffSum / Math.max(1, gMinus.length);
     expect(meanDiff).toBeGreaterThan(1e-5);
   }, 30000);
+
+  it("Sフラグとbフラグでスペクトル包絡が変化する", async () => {
+    const iWav = await resamp.getWaveData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      -200,
+    );
+    const frq = await resamp.getFrqData(
+      "denoise/01_あかきくけこ.wav",
+      1538.32,
+      (iWav.length / 44100) * 1000,
+    );
+
+    const baseRequest = {
+      withFrq: true,
+      inputWav: "denoise/01_あかきくけこ.wav",
+      targetTone: "A3",
+      velocity: 100,
+      offsetMs: 1538.32,
+      targetMs: 600,
+      fixedMs: 20,
+      cutoffMs: -200,
+      intensity: 100,
+      modulation: 0,
+      tempo: "!120",
+      pitches: "AA#97#",
+      inputWavData: Float64Array.from(iWav),
+      frqData: Float64Array.from(frq.frq),
+      ampData: Float64Array.from(frq.amp),
+      frqAverage: frq.frqAverage,
+    };
+
+    const neutral = fave.resampWorker({
+      ...baseRequest,
+      flags: "B50",
+    });
+    const sharped = fave.resampWorker({
+      ...baseRequest,
+      flags: "B50S50",
+    });
+    const brighted = fave.resampWorker({
+      ...baseRequest,
+      flags: "B50b50",
+    });
+
+    const calcMeanDiff = (a: Float64Array, b: Float64Array): number => {
+      let diffSum = 0;
+      const length = Math.min(a.length, b.length);
+      for (let i = 0; i < length; i++) {
+        const va = Number.isFinite(a[i]) ? a[i] : 0;
+        const vb = Number.isFinite(b[i]) ? b[i] : 0;
+        diffSum += Math.abs(va - vb);
+      }
+      return diffSum / Math.max(1, length);
+    };
+
+    expect(calcMeanDiff(neutral, sharped)).toBeGreaterThan(1e-5);
+    expect(calcMeanDiff(neutral, brighted)).toBeGreaterThan(1e-5);
+  }, 30000);
 });

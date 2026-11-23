@@ -33,11 +33,19 @@ export class Fave extends ResampBase {
     { name: "G", type: "bool", default: undefined }, // Generateフラグ、周波数表を強制的に再生成
     { name: "g", type: "number", min: -100, max: 100, default: 0 }, //genderフラグ、スペクトル包絡全体をワープ
     { name: "B", type: "number", min: 0, max: 100, default: 50 }, //Breath、現在の実装では簡易的に非周期性指標の増減
+    { name: "O", type: "number", min: -100, max: 100, default: 0 }, //Openingフラグ。低域側の包絡を中心に増減
+    { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。中域(F2付近)の包絡を中心に増減
+    { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。高域寄りの明瞭感を増減
+    { name: "b", type: "number", min: -100, max: 100, default: 0 }, //Brightnessフラグ。スペクトルティルトで明るさを増減
     { name: "t", type: "number", min: -100, max: 100, default: 0 }, //toneフラグ、音高をcent単位で調整
     { name: "P", type: "number", min: 0, max: 100, default: 86 }, //ピークコンプレッサーの強さ。0で無し、100で-6dBに正規化
     { name: "w", type: "number", min: 0, max: 100, default: 0 }, //グロウルの強さ。
     { name: "N", type: "bool", default: undefined }, // NoFormantFilter、フォルマントフィルタを無視する
     { name: "s", type: "number", min: 0, max: 100, default: 20 }, //エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
+    { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
+    { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
+    { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
+    { name: "ME", type: "number", min: -100, max: 100, default: 0, alias: "S" }, //moresampler互換性のためのSフラグのエイリアス。SがなくMEがあれば、MEをSとして扱う。
   ];
   /** 互換性のためにinitializeを持つが即解決する */
   async initialize(): Promise<void> {
@@ -126,6 +134,10 @@ export class Fave extends ResampBase {
           velocityRate,
           stretchRate,
           flags["B"] ?? 50,
+          flags["O"] ?? 0,
+          flags["T"] ?? 0,
+          flags["S"] ?? 0,
+          flags["b"] ?? 0,
           flags["g"] ?? 0,
           flags["s"] ?? 20,
         );
@@ -220,6 +232,85 @@ export class Fave extends ResampBase {
       highBandAttenuation +
       (lowBandAttenuation - highBandAttenuation) * lowWeight;
     return Math.max(0.02, Math.min(1, attenuation));
+  }
+
+  /**
+   * Oフラグに応じた独立ゲインを返す
+   * +で開き方向(低域寄りを持ち上げ)、-で閉じ方向
+   */
+  CalcOpeningGain(binIndex: number, fftSize: number, OFlag: number): number {
+    const safeO = Number.isFinite(OFlag)
+      ? Math.min(100, Math.max(-100, OFlag))
+      : 0;
+    if (safeO === 0) {
+      return 1;
+    }
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+    const lowWeight = Math.exp(-freq / 1000);
+    const gainDb = 6 * (safeO / 100) * lowWeight;
+    const gain = Math.pow(10, gainDb / 20);
+    return Number.isFinite(gain) ? gain : 1;
+  }
+
+  /**
+   * Tフラグに応じた独立ゲインを返す
+   * +で中域(F2付近)を持ち上げ、-で抑える
+   */
+  CalcTensionGain(binIndex: number, fftSize: number, TFlag: number): number {
+    const safeT = Number.isFinite(TFlag)
+      ? Math.min(100, Math.max(-100, TFlag))
+      : 0;
+    if (safeT === 0) {
+      return 1;
+    }
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+    const centerHz = 1500;
+    const sigmaHz = 500;
+    const bandWeight = Math.exp(
+      -((freq - centerHz) * (freq - centerHz)) / (2 * sigmaHz * sigmaHz),
+    );
+    const gainDb = 5 * (safeT / 100) * bandWeight;
+    const gain = Math.pow(10, gainDb / 20);
+    return Number.isFinite(gain) ? gain : 1;
+  }
+
+  /**
+   * bフラグに応じた独立ゲインを返す
+   * 正の値で高域を持ち上げ、負の値で高域を抑える
+   */
+  CalcBrightnessGain(binIndex: number, fftSize: number, bFlag: number): number {
+    const safeB = Number.isFinite(bFlag)
+      ? Math.min(100, Math.max(-100, bFlag))
+      : 0;
+    if (safeB === 0) {
+      return 1;
+    }
+    const fs = renderingConfig.frameRate;
+    const f = Math.max((binIndex / fftSize) * fs, 50);
+    const logLow = Math.log2(50);
+    const logHigh = Math.log2(fs / 2);
+    const norm = (Math.log2(f) - logLow) / (logHigh - logLow);
+    const gainDb = 12 * (safeB / 100) * (2 * norm - 1);
+    const gain = Math.pow(10, gainDb / 20);
+    return Number.isFinite(gain) ? gain : 1;
+  }
+
+  /**
+   * Sフラグに応じた独立ゲインを返す
+   * 正の値で高域寄りの明瞭感を強め、負の値で柔らかくする
+   */
+  CalcSharpGain(binIndex: number, fftSize: number, SFlag: number): number {
+    const safeS = Number.isFinite(SFlag)
+      ? Math.min(100, Math.max(-100, SFlag))
+      : 0;
+    if (safeS === 0) {
+      return 1;
+    }
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+    const highWeight = 1 - Math.exp(-freq / 1800);
+    const gainDb = 8 * (safeS / 100) * highWeight;
+    const gain = Math.pow(10, gainDb / 20);
+    return Number.isFinite(gain) ? gain : 1;
   }
 
   /**
@@ -658,6 +749,10 @@ export class Fave extends ResampBase {
    * @param velocityRate 固定範囲の伸縮率。2^(100-velocity)/100で計算される。
    * @param stretchRate 伸縮範囲の伸縮率
    * @param BFlag Breathフラグ。Breathの強さを0～100で指定する。
+   * @param OFlag Openingフラグ。低域側の包絡を中心に増減させる強さを-100～100で指定する。
+   * @param TFlag Tensionフラグ。中域(F2付近)の包絡を中心に増減させる強さを-100～100で指定する。
+   * @param SFlag Sharpフラグ。高域寄りの明瞭感を増減させる強さを-100～100で指定する。
+   * @param bFlag Brightnessフラグ。スペクトルティルトで明るさを増減させる強さを-100～100で指定する。
    * @param gFlag genderフラグ。スペクトル包絡全体をワープする強さを-100～100で指定する。
    * @param sFlag エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
    * @returns フォルマントフィルタ適用後のwavデータ
@@ -674,6 +769,10 @@ export class Fave extends ResampBase {
     velocityRate: number,
     stretchRate: number,
     BFlag: number,
+    OFlag: number,
+    TFlag: number,
+    SFlag: number,
+    bFlag: number,
     gFlag: number,
     sFlag: number,
   ): Float64Array {
@@ -784,7 +883,13 @@ export class Fave extends ResampBase {
           Number.isFinite(olaedEnvelope[i]) && olaedEnvelope[i] > 0
             ? olaedEnvelope[i]
             : 0;
-        const gain = outputAmp > 0 ? warpedInputAmp / outputAmp : 1;
+        const baseGain = outputAmp > 0 ? warpedInputAmp / outputAmp : 1;
+        const openingGain = this.CalcOpeningGain(i, FFT_SIZE, OFlag);
+        const tensionGain = this.CalcTensionGain(i, FFT_SIZE, TFlag);
+        const sharpGain = this.CalcSharpGain(i, FFT_SIZE, SFlag);
+        const brightnessGain = this.CalcBrightnessGain(i, FFT_SIZE, bFlag);
+        const gain =
+          baseGain * openingGain * tensionGain * sharpGain * brightnessGain;
         const breathGain = this.CalcBreathGain(i, FFT_SIZE, BFlag);
         const toneAttenuation = this.CalcBreathToneAttenuation(
           i,
