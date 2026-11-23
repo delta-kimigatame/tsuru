@@ -6,8 +6,8 @@ import { interp1d, makeTimeAxis } from "../utils/interp";
 import { toneToNoteNum } from "../utils/Notenum";
 import { FlagKeys, parseFlags } from "../utils/parseFlags";
 import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
-import { Frq } from "./VoiceBanks/UtauFrq";
 import { ResampBase } from "./ResampBase";
+import { Frq } from "./VoiceBanks/UtauFrq";
 
 /**
  * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す

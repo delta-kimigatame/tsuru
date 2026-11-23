@@ -67,9 +67,19 @@ export class Fave extends ResampBase {
     const f0Steps = this.CalcF0Step(safeTempo);
     /** 固定範囲の伸縮率 */
     const velocityRate = 2 ** ((100 - request.velocity) / 100);
-    /** 固定範囲の入力長さ */
-    const inputFixedFrames =
+    /** 固定範囲の入力長さ(元値) */
+    const rawInputFixedFrames =
       (request.fixedMs / 1000) * renderingConfig.frameRate;
+    /** 固定範囲の区間数はroundで決め、固定範囲は256サンプル境界へ量子化する */
+    const inputFixedSections = Math.max(
+      0,
+      Math.round(rawInputFixedFrames / SPAN_SIZE),
+    );
+    /** 固定範囲の入力長さ(256サンプル境界に合わせた実効値) */
+    const inputFixedFrames = Math.min(
+      request.inputWavData.length,
+      inputFixedSections * SPAN_SIZE,
+    );
     /** 固定範囲の出力長さ */
     const outputFixedFrames = Math.ceil(inputFixedFrames * velocityRate);
     const { inputStretchFrames, outputStretchFrames, stretchRate } =
@@ -278,38 +288,49 @@ export class Fave extends ResampBase {
     /** 固定範囲のみで出力が埋まる場合のモード */
     const fixedOnlyMode = outputFixedFrames >= targetFrames;
     /** 1区間を256サンプルとしたときの固定範囲の入力区間数 */
-    const inputFixedSections = Math.ceil(inputFixedFrames / SPAN_SIZE);
-    /** 固定範囲の1区間における出力フレーム数 */
-    const outputFixedSectionFrames =
-      inputFixedSections > 0
-        ? Math.ceil(outputFixedFrames / inputFixedSections)
-        : 0;
+    const inputFixedSections = Math.max(
+      0,
+      Math.round(inputFixedFrames / SPAN_SIZE),
+    );
 
     /** 固定範囲区間のOLA処理 */
     /** 次の区間へ引き継ぐ入力波形上の参照位置 */
     let nextSpanStartIndex = 0;
     /** 区間ループ */
     for (let nowSpan = 0; nowSpan < inputFixedSections; nowSpan++) {
+      const spanStartInputFrame = Math.min(
+        inputFixedFrames,
+        nowSpan * SPAN_SIZE,
+      );
+      const spanEndInputFrame = Math.min(
+        inputFixedFrames,
+        (nowSpan + 1) * SPAN_SIZE,
+      );
       /** 出力データにおけるこの区間の最初のフレーム */
-      const startFrame = nowSpan * outputFixedSectionFrames;
+      const startFrame = Math.ceil(spanStartInputFrame * velocityRate);
       if (startFrame >= targetFrames) {
         break;
       }
       /** 出力データにおけるこの区間の最後のフレーム */
       const lastFrame = Math.min(
         targetFrames,
-        nowSpan === inputFixedSections - 1
-          ? outputFixedFrames
-          : (nowSpan + 1) * outputFixedSectionFrames,
+        outputFixedFrames,
+        Math.ceil(spanEndInputFrame * velocityRate),
       );
+      if (lastFrame <= startFrame) {
+        continue;
+      }
+      const spanLastInputFrame = Math.min(inputFrames, spanEndInputFrame);
       nextSpanStartIndex = this.UtauOverlapAddStretchCore(
         data,
         newData,
         velocityRate,
-        nowSpan,
         nextSpanStartIndex,
         startFrame,
         lastFrame,
+        0,
+        0,
+        spanLastInputFrame,
         inputF0,
         frqAverage,
         outputF0,
@@ -341,32 +362,43 @@ export class Fave extends ResampBase {
         `伸縮に失敗しました: 伸縮区間数が不正です (${inputStretchSections})。targetFrames=${targetFrames}, outputFixedFrames=${outputFixedFrames}, inputFrames=${inputFrames}, inputFixedFrames=${inputFixedFrames}`,
       );
     }
-    /** 伸縮範囲の1区間における出力フレーム数 */
-    const outputStretchSectionFrames = Math.ceil(
-      outputStretchFrames / inputStretchSections,
-    );
-    /** 伸縮区間の出力開始オフセット */
-    const stretchStartOffset = outputFixedFrames;
     /** 伸縮範囲区間のOLA処理 */
     /** nextSpanStartIndexは固定範囲の処理終了地点をそのまま用いる */
     /** 区間ループ */
     for (let nowSpan = 0; nowSpan < inputStretchSections; nowSpan++) {
+      const spanStartInputFrame = Math.min(
+        inputStretchFrames,
+        nowSpan * SPAN_SIZE,
+      );
+      const spanEndInputFrame = Math.min(
+        inputStretchFrames,
+        (nowSpan + 1) * SPAN_SIZE,
+      );
       /** 出力データにおけるこの区間の最初のフレーム。固定範囲の後に連結して書き込む */
       const startFrame =
-        stretchStartOffset + nowSpan * outputStretchSectionFrames;
+        outputFixedFrames + Math.ceil(spanStartInputFrame * stretchRate);
       /** 出力データにおけるこの区間の最後のフレーム */
-      const lastFrame =
-        nowSpan === inputStretchSections - 1
-          ? targetFrames
-          : stretchStartOffset + (nowSpan + 1) * outputStretchSectionFrames;
+      const lastFrame = Math.min(
+        targetFrames,
+        outputFixedFrames + Math.ceil(spanEndInputFrame * stretchRate),
+      );
+      if (lastFrame <= startFrame) {
+        continue;
+      }
+      const spanLastInputFrame = Math.min(
+        inputFrames,
+        inputFixedFrames + spanEndInputFrame,
+      );
       nextSpanStartIndex = this.UtauOverlapAddStretchCore(
         data,
         newData,
         stretchRate,
-        nowSpan + inputFixedSections,
         nextSpanStartIndex,
         startFrame,
         lastFrame,
+        inputFixedFrames,
+        outputFixedFrames,
+        spanLastInputFrame,
         inputF0,
         frqAverage,
         outputF0,
@@ -383,10 +415,12 @@ export class Fave extends ResampBase {
    * @param data 入力wavのデータ部
    * @param newData 出力wavのデータ部
    * @param stretchRate 伸縮率
-   * @param nowSpan 現在の区間番号
    * @param nextSpanStartIndex 次の区間へ引き継ぐ入力波形上の参照位置
    * @param startFrame この区間の出力wavにおける最初のフレーム番号
    * @param lastFrame この区間の出力wavにおける最後のフレーム番号
+   * @param inputFrameOffset 入力側の基準オフセット。固定範囲は0、伸縮範囲はinputFixedFrames。
+   * @param outputFrameOffset 出力側の基準オフセット。固定範囲は0、伸縮範囲はoutputFixedFrames。
+   * @param lastInputFrame この区間で参照可能な入力の終端フレーム
    * @param inputF0 入力f0列。wav256サンプルごとに1点のf0があることを想定する。
    * @param frqAverage 入力f0の平均値
    * @param outputF0 出力f0列。f0列の間隔はf0Stepsで指定する。
@@ -399,10 +433,12 @@ export class Fave extends ResampBase {
     data: Float64Array,
     newData: Float64Array,
     stretchRate: number,
-    nowSpan: number,
     nextSpanStartIndex: number,
     startFrame: number,
     lastFrame: number,
+    inputFrameOffset: number,
+    outputFrameOffset: number,
+    lastInputFrame: number,
     inputF0: Float64Array,
     frqAverage: number,
     outputF0: Float64Array,
@@ -415,7 +451,8 @@ export class Fave extends ResampBase {
     /** 区間内ループ */
     for (let nowFrame = startFrame; nowFrame < lastFrame; nowFrame++) {
       /** 伸縮率に応じたフレームのインデックス。OLAの重みづけに用いる。 */
-      const rateBaseIndex = nowFrame / stretchRate;
+      const rateBaseIndex =
+        inputFrameOffset + (nowFrame - outputFrameOffset) / stretchRate;
       /** inputF0からF0値を取得するためのインデックス */
       const inputF0Index = Math.floor(rateBaseIndex / INPUT_F0_SPAN);
       /** 入力f0、0や異常値の場合平均値で上書きする。 */
@@ -439,11 +476,6 @@ export class Fave extends ResampBase {
           ? outputF0[outputF0Index]
           : outputF0[outputF0Index] * (1 - modulation / 100) +
             (inputF0Value - frqAverage) * (modulation / 100);
-      /** 入力データにおける、処理中区間の最終フレーム */
-      const lastInputFrame = Math.min(
-        data.length,
-        (nowSpan + 1) * INPUT_F0_SPAN,
-      );
       /** 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数 */
       const sourceStep = outputF0Value / inputF0Value;
       /** 最初のサンプルでは現在位置を使用し、2サンプル目以降では位置を進める */

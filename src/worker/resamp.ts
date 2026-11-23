@@ -56,7 +56,7 @@ self.addEventListener("message", async (event: MessageEvent) => {
   };
   try {
     const result: Float64Array = await Promise.resolve(
-      resamp.resampWorker(request)
+      resamp.resampWorker(request),
     );
     postMessage({ id, result }, [result.buffer]);
   } catch (error) {

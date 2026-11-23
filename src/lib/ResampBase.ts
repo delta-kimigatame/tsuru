@@ -33,7 +33,9 @@ export abstract class ResampBase {
     cutoffMs: number,
   ): Promise<Array<number>> {
     const wavData = await this.vb.getWave(inputWav);
-    const offsetFrame = Math.floor((renderingConfig.frameRate * offsetMs) / 1000);
+    const offsetFrame = Math.floor(
+      (renderingConfig.frameRate * offsetMs) / 1000,
+    );
     const cutoff =
       cutoffMs < 0
         ? offsetMs - cutoffMs
