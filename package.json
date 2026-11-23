@@ -23,6 +23,7 @@
   "author": "delta_kimigatame",
   "license": "MIT",
   "dependencies": {
+    "@delta_kimigatame/fft-wasm-lib": "^0.5.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.1",
