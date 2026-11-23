@@ -9,13 +9,14 @@
  */
 
 import { Resamp } from "../lib/Resamp";
+import type { ResampBase } from "../lib/ResampBase";
 import type { ResampWorkerRequest } from "../types/request";
 
 /**
  * Resamp クラスのインスタンス。
  * 音声合成処理のコアとなるクラスで、WASM の初期化などを内包します。
  */
-let resamp: Resamp;
+let resamp: ResampBase;
 
 /**
  * Worker の初期化処理。

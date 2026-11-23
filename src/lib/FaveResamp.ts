@@ -13,7 +13,7 @@ import { CubicSplineInterpolator } from "../utils/interp";
 import { toneToNoteNum } from "../utils/Notenum";
 import { FlagKeys, parseFlags } from "../utils/parseFlags";
 import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
-import { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
+import { ResampBase } from "./ResampBase";
 
 const SPAN_SIZE = 256;
 
@@ -25,11 +25,7 @@ const INT16_NORMALIZE_SCALE = 32768;
 const FFT_STRIDE = 512;
 const FFT_SIZE = 1024;
 
-export class Fave {
-  /**
-   *合成するUTAU音源
-   */
-  vb: BaseVoiceBank;
+export class Fave extends ResampBase {
   /**
    * フラグ定義
    */
@@ -43,13 +39,6 @@ export class Fave {
     { name: "N", type: "bool", default: undefined }, // NoFormantFilter、フォルマントフィルタを無視する
     { name: "s", type: "number", min: 0, max: 100, default: 20 }, //エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
   ];
-  /**
-   * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
-   * @param vb 合成するUTAU音源
-   */
-  constructor(vb: BaseVoiceBank = null) {
-    this.vb = vb;
-  }
   /** 互換性のためにinitializeを持つが即解決する */
   async initialize(): Promise<void> {
     return Promise.resolve();

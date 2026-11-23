@@ -6,17 +6,13 @@ import { interp1d, makeTimeAxis } from "../utils/interp";
 import { toneToNoteNum } from "../utils/Notenum";
 import { FlagKeys, parseFlags } from "../utils/parseFlags";
 import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
-import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 import { Frq } from "./VoiceBanks/UtauFrq";
+import { ResampBase } from "./ResampBase";
 
 /**
  * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
  */
-export class Resamp {
-  /**
-   *合成するUTAU音源
-   */
-  vb: BaseVoiceBank;
+export class Resamp extends ResampBase {
   /**
    * 音声分析合成システムworld
    */
@@ -42,14 +38,6 @@ export class Resamp {
     { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
     { name: "ME", type: "number", min: -100, max: 100, default: 0, alias: "S" }, //moresampler互換性のためのSフラグのエイリアス。SがなくMEがあれば、MEをSとして扱う。
   ];
-
-  /**
-   * 原音をNoteとotoに従って伸縮・音高変更したwavとして返す
-   * @param vb 合成するUTAU音源
-   */
-  constructor(vb: BaseVoiceBank = null) {
-    this.vb = vb;
-  }
 
   async initialize(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -226,34 +214,6 @@ export class Resamp {
   }
 
   /**
-   * wavデータを読み込みLogicalNormalaizeして返す
-   * @param inputWav 音源ルートからwavファイルへの相対パス
-   * @param offsetMs 原音設定の左ブランク
-   * @param cutoffMs 原音設定の右ブランク
-   * @returns
-   */
-  async getWaveData(
-    inputWav: string,
-    offsetMs: number,
-    cutoffMs: number,
-  ): Promise<Array<number>> {
-    return new Promise(async (resolve) => {
-      const wavData = await this.vb.getWave(inputWav);
-      const offsetFrame = Math.floor(
-        (renderingConfig.frameRate * offsetMs) / 1000,
-      );
-      const cutoff =
-        cutoffMs < 0
-          ? offsetMs - cutoffMs
-          : (wavData.data.length / wavData.sampleRate) * 1000 - cutoffMs;
-      const cutoffFrame = Math.floor(
-        (renderingConfig.frameRate * cutoff) / 1000,
-      );
-      resolve(wavData.LogicalNormalize(1).slice(offsetFrame, cutoffFrame));
-    });
-  }
-
-  /**
    * frqが存在しない際にf0列を生成するための処理
    * @params wavData 今回の合成に使用する範囲のwavの波形データ。1が最大のArray
    * @params timeAxis worldデータ共通時間軸
@@ -295,57 +255,6 @@ export class Resamp {
       timeAxis: f0.time_axis,
       frqAverage: frq.frqAverage,
     };
-  }
-
-  /**
-   * frqデータを読み込み、必要な範囲をworld時間軸に変換して返す
-   * @param inputWav 音源ルートからwavファイルへの相対パス
-   * @param offsetMs 原音設定の左ブランク
-   * @param wavMs 読み込んだwavの長さ
-   * @returns
-   */
-  async getFrqData(
-    inputWav: string,
-    offsetMs: number,
-    wavMs: number,
-  ): Promise<{
-    frq: Array<number>;
-    amp: Array<number>;
-    timeAxis: Array<number>;
-    frqAverage: number;
-  }> {
-    const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs / 1000);
-    return new Promise(async (resolve) => {
-      const frqData = await this.vb.getFrq(inputWav);
-      const frqTimeAxis = makeTimeAxis(
-        (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
-        0,
-        wavMs / 1000,
-      );
-      const offsetFrame = Math.floor(
-        (renderingConfig.frameRate * offsetMs) / frqData.perSamples / 1000,
-      );
-      const cutoffFrame =
-        Math.ceil(
-          (renderingConfig.frameRate * wavMs) / frqData.perSamples / 1000,
-        ) + 1;
-      const frq = interp1d(
-        Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
-        frqTimeAxis,
-        timeAxis,
-      );
-      const amp = interp1d(
-        Array.from(frqData.amp).slice(offsetFrame, offsetFrame + cutoffFrame),
-        frqTimeAxis,
-        timeAxis,
-      );
-      resolve({
-        frq: frq,
-        amp: amp,
-        timeAxis: timeAxis,
-        frqAverage: frqData.frqAverage,
-      });
-    });
   }
 
   /**

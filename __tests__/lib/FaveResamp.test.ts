@@ -46,7 +46,7 @@ describe("FaveResamp", () => {
       inputWav: "denoise/01_あかきくけこ.wav",
       targetTone: "A3",
       velocity: 100,
-      flags: "B80g10s20P86",
+      flags: "",
       offsetMs: 1538.32,
       targetMs: 600,
       fixedMs: 20,
