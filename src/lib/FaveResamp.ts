@@ -215,7 +215,7 @@ export class Fave extends ResampBase {
       outputF0[i] = getFrqFromNotenum(
         toneToNoteNum(targetTone) +
           tFlag / 100 +
-          (i < decodedPitch.length ? decodedPitch[i] : 0),
+          (i < decodedPitch.length ? decodedPitch[i] / 100 : 0),
       );
       if (wFlag > 0) {
         outputF0[i] *= 1 + Math.sin(i * 3 * f0StepMs) * (wFlag / 100);
