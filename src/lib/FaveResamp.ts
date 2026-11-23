@@ -175,6 +175,60 @@ export class Fave extends ResampBase {
   }
 
   /**
+   * B>50で付与する加算ノイズ量の比率を返す
+   * 低域は控えめ、高域ほど増やす
+   */
+  CalcBreathNoiseRatio(
+    binIndex: number,
+    fftSize: number,
+    BFlag: number,
+  ): number {
+    const safeB = Number.isFinite(BFlag)
+      ? Math.min(100, Math.max(0, BFlag))
+      : 50;
+    if (safeB <= 50) {
+      return 0;
+    }
+    const rate = (safeB - 50) / 50;
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+    const highWeight = 1 - Math.exp(-freq / 1200);
+    const highWeight2 = highWeight * highWeight;
+    // 低域ノイズは抑えつつ、高域で息感を強める
+    return rate * (0.005 + 0.22 * highWeight2);
+  }
+
+  /** B>50時に有声音成分を段階的に弱める係数を返す */
+  CalcBreathToneAttenuation(
+    binIndex: number,
+    fftSize: number,
+    BFlag: number,
+  ): number {
+    const safeB = Number.isFinite(BFlag)
+      ? Math.min(100, Math.max(0, BFlag))
+      : 50;
+    if (safeB <= 50) {
+      return 1;
+    }
+    const rate = (safeB - 50) / 50;
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+    const lowWeight = Math.exp(-freq / 1800);
+    // B100では低域をほぼ無声化に近いレベルまで抑え、高域はわずかに残す
+    const ratePow = Math.pow(rate, 1.35);
+    const lowBandAttenuation = 1 - 0.95 * ratePow;
+    const highBandAttenuation = 1 - 0.88 * ratePow;
+    const attenuation =
+      highBandAttenuation +
+      (lowBandAttenuation - highBandAttenuation) * lowWeight;
+    return Math.max(0.02, Math.min(1, attenuation));
+  }
+
+  /** 決定的な0..1の疑似乱数を返す */
+  HashUnit(seed: number): number {
+    const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  /**
    * tempoから出力f0列の間隔をフレーム単位で計算する
    * 出力f0間隔は、bpmに依存し5tickにつき1点となる。
    * @param bpm
@@ -586,6 +640,7 @@ export class Fave extends ResampBase {
     const wa = new WaveAnalyse();
     /** hanning窓 */
     const window = wa.MakeWindow("hanning", FFT_SIZE);
+    let frameIndex = 0;
     for (
       let olaedStartFrame = -FFT_STRIDE;
       olaedStartFrame < olaedData.length;
@@ -664,15 +719,60 @@ export class Fave extends ResampBase {
       );
       /** 入出力のスペクトル包絡を適用したspecデータ、re0,im0,re1,im1...の順に並ぶ */
       const apllyedSpec = new Float32Array(olaedSpec.length);
-      for (let i = 0; i < inputEnvelope.length; i++) {
-        const gain =
-          olaedEnvelope[i] > 0 ? inputEnvelope[i] / olaedEnvelope[i] : 1;
+      const envelopeLength = Math.min(
+        inputEnvelope.length,
+        olaedEnvelope.length,
+        Math.floor(olaedSpec.length / 2),
+      );
+      for (let i = 0; i < envelopeLength; i++) {
+        const inputAmp = Number.isFinite(inputEnvelope[i])
+          ? inputEnvelope[i]
+          : 0;
+        const outputAmp =
+          Number.isFinite(olaedEnvelope[i]) && olaedEnvelope[i] > 0
+            ? olaedEnvelope[i]
+            : 0;
+        const gain = outputAmp > 0 ? inputAmp / outputAmp : 1;
         const breathGain = this.CalcBreathGain(i, FFT_SIZE, BFlag);
-        const finalGain = gain * breathGain;
+        const toneAttenuation = this.CalcBreathToneAttenuation(
+          i,
+          FFT_SIZE,
+          BFlag,
+        );
+        const finalGain = gain * breathGain * toneAttenuation;
+        const breathNoiseRatio = this.CalcBreathNoiseRatio(i, FFT_SIZE, BFlag);
         /** 実部 */
         apllyedSpec[i * 2] = olaedSpec[i * 2] * finalGain;
         /** 虚部 */
         apllyedSpec[i * 2 + 1] = olaedSpec[i * 2 + 1] * finalGain;
+
+        const isEndpointBin = i === 0 || i === FFT_SIZE / 2;
+        if (breathNoiseRatio > 0 && !isEndpointBin) {
+          const baseMag = Math.max(inputAmp, outputAmp, 1e-9);
+          const noiseMag = baseMag * breathNoiseRatio;
+          const phase =
+            2 * Math.PI * this.HashUnit((frameIndex + 1) * 4099 + i * 131);
+          apllyedSpec[i * 2] += noiseMag * Math.cos(phase);
+          apllyedSpec[i * 2 + 1] += noiseMag * Math.sin(phase);
+        }
+      }
+      // 実数信号のirfft入力としてDC/Nyquistの虚部を0に固定する
+      apllyedSpec[1] = 0;
+      const nyquistImagIndex = FFT_SIZE + 1;
+      if (nyquistImagIndex < apllyedSpec.length) {
+        apllyedSpec[nyquistImagIndex] = 0;
+      }
+      // wasm側でのtrapを避けるため、非有限値を除去して極端な値を抑える
+      for (let i = 0; i < apllyedSpec.length; i++) {
+        if (!Number.isFinite(apllyedSpec[i])) {
+          apllyedSpec[i] = 0;
+          continue;
+        }
+        if (apllyedSpec[i] > 1e6) {
+          apllyedSpec[i] = 1e6;
+        } else if (apllyedSpec[i] < -1e6) {
+          apllyedSpec[i] = -1e6;
+        }
       }
       const applyedData = irfft_complex(FFT_SIZE, apllyedSpec);
       for (let i = 0; i < applyedData.length; i++) {
@@ -681,6 +781,7 @@ export class Fave extends ResampBase {
           windowSum[i + olaedStartFrame] += window[i];
         }
       }
+      frameIndex++;
     }
     /** 返却前にデータを窓関数で補正 */
     return newData.map((v, i) => (windowSum[i] > 0 ? v / windowSum[i] : 0));
