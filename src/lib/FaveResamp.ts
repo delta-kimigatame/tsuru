@@ -476,10 +476,12 @@ export class Fave extends ResampBase {
      */
     /** 固定範囲のみで出力が埋まる場合のモード */
     const fixedOnlyMode = outputFixedFrames >= targetFrames;
-    /** 1区間を256サンプルとしたときの固定範囲の入力区間数 */
+    /**
+     * 1区間を256サンプルとしたときの固定範囲の入力区間数。
+     */
     const inputFixedSections = Math.max(
       0,
-      Math.round(inputFixedFrames / SPAN_SIZE),
+      Math.ceil(inputFixedFrames / SPAN_SIZE),
     );
 
     /** 固定範囲区間のOLA処理 */
@@ -641,6 +643,14 @@ export class Fave extends ResampBase {
   ): number {
     /** この区間での読み出し位置 */
     let sourcePosition = nextSpanStartIndex;
+    /** この区間の入力側の開始フレーム。非連続点側のOLA点が区間外かの判定に使う */
+    const spanStartInputFrame =
+      inputFrameOffset + (startFrame - outputFrameOffset) / stretchRate;
+    /** 入力波形上の位置が無声(入力f0が0以下または非有限)か判定する。f0が未定義の場合は無声扱いしない */
+    const isUnvoicedInputPosition = (position: number): boolean => {
+      const f0 = inputF0[Math.floor(position / INPUT_F0_SPAN)];
+      return f0 !== undefined && !(Number.isFinite(f0) && f0 > 0);
+    };
     /** 区間内ループ */
     for (let nowFrame = startFrame; nowFrame < lastFrame; nowFrame++) {
       /** 伸縮率に応じたフレームのインデックス。OLAの重みづけに用いる。 */
@@ -734,7 +744,16 @@ export class Fave extends ResampBase {
         nextSpanStartIndex = correctOlaIndex1 + sourceStep;
       }
       const olaValue1 = csi.Interpolate(correctOlaIndex1);
-      if (correctOlaIndex2 >= 0 && correctOlaIndex1 != correctOlaIndex2) {
+      /** 前区間との連続性を持たない側(correctOlaIndex2)が、区間の入力側開始フレームより前かつ無声区間を指す場合はOLAに使わない。
+       * 無声→有声の境界で、無声区間の波形(破裂音など)が有声区間に混入することを防ぐ。 */
+      const skipOla2 =
+        correctOlaIndex2 < spanStartInputFrame &&
+        isUnvoicedInputPosition(correctOlaIndex2);
+      if (
+        correctOlaIndex2 >= 0 &&
+        correctOlaIndex1 != correctOlaIndex2 &&
+        !skipOla2
+      ) {
         const olaValue2 = csi.Interpolate(correctOlaIndex2);
 
         const olaDiff1 = Math.abs(rateBaseIndex - olaIndex1);
