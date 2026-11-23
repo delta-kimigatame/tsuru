@@ -32,14 +32,17 @@ export const parseFlags = (
       const reg = new RegExp(f.name + "([-0-9]+)");
       const match = value.match(reg);
       if (match) {
-        const flagValue_ =
-          f.min === undefined
-            ? parseInt(match[1])
-            : Math.max(f.min, parseInt(match[1]));
-        const flagValue =
-          f.max === undefined ? flagValue_ : Math.min(f.max, flagValue_);
-        result[f.name] = flagValue;
-        foundFlags.add(f.name);
+        const parsedValue = parseInt(match[1]);
+        if (Number.isFinite(parsedValue)) {
+          const flagValue_ =
+            f.min === undefined ? parsedValue : Math.max(f.min, parsedValue);
+          const flagValue =
+            f.max === undefined ? flagValue_ : Math.min(f.max, flagValue_);
+          result[f.name] = flagValue;
+          foundFlags.add(f.name);
+        } else {
+          result[f.name] = f.default;
+        }
       } else {
         result[f.name] = f.default;
       }

@@ -38,4 +38,10 @@ describe("parseFlags", () => {
     expect(result1["B"]).toBe(50);
     expect(result1["P"]).toBe(86);
   });
+  it("numberタイプのフラグ:非数はdefaultへフォールバック", () => {
+    const result1 = parseFlags("g-B-P-", testFlagKeys);
+    expect(result1["g"]).toBe(0);
+    expect(result1["B"]).toBe(50);
+    expect(result1["P"]).toBe(86);
+  });
 });
