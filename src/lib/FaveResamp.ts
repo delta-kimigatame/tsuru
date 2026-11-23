@@ -513,6 +513,7 @@ export class Fave extends ResampBase {
       nextSpanStartIndex = this.UtauOverlapAddStretchCore(
         data,
         newData,
+        true,
         velocityRate,
         nextSpanStartIndex,
         startFrame,
@@ -581,6 +582,7 @@ export class Fave extends ResampBase {
       nextSpanStartIndex = this.UtauOverlapAddStretchCore(
         data,
         newData,
+        false,
         stretchRate,
         nextSpanStartIndex,
         startFrame,
@@ -603,6 +605,7 @@ export class Fave extends ResampBase {
    * UTAU初期resampler式のOLA伸縮のうち、固定範囲と伸縮範囲で共通するフレーム毎ループを扱う
    * @param data 入力wavのデータ部
    * @param newData 出力wavのデータ部
+   * @param isFixedSection 固定範囲の処理かどうか。固定範囲かつ入力f0<=0ではピッチシフトを無効化する。
    * @param stretchRate 伸縮率
    * @param nextSpanStartIndex 次の区間へ引き継ぐ入力波形上の参照位置
    * @param startFrame この区間の出力wavにおける最初のフレーム番号
@@ -621,6 +624,7 @@ export class Fave extends ResampBase {
   UtauOverlapAddStretchCore(
     data: Float64Array,
     newData: Float64Array,
+    isFixedSection: boolean,
     stretchRate: number,
     nextSpanStartIndex: number,
     startFrame: number,
@@ -654,19 +658,30 @@ export class Fave extends ResampBase {
             : FALBACK_F0;
       /** F0値から求められるフレーム数 */
       const f0Frames = renderingConfig.frameRate / inputF0Value;
-      /** outputF0からF0値を取得するためのインデックス。仮に要求長に長さが満たない場合、最後のF0値を採用する */
-      const outputF0Index = Math.min(
-        Math.floor(nowFrame / f0Steps),
-        outputF0.length - 1,
-      );
-      /** このフレームのターゲットF0、modulationが0の場合はoutputF0から求め、modulationが非0の場合はoutputF0と(inputF0Value-frqAverage)をmodulation %混入する */
-      const outputF0Value =
-        modulation === 0
-          ? outputF0[outputF0Index]
-          : outputF0[outputF0Index] * (1 - modulation / 100) +
-            (inputF0Value - frqAverage) * (modulation / 100);
-      /** 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数 */
-      const sourceStep = outputF0Value / inputF0Value;
+      /**
+       * 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数。
+       * 固定範囲かつ入力f0<=0（無声子音を想定）の場合は、ピッチシフトとmodulationを無効化する。
+       */
+      let sourceStep: number;
+      const isUnvoicedAtFixedSection =
+        isFixedSection &&
+        (!Number.isFinite(rawInputF0Value) || rawInputF0Value <= 0);
+      if (isUnvoicedAtFixedSection) {
+        sourceStep = 1;
+      } else {
+        /** outputF0からF0値を取得するためのインデックス。仮に要求長に長さが満たない場合、最後のF0値を採用する */
+        const outputF0Index = Math.min(
+          Math.floor(nowFrame / f0Steps),
+          outputF0.length - 1,
+        );
+        /** このフレームのターゲットF0。modulationが非0の場合のみ混入する */
+        const outputF0Value =
+          modulation === 0
+            ? outputF0[outputF0Index]
+            : outputF0[outputF0Index] * (1 - modulation / 100) +
+              (inputF0Value - frqAverage) * (modulation / 100);
+        sourceStep = outputF0Value / inputF0Value;
+      }
       /** 最初のサンプルでは現在位置を使用し、2サンプル目以降では位置を進める */
       if (nowFrame > startFrame) {
         sourcePosition += sourceStep;
