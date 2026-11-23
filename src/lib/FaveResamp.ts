@@ -25,6 +25,55 @@ const INT16_NORMALIZE_SCALE = 32768;
 const FFT_STRIDE = 512;
 const FFT_SIZE = 1024;
 
+/** OLAの読み出し位置が不連続に飛ぶ際のクロスフェード長の上限(サンプル数) */
+const OLA_FADE_FRAMES = 64;
+/** 同時に保持するクロスフェード中の旧読み出し位置の最大数 */
+const OLA_MAX_GHOSTS = 4;
+/** 読み出し位置が連続しているとみなす許容誤差(サンプル数) */
+const OLA_JUMP_TOLERANCE = 1e-3;
+
+/** 読み出し位置が飛んだ後、クロスフェードで消えていく旧読み出し位置 */
+interface OlaGhost {
+  /** 1点目の読み出し位置 */
+  p1: number;
+  /** 2点目の読み出し位置 */
+  p2: number;
+  /** 2点目の重み。0なら1点目のみ読む。飛ぶ直前の値で固定する */
+  w2: number;
+  /** 現在の混合比 */
+  weight: number;
+  /** 1サンプルあたりの混合比の減少量 */
+  decrement: number;
+}
+
+/** OLAの読み出し位置の連続性を区間をまたいで管理する状態 */
+interface OlaContinuityState {
+  /** 直前のサンプルが存在するか */
+  hasPrev: boolean;
+  /** 直前のサンプルの1点目の読み出し位置 */
+  prevC1: number;
+  /** 直前のサンプルの2点目の読み出し位置 */
+  prevC2: number;
+  /** 直前のサンプルが2点ブレンドだったか */
+  prevHasPoint2: boolean;
+  /** 直前のサンプルの2点目の重み */
+  prevW2: number;
+  /** 直前のサンプルの読み出し位置の移動ステップ */
+  prevStep: number;
+  /** クロスフェード中の旧読み出し位置 */
+  ghosts: Array<OlaGhost>;
+}
+
+const createOlaContinuityState = (): OlaContinuityState => ({
+  hasPrev: false,
+  prevC1: 0,
+  prevC2: 0,
+  prevHasPoint2: false,
+  prevW2: 0,
+  prevStep: 1,
+  ghosts: [],
+});
+
 export class Fave extends ResampBase {
   /**
    * フラグ定義
@@ -473,6 +522,8 @@ export class Fave extends ResampBase {
 
     const csi = new CubicSplineInterpolator(Array.from(data));
     const newData = new Float64Array(targetFrames);
+    /** 読み出し位置の連続性を、固定範囲と伸縮範囲をまたいで管理する */
+    const continuity = createOlaContinuityState();
 
     /**
      * 固定範囲部分の諸元算定。
@@ -534,6 +585,7 @@ export class Fave extends ResampBase {
         f0Steps,
         modulation,
         csi,
+        continuity,
       );
     }
     if (fixedOnlyMode) {
@@ -607,6 +659,7 @@ export class Fave extends ResampBase {
         f0Steps,
         modulation,
         csi,
+        continuity,
       );
     }
     return newData;
@@ -630,6 +683,7 @@ export class Fave extends ResampBase {
    * @param f0Steps 出力f0列の間隔(フレーム数)
    * @param modulation モジュレーション
    * @param csi CubicSplineInterpolator
+   * @param continuity 読み出し位置の連続性を区間をまたいで管理する状態。読み出し位置が不連続に飛ぶ箇所は、旧位置とのクロスフェードで滑らかにつなぐ。
    * @returns 次の区間へ引き継ぐ入力波形上の参照位置
    */
   UtauOverlapAddStretchCore(
@@ -649,16 +703,25 @@ export class Fave extends ResampBase {
     f0Steps: number,
     modulation: number,
     csi: CubicSplineInterpolator,
+    continuity: OlaContinuityState = createOlaContinuityState(),
   ): number {
     /** この区間での読み出し位置 */
     let sourcePosition = nextSpanStartIndex;
-    /** この区間の入力側の開始フレーム。非連続点側のOLA点が区間外かの判定に使う */
+    /** この区間の入力側の開始フレーム。読み出し位置を区間内へ収める下限として使う */
     const spanStartInputFrame =
       inputFrameOffset + (startFrame - outputFrameOffset) / stretchRate;
-    /** 入力波形上の位置が無声(入力f0が0以下または非有限)か判定する。f0が未定義の場合は無声扱いしない */
+    /** 入力波形上の位置が無声(入力f0が0以下、未定義、非有限)か判定する */
     const isUnvoicedInputPosition = (position: number): boolean => {
-      const f0 = inputF0[Math.floor(position / INPUT_F0_SPAN)];
-      return f0 !== undefined && !(Number.isFinite(f0) && f0 > 0);
+      const f0 = inputF0[Math.floor(Math.max(0, position) / INPUT_F0_SPAN)];
+      return !(Number.isFinite(f0) && f0 > 0);
+    };
+    /** 2点の読み出し位置と2点目の重みから波形値を読む。w2が0以下なら1点目のみ読む */
+    const readPair = (p1: number, p2: number, w2: number): number => {
+      const v1 = csi.Interpolate(p1);
+      if (!(w2 > 0) || !Number.isFinite(p2) || p2 < 0) {
+        return v1;
+      }
+      return v1 * (1 - w2) + csi.Interpolate(p2) * w2;
     };
     /** 区間内ループ */
     for (let nowFrame = startFrame; nowFrame < lastFrame; nowFrame++) {
@@ -677,30 +740,38 @@ export class Fave extends ResampBase {
             : FALBACK_F0;
       /** F0値から求められるフレーム数 */
       const f0Frames = renderingConfig.frameRate / inputF0Value;
-      /**
-       * 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数。
-       * 固定範囲かつ入力f0<=0（無声子音を想定）の場合は、ピッチシフトとmodulationを無効化する。
-       */
-      let sourceStep: number;
-      const isUnvoicedAtFixedSection =
+      /** outputF0からF0値を取得するためのインデックス。仮に要求長に長さが満たない場合、最後のF0値を採用する */
+      const outputF0Index = Math.min(
+        Math.floor(nowFrame / f0Steps),
+        outputF0.length - 1,
+      );
+      /** このフレームのターゲットF0。modulationが非0の場合のみ混入する */
+      const outputF0Value =
+        modulation === 0
+          ? outputF0[outputF0Index]
+          : outputF0[outputF0Index] * (1 - modulation / 100) +
+            (inputF0Value - frqAverage) * (modulation / 100);
+      /** 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数(有声時) */
+      const voicedStep = outputF0Value / inputF0Value;
+      /** 固定範囲かつ時間軸上の入力f0が無声(f0<=0) */
+      const isUnvoicedAtRate =
         isFixedSection &&
         (!Number.isFinite(rawInputF0Value) || rawInputF0Value <= 0);
-      if (isUnvoicedAtFixedSection) {
-        sourceStep = 1;
-      } else {
-        /** outputF0からF0値を取得するためのインデックス。仮に要求長に長さが満たない場合、最後のF0値を採用する */
-        const outputF0Index = Math.min(
-          Math.floor(nowFrame / f0Steps),
-          outputF0.length - 1,
-        );
-        /** このフレームのターゲットF0。modulationが非0の場合のみ混入する */
-        const outputF0Value =
-          modulation === 0
-            ? outputF0[outputF0Index]
-            : outputF0[outputF0Index] * (1 - modulation / 100) +
-              (inputF0Value - frqAverage) * (modulation / 100);
-        sourceStep = outputF0Value / inputF0Value;
-      }
+      /**
+       * 指定した読み出し位置でのソースの移動ステップ数。
+       * 固定範囲で、時間軸上または読み出し位置のどちらかが無声(無声子音を想定)の場合は、
+       * 無声部がピッチシフトやmodulationで変調されてノイズ化しないよう、等速(1)とする。
+       * 伸縮範囲のf0=0は解析ミスと区別できないため、平均f0で代替した従来の挙動を維持する。
+       */
+      const stepAt = (position: number): number =>
+        isFixedSection &&
+        (isUnvoicedAtRate || isUnvoicedInputPosition(position))
+          ? 1
+          : voicedStep;
+      /** 実際に読み出している位置(直前サンプルの1点目)の有声/無声でステップを決める */
+      const sourceStep = stepAt(
+        continuity.hasPrev ? continuity.prevC1 : sourcePosition,
+      );
       /** 最初のサンプルでは現在位置を使用し、2サンプル目以降では位置を進める */
       if (nowFrame > startFrame) {
         sourcePosition += sourceStep;
@@ -748,33 +819,112 @@ export class Fave extends ResampBase {
         olaIndex1 >= lastInputFrame - 1 && olaIndex2 >= lastInputFrame - 1
           ? correctOlaIndex1 - f0Frames
           : olaIndex2;
+      /**
+       * 読み出し位置が区間の入力側開始フレームより前に遅れている場合は、f0Framesの整数倍だけ進めて区間内へ収める。
+       * ただし区間の終端を超える場合(f0Framesが区間幅より長い低音など)は、区間開始の直前(1周期以内)までに留める。
+       * 2点目も同じだけずらし、1点目との間隔(f0Frames)を保つ。
+       */
+      let readIndex1 = correctOlaIndex1;
+      let readIndex2 = correctOlaIndex2;
+      if (readIndex1 < spanStartInputFrame) {
+        const fullShift = Math.ceil(
+          (spanStartInputFrame - readIndex1) / f0Frames,
+        );
+        const shiftCount =
+          readIndex1 + fullShift * f0Frames <= lastInputFrame - 1
+            ? fullShift
+            : fullShift - 1;
+        if (shiftCount > 0) {
+          readIndex1 += shiftCount * f0Frames;
+          readIndex2 += shiftCount * f0Frames;
+        }
+      }
       /** 区間の最後に、実際の参照位置を記録 */
       if (nowFrame === lastFrame - 1) {
-        nextSpanStartIndex = correctOlaIndex1 + sourceStep;
+        nextSpanStartIndex = readIndex1 + sourceStep;
       }
-      const olaValue1 = csi.Interpolate(correctOlaIndex1);
-      /** 前区間との連続性を持たない側(correctOlaIndex2)が、区間の入力側開始フレームより前かつ無声区間を指す場合はOLAに使わない。
-       * 無声→有声の境界で、無声区間の波形(破裂音など)が有声区間に混入することを防ぐ。 */
-      const skipOla2 =
-        correctOlaIndex2 < spanStartInputFrame &&
-        isUnvoicedInputPosition(correctOlaIndex2);
-      if (
-        correctOlaIndex2 >= 0 &&
-        correctOlaIndex1 != correctOlaIndex2 &&
-        !skipOla2
-      ) {
-        const olaValue2 = csi.Interpolate(correctOlaIndex2);
+      /** 2点ブレンドの重み。時間軸上の位置(rateBaseIndex)との距離で決める */
+      const olaDiff1 = Math.abs(rateBaseIndex - olaIndex1);
+      const olaDiff2 = Math.abs(rateBaseIndex - olaIndex2);
+      const olaDiffSum = olaDiff1 + olaDiff2;
+      const hasPoint2 =
+        readIndex2 >= 0 && readIndex1 !== readIndex2 && olaDiffSum > 0;
+      const olaWait2 = hasPoint2 ? olaDiff1 / olaDiffSum : 0;
 
-        const olaDiff1 = Math.abs(rateBaseIndex - olaIndex1);
-        const olaDiff2 = Math.abs(rateBaseIndex - olaIndex2);
-
-        const olaWait1 = olaDiff2 / (olaDiff1 + olaDiff2);
-        const olaWait2 = 1 - olaWait1;
-
-        newData[nowFrame] = olaValue1 * olaWait1 + olaValue2 * olaWait2;
-      } else {
-        newData[nowFrame] = olaValue1;
+      /**
+       * 読み出し位置が直前サンプルの連続とみなせない位置に飛んだ場合(巻き戻し、区間内への補正、f0Framesの切り替わり、
+       * 1点/2点ブレンドの切り替わりなど)は、飛ぶ前の位置を旧読み出し位置として残し、
+       * 一定サンプルかけて新しい位置へクロスフェードする。クリックを避けるための処理。
+       */
+      if (continuity.hasPrev) {
+        const advance =
+          nowFrame === startFrame ? continuity.prevStep : sourceStep;
+        const expected1 = continuity.prevC1 + advance;
+        const expected2 = continuity.prevC2 + advance;
+        const jumped =
+          Math.abs(readIndex1 - expected1) > OLA_JUMP_TOLERANCE ||
+          hasPoint2 !== continuity.prevHasPoint2 ||
+          (hasPoint2 && Math.abs(readIndex2 - expected2) > OLA_JUMP_TOLERANCE);
+        if (jumped) {
+          const currentWeight =
+            1 - continuity.ghosts.reduce((sum, g) => sum + g.weight, 0);
+          if (currentWeight > 0) {
+            const fadeFrames = Math.max(
+              8,
+              Math.min(OLA_FADE_FRAMES, Math.round(f0Frames / 2)),
+            );
+            continuity.ghosts.push({
+              p1: expected1,
+              p2: expected2,
+              w2: continuity.prevHasPoint2 ? continuity.prevW2 : 0,
+              weight: currentWeight,
+              decrement: currentWeight / fadeFrames,
+            });
+            if (continuity.ghosts.length > OLA_MAX_GHOSTS) {
+              let minIndex = 0;
+              for (let i = 1; i < continuity.ghosts.length; i++) {
+                if (
+                  continuity.ghosts[i].weight <
+                  continuity.ghosts[minIndex].weight
+                ) {
+                  minIndex = i;
+                }
+              }
+              continuity.ghosts.splice(minIndex, 1);
+            }
+          }
+        }
       }
+
+      /** 現在の読み出し位置の値と、クロスフェード中の旧読み出し位置の値を混合する */
+      let ghostWeightSum = 0;
+      let ghostValueSum = 0;
+      for (const g of continuity.ghosts) {
+        ghostWeightSum += g.weight;
+        ghostValueSum += g.weight * readPair(g.p1, g.p2, g.w2);
+      }
+      newData[nowFrame] =
+        ghostValueSum +
+        Math.max(0, 1 - ghostWeightSum) *
+          readPair(readIndex1, readIndex2, olaWait2);
+
+      /** 旧読み出し位置を次のサンプルへ進め、混合比を減らす。旧位置の無声部も変調しない */
+      continuity.ghosts = continuity.ghosts.filter((g) => {
+        g.weight -= g.decrement;
+        if (g.weight <= 1e-9) {
+          return false;
+        }
+        const ghostStep = stepAt(g.p1);
+        g.p1 += ghostStep;
+        g.p2 += ghostStep;
+        return true;
+      });
+      continuity.hasPrev = true;
+      continuity.prevC1 = readIndex1;
+      continuity.prevC2 = readIndex2;
+      continuity.prevHasPoint2 = hasPoint2;
+      continuity.prevW2 = olaWait2;
+      continuity.prevStep = sourceStep;
     }
     return nextSpanStartIndex;
   }

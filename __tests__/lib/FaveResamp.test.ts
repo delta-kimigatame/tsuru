@@ -197,4 +197,88 @@ describe("FaveResamp", () => {
     expect(calcMeanDiff(neutral, sharped)).toBeGreaterThan(1e-5);
     expect(calcMeanDiff(neutral, brighted)).toBeGreaterThan(1e-5);
   }, 30000);
+
+  describe("OLAの読み出し位置の連続性", () => {
+    const SPAN = 256;
+    const FS = 44100;
+
+    /** 位相連続な正弦波を作る。f0Listは256サンプルごとの周波数 */
+    const makeSine = (f0List: number[]): Float64Array => {
+      const data = new Float64Array(f0List.length * SPAN);
+      let phase = 0;
+      for (let i = 0; i < data.length; i++) {
+        data[i] = 0.3 * Math.sin(phase);
+        phase += (2 * Math.PI * f0List[Math.floor(i / SPAN)]) / FS;
+      }
+      return data;
+    };
+
+    const runFixedOla = (
+      data: Float64Array,
+      inputF0: number[],
+      outputF0Hz: number,
+      frqAverage: number,
+      modulation: number = 0,
+    ): Float64Array => {
+      const frames = data.length;
+      const f0Steps = fave.CalcF0Step(120);
+      const outputF0 = new Float64Array(Math.ceil(frames / f0Steps)).fill(
+        outputF0Hz,
+      );
+      return fave.UtauOverlapAddStretch(
+        data,
+        Float64Array.from(inputF0),
+        frqAverage,
+        outputF0,
+        f0Steps,
+        frames,
+        frames,
+        frames,
+        1,
+        1,
+        modulation,
+      );
+    };
+
+    const maxStep = (data: Float64Array): number => {
+      let max = 0;
+      for (let i = 1; i < data.length; i++) {
+        max = Math.max(max, Math.abs(data[i] - data[i - 1]));
+      }
+      return max;
+    };
+
+    it("入力f0が切り替わる有声区間でピッチを下げても、サンプル間の段差が出ない", () => {
+      const f0List = [220, 220, 330, 330, 330, 330];
+      const data = makeSine(f0List);
+      const out = runFixedOla(data, f0List, 180, 260);
+      expect(out.every((v) => Number.isFinite(v))).toBe(true);
+      // 入力の最大傾き(330Hz,振幅0.3)は約0.014。その3倍未満に収まること
+      expect(maxStep(out)).toBeLessThan(0.045);
+    });
+
+    it("入力f0が切り替わる有声区間でピッチを上げても、サンプル間の段差が出ない", () => {
+      const f0List = [220, 220, 330, 330, 330, 330];
+      const data = makeSine(f0List);
+      const out = runFixedOla(data, f0List, 400, 260);
+      expect(out.every((v) => Number.isFinite(v))).toBe(true);
+      expect(maxStep(out)).toBeLessThan(0.045);
+    });
+
+    it("固定範囲の無声部はピッチシフトやmodulationで変調されない", () => {
+      // 先頭2区間は無声(f0=0)のノイズ、後半は有声
+      const f0List = [0, 0, 220, 220];
+      const data = makeSine(f0List);
+      let seed = 12345;
+      for (let i = 0; i < 2 * SPAN; i++) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        data[i] = ((seed / 0x7fffffff) * 2 - 1) * 0.3;
+      }
+      // 目標ピッチを入力のちょうど2倍にして、変調されれば明確に差が出る設定にする
+      const out = runFixedOla(data, f0List, 440, 220, 50);
+      for (let i = 0; i < SPAN; i++) {
+        expect(out[i]).toBeCloseTo(data[i], 6);
+      }
+    });
+  });
 });
