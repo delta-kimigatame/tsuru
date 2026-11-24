@@ -27,9 +27,9 @@ export type ResampRequest = {
 export type WithFrq = {
   /** frqDataの有無 */
   withFrq: true;
-  /** 入力wavの基準周波数データ */
+  /** 入力wavの基準周波数データ。時間軸はresampエンジンに依存する */
   frqData: Float64Array;
-  /** 入力wavの音量列データ */
+  /** 入力wavの音量列データ。時間軸はresampエンジンに依存する */
   ampData: Float64Array;
   /** 平均周波数 */
   frqAverage: number;

@@ -8,30 +8,30 @@
  * メインスレッドからは、ResampWorkerRequest を受け取り、処理結果（Float64Array）を Transferable な形で返却します.
  */
 
-import { Resamp } from "../lib/Resamp";
 import type { ResampBase } from "../lib/ResampBase";
+import { createResampEngine, type ResampEngineName } from "../lib/ResampEngine";
 import type { ResampWorkerRequest } from "../types/request";
 
 /**
- * Resamp クラスのインスタンス。
- * 音声合成処理のコアとなるクラスで、WASM の初期化などを内包します。
+ * resampエンジンのインスタンス。
+ * エンジンはサービス側からの init メッセージで指定される。
  */
 let resamp: ResampBase;
 
 /**
  * Worker の初期化処理。
- * Resamp のインスタンスを生成し、WASM のロードなど必要な初期化を実施します。
- * 初期化が完了すると、メインスレッドへ "ready" メッセージを送信します。
+ * 指定されたエンジンのインスタンスを生成して初期化し、メインスレッドへ "ready" メッセージを送信します。
  *
  * @async
+ * @param {ResampEngineName} engine - 使用するエンジン名
  * @returns {Promise<void>} 初期化完了時に解決される Promise
  */
-const initializeWorker = async (): Promise<void> => {
+const initializeWorker = async (engine: ResampEngineName): Promise<void> => {
   postMessage({ type: "init-started" });
   postMessage({ type: "debug", data: "init-started" });
   try {
-    postMessage({ type: "debug", data: "creating Resamp instance" });
-    resamp = new Resamp();
+    postMessage({ type: "debug", data: `creating ${engine} instance` });
+    resamp = await createResampEngine(engine);
 
     postMessage({ type: "debug", data: "calling resamp.initialize" });
     await resamp.initialize();
@@ -44,12 +44,17 @@ const initializeWorker = async (): Promise<void> => {
 
 /**
  * メッセージイベントリスナー
- * メインスレッドから送られてくるメッセージを受信し、ResampWorkerRequest を処理します。
- * 各メッセージには一意の id が付与され、結果またはエラーが同じ id とともに返されます。
+ * メインスレッドから送られてくるメッセージを受信します。
+ * - { type: "init", engine }: 指定されたエンジンで初期化します。
+ * - { id, request }: ResampWorkerRequest を処理します。結果またはエラーが同じ id とともに返されます。
  *
  * @param {MessageEvent} event - メインスレッドからのメッセージイベント
  */
 self.addEventListener("message", async (event: MessageEvent) => {
+  if (event.data && event.data.type === "init") {
+    await initializeWorker(event.data.engine as ResampEngineName);
+    return;
+  }
   const { id, request } = event.data as {
     id: number;
     request: ResampWorkerRequest;
@@ -66,11 +71,4 @@ self.addEventListener("message", async (event: MessageEvent) => {
       error: error instanceof Error ? error.message : error,
     });
   }
-});
-
-initializeWorker().catch((err) => {
-  postMessage({
-    type: "error",
-    error: err instanceof Error ? err.message : err,
-  });
 });
