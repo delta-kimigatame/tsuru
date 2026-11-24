@@ -150,7 +150,7 @@ export class Fave extends ResampBase {
         `resampler処理に失敗しました: targetMsが負の値です (${request.targetMs})。`,
       );
     }
-    const tempo = parseFloat(request.tempo);
+    const tempo = parseFloat(request.tempo.replace("!", ""));
     const safeTempo = Number.isFinite(tempo) && tempo > 0 ? tempo : 120.0;
     /** resamplerからの出力フレーム数 */
     const targetFrames = (request.targetMs / 1000) * renderingConfig.frameRate;

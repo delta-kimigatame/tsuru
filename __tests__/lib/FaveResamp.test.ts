@@ -1,10 +1,11 @@
 import fs from "fs";
 import JSZip from "jszip";
 import { GenerateWave, WaveProcessing } from "utauwav";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { Fave } from "../../src/lib/FaveResamp";
 import { Resamp } from "../../src/lib/Resamp";
 import { VoiceBank } from "../../src/lib/VoiceBanks/VoiceBank";
+import type { ResampWorkerRequest } from "../../src/types/request";
 
 describe("FaveResamp", () => {
   let vb: VoiceBank;
@@ -197,6 +198,54 @@ describe("FaveResamp", () => {
     expect(calcMeanDiff(neutral, sharped)).toBeGreaterThan(1e-5);
     expect(calcMeanDiff(neutral, brighted)).toBeGreaterThan(1e-5);
   }, 30000);
+
+  describe("tempo", () => {
+    const baseRequest = {
+      withFrq: true,
+      inputWav: "denoise/01_あかきくけこ.wav",
+      targetTone: "A3",
+      velocity: 100,
+      flags: "",
+      offsetMs: 0,
+      targetMs: 600,
+      fixedMs: 20,
+      cutoffMs: 0,
+      intensity: 100,
+      modulation: 0,
+      pitches: "AA#97#",
+      inputWavData: new Float64Array(1024),
+      frqData: new Float64Array(4),
+      ampData: new Float64Array(4),
+      frqAverage: 220,
+    };
+
+    /** CalcF0Stepに渡されたbpmを返す。ピッチ点間隔の算出直後で処理を打ち切る */
+    const getUsedBpm = (tempo: string): number => {
+      const spy = vi.spyOn(fave, "CalcF0Step").mockImplementation(() => {
+        throw new Error("stop");
+      });
+      try {
+        expect(() =>
+          fave.resampWorker({ ...baseRequest, tempo } as ResampWorkerRequest),
+        ).toThrow("stop");
+        return spy.mock.calls[0][0];
+      } finally {
+        spy.mockRestore();
+      }
+    };
+
+    it("先頭の!を除いたbpmを使う", () => {
+      expect(getUsedBpm("!150.00")).toBe(150);
+    });
+
+    it("!がない数値文字列もbpmとして使う", () => {
+      expect(getUsedBpm("90")).toBe(90);
+    });
+
+    it("bpmとして解釈できない場合は120を使う", () => {
+      expect(getUsedBpm("!abc")).toBe(120);
+    });
+  });
 
   describe("getFrqData", () => {
     const WAV = "denoise/01_あかきくけこ.wav";
