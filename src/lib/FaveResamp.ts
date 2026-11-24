@@ -248,6 +248,7 @@ export class Fave extends ResampBase {
     const normalizedData = this.ApplyPeakCompressor(
       correctedData,
       flags["P"] ?? 86,
+      request.intensity,
     );
     return normalizedData;
   }
@@ -1390,9 +1391,14 @@ export class Fave extends ResampBase {
    * Pフラグで効き具合をコントロールしながら、ノーマライズする
    * @param data wavのデータ部
    * @param P フラグ値。閾値は0～100
+   * @param intensity 音量。100で等倍
    * @returns ノーマライズ後のwavのデータ部
    */
-  ApplyPeakCompressor(data: Float64Array, P: number = 86): Float64Array {
+  ApplyPeakCompressor(
+    data: Float64Array,
+    P: number = 86,
+    intensity: number = 100,
+  ): Float64Array {
     const peak = data.reduce(
       (max, value) =>
         Number.isFinite(value) ? Math.max(max, Math.abs(value)) : max,
@@ -1400,12 +1406,14 @@ export class Fave extends ResampBase {
     );
     const normalizeGain = peak > 0 ? 0.5 / peak : 1;
     const p = P / 100;
-    const gain = 1 - p + p * normalizeGain;
+    const intensityGain = Number.isFinite(intensity) ? intensity / 100 : 1;
+    const gain = (1 - p + p * normalizeGain) * intensityGain;
 
     const normalizedData = new Float64Array(data.length);
     for (let i = 0; i < data.length; i++) {
       const value = Number.isFinite(data[i]) ? data[i] : 0;
-      normalizedData[i] = value * gain;
+      const scaled = value * gain;
+      normalizedData[i] = Math.max(-1, Math.min(1, scaled));
     }
     return normalizedData;
   }
