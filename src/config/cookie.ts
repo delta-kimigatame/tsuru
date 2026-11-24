@@ -1,3 +1,4 @@
+import type { ResampEngineName } from "../lib/ResampEngine";
 import { ColorTheme } from "../types/colorTheme";
 import { ExportMode } from "../types/exportMode";
 import { Language, languages } from "../types/language";
@@ -15,6 +16,7 @@ export const COOKIE_KEYS = {
   verticalZoom: "utaletVerticalZoom",
   horizontalZoom: "utaletHorizontalZoom",
   workersCount: "utaletWorkersCount",
+  resampEngine: "utaletResampEngine",
   fastResamp: "utaletFastResamp",
   useCache: "utaletUseCache",
   backgroundResamp: "utaletBackgroundResamp",
@@ -77,6 +79,10 @@ export const cookieDefaults: {
    */
   workersCount: number;
   /**
+   * 使用するresampエンジン
+   */
+  resampEngine: ResampEngineName;
+  /**
    * resampにおいて、非周期性指標の分析を省略して高速化するか
    */
   fastResamp: boolean;
@@ -106,6 +112,7 @@ export const cookieDefaults: {
   verticalZoom: 1,
   horizontalZoom: 1,
   workersCount: resampWorkersCount,
+  resampEngine: "resamp",
   fastResamp: false,
   useCache: true,
   backgroundResamp: true,

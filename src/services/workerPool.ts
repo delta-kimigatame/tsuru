@@ -1,3 +1,4 @@
+import { DEFAULT_RESAMP_ENGINE, ResampEngineName } from "../lib/ResampEngine";
 import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import { ResampRequest } from "../types/request";
 import { ResampWorkerService } from "./resampWorker";
@@ -56,12 +57,19 @@ export class ResampWorkerPool {
   /**
    * workerの数を指定し、worker poolを初期化する
    * @param workerCount workerの数
+   * @param engine 使用するresampエンジン
    */
-  constructor(workerCount: number) {
+  constructor(
+    workerCount: number,
+    engine: ResampEngineName = DEFAULT_RESAMP_ENGINE,
+  ) {
     this.workers = [];
     this.taskQueue = [];
     for (let i = 0; i < workerCount; i++) {
-      this.workers.push({ worker: new ResampWorkerService(), busy: false });
+      this.workers.push({
+        worker: new ResampWorkerService(engine),
+        busy: false,
+      });
     }
   }
 
@@ -75,7 +83,7 @@ export class ResampWorkerPool {
   public runResamp(
     request: ResampRequest,
     vb: BaseVoiceBank,
-    index: number
+    index: number,
   ): Promise<Float64Array> {
     const deferred = createDeferred<Float64Array>(index);
     // タスクを作成してキューに追加

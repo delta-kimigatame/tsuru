@@ -1,6 +1,7 @@
 import React from "react";
 import { create } from "zustand";
 import { cookieDefaults } from "../config/cookie";
+import type { ResampEngineName } from "../lib/ResampEngine";
 import { useProjectCookie } from "../services/useProjectCookie";
 import { ColorTheme } from "../types/colorTheme";
 import { ExportMode } from "../types/exportMode";
@@ -48,6 +49,10 @@ interface CookieStore {
    * workerの数
    */
   workersCount: number;
+  /**
+   * 使用するresampエンジン
+   */
+  resampEngine: ResampEngineName;
   /**
    * resampにおいて、非周期性指標の分析を省略して高速化するか
    */
@@ -116,6 +121,12 @@ interface CookieStore {
    * @param workersCount 合成処理に使用するworkerの数。
    */
   setWorkersCount: (workersCount: number) => void;
+  /**
+   * 使用するresampエンジンを変更します。
+   *
+   * @param resampEngine 使用するresampエンジン
+   */
+  setResampEngine: (resampEngine: ResampEngineName) => void;
   /**
    * 非周期性指標を省略して合成を高速化するか
    *
@@ -194,6 +205,12 @@ interface CookieStore {
    */
   setWorkersCountInCookie: (workersCount: number) => void;
   /**
+   * cookieに使用するresampエンジンを保存する関数。
+   *
+   * @param resampEngine 使用するresampエンジン
+   */
+  setResampEngineInCookie: (resampEngine: ResampEngineName) => void;
+  /**
    * resampにおいて、非周期性指標の分析を省略して高速化するか
    *
    * @param fastResamp resampにおいて、非周期性指標の分析を省略して高速化するか
@@ -243,6 +260,7 @@ export const useCookieStore = create<CookieStore>((set) => {
     verticalZoom: cookieDefaults.verticalZoom,
     horizontalZoom: cookieDefaults.horizontalZoom,
     workersCount: cookieDefaults.workersCount,
+    resampEngine: cookieDefaults.resampEngine,
     fastResamp: cookieDefaults.fastResamp,
     useCache: cookieDefaults.useCache,
     backgroundResamp: cookieDefaults.backgroundResamp,
@@ -294,6 +312,13 @@ export const useCookieStore = create<CookieStore>((set) => {
       });
     },
 
+    setResampEngine: (resampEngine) => {
+      set((state) => {
+        state.setResampEngineInCookie(resampEngine);
+        return { resampEngine: resampEngine };
+      });
+    },
+
     setFastResamp: (fastResamp) => {
       set((state) => {
         state.setFastResampInCookie(fastResamp);
@@ -335,6 +360,7 @@ export const useCookieStore = create<CookieStore>((set) => {
     setVerticalZoomInCookie: () => {},
     setHorizontalZoomInCookie: () => {},
     setWorkersCountInCookie: () => {},
+    setResampEngineInCookie: () => {},
     setFastResampInCookie: () => {},
     setUseCacheInCookie: () => {},
     setBackgroundResampInCookie: () => {},
@@ -357,6 +383,7 @@ export const useInitializeCookieStore = () => {
       verticalZoom: projectCookie.verticalZoom,
       horizontalZoom: projectCookie.horizontalZoom,
       workersCount: projectCookie.workersCount,
+      resampEngine: projectCookie.resampEngine,
       fastResamp: projectCookie.fastResamp,
       useCache: projectCookie.useCache,
       backgroundResamp: projectCookie.backgroundResamp,
@@ -369,6 +396,7 @@ export const useInitializeCookieStore = () => {
       setVerticalZoomInCookie: projectCookie.setVerticalZoom,
       setHorizontalZoomInCookie: projectCookie.setHorizontalZoom,
       setWorkersCountInCookie: projectCookie.setWorkersCount,
+      setResampEngineInCookie: projectCookie.setResampEngine,
       setFastResampInCookie: projectCookie.setFastResamp,
       setUseCacheInCookie: projectCookie.setUseCache,
       setBackgroundResampInCookie: projectCookie.setBackgroundResamp,

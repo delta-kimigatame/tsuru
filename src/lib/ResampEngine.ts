@@ -12,7 +12,7 @@ import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 export type ResampEngineName = "resamp" | "fave";
 
 /** 既定のresampエンジン */
-export const DEFAULT_RESAMP_ENGINE: ResampEngineName = "fave";
+export const DEFAULT_RESAMP_ENGINE: ResampEngineName = "resamp";
 
 /**
  * 指定したエンジンのインスタンスを生成する。

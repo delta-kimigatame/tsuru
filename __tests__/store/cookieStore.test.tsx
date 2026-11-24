@@ -20,6 +20,7 @@ const TestComponent = () => {
     verticalZoom,
     horizontalZoom,
     workersCount,
+    resampEngine,
     fastResamp,
     useCache,
     backgroundResamp,
@@ -30,6 +31,7 @@ const TestComponent = () => {
     setVerticalZoom,
     setHorizontalZoom,
     setWorkersCount,
+    setResampEngine,
     setFastResamp,
     setUseCache,
     setBackgroundResamp,
@@ -45,6 +47,7 @@ const TestComponent = () => {
       <p data-testid="verticalZoom">{verticalZoom.toString()}</p>
       <p data-testid="horizontalZoom">{horizontalZoom.toString()}</p>
       <p data-testid="workersCount">{workersCount.toString()}</p>
+      <p data-testid="resampEngine">{resampEngine}</p>
       <p data-testid="useCache">{useCache.toString()}</p>
       <p data-testid="fastResamp">{fastResamp.toString()}</p>
       <p data-testid="backgroundResamp">{backgroundResamp.toString()}</p>
@@ -68,6 +71,9 @@ const TestComponent = () => {
         Set Horizontal Zoom 2
       </button>
       <button onClick={() => setWorkersCount(2)}>Set Workers Count 2</button>
+      <button onClick={() => setResampEngine("fave")}>
+        Set ResampEngine fave
+      </button>
       <button onClick={() => setFastResamp(true)}>Set FastResamp true</button>
       <button onClick={() => setUseCache(false)}>Set UseCache false</button>
       <button onClick={() => setBackgroundResamp(false)}>
@@ -89,6 +95,7 @@ describe("cookieStore", () => {
       verticalZoom: cookieDefaults.verticalZoom,
       horizontalZoom: cookieDefaults.horizontalZoom,
       workersCount: cookieDefaults.workersCount,
+      resampEngine: cookieDefaults.resampEngine,
       fastResamp: cookieDefaults.fastResamp,
       useCache: cookieDefaults.useCache,
       backgroundResamp: cookieDefaults.backgroundResamp,
@@ -99,6 +106,7 @@ describe("cookieStore", () => {
       setVerticalZoomInCookie: () => {},
       setHorizontalZoomInCookie: () => {},
       setWorkersCountInCookie: () => {},
+      setResampEngineInCookie: () => {},
       setFastResampInCookie: () => {},
       setUseCacheInCookie: () => {},
       setBackgroundResampInCookie: () => {},
@@ -119,36 +127,39 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     expect(screen.getByTestId("mode")).toHaveTextContent(cookieDefaults.mode);
     expect(screen.getByTestId("language")).toHaveTextContent(
-      cookieDefaults.language
+      cookieDefaults.language,
     );
     expect(screen.getByTestId("colorTheme")).toHaveTextContent(
-      cookieDefaults.colorTheme
+      cookieDefaults.colorTheme,
     );
     expect(screen.getByTestId("defaultNote")).toHaveTextContent(
-      JSON.stringify(cookieDefaults.defaultNote)
+      JSON.stringify(cookieDefaults.defaultNote),
     );
     expect(screen.getByTestId("verticalZoom")).toHaveTextContent(
-      cookieDefaults.verticalZoom.toString()
+      cookieDefaults.verticalZoom.toString(),
     );
     expect(screen.getByTestId("horizontalZoom")).toHaveTextContent(
-      cookieDefaults.horizontalZoom.toString()
+      cookieDefaults.horizontalZoom.toString(),
     );
     expect(screen.getByTestId("workersCount")).toHaveTextContent(
-      cookieDefaults.workersCount.toString()
+      cookieDefaults.workersCount.toString(),
+    );
+    expect(screen.getByTestId("resampEngine")).toHaveTextContent(
+      cookieDefaults.resampEngine,
     );
     expect(screen.getByTestId("fastResamp")).toHaveTextContent(
-      cookieDefaults.fastResamp.toString()
+      cookieDefaults.fastResamp.toString(),
     );
     expect(screen.getByTestId("useCache")).toHaveTextContent(
-      cookieDefaults.useCache.toString()
+      cookieDefaults.useCache.toString(),
     );
     expect(screen.getByTestId("backgroundResamp")).toHaveTextContent(
-      cookieDefaults.backgroundResamp.toString()
+      cookieDefaults.backgroundResamp.toString(),
     );
   });
 
@@ -166,6 +177,7 @@ describe("cookieStore", () => {
     document.cookie = `${COOKIE_KEYS.verticalZoom}=0.8`;
     document.cookie = `${COOKIE_KEYS.horizontalZoom}=0.8`;
     document.cookie = `${COOKIE_KEYS.workersCount}=1`;
+    document.cookie = `${COOKIE_KEYS.resampEngine}=fave`;
     document.cookie = `${COOKIE_KEYS.fastResamp}=true`;
     document.cookie = `${COOKIE_KEYS.useCache}=false`;
     document.cookie = `${COOKIE_KEYS.backgroundResamp}=false`;
@@ -173,7 +185,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     await waitFor(() => {
@@ -186,11 +198,12 @@ describe("cookieStore", () => {
           intensity: 80,
           modulation: 50,
           envelope: { point: [1, 2], value: [3, 4] },
-        })
+        }),
       );
       expect(screen.getByTestId("verticalZoom")).toHaveTextContent("0.8");
       expect(screen.getByTestId("horizontalZoom")).toHaveTextContent("0.8");
       expect(screen.getByTestId("workersCount")).toHaveTextContent("1");
+      expect(screen.getByTestId("resampEngine")).toHaveTextContent("fave");
       expect(screen.getByTestId("fastResamp")).toHaveTextContent("true");
       expect(screen.getByTestId("useCache")).toHaveTextContent("false");
       expect(screen.getByTestId("backgroundResamp")).toHaveTextContent("false");
@@ -201,7 +214,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Mode Dark"));
@@ -212,7 +225,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Language EN"));
@@ -223,7 +236,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Color Theme Red"));
@@ -234,7 +247,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Default Note"));
@@ -244,7 +257,7 @@ describe("cookieStore", () => {
         intensity: 90,
         modulation: 60,
         envelope: { point: [0, 2], value: [1, 3] },
-      })
+      }),
     );
   });
 
@@ -252,7 +265,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
@@ -263,7 +276,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
@@ -274,18 +287,29 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Workers Count 2"));
     expect(screen.getByTestId("workersCount")).toHaveTextContent("2");
   });
 
+  it("setResampEngineでresampEngineを変更するとZustandの値が更新される", () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>,
+    );
+
+    fireEvent.click(screen.getByText("Set ResampEngine fave"));
+    expect(screen.getByTestId("resampEngine")).toHaveTextContent("fave");
+  });
+
   it("setFastResampでfastResampを変更するとZustandの値が更新される", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set FastResamp true"));
@@ -296,7 +320,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set UseCache false"));
@@ -307,7 +331,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set BackgroundResamp false"));
@@ -318,7 +342,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Mode Dark"));
@@ -331,7 +355,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Language EN"));
@@ -344,7 +368,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Color Theme Red"));
@@ -357,7 +381,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Default Note"));
@@ -369,8 +393,8 @@ describe("cookieStore", () => {
             intensity: 90,
             modulation: 60,
             envelope: { point: [0, 2], value: [1, 3] },
-          })
-        )}`
+          }),
+        )}`,
       );
     });
   });
@@ -379,7 +403,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Vertical Zoom 2"));
@@ -392,7 +416,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Horizontal Zoom 2"));
@@ -405,7 +429,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set Workers Count 2"));
@@ -414,11 +438,24 @@ describe("cookieStore", () => {
     });
   });
 
+  it("setResampEngineでresampEngineを変更するとCookieも更新される", async () => {
+    render(
+      <CookiesProvider>
+        <TestComponent />
+      </CookiesProvider>,
+    );
+
+    fireEvent.click(screen.getByText("Set ResampEngine fave"));
+    await waitFor(() => {
+      expect(document.cookie).toContain(`${COOKIE_KEYS.resampEngine}=fave`);
+    });
+  });
+
   it("setFastResampでfastResampを変更するとCookieも更新される", async () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set FastResamp true"));
@@ -431,7 +468,7 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set UseCache false"));
@@ -444,13 +481,13 @@ describe("cookieStore", () => {
     render(
       <CookiesProvider>
         <TestComponent />
-      </CookiesProvider>
+      </CookiesProvider>,
     );
 
     fireEvent.click(screen.getByText("Set BackgroundResamp false"));
     await waitFor(() => {
       expect(document.cookie).toContain(
-        `${COOKIE_KEYS.backgroundResamp}=false`
+        `${COOKIE_KEYS.backgroundResamp}=false`,
       );
     });
   });

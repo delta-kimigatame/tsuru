@@ -30,9 +30,9 @@ export class SynthesisWorker {
    * クラス初期化時にworker poolも初期化しておく
    */
   constructor() {
-    const { workersCount } = useCookieStore.getState();
+    const { workersCount, resampEngine } = useCookieStore.getState();
     LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
-    this.workersPool = new ResampWorkerPool(workersCount);
+    this.workersPool = new ResampWorkerPool(workersCount, resampEngine);
     LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
     this.wavtool = new Wavtool();
   }
@@ -265,9 +265,9 @@ export class SynthesisWorker {
   };
 
   reload = () => {
-    const { workersCount } = useCookieStore.getState();
+    const { workersCount, resampEngine } = useCookieStore.getState();
     LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
-    this.workersPool = new ResampWorkerPool(workersCount);
+    this.workersPool = new ResampWorkerPool(workersCount, resampEngine);
     LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
   };
 

@@ -1,5 +1,6 @@
 import { COOKIE_KEYS, cookieDefaults } from "../config/cookie";
 import { LOG } from "../lib/Logging";
+import type { ResampEngineName } from "../lib/ResampEngine";
 import { ColorTheme } from "../types/colorTheme";
 import { ExportMode } from "../types/exportMode";
 import { Language } from "../types/language";
@@ -21,6 +22,8 @@ export const useProjectCookie = () => {
   LOG.info("cookieの取得", "useProjectCookie");
   const { getStringCookie, setStringCookie, getObjectCookie, setObjectCookie } =
     useCookie();
+  const isResampEngineName = (value: string): value is ResampEngineName =>
+    value === "resamp" || value === "fave";
   /**
    * モード（`light`, `dark`, `system`）を取得します。
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.mode` を返します。
@@ -81,6 +84,17 @@ export const useProjectCookie = () => {
       cookieDefaults.workersCount.toString(),
     ),
   );
+  /**
+   * 使用するresampエンジン。
+   * クッキーが存在しない場合や不正値の場合は、デフォルトで `cookieDefaults.resampEngine` を返します。
+   */
+  const resampEngineRaw = getStringCookie(
+    COOKIE_KEYS.resampEngine,
+    cookieDefaults.resampEngine,
+  );
+  const resampEngine: ResampEngineName = isResampEngineName(resampEngineRaw)
+    ? resampEngineRaw
+    : cookieDefaults.resampEngine;
   /**
    * 非周期性指標を省略して合成を高速化するか
    * クッキーが存在しない場合は、デフォルトで `cookieDefaults.fastResamp` を返します。
@@ -171,6 +185,13 @@ export const useProjectCookie = () => {
     setStringCookie(COOKIE_KEYS.workersCount, newWorkersCount.toString());
   };
   /**
+   * 使用するresampエンジンをcookieに保存します。
+   * @param newResampEngine 更新後のresampエンジン
+   */
+  const setResampEngine = (newResampEngine: ResampEngineName) => {
+    setStringCookie(COOKIE_KEYS.resampEngine, newResampEngine);
+  };
+  /**
    * 非周期性指標を省略して合成をcookieに保存します。
    * @param newFastResamp 非周期性指標を省略して合成するかの更新後の設定
    */
@@ -219,6 +240,7 @@ export const useProjectCookie = () => {
     verticalZoom,
     horizontalZoom,
     workersCount,
+    resampEngine,
     fastResamp,
     useCache,
     backgroundResamp,
@@ -231,6 +253,7 @@ export const useProjectCookie = () => {
     setVerticalZoom,
     setHorizontalZoom,
     setWorkersCount,
+    setResampEngine,
     setFastResamp,
     setUseCache,
     setBackgroundResamp,
