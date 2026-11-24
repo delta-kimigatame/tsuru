@@ -1,15 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { DEFAULT_RESAMP_ENGINE } from "../../src/lib/ResampEngine";
 import { ResampWorkerService } from "../../src/services/resampWorker";
 import type { ResampRequest } from "../../src/types/request";
 
 // DummyWorker を定義し、Worker の挙動をモックする
 class DummyWorker {
+  static lastInstance: DummyWorker | undefined;
+  initMessages: any[] = [];
   private listeners: { [key: string]: ((event: MessageEvent) => void)[] } = {};
   // コンストラクタでは、短いタイムアウトで "ready" メッセージを送信する
-  constructor(public scriptUrl: string, public options?: any) {
+  constructor(
+    public scriptUrl: string,
+    public options?: any,
+  ) {
+    DummyWorker.lastInstance = this;
     setTimeout(() => {
       this.dispatchEvent(
-        new MessageEvent("message", { data: { type: "ready" } })
+        new MessageEvent("message", { data: { type: "ready" } }),
       );
     }, 10);
   }
@@ -28,6 +35,11 @@ class DummyWorker {
 
   // postMessage を呼ばれると、リクエスト内容に応じたレスポンスをシミュレートする
   postMessage(message: any, transfer?: Transferable[]) {
+    // initメッセージを記録する
+    if (message?.type === "init") {
+      this.initMessages.push(message);
+      return;
+    }
     const { id, request } = message;
     // エラーシナリオ: inputWav が "simulateError" ならエラーを返す
     if (request.inputWav === "simulateError") {
@@ -35,7 +47,7 @@ class DummyWorker {
         this.dispatchEvent(
           new MessageEvent("message", {
             data: { id, error: "simulated error" },
-          })
+          }),
         );
       }, 10);
     } else {
@@ -44,7 +56,7 @@ class DummyWorker {
         this.dispatchEvent(
           new MessageEvent("message", {
             data: { id, result: new Float64Array([10, 20, 30]) },
-          })
+          }),
         );
       }, 10);
     }
@@ -124,11 +136,25 @@ describe("ResampWorkerService", () => {
     expect(true).toBe(true);
   });
 
+  it("既定のエンジン名をinitメッセージでworkerに通知する", () => {
+    expect(DummyWorker.lastInstance?.initMessages).toEqual([
+      { type: "init", engine: DEFAULT_RESAMP_ENGINE },
+    ]);
+  });
+
+  it("指定したエンジン名をinitメッセージでworkerに通知する", () => {
+    const resampService = new ResampWorkerService("resamp");
+    expect(DummyWorker.lastInstance?.initMessages).toEqual([
+      { type: "init", engine: "resamp" },
+    ]);
+    resampService.terminate();
+  });
+
   it("workerが成功レスポンスを返すとprocessResampが結果を返す", async () => {
     // 正常系: processResamp を呼び出し、DummyWorker が成功レスポンスを返すか確認
     const result = await service.processResamp(
       dummyResampRequest,
-      dummyVoiceBank
+      dummyVoiceBank,
     );
     expect(result).toBeInstanceOf(Float64Array);
     expect(Array.from(result)).toEqual([10, 20, 30]);
@@ -141,7 +167,7 @@ describe("ResampWorkerService", () => {
       inputWav: "simulateError",
     };
     await expect(
-      service.processResamp(errorRequest, dummyVoiceBank)
+      service.processResamp(errorRequest, dummyVoiceBank),
     ).rejects.toThrow("simulated error");
   });
 });

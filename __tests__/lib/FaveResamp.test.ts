@@ -35,7 +35,7 @@ describe("FaveResamp", () => {
       1538.32,
       -200,
     );
-    const frq = await resamp.getFrqData(
+    const frq = await fave.getFrqData(
       "denoise/01_あかきくけこ.wav",
       1538.32,
       (iWav.length / 44100) * 1000,
@@ -93,7 +93,7 @@ describe("FaveResamp", () => {
       1538.32,
       -200,
     );
-    const frq = await resamp.getFrqData(
+    const frq = await fave.getFrqData(
       "denoise/01_あかきくけこ.wav",
       1538.32,
       (iWav.length / 44100) * 1000,
@@ -145,7 +145,7 @@ describe("FaveResamp", () => {
       1538.32,
       -200,
     );
-    const frq = await resamp.getFrqData(
+    const frq = await fave.getFrqData(
       "denoise/01_あかきくけこ.wav",
       1538.32,
       (iWav.length / 44100) * 1000,
@@ -197,6 +197,42 @@ describe("FaveResamp", () => {
     expect(calcMeanDiff(neutral, sharped)).toBeGreaterThan(1e-5);
     expect(calcMeanDiff(neutral, brighted)).toBeGreaterThan(1e-5);
   }, 30000);
+
+  describe("getFrqData", () => {
+    const WAV = "denoise/01_あかきくけこ.wav";
+    const OFFSET_MS = 1538.32;
+    const WAV_MS = 400;
+
+    it("frq/ampを補間せずにファイルのグリッドのまま切り出す", async () => {
+      const raw = await vb.getFrq(WAV);
+      const result = await fave.getFrqData(WAV, OFFSET_MS, WAV_MS);
+
+      const offsetFrame = Math.floor(
+        (44100 * OFFSET_MS) / raw.perSamples / 1000,
+      );
+      const length = Math.ceil((44100 * WAV_MS) / raw.perSamples / 1000) + 1;
+      const rawFrq = Array.from(raw.frq);
+      const rawAmp = Array.from(raw.amp);
+
+      expect(result.frq).toEqual(
+        rawFrq.slice(offsetFrame, offsetFrame + length),
+      );
+      expect(result.amp).toEqual(
+        rawAmp.slice(offsetFrame, offsetFrame + length),
+      );
+      expect(result.frq.length).toBe(length);
+      expect(result.frqAverage).toBe(raw.frqAverage);
+    });
+
+    it("timeAxisはfrqファイルのグリッド間隔(perSamples/frameRate)で並ぶ", async () => {
+      const raw = await vb.getFrq(WAV);
+      const result = await fave.getFrqData(WAV, OFFSET_MS, WAV_MS);
+
+      expect(result.timeAxis.length).toBe(result.frq.length);
+      expect(result.timeAxis[0]).toBe(0);
+      expect(result.timeAxis[1]).toBeCloseTo(raw.perSamples / 44100, 10);
+    });
+  });
 
   describe("出力f0の補間", () => {
     const f0Steps = 100;
