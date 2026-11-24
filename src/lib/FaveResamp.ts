@@ -14,6 +14,7 @@ import { toneToNoteNum } from "../utils/Notenum";
 import { FlagKeys, parseFlags } from "../utils/parseFlags";
 import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
 import { ResampBase, type FrqDataResult } from "./ResampBase";
+import { analyzeFrqByYin } from "./yin";
 
 const SPAN_SIZE = 256;
 
@@ -144,7 +145,11 @@ export class Fave extends ResampBase {
   resampWorker(request: ResampWorkerRequest): Float64Array {
     const flags = parseFlags(request.flags, this.flagKeys);
     if (!request.withFrq || flags["G"] !== undefined) {
-      /** TODO 当面はfrqが与えられていることを想定する */
+      /** frq未存在時、またはGフラグ指定時は入力波形からfrq互換データを再推定する */
+      const yinResult = analyzeFrqByYin(request.inputWavData);
+      request.frqData = yinResult.frq;
+      request.ampData = yinResult.amp;
+      request.frqAverage = yinResult.frqAverage;
     }
     if (request.targetMs < 0) {
       throw new Error(
