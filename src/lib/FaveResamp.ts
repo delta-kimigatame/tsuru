@@ -86,6 +86,7 @@ export class Fave extends ResampBase {
     { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。中域(F2付近)の包絡を中心に増減
     { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。高域寄りの明瞭感を増減
     { name: "b", type: "number", min: -100, max: 100, default: 0 }, //Brightnessフラグ。スペクトルティルトで明るさを増減
+    { name: "H", type: "number", min: 0, max: 100, default: 0 }, //ローパスフラグ。8kHz以上の通過量を0..100で指定する(0で無効、100で遮断)
     { name: "t", type: "number", min: -100, max: 100, default: 0 }, //toneフラグ、音高をcent単位で調整
     { name: "P", type: "number", min: 0, max: 100, default: 86 }, //ピークコンプレッサーの強さ。0で無し、100で-6dBに正規化
     { name: "w", type: "number", min: 0, max: 100, default: 0 }, //グロウルの強さ。
@@ -227,6 +228,7 @@ export class Fave extends ResampBase {
             flags["T"] ?? 0,
             flags["S"] ?? 0,
             flags["b"] ?? 0,
+            flags["H"] ?? 0,
             flags["g"] ?? 0,
             flags["s"] ?? 20,
           );
@@ -400,6 +402,33 @@ export class Fave extends ResampBase {
     const gainDb = 8 * (safeS / 100) * highWeight;
     const gain = Math.pow(10, gainDb / 20);
     return Number.isFinite(gain) ? gain : 1;
+  }
+
+  /**
+   * Hフラグに応じたローパスの独立ゲインを返す
+   * 8kHz以上の通過量を制御する。0で無効、100で8kHz以上を遮断する。
+   */
+  CalcHighCutGain(binIndex: number, fftSize: number, HFlag: number): number {
+    const safeH = Number.isFinite(HFlag)
+      ? Math.min(100, Math.max(0, HFlag))
+      : 0;
+    if (safeH === 0) {
+      return 1;
+    }
+    const passHigh = 1 - safeH / 100;
+    const freq = (binIndex / fftSize) * renderingConfig.frameRate;
+
+    // 境界でのリンギングを抑えるため、8kHz付近に短い遷移帯を設ける
+    const lowEdgeHz = 7500;
+    const highEdgeHz = 8500;
+    if (freq <= lowEdgeHz) {
+      return 1;
+    }
+    if (freq >= highEdgeHz) {
+      return passHigh;
+    }
+    const t = (freq - lowEdgeHz) / (highEdgeHz - lowEdgeHz);
+    return 1 + (passHigh - 1) * t;
   }
 
   /**
@@ -1018,6 +1047,7 @@ export class Fave extends ResampBase {
    * @param TFlag Tensionフラグ。中域(F2付近)の包絡を中心に増減させる強さを-100～100で指定する。
    * @param SFlag Sharpフラグ。高域寄りの明瞭感を増減させる強さを-100～100で指定する。
    * @param bFlag Brightnessフラグ。スペクトルティルトで明るさを増減させる強さを-100～100で指定する。
+   * @param HFlag ローパスフラグ。8kHz以上の通過量を0～100で指定する。
    * @param gFlag genderフラグ。スペクトル包絡全体をワープする強さを-100～100で指定する。
    * @param sFlag エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
    * @returns フォルマントフィルタ適用後のwavデータ
@@ -1038,6 +1068,7 @@ export class Fave extends ResampBase {
     TFlag: number,
     SFlag: number,
     bFlag: number,
+    HFlag: number,
     gFlag: number,
     sFlag: number,
   ): Float64Array {
@@ -1153,8 +1184,14 @@ export class Fave extends ResampBase {
         const tensionGain = this.CalcTensionGain(i, FFT_SIZE, TFlag);
         const sharpGain = this.CalcSharpGain(i, FFT_SIZE, SFlag);
         const brightnessGain = this.CalcBrightnessGain(i, FFT_SIZE, bFlag);
+        const highCutGain = this.CalcHighCutGain(i, FFT_SIZE, HFlag);
         const gain =
-          baseGain * openingGain * tensionGain * sharpGain * brightnessGain;
+          baseGain *
+          openingGain *
+          tensionGain *
+          sharpGain *
+          brightnessGain *
+          highCutGain;
         const breathGain = this.CalcBreathGain(i, FFT_SIZE, BFlag);
         const toneAttenuation = this.CalcBreathToneAttenuation(
           i,

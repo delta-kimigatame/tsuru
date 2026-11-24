@@ -692,6 +692,26 @@ describe("FaveResamp", () => {
       expectReciprocal((b, s, f) => fave.CalcSharpGain(b, s, f), 100);
       expect(fave.CalcSharpGain(5, 1024, NaN)).toBe(1);
     });
+
+    it("CalcHighCutGain: H0は無効、H100で8kHz以上を遮断する", () => {
+      const lowBin = Math.round((7000 / SAMPLE_RATE) * 1024);
+      const midBin = Math.round((8000 / SAMPLE_RATE) * 1024);
+      const highBin = Math.round((9000 / SAMPLE_RATE) * 1024);
+      expect(fave.CalcHighCutGain(lowBin, 1024, 0)).toBe(1);
+      expect(fave.CalcHighCutGain(midBin, 1024, 0)).toBe(1);
+      expect(fave.CalcHighCutGain(highBin, 1024, 0)).toBe(1);
+      expect(fave.CalcHighCutGain(lowBin, 1024, 100)).toBe(1);
+      expect(fave.CalcHighCutGain(midBin, 1024, 100)).toBeCloseTo(0.5, 1);
+      expect(fave.CalcHighCutGain(highBin, 1024, 100)).toBe(0);
+    });
+
+    it("CalcHighCutGain: H値は8kHz以上の通過量を表す", () => {
+      const highBin = Math.round((9000 / SAMPLE_RATE) * 1024);
+      expect(fave.CalcHighCutGain(highBin, 1024, 50)).toBeCloseTo(0.5, 9);
+      expect(fave.CalcHighCutGain(highBin, 1024, 75)).toBeCloseTo(0.25, 9);
+      expect(fave.CalcHighCutGain(highBin, 1024, NaN)).toBe(1);
+      expect(fave.CalcHighCutGain(highBin, 1024, 999)).toBe(0);
+    });
   });
 
   describe("gフラグ(フォルマントのワープ)", () => {
@@ -1571,6 +1591,7 @@ describe("FaveResamp", () => {
         T?: number;
         S?: number;
         b?: number;
+        H?: number;
         g?: number;
         s?: number;
       } = {},
@@ -1592,6 +1613,7 @@ describe("FaveResamp", () => {
         flags.T ?? 0,
         flags.S ?? 0,
         flags.b ?? 0,
+        flags.H ?? 0,
         flags.g ?? 0,
         flags.s ?? 20,
       );
@@ -1694,6 +1716,39 @@ describe("FaveResamp", () => {
       );
     });
 
+    it("Hフラグ: 8kHz以上の通過量を下げ、低域はほぼ維持する", () => {
+      const brightHarmonic = createHarmonic(FRAMES, HZ, 80);
+      const lowHz = HZ * 4;
+      const highHz = HZ * 40;
+      const neutralLow = magnitudeAt(
+        runFilter(brightHarmonic),
+        lowHz,
+        2048,
+        6144,
+      );
+      const neutralHigh = magnitudeAt(
+        runFilter(brightHarmonic),
+        highHz,
+        2048,
+        6144,
+      );
+      const half = runFilter(brightHarmonic, { H: 50 });
+      const cut = runFilter(brightHarmonic, { H: 100 });
+
+      expect(magnitudeAt(half, lowHz, 2048, 6144) / neutralLow).toBeGreaterThan(
+        0.9,
+      );
+      expect(magnitudeAt(cut, lowHz, 2048, 6144) / neutralLow).toBeGreaterThan(
+        0.9,
+      );
+      expect(magnitudeAt(half, highHz, 2048, 6144) / neutralHigh).toBeLessThan(
+        0.7,
+      );
+      expect(magnitudeAt(cut, highHz, 2048, 6144) / neutralHigh).toBeLessThan(
+        0.2,
+      );
+    });
+
     it("Bフラグ: 100で有声成分(低域)が大きく弱まり、0で高域が弱まる", () => {
       const neutralLow = magnitudeAt(runFilter(harmonic), HZ, 2048, 6144);
       const neutralHigh = magnitudeAt(runFilter(harmonic), HZ * 20, 2048, 6144);
@@ -1745,6 +1800,7 @@ describe("FaveResamp", () => {
         0,
         0,
         0,
+        0,
         20,
       );
       expect(out.length).toBe(FRAMES);
@@ -1766,6 +1822,7 @@ describe("FaveResamp", () => {
         1,
         1,
         50,
+        0,
         0,
         0,
         0,
@@ -1899,7 +1956,7 @@ describe("FaveResamp", () => {
     it("Nフラグ: フォルマントフィルタを通さないため、他のフィルタ系フラグが効かない", () => {
       const a = fave.resampWorker(createRequest({ flags: "N" }));
       const b = fave.resampWorker(
-        createRequest({ flags: "NO100T100S100b100g50" }),
+        createRequest({ flags: "NO100T100S100b100g50H100" }),
       );
       expect(b).toEqual(a);
     });
@@ -1908,6 +1965,30 @@ describe("FaveResamp", () => {
       const a = fave.resampWorker(createRequest({ flags: "" }));
       const b = fave.resampWorker(createRequest({ flags: "O100" }));
       expect(maxAbsDiff(a, b)).toBeGreaterThan(1e-4);
+    });
+
+    it("Hフラグ: 8kHz以上の成分を抑える", () => {
+      const richInput = createHarmonic(FRAMES, HZ, 80);
+      const base = fave.resampWorker(
+        createRequest({ flags: "", inputWavData: richInput }),
+      );
+      const cut = fave.resampWorker(
+        createRequest({ flags: "H100", inputWavData: richInput }),
+      );
+      const lowHz = HZ * 4;
+      const highHz = HZ * 40;
+      const baseLow = magnitudeAt(base, lowHz, 4096, base.length - 1024);
+      const baseHigh = magnitudeAt(base, highHz, 4096, base.length - 1024);
+      const cutLow = magnitudeAt(cut, lowHz, 4096, cut.length - 1024);
+      const cutHigh = magnitudeAt(cut, highHz, 4096, cut.length - 1024);
+      expect(cutLow / baseLow).toBeGreaterThan(0.85);
+      expect(cutHigh / baseHigh).toBeLessThan(0.2);
+    });
+
+    it("Nフラグ時はHフラグを指定しても結果は変わらない", () => {
+      const a = fave.resampWorker(createRequest({ flags: "N" }));
+      const b = fave.resampWorker(createRequest({ flags: "NH100" }));
+      expect(b).toEqual(a);
     });
 
     it.each([
