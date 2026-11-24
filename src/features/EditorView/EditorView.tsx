@@ -267,6 +267,19 @@ export const EditorView: React.FC<{
     });
   };
   /**
+   * resamplerエンジン変更後に、新しいエンジンのworkerを読み込み直す。
+   * エンジンごとに出力が異なるためキャッシュと生成済みwavも破棄する。
+   */
+  const reloadResampler = async (): Promise<void> => {
+    LOG.debug("resamplerの再読込開始", "EditorView");
+    synthesisWorker.reload();
+    await synthesisWorker.waitUntilReady();
+    resampCache.clear();
+    setWavUrl(undefined);
+    LOG.debug("resamplerの再読込完了", "EditorView");
+    makeCache();
+  };
+  /**
    * 楽譜の一部生成時の開始時間オフセットを計算
    */
   const getAudioTimeOffset = React.useCallback((): number => {
@@ -904,6 +917,7 @@ export const EditorView: React.FC<{
         playBackgroundAudio={playBackgroundAudio}
         playBackgroundAudioFromNotesEnd={playBackgroundAudioFromNotesEnd}
         setBackgroundPlayDuration={setBackgroundPlayDuration}
+        reloadResampler={reloadResampler}
       />
       {selectMode === "pitch" && (
         <PitchPortal

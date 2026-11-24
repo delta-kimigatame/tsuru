@@ -56,7 +56,7 @@ describe("ResampWorkerPool", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
     expect(mockWorker.processResamp).toHaveBeenCalledWith(
       dummyRequest,
-      dummyVb
+      dummyVb,
     );
 
     const result = await promise;
@@ -72,8 +72,8 @@ describe("ResampWorkerPool", () => {
       .mockImplementationOnce(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve(new Float64Array([1])), 50)
-          )
+            setTimeout(() => resolve(new Float64Array([1])), 50),
+          ),
       )
       .mockImplementationOnce(() => Promise.resolve(new Float64Array([2])));
 
@@ -114,8 +114,8 @@ describe("ResampWorkerPool", () => {
     mockWorker.processResamp.mockImplementation(
       () =>
         new Promise((resolve) =>
-          setTimeout(() => resolve(new Float64Array([1])), 100)
-        )
+          setTimeout(() => resolve(new Float64Array([1])), 100),
+        ),
     );
 
     // 最初のタスクを実行してworkerをbusyにする
@@ -149,8 +149,8 @@ describe("ResampWorkerPool", () => {
       .mockImplementationOnce(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve(new Float64Array([1])), 50)
-          )
+            setTimeout(() => resolve(new Float64Array([1])), 50),
+          ),
       )
       .mockImplementationOnce(() => Promise.resolve(new Float64Array([2])));
 
@@ -172,6 +172,24 @@ describe("ResampWorkerPool", () => {
     const error = await promise2Result;
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe("Canceled");
+  });
+
+  it("waitUntilReadyは全workerが準備完了すると解決される", async () => {
+    pool = new ResampWorkerPool(2);
+    pool.workers.forEach((w) => {
+      (w.worker as any).waitUntilReady = vi.fn().mockResolvedValue(undefined);
+    });
+
+    await expect(pool.waitUntilReady(1000)).resolves.toBeUndefined();
+  });
+
+  it("waitUntilReadyは準備が完了しない場合タイムアウトでrejectされる", async () => {
+    pool = new ResampWorkerPool(1);
+    (pool.workers[0].worker as any).waitUntilReady = vi
+      .fn()
+      .mockReturnValue(new Promise<void>(() => {}));
+
+    await expect(pool.waitUntilReady(20)).rejects.toThrow("20ms");
   });
 
   it("workerがエラーを返す場合、promiseがrejectされる", async () => {

@@ -484,6 +484,7 @@ export const translationPt = {
       backgroundAudioPlayFromNotesEnd: "Tocar Após Notas",
       isMinor: "Menor",
       isShowPortrait: "Exibir retrato do personagem",
+      resampler: "Configurações do mecanismo",
     },
     videoExport: {
       selectImage: "Selecionar imagem de fundo",
@@ -1047,6 +1048,14 @@ export const translationPt = {
       "(Japonês) VCV automático em romaji (com suporte a CVVC)",
     JPPresampPhonemizer:
       "(Japonês) compatível com presamp (em desenvolvimento)",
+  },
+  resampler: {
+    resamp: "tsuru (padrão)",
+    fave: "Fave",
+    help: "Sobre este mecanismo",
+    loading: "Carregando mecanismo",
+    loadError:
+      "Falha ao carregar o mecanismo selecionado. Revertido para o mecanismo anterior.",
   },
   footer: {
     disclaimer:

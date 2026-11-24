@@ -3,6 +3,9 @@ import { BaseVoiceBank } from "../lib/VoiceBanks/BaseVoiceBank";
 import { ResampRequest } from "../types/request";
 import { ResampWorkerService } from "./resampWorker";
 
+/** resamp workerの初期化完了を待つ既定のタイムアウト(ミリ秒) */
+export const RESAMP_READY_TIMEOUT_MS = 30000;
+
 /**
  * Deferred Promise のヘルパー型
  */
@@ -127,6 +130,45 @@ export class ResampWorkerPool {
         }
       }
     }
+  }
+
+  /**
+   * 全workerの初期化完了を待つ。
+   * 指定時間内に完了しない場合はrejectする。
+   * @param timeoutMs タイムアウト時間(ミリ秒)
+   */
+  async waitUntilReady(
+    timeoutMs: number = RESAMP_READY_TIMEOUT_MS,
+  ): Promise<void> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new Error(
+              `resamp workerの初期化が${timeoutMs}ms以内に完了しませんでした`,
+            ),
+          ),
+        timeoutMs,
+      );
+    });
+    try {
+      await Promise.race([
+        Promise.all(this.workers.map((w) => w.worker.waitUntilReady())),
+        timeout,
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /**
+   * 未実行のタスクをキャンセルし、全workerを終了する
+   */
+  terminate(): void {
+    this.clearTasks();
+    this.workers.forEach((w) => w.worker.terminate());
+    this.workers = [];
   }
 
   /**

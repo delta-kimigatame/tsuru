@@ -500,6 +500,7 @@ export const translationJa = {
       backgroundAudioPlayFromNotesEnd: "ノート終了位置から伴奏再生",
       isMinor: "マイナー(短調)",
       isShowPortrait: "立ち絵表示",
+      resampler: "エンジン設定",
     },
     videoExport: {
       selectImage: "背景画像を選択",
@@ -1058,6 +1059,14 @@ export const translationJa = {
     JPAutoPhonemizer: "(日本語)自動連続音(CVVC対応)",
     RomajiJPAutoPhonemizer: "(日本語)ローマ字自動連続音(CVVC対応)",
     JPPresampPhonemizer: "(日本語)presamp準拠(開発中)",
+  },
+  resampler: {
+    resamp: "tsuru(標準)",
+    fave: "Fave",
+    help: "エンジンの説明",
+    loading: "エンジンを読み込み中",
+    loadError:
+      "選択したエンジンの読込に失敗しました。以前のエンジンに戻しました。",
   },
   footer: {
     disclaimer:

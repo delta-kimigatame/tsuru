@@ -264,11 +264,23 @@ export class SynthesisWorker {
     this.workersPool.clearTask(index);
   };
 
+  /**
+   * cookieで選択されているエンジンでworker poolを作り直す。
+   * 古いworker poolは終了する。
+   */
   reload = () => {
     const { workersCount, resampEngine } = useCookieStore.getState();
     LOG.debug("workerspoolの初期化", "synthesis,SynthesisWorker");
+    this.workersPool.terminate();
     this.workersPool = new ResampWorkerPool(workersCount, resampEngine);
     LOG.debug("wavtoolの初期化", "synthesis,SynthesisWorker");
+  };
+
+  /**
+   * 全workerの初期化完了を待つ。タイムアウト時はrejectする。
+   */
+  waitUntilReady = (timeoutMs?: number): Promise<void> => {
+    return this.workersPool.waitUntilReady(timeoutMs);
   };
 
   isReady = (): boolean => {

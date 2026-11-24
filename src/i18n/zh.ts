@@ -465,6 +465,7 @@ export const translationZh = {
       backgroundAudioPlayFromNotesEnd: "从音符结束位置播放伴奏",
       isMinor: "小调",
       isShowPortrait: "显示角色立绘",
+      resampler: "引擎设置",
     },
     videoExport: {
       selectImage: "选择背景图片",
@@ -1005,6 +1006,13 @@ export const translationZh = {
     JPAutoPhonemizer: "（日语）自动连续音（CVVC支持）",
     RomajiJPAutoPhonemizer: "（日语）罗马字自动连续音（CVVC支持）",
     JPPresampPhonemizer: "（日语）presamp规范（开发中）",
+  },
+  resampler: {
+    resamp: "tsuru（标准）",
+    fave: "Fave",
+    help: "引擎说明",
+    loading: "正在加载引擎",
+    loadError: "所选引擎加载失败，已恢复为之前的引擎。",
   },
   footer: {
     disclaimer:

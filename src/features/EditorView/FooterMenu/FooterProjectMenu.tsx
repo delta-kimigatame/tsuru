@@ -3,6 +3,7 @@ import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
+import StarIcon from "@mui/icons-material/Star";
 import TranslateIcon from "@mui/icons-material/Translate";
 import {
   Checkbox,
@@ -24,11 +25,13 @@ import { useMusicProjectStore } from "../../../store/musicProjectStore";
 import { useSnackBarStore } from "../../../store/snackBarStore";
 import { ProjectSettingDialog } from "../ProjectSettingDialog";
 import { FooterPhonemizerMenu } from "./FooterPhonemizerMenu";
+import { FooterResamplerMenu } from "./FooterResamplerMenu";
 
 export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
   anchor,
   handleClose,
   setUstLoadProgress,
+  reloadResampler,
 }) => {
   const { t } = useTranslation();
   /** 隠し表示する<input>へのref */
@@ -58,6 +61,11 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     handlePhonemizerMenuOpen,
     handlePhonemizerMenuClose,
   ] = useMenu("FooterMenu.PhonemizerMenu");
+  const [
+    resamplerMenuAnchor,
+    handleResamplerMenuOpen,
+    handleResamplerMenuClose,
+  ] = useMenu("FooterMenu.ResamplerMenu");
 
   /**
    * inputのファイルを変更した際の動作
@@ -88,7 +96,7 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
       await ust.load(buf);
       LOG.info(
         `ustの読込完了。ノート数:${ust.notes.length},bpm=:${ust.tempo},flags:${ust.flags}`,
-        "FooterProjectMenu"
+        "FooterProjectMenu",
       );
       setUst(ust);
       setUstTempo(ust.tempo);
@@ -98,7 +106,7 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
       } else {
         LOG.warn(
           `vbがロードされていません。テスト以外では必ず事前にロードされるはずなので何かがおかしい`,
-          "FooterProjectMenu"
+          "FooterProjectMenu",
         );
       }
       setNotes(ust.notes);
@@ -172,6 +180,11 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     handleClose();
   };
 
+  const _handleResamplerMenuClose = () => {
+    handleResamplerMenuClose();
+    handleClose();
+  };
+
   /** キー(調)を変更する処理 */
   const handleToneChange = (event: SelectChangeEvent<number>) => {
     const newTone = Number(event.target.value);
@@ -184,19 +197,19 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
     const newIsMinor = event.target.checked;
     LOG.debug(
       `長調/短調を変更: ${isMinor} -> ${newIsMinor}`,
-      "FooterProjectMenu"
+      "FooterProjectMenu",
     );
     setIsMinor(newIsMinor);
   };
 
   /** 立ち絵表示の切り替え処理 */
   const handleIsShowPortraitChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const newIsShowPortrait = event.target.checked;
     LOG.debug(
       `立ち絵表示の切り替え: ${isShowPortrait} -> ${newIsShowPortrait}`,
-      "FooterProjectMenu"
+      "FooterProjectMenu",
     );
     setIsShowPortrait(newIsShowPortrait);
   };
@@ -290,6 +303,12 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
           </ListItemIcon>
           <ListItemText>{t("editor.footer.phonemizer")}</ListItemText>
         </MenuItem>
+        <MenuItem onClick={handleResamplerMenuOpen}>
+          <ListItemIcon>
+            <StarIcon />
+          </ListItemIcon>
+          <ListItemText>{t("editor.footer.resampler")}</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleClearProjectClick} disabled={ust === null}>
           <ListItemIcon>
             <DeleteForeverIcon />
@@ -302,6 +321,11 @@ export const FooterProjectMenu: React.FC<FooterProjectMenuProps> = ({
         anchor={phonemizerMenuAnchor}
         handleClose={_handlePhonemizerMenuClose}
       />
+      <FooterResamplerMenu
+        anchor={resamplerMenuAnchor}
+        handleClose={_handleResamplerMenuClose}
+        reloadResampler={reloadResampler}
+      />
     </>
   );
 };
@@ -313,4 +337,6 @@ export interface FooterProjectMenuProps {
   handleClose: () => void;
   /** 読込中の状態を伝えるためのコールバック */
   setUstLoadProgress: (progress: boolean) => void;
+  /** エンジン変更後に新しいresamplerを読み込むためのコールバック */
+  reloadResampler?: () => Promise<void>;
 }

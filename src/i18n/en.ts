@@ -476,6 +476,7 @@ export const translationEn = {
       backgroundAudioPlayFromNotesEnd: "Play After Notes",
       isMinor: "Minor",
       isShowPortrait: "Show character portrait",
+      resampler: "Engine settings",
     },
     videoExport: {
       selectImage: "Select background image",
@@ -1020,6 +1021,14 @@ export const translationEn = {
     JPAutoPhonemizer: "(Japanese) Automatic VCV(with CVVC)",
     RomajiJPAutoPhonemizer: "(Japanese) Romaji Automatic VCV(with CVVC)",
     JPPresampPhonemizer: "(Japanese) presamp-compliant (in development)",
+  },
+  resampler: {
+    resamp: "tsuru (standard)",
+    fave: "Fave",
+    help: "About this engine",
+    loading: "Loading engine",
+    loadError:
+      "Failed to load the selected engine. Reverted to the previous engine.",
   },
   footer: {
     disclaimer:

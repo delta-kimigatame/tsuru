@@ -425,6 +425,7 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
         anchor={projectMenuAnchor}
         handleClose={handleProjectMenuClose}
         setUstLoadProgress={setUstLoadProgress}
+        reloadResampler={props.reloadResampler}
       />
       <FooterAudioTrackMenu
         anchor={audioTrackMenuAnchor}
@@ -465,6 +466,8 @@ export const FooterMenu: React.FC<FooterMenuProps> = (props) => {
 };
 
 export interface FooterMenuProps {
+  /** エンジン変更後に新しいresamplerを読み込むためのコールバック */
+  reloadResampler?: () => Promise<void>;
   /** 選択されているノートのインデックス 将来的に必須引数にするが開発中のため暫定的にオプショナルとする */
   selectedNotesIndex: number[];
   /** ノートを選択するためのコールバック */
