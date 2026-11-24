@@ -13,7 +13,7 @@ import { CubicSplineInterpolator } from "../utils/interp";
 import { toneToNoteNum } from "../utils/Notenum";
 import { FlagKeys, parseFlags } from "../utils/parseFlags";
 import { decodePitch, getFrqFromNotenum } from "../utils/pitch";
-import { ResampBase } from "./ResampBase";
+import { ResampBase, type FrqDataResult } from "./ResampBase";
 
 const SPAN_SIZE = 256;
 
@@ -99,6 +99,40 @@ export class Fave extends ResampBase {
   /** 互換性のためにinitializeを持つが即解決する */
   async initialize(): Promise<void> {
     return Promise.resolve();
+  }
+
+  /**
+   * frqデータを読み込み、必要な範囲を切り出して返す
+   * @param inputWav 音源ルートからwavファイルへの相対パス
+   * @param offsetMs 原音設定の左ブランク
+   * @param wavMs 読み込んだwavの長さ
+   */
+  async getFrqData(
+    inputWav: string,
+    offsetMs: number,
+    wavMs: number,
+  ): Promise<FrqDataResult> {
+    const frqData = await this.vb.getFrq(inputWav);
+    const perSamples = frqData.perSamples;
+    const offsetFrame = Math.floor(
+      (renderingConfig.frameRate * offsetMs) / perSamples / 1000,
+    );
+    const length =
+      Math.ceil((renderingConfig.frameRate * wavMs) / perSamples / 1000) + 1;
+    const frq = Array.from(frqData.frq).slice(
+      offsetFrame,
+      offsetFrame + length,
+    );
+    const amp = Array.from(frqData.amp).slice(
+      offsetFrame,
+      offsetFrame + length,
+    );
+    return {
+      frq,
+      amp,
+      timeAxis: frq.map((_, i) => (i * perSamples) / renderingConfig.frameRate),
+      frqAverage: frqData.frqAverage,
+    };
   }
 
   /**

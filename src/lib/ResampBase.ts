@@ -1,6 +1,5 @@
 import { renderingConfig } from "../config/rendering";
 import type { ResampWorkerRequest } from "../types/request";
-import { interp1d, makeTimeAxis } from "../utils/interp";
 import type { BaseVoiceBank } from "./VoiceBanks/BaseVoiceBank";
 
 export type FrqDataResult = {
@@ -45,46 +44,14 @@ export abstract class ResampBase {
   }
 
   /**
-   * frqデータを読み込み、必要な範囲をworld時間軸に変換して返す
+   * frqデータを読み込み、エンジンが解釈できる形式で返す
    * @param inputWav 音源ルートからwavファイルへの相対パス
    * @param offsetMs 原音設定の左ブランク
    * @param wavMs 読み込んだwavの長さ
    */
-  async getFrqData(
+  abstract getFrqData(
     inputWav: string,
     offsetMs: number,
     wavMs: number,
-  ): Promise<FrqDataResult> {
-    const timeAxis = makeTimeAxis(renderingConfig.worldPeriod, 0, wavMs / 1000);
-    const frqData = await this.vb.getFrq(inputWav);
-    const frqTimeAxis = makeTimeAxis(
-      (1 / renderingConfig.frqFrameRate) * frqData.perSamples,
-      0,
-      wavMs / 1000,
-    );
-    const offsetFrame = Math.floor(
-      (renderingConfig.frameRate * offsetMs) / frqData.perSamples / 1000,
-    );
-    const cutoffFrame =
-      Math.ceil(
-        (renderingConfig.frameRate * wavMs) / frqData.perSamples / 1000,
-      ) + 1;
-    const frq = interp1d(
-      Array.from(frqData.frq).slice(offsetFrame, offsetFrame + cutoffFrame),
-      frqTimeAxis,
-      timeAxis,
-    );
-    const amp = interp1d(
-      Array.from(frqData.amp).slice(offsetFrame, offsetFrame + cutoffFrame),
-      frqTimeAxis,
-      timeAxis,
-    );
-
-    return {
-      frq,
-      amp,
-      timeAxis,
-      frqAverage: frqData.frqAverage,
-    };
-  }
+  ): Promise<FrqDataResult>;
 }
