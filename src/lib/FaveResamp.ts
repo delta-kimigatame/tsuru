@@ -468,6 +468,42 @@ export class Fave extends ResampBase {
   }
 
   /**
+   * 出力f0列を、点と点の間で対数(cent)線形補間して、指定フレームでのf0を返す。
+   * 点i(時刻 i*f0Steps)の値はそのまま通るので、ユーザーが指定した値は変わらない。
+   * 階段状に保持すると点の境目で読み出し速度が不連続に跳び、大きな音程跳躍でノイズになるため補間する。
+   * 末尾以降は最後の点の値、非正値や非有限値を含む区間は線形補間にフォールバックする。
+   * @param outputF0 出力f0列。f0Stepsフレームごとに1点
+   * @param f0Steps 出力f0列の間隔(フレーム数)
+   * @param frame 出力側のフレーム位置
+   * @returns 補間後の出力f0(Hz)
+   */
+  InterpolateOutputF0(
+    outputF0: Float64Array,
+    f0Steps: number,
+    frame: number,
+  ): number {
+    const lastIndex = outputF0.length - 1;
+    if (lastIndex < 0) {
+      return FALBACK_F0;
+    }
+    const position = Math.max(0, frame / f0Steps);
+    const index0 = Math.min(Math.floor(position), lastIndex);
+    const index1 = Math.min(index0 + 1, lastIndex);
+    const f0a = outputF0[index0];
+    if (index0 === index1) {
+      return f0a;
+    }
+    const f0b = outputF0[index1];
+    const fraction = position - index0;
+    if (f0a > 0 && f0b > 0 && Number.isFinite(f0a) && Number.isFinite(f0b)) {
+      return Math.exp(
+        Math.log(f0a) * (1 - fraction) + Math.log(f0b) * fraction,
+      );
+    }
+    return f0a * (1 - fraction) + f0b * fraction;
+  }
+
+  /**
    * 固定範囲を除いた伸縮区間の長さと伸縮率を計算する
    */
   CalcStretchParams(
@@ -740,16 +776,17 @@ export class Fave extends ResampBase {
             : FALBACK_F0;
       /** F0値から求められるフレーム数 */
       const f0Frames = renderingConfig.frameRate / inputF0Value;
-      /** outputF0からF0値を取得するためのインデックス。仮に要求長に長さが満たない場合、最後のF0値を採用する */
-      const outputF0Index = Math.min(
-        Math.floor(nowFrame / f0Steps),
-        outputF0.length - 1,
+      /** このフレームの出力f0。点の間は対数線形補間し、読み出し速度が階段状に跳ばないようにする。要求長に満たない場合は最後の値を採用 */
+      const interpolatedOutputF0 = this.InterpolateOutputF0(
+        outputF0,
+        f0Steps,
+        nowFrame,
       );
       /** このフレームのターゲットF0。modulationが非0の場合のみ混入する */
       const outputF0Value =
         modulation === 0
-          ? outputF0[outputF0Index]
-          : outputF0[outputF0Index] * (1 - modulation / 100) +
+          ? interpolatedOutputF0
+          : interpolatedOutputF0 * (1 - modulation / 100) +
             (inputF0Value - frqAverage) * (modulation / 100);
       /** 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数(有声時) */
       const voicedStep = outputF0Value / inputF0Value;

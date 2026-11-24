@@ -198,6 +198,54 @@ describe("FaveResamp", () => {
     expect(calcMeanDiff(neutral, brighted)).toBeGreaterThan(1e-5);
   }, 30000);
 
+  describe("出力f0の補間", () => {
+    const f0Steps = 100;
+    const points = new Float64Array([220, 440, 110]);
+
+    it("点の位置ではユーザー指定の値がそのまま返る", () => {
+      expect(fave.InterpolateOutputF0(points, f0Steps, 0)).toBeCloseTo(220, 9);
+      expect(fave.InterpolateOutputF0(points, f0Steps, 100)).toBeCloseTo(
+        440,
+        9,
+      );
+      expect(fave.InterpolateOutputF0(points, f0Steps, 200)).toBeCloseTo(
+        110,
+        9,
+      );
+    });
+
+    it("点の間は対数(cent)で線形に補間される", () => {
+      // 220->440の中間は幾何平均
+      expect(fave.InterpolateOutputF0(points, f0Steps, 50)).toBeCloseTo(
+        Math.sqrt(220 * 440),
+        6,
+      );
+      // 440->110の中間も幾何平均
+      expect(fave.InterpolateOutputF0(points, f0Steps, 150)).toBeCloseTo(
+        Math.sqrt(440 * 110),
+        6,
+      );
+    });
+
+    it("区間内で単調に変化し、末尾以降は最後の値を保つ", () => {
+      let prev = fave.InterpolateOutputF0(points, f0Steps, 0);
+      for (let frame = 1; frame <= 100; frame++) {
+        const value = fave.InterpolateOutputF0(points, f0Steps, frame);
+        expect(value).toBeGreaterThan(prev);
+        prev = value;
+      }
+      expect(fave.InterpolateOutputF0(points, f0Steps, 1000)).toBe(110);
+    });
+
+    it("非正値を含む区間は線形補間にフォールバックする", () => {
+      const withZero = new Float64Array([0, 200]);
+      expect(fave.InterpolateOutputF0(withZero, f0Steps, 50)).toBeCloseTo(
+        100,
+        9,
+      );
+    });
+  });
+
   describe("OLAの読み出し位置の連続性", () => {
     const SPAN = 256;
     const FS = 44100;
