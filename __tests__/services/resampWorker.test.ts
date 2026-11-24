@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DEFAULT_RESAMP_ENGINE } from "../../src/lib/ResampEngine";
+import type { BaseVoiceBank } from "../../src/lib/VoiceBanks/BaseVoiceBank";
 import { ResampWorkerService } from "../../src/services/resampWorker";
 import type { ResampRequest } from "../../src/types/request";
 
@@ -154,7 +155,7 @@ describe("ResampWorkerService", () => {
     // 正常系: processResamp を呼び出し、DummyWorker が成功レスポンスを返すか確認
     const result = await service.processResamp(
       dummyResampRequest,
-      dummyVoiceBank,
+      dummyVoiceBank as unknown as BaseVoiceBank,
     );
     expect(result).toBeInstanceOf(Float64Array);
     expect(Array.from(result)).toEqual([10, 20, 30]);
@@ -167,7 +168,10 @@ describe("ResampWorkerService", () => {
       inputWav: "simulateError",
     };
     await expect(
-      service.processResamp(errorRequest, dummyVoiceBank),
+      service.processResamp(
+        errorRequest,
+        dummyVoiceBank as unknown as BaseVoiceBank,
+      ),
     ).rejects.toThrow("simulated error");
   });
 });
