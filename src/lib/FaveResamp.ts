@@ -208,27 +208,28 @@ export class Fave extends ResampBase {
       effectiveStretchRate,
       request.modulation,
     );
-    const formantFilteredData = flags["N"]
-      ? stretchedData
-      : this.ApplyFormantFilter(
-          request.inputWavData,
-          stretchedData,
-          request.frqData,
-          request.frqAverage,
-          outputF0,
-          f0Steps,
-          inputFixedFrames,
-          outputFixedFrames,
-          velocityRate,
-          effectiveStretchRate,
-          flags["B"] ?? 50,
-          flags["O"] ?? 0,
-          flags["T"] ?? 0,
-          flags["S"] ?? 0,
-          flags["b"] ?? 0,
-          flags["g"] ?? 0,
-          flags["s"] ?? 20,
-        );
+    const formantFilteredData =
+      flags["N"] !== undefined
+        ? stretchedData
+        : this.ApplyFormantFilter(
+            request.inputWavData,
+            stretchedData,
+            request.frqData,
+            request.frqAverage,
+            outputF0,
+            f0Steps,
+            inputFixedFrames,
+            outputFixedFrames,
+            velocityRate,
+            effectiveStretchRate,
+            flags["B"] ?? 50,
+            flags["O"] ?? 0,
+            flags["T"] ?? 0,
+            flags["S"] ?? 0,
+            flags["b"] ?? 0,
+            flags["g"] ?? 0,
+            flags["s"] ?? 20,
+          );
     const correctedData = this.CorrectedAmplitudeEnvelope(
       formantFilteredData,
       request.ampData,
@@ -816,12 +817,12 @@ export class Fave extends ResampBase {
         f0Steps,
         nowFrame,
       );
-      /** このフレームのターゲットF0。modulationが非0の場合のみ混入する */
+      /** このフレームのターゲットF0。入力f0の平均からの比を、modulationの割合だけ出力f0へ掛ける */
       const outputF0Value =
-        modulation === 0
+        modulation === 0 || !(Number.isFinite(frqAverage) && frqAverage > 0)
           ? interpolatedOutputF0
-          : interpolatedOutputF0 * (1 - modulation / 100) +
-            (inputF0Value - frqAverage) * (modulation / 100);
+          : interpolatedOutputF0 *
+            (inputF0Value / frqAverage) ** (modulation / 100);
       /** 入出力F0比率によるOLAのソースとなるフレームの移動ステップ数(有声時) */
       const voicedStep = outputF0Value / inputF0Value;
       /** 固定範囲かつ時間軸上の入力f0が無声(f0<=0) */
