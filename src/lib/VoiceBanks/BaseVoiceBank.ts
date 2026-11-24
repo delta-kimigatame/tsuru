@@ -225,13 +225,16 @@ export abstract class BaseVoiceBank {
   abstract loadRootFile(filename: string): Promise<ArrayBuffer>;
 
   /**
-   * zipデータ
+   * zipデータ。実際の型は継承先で定義する
    */
-  get zip() {
+  get zip(): unknown {
     return null;
   }
 
-  get files() {
+  /**
+   * ファイルデータ。実際の型は継承先で定義する
+   */
+  get files(): unknown {
     return null;
   }
 
