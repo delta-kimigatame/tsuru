@@ -1,22 +1,14 @@
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import HelpIcon from "@mui/icons-material/Help";
-import {
-  Box,
-  CircularProgress,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Modal,
-  Typography,
-} from "@mui/material";
+import { ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { LOG } from "../../../lib/Logging";
+import { useResamplerSwitch } from "../../../hooks/useResamplerSwitch";
 import { ResampEngineName } from "../../../lib/ResampEngine";
 import { useCookieStore } from "../../../store/cookieStore";
-import { useSnackBarStore } from "../../../store/snackBarStore";
+import { ResamplerHelpDialog } from "../ResamplerHelpDialog";
+import { ResamplerLoadingModal } from "../ResamplerLoadingModal";
 
 /** メニューに表示するエンジンの一覧 */
 const RESAMP_ENGINES: ReadonlyArray<ResampEngineName> = ["resamp", "fave"];
@@ -34,52 +26,31 @@ export const FooterResamplerMenu: React.FC<FooterResamplerMenuProps> = (
   props,
 ) => {
   const { t } = useTranslation();
-  const { resampEngine, setResampEngine } = useCookieStore();
-  const snackBarStore = useSnackBarStore();
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const { resampEngine } = useCookieStore();
+  const { loading, switchEngine } = useResamplerSwitch(props.reloadResampler);
+  /** ヘルプダイアログの開閉状態 */
+  const [helpOpen, setHelpOpen] = React.useState<boolean>(false);
+  /** ヘルプダイアログに表示するエンジン。閉じるアニメーション中も表示を保つため開閉状態とは別に持つ */
+  const [helpEngine, setHelpEngine] = React.useState<ResampEngineName>(
+    RESAMP_ENGINES[0],
+  );
 
-  const handleClick = async (engine: ResampEngineName) => {
+  const handleClick = (engine: ResampEngineName) => {
     props.handleClose();
-    if (engine === resampEngine) {
-      return;
-    }
-    const previousEngine = resampEngine;
-    LOG.info(
-      `resampエンジンを変更: ${previousEngine} -> ${engine}`,
-      "FooterResamplerMenu",
-    );
-    setResampEngine(engine);
-    if (!props.reloadResampler) {
-      return;
-    }
-    setLoading(true);
-    try {
-      await props.reloadResampler();
-    } catch (e) {
-      LOG.error(
-        `resampler(${engine})の読込に失敗しました。${previousEngine}に戻します。${e}`,
-        "FooterResamplerMenu",
-      );
-      snackBarStore.setSeverity("error");
-      snackBarStore.setValue(t("resampler.loadError"));
-      snackBarStore.setOpen(true);
-      setResampEngine(previousEngine);
-      try {
-        await props.reloadResampler();
-      } catch (e2) {
-        LOG.error(
-          `元のresampler(${previousEngine})の再読込にも失敗しました。${e2}`,
-          "FooterResamplerMenu",
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
+    switchEngine(engine);
   };
 
-  /** ヘルプアイコンの動作は未定義(dummy) */
-  const handleHelpClick = (e: React.MouseEvent) => {
+  /** ヘルプアイコンをクリックした際の動作。ヘルプダイアログを開く */
+  const handleHelpClick = (e: React.MouseEvent, engine: ResampEngineName) => {
     e.stopPropagation();
+    setHelpEngine(engine);
+    setHelpOpen(true);
+  };
+
+  /** ヘルプダイアログを閉じる際の動作。メニューも閉じる */
+  const handleHelpClose = () => {
+    setHelpOpen(false);
+    props.handleClose();
   };
 
   return (
@@ -102,33 +73,19 @@ export const FooterResamplerMenu: React.FC<FooterResamplerMenuProps> = (
             <ListItemText>{t(`resampler.${engine}`)}</ListItemText>
             <HelpIcon
               aria-label={t("resampler.help")}
-              onClick={handleHelpClick}
+              onClick={(e) => handleHelpClick(e, engine)}
               sx={{ ml: 2 }}
             />
           </MenuItem>
         ))}
       </Menu>
-      <Modal open={loading} aria-label={t("resampler.loading")}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            p: 4,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            outline: "none",
-          }}
-        >
-          <CircularProgress />
-          <Typography>{t("resampler.loading")}</Typography>
-        </Box>
-      </Modal>
+      <ResamplerHelpDialog
+        open={helpOpen}
+        engine={helpEngine}
+        handleClose={handleHelpClose}
+        handleSelectEngine={switchEngine}
+      />
+      <ResamplerLoadingModal open={loading} />
     </>
   );
 };
