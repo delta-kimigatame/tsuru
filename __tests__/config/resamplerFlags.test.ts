@@ -8,12 +8,12 @@ import { Fave } from "../../src/lib/FaveResamp";
 import { Resamp } from "../../src/lib/Resamp";
 
 describe("RESAMPLER_FLAGS", () => {
-  it("resampのフラグ定義とヘルプ表示用の定義が一致する", () => {
-    expect(RESAMPLER_FLAGS.resamp).toEqual(new Resamp(null).flagKeys);
+  it("resampのflagKeysは設定ファイルの定義を参照している", () => {
+    expect(new Resamp(null).flagKeys).toBe(RESAMPLER_FLAGS.resamp);
   });
 
-  it("faveのフラグ定義とヘルプ表示用の定義が一致する", () => {
-    expect(RESAMPLER_FLAGS.fave).toEqual(new Fave(null).flagKeys);
+  it("faveのflagKeysは設定ファイルの定義を参照している", () => {
+    expect(new Fave(null).flagKeys).toBe(RESAMPLER_FLAGS.fave);
   });
 
   it.each([

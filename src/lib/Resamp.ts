@@ -1,5 +1,6 @@
 import { World } from "tsworld";
 import { renderingConfig } from "../config/rendering";
+import { RESAMPLER_FLAGS } from "../config/resamplerFlags";
 import type { ResampRequest, ResampWorkerRequest } from "../types/request";
 import { range } from "../utils/array";
 import { interp1d, makeTimeAxis } from "../utils/interp";
@@ -19,25 +20,9 @@ export class Resamp extends ResampBase {
   world: World;
 
   /**
-   * フラグ定義
+   * フラグ定義。定義は src/config/resamplerFlags.ts にある
    */
-  flagKeys: FlagKeys[] = [
-    { name: "G", type: "bool", default: undefined }, // Generateフラグ、周波数表を強制的に再生成
-    { name: "g", type: "number", min: -100, max: 100, default: 0 }, //genderフラグ、スペクトル包絡全体をワープ
-    { name: "B", type: "number", min: 0, max: 100, default: 50 }, //Breath、現在の実装では簡易的に非周期性指標の増減
-    { name: "t", type: "number", min: -100, max: 100, default: 0 }, //toneフラグ、音高をcent単位で調整
-    { name: "P", type: "number", min: 0, max: 100, default: 86 }, //ピークコンプレッサーの強さ。0で無し、100で-6dBに正規化
-    { name: "e", type: "bool", default: undefined }, //伸縮方法フラグ、trueでworldStretchのeFlagをtrueにして伸縮。falseでeFlagをfalseにして伸縮。eFlagがtrueのとき、伸ばす際は元のフレームを等間隔に複製するのではなく、複製するフレームを交互に前後から選ぶ方法で伸ばす。これにより、より自然な伸び方になることがある。
-    { name: "w", type: "number", min: 0, max: 100, default: 0 }, //グロウルの強さ。
-    { name: "O", type: "number", min: -100, max: 100, default: 0 }, //Openingフラグ。F1付近のスペクトルワープで疑似的に開口度を調整する。+で開く、-で閉じる。
-    { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。F2付近のスペクトルワープで疑似的に張りを調整する。+で張る、-で緩める。
-    { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。0は素通し、100に近いほどフォルマント強調
-    { name: "b", type: "number", min: -100, max: 100, default: 0 }, //ブライトネスフラグ。スペクトルティルトでブライトネスを調整する。-で暗く、+で明るくする。
-    { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
-    { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
-    { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
-    { name: "ME", type: "number", min: -100, max: 100, default: 0, alias: "S" }, //moresampler互換性のためのSフラグのエイリアス。SがなくMEがあれば、MEをSとして扱う。
-  ];
+  flagKeys: FlagKeys[] = RESAMPLER_FLAGS.resamp;
 
   async initialize(): Promise<void> {
     return new Promise(async (resolve) => {

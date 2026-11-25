@@ -8,6 +8,7 @@
 import { irfft_complex, rfft_complex } from "@delta_kimigatame/fft-wasm-lib";
 import { WaveAnalyse } from "utauwav";
 import { renderingConfig } from "../config/rendering";
+import { RESAMPLER_FLAGS } from "../config/resamplerFlags";
 import { ResampWorkerRequest } from "../types/request";
 import { CubicSplineInterpolator } from "../utils/interp";
 import { toneToNoteNum } from "../utils/Notenum";
@@ -77,27 +78,9 @@ const createOlaContinuityState = (): OlaContinuityState => ({
 
 export class Fave extends ResampBase {
   /**
-   * フラグ定義
+   * フラグ定義。定義は src/config/resamplerFlags.ts にある
    */
-  flagKeys: FlagKeys[] = [
-    { name: "G", type: "bool", default: undefined }, // Generateフラグ、周波数表を強制的に再生成
-    { name: "g", type: "number", min: -100, max: 100, default: 0 }, //genderフラグ、スペクトル包絡全体をワープ
-    { name: "B", type: "number", min: 0, max: 100, default: 50 }, //Breath、現在の実装では簡易的に非周期性指標の増減
-    { name: "O", type: "number", min: -100, max: 100, default: 0 }, //Openingフラグ。低域側の包絡を中心に増減
-    { name: "T", type: "number", min: -100, max: 100, default: 0 }, //Tensionフラグ。中域(F2付近)の包絡を中心に増減
-    { name: "S", type: "number", min: -100, max: 100, default: 0 }, //Sharpフラグ。高域寄りの明瞭感を増減
-    { name: "b", type: "number", min: -100, max: 100, default: 0 }, //Brightnessフラグ。スペクトルティルトで明るさを増減
-    { name: "H", type: "number", min: 0, max: 100, default: 0 }, //ローパスフラグ。8kHz以上の通過量を0..100で指定する(0で無効、100で遮断)
-    { name: "t", type: "number", min: -100, max: 100, default: 0 }, //toneフラグ、音高をcent単位で調整
-    { name: "P", type: "number", min: 0, max: 100, default: 86 }, //ピークコンプレッサーの強さ。0で無し、100で-6dBに正規化
-    { name: "w", type: "number", min: 0, max: 100, default: 0 }, //グロウルの強さ。
-    { name: "N", type: "bool", default: undefined }, // NoFormantFilter、フォルマントフィルタを無視する
-    { name: "s", type: "number", min: 0, max: 100, default: 20 }, //エンベロープのガウスぼかしにおけるシグマ値。20で1σ。0でぼかしなし
-    { name: "Mo", type: "number", min: -100, max: 100, default: 0, alias: "O" }, //moresampler互換性のためのOフラグのエイリアス。OがなくMoがあれば、MoをOとして扱う。
-    { name: "Mt", type: "number", min: -100, max: 100, default: 0, alias: "T" }, //moresampler互換性のためのTフラグのエイリアス。TがなくMtがあれば、MtをTとして扱う。
-    { name: "MG", type: "number", min: -100, max: 100, default: 0, alias: "w" }, //moresampler互換性のためのwフラグのエイリアス。wがなくMGがあれば、MGをwとして扱う。
-    { name: "ME", type: "number", min: -100, max: 100, default: 0, alias: "S" }, //moresampler互換性のためのSフラグのエイリアス。SがなくMEがあれば、MEをSとして扱う。
-  ];
+  flagKeys: FlagKeys[] = RESAMPLER_FLAGS.fave;
   /** 互換性のためにinitializeを持つが即解決する */
   async initialize(): Promise<void> {
     return Promise.resolve();
