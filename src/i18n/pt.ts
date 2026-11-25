@@ -83,6 +83,7 @@ export const translationPt = {
       "Os Workers utilizados neste site não coletam dados relacionados à privacidade.",
     history: "Atualizações",
     changelog: [
+      "2026/11/25\r\n[Adição] Adicionado o Fave como mecanismo de síntese.\r\n[Adição] Adicionada a função de alternar o mecanismo no menu do rodapé.",
       "2026/10/26\r\n[Correção] Corrigido um problema em que todo o aplicativo travava quando um UST continha parâmetros inválidos.",
       "2026/09/13\r\n[Adição] Adicionado o carregamento de arquivos ZIP de fontes UTAU com pouca memória. O uso de memória é reduzido em cerca de 90%, mas a síntese fica cerca de 33% mais lenta. Recomendado para dispositivos de baixo desempenho nos quais o aplicativo poderia travar.",
       "2026/06/27\r\nQuando o oto.ini possui parâmetros vazios, agora eles são lidos como 0.",

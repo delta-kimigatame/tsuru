@@ -81,6 +81,7 @@ export const translationEn = {
       "The workers used on this site do not collect any privacy-related data.",
     history: "Release Note",
     changelog: [
+      "2026/11/25\r\n[Added] Added Fave as a synthesis engine.\r\n[Added] Added an engine switching feature to the footer menu.",
       "2026/10/26\r\n[Fix] Fixed an issue where the entire app crashed when a UST contained invalid parameters.",
       "2026/09/13\r\n[Added] Added low-memory loading for UTAU voice bank ZIP files. Memory usage is reduced by about 90%, but synthesis is about 33% slower. Recommended for low-spec devices where the app would otherwise crash.",
       "2026/06/27\r\nWhen oto.ini has empty parameters, they are now read as 0.",
