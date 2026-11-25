@@ -349,6 +349,7 @@ export const EditorView: React.FC<{
         wavSize: wavBuf.byteLength,
         synthesisTime: Date.now() - synthesisStartTime,
         phonemizer: phonemizer.name,
+        resampler: resampEngine,
       });
       const wavUrl_ = URL.createObjectURL(
         new File([wavBuf], "temp.wav", { type: "audio/wav" }),
