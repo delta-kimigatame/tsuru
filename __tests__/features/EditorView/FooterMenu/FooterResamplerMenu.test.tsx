@@ -138,4 +138,61 @@ describe("FooterResamplerMenu", () => {
     expect(mockSetResampEngine).not.toHaveBeenCalled();
     expect(reloadResampler).not.toHaveBeenCalled();
   });
+
+  it("helpアイコンでヘルプダイアログが開き、エンジンの選択は行われない", () => {
+    render(
+      <FooterResamplerMenu anchor={anchor} handleClose={mockHandleClose} />,
+    );
+
+    fireEvent.click(screen.getAllByLabelText("resampler.help")[1]);
+
+    expect(screen.getByText("resampler.description.fave")).toBeTruthy();
+    expect(mockSetResampEngine).not.toHaveBeenCalled();
+    expect(mockHandleClose).not.toHaveBeenCalled();
+  });
+
+  it("ヘルプダイアログで未選択のエンジンを使用すると、エンジンを変更してメニューを閉じ、読込中モーダルを表示する", async () => {
+    let resolveReload: () => void = () => {};
+    const reloadResampler = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveReload = resolve;
+        }),
+    );
+    render(
+      <FooterResamplerMenu
+        anchor={anchor}
+        handleClose={mockHandleClose}
+        reloadResampler={reloadResampler}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByLabelText("resampler.help")[1]);
+    fireEvent.click(screen.getByText("resampler.useThisEngine"));
+
+    expect(mockSetResampEngine).toHaveBeenCalledWith("fave");
+    expect(mockHandleClose).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByRole("progressbar")).toBeTruthy();
+    });
+
+    await act(async () => {
+      resolveReload();
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("progressbar")).toBeNull();
+    });
+  });
+
+  it("ヘルプダイアログを閉じるとメニューも閉じる", () => {
+    render(
+      <FooterResamplerMenu anchor={anchor} handleClose={mockHandleClose} />,
+    );
+
+    fireEvent.click(screen.getAllByLabelText("resampler.help")[0]);
+    fireEvent.click(screen.getByText("resampler.close"));
+
+    expect(mockHandleClose).toHaveBeenCalled();
+    expect(mockSetResampEngine).not.toHaveBeenCalled();
+  });
 });
