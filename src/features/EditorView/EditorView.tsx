@@ -55,6 +55,7 @@ export const EditorView: React.FC<{
     colorTheme,
     horizontalZoom,
     verticalZoom,
+    resampEngine,
   } = useCookieStore();
   const themeMode = useThemeMode();
   const videoExportFormContext = React.useMemo<VideoExportFormContext>(
@@ -168,7 +169,7 @@ export const EditorView: React.FC<{
     LOG.debug("vbかnotesかselectNotesIndexの更新を検知", "EditorView");
     LOG.debug("生成済みwavのクリア", "EditorView");
     setWavUrl(undefined);
-  }, [vb, notes, selectNotesIndex, phonemizer]);
+  }, [vb, notes, selectNotesIndex, phonemizer, resampEngine]);
 
   React.useEffect(() => {
     LOG.debug("vbの更新を検知。全てのキャッシュクリア", "EditorView");
@@ -181,6 +182,13 @@ export const EditorView: React.FC<{
     resampCache.clear();
     makeCache();
   }, [phonemizer]);
+
+  React.useEffect(() => {
+    // エンジンのワーカーはこの時点では未読込のため、makeCacheは行わない。
+    // キャッシュの再生成はreloadResampler内で、ワーカーの読込完了後に行う。
+    LOG.debug("resampEngineの更新を検知。全てのキャッシュクリア", "EditorView");
+    resampCache.clear();
+  }, [resampEngine]);
 
   React.useEffect(() => {
     timerRef.current = setTimeout(() => {
@@ -268,14 +276,12 @@ export const EditorView: React.FC<{
   };
   /**
    * resamplerエンジン変更後に、新しいエンジンのworkerを読み込み直す。
-   * エンジンごとに出力が異なるためキャッシュと生成済みwavも破棄する。
+   * キャッシュと生成済みwavの破棄は、resampEngineの変更を検知するuseEffectが行う。
    */
   const reloadResampler = async (): Promise<void> => {
     LOG.debug("resamplerの再読込開始", "EditorView");
     synthesisWorker.reload();
     await synthesisWorker.waitUntilReady();
-    resampCache.clear();
-    setWavUrl(undefined);
     LOG.debug("resamplerの再読込完了", "EditorView");
     makeCache();
   };
